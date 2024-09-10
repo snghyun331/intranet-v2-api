@@ -1,0 +1,22 @@
+services:
+  acg-benefit-test:
+    build:
+      context: '.'
+      dockerfile: Dockerfile
+    container_name: 'benefit_test'
+    networks:
+      - acg-benefit-net_default
+    ports:
+      - '${SERVER_PORT}:${SERVER_PORT}'
+    volumes:
+      - ./src:/myfolder/src
+      - ./logs:/myfolder/logs
+    env_file:
+      - './.env'
+    environment:
+      - TZ=Asia/Seoul
+      - DB_HOST=host.docker.internal
+
+networks:
+  acg-benefit-net_default:
+    driver: bridge

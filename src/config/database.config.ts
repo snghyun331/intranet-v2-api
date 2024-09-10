@@ -1,0 +1,18 @@
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
+
+export const DATABASE_CONFIG: TypeOrmModuleAsyncOptions = {
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (configService: ConfigService) => ({
+    type: 'mariadb',
+    host: configService.get<string>('DB_HOST'),
+    port: configService.get<number>('DB_PORT'),
+    username: configService.get<string>('DB_USER'),
+    password: configService.get<string>('DB_PW'),
+    database: configService.get<string>('DB_NAME'),
+    charset: 'utf8mb4',
+    entities: ['dist/**/*.entity.js'],
+    synchronize: false,
+  }),
+};
