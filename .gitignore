@@ -30,7 +30,7 @@ lerna-debug.log*
 
 # IDE - VSCode
 .vscode/*
-!.vscode/settings.json
+.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
@@ -54,3 +54,15 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Redis
+/redis-data
+/redis-data/*
+
+# Docker file
+docker-compose.dev.yaml
+Dockerfile.dev
+
+# resource
+/resource
+/resource/*
