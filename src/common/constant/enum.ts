@@ -13,3 +13,8 @@ export enum MealTypeEnum {
   LAUNCH = 'launch',
   DINNER = 'dinner',
 }
+
+export enum HalfYearEnum {
+  FIRST = 'first',
+  SECOND = 'second',
+}

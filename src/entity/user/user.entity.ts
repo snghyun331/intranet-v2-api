@@ -5,6 +5,7 @@ import { HeadquarterEntity } from './headquarter.entity';
 import { TeamEntity } from './team.entity';
 import { GradeEntity } from './grade.entity';
 import { MealEntity } from '../meal/meal.entity';
+import { MealStatsEntity } from '../meal/mealStats.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -29,8 +30,8 @@ export class UserEntity extends CommonEntity {
   @Column({ name: 'birth', comment: '생년월일', nullable: false })
   birth: string;
 
-  @Column({ type: 'datetime', name: 'join_date', comment: '생년월일', nullable: false })
-  joinDate: Date;
+  @Column({ name: 'join_date', comment: '입사일', nullable: false })
+  joinDate: string;
 
   @Column({ name: 'hq_idx', nullable: true })
   hqIdx: number;
@@ -77,4 +78,7 @@ export class UserEntity extends CommonEntity {
 
   @OneToMany(() => MealEntity, (meal) => meal.userIdxRelation)
   mealRelation: MealEntity[];
+
+  @OneToMany(() => MealStatsEntity, (mealStats) => mealStats.userIdxRelation)
+  mealStatsRelation: MealStatsEntity[];
 }
