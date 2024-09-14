@@ -1,9 +1,10 @@
 import { GenderEnum, YNEnum } from 'src/common/constant/enum';
 import { CommonEntity } from 'src/common/entity/common.entity';
-import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { HeadquarterEntity } from './headquarter.entity';
 import { TeamEntity } from './team.entity';
 import { GradeEntity } from './grade.entity';
+import { MealEntity } from '../meal/meal.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -73,4 +74,7 @@ export class UserEntity extends CommonEntity {
   })
   @JoinColumn({ name: 'grade_idx', referencedColumnName: 'gradeIdx' })
   gradeIdxRelation: GradeEntity;
+
+  @OneToMany(() => MealEntity, (meal) => meal.userIdxRelation)
+  mealRelation: MealEntity[];
 }

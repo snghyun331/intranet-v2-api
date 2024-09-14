@@ -7,3 +7,9 @@ export enum YNEnum {
   YES = 'Y',
   NO = 'N',
 }
+
+export enum MealTypeEnum {
+  BREAKFAST = 'breakfast',
+  LAUNCH = 'launch',
+  DINNER = 'dinner',
+}
