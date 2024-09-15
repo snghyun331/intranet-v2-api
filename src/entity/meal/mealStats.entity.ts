@@ -23,7 +23,7 @@ export class MealStatsEntity extends CommonEntity {
   @Column({ name: 'workdays', comment: '업무일수', default: 0, nullable: false })
   workdays: number;
 
-  @Column({ name: 'holidays', comment: '휴일수', default: 0, nullable: false })
+  @Column({ name: 'holidays', comment: '휴일수(주말,공휴일)', default: 0, nullable: false })
   holidays: number;
 
   @Column({ name: 'time_off_days', comment: '(반)연차/휴무일수', default: 0, nullable: false })
@@ -38,7 +38,7 @@ export class MealStatsEntity extends CommonEntity {
   @Column({ name: 'meal_balance', comment: '이번달 식대 잔액', default: 0, nullable: false })
   mealBalance: number;
 
-  @Column({ name: 'meal_expense', comment: '이번달 사용 금액', default: 0, nullable: false })
+  @Column({ name: 'meal_expense', comment: '이번달 식대 사용 금액', default: 0, nullable: false })
   mealExpense: number;
 
   @ManyToOne(() => UserEntity, (user) => user.mealStatsRelation, {
