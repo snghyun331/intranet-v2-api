@@ -6,6 +6,7 @@ import { LoggerMiddleware } from 'src/common/middleware/logger.middleware';
 import { DATABASE_CONFIG } from 'src/config/database.config';
 import { WINSTON_CONFIG } from 'src/config/logger.config';
 import { HealthModule } from './health/health.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { HealthModule } from './health/health.module';
     WinstonModule.forRoot(WINSTON_CONFIG),
     TypeOrmModule.forRootAsync(DATABASE_CONFIG),
     HealthModule,
+    SchedulerModule,
   ],
 })
 export class AppModule implements NestModule {
