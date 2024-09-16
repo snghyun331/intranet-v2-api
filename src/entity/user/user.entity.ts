@@ -1,5 +1,5 @@
-import { GenderEnum, YNEnum } from 'src/common/constant/enum';
-import { CommonEntity } from 'src/common/entity/common.entity';
+import { GenderEnum, YNEnum } from '../../common/constant/enum';
+import { CommonEntity } from '../../common/entity/common.entity';
 import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { HeadquarterEntity } from './headquarter.entity';
 import { TeamEntity } from './team.entity';

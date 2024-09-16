@@ -1,7 +1,6 @@
-import { CommonEntity } from 'src/common/entity/common.entity';
+import { CommonEntity } from '../../common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
-import { HalfYearEnum } from 'src/common/constant/enum';
 
 @Entity({ name: 'meal_stats', comment: '식대 통계 tb' })
 export class MealStatsEntity extends CommonEntity {
@@ -12,18 +11,15 @@ export class MealStatsEntity extends CommonEntity {
   userIdx: number;
 
   @Column({ name: 'year', comment: '연도', nullable: false })
-  year: number;
+  year: string;
 
   @Column({ name: 'month', comment: '월', nullable: false })
-  month: number;
+  month: string;
 
-  @Column({ type: 'enum', enum: HalfYearEnum, name: 'half_year', comment: '상하반기 구분', nullable: false })
-  halfYear: HalfYearEnum;
-
-  @Column({ name: 'workdays', comment: '업무일수', default: 0, nullable: false })
+  @Column({ name: 'workdays', comment: '업무일수', nullable: false })
   workdays: number;
 
-  @Column({ name: 'holidays', comment: '휴일수(주말,공휴일)', default: 0, nullable: false })
+  @Column({ name: 'holidays', comment: '휴일수(주말,공휴일)', nullable: false })
   holidays: number;
 
   @Column({ name: 'time_off_days', comment: '(반)연차/휴무일수', default: 0, nullable: false })
@@ -32,14 +28,20 @@ export class MealStatsEntity extends CommonEntity {
   @Column({ name: 'holiday_workdays', comment: '휴일근무일수', default: 0, nullable: false })
   holidayWorkdays: number;
 
-  @Column({ name: 'meal_budget', comment: '이번달 식대 사용가능 금액', default: 0, nullable: false })
+  @Column({ name: 'meal_budget', comment: '이번달 식대(중식) 사용가능 금액', nullable: false })
   mealBudget: number;
 
-  @Column({ name: 'meal_balance', comment: '이번달 식대 잔액', default: 0, nullable: false })
+  @Column({ name: 'meal_expense', comment: '이번달 식대(중식) 사용 금액', default: 0, nullable: false })
+  mealExpense: number;
+
+  @Column({ name: 'meal_balance', comment: '이번달 식대(중식) 잔액', nullable: true })
   mealBalance: number;
 
-  @Column({ name: 'meal_expense', comment: '이번달 식대 사용 금액', default: 0, nullable: false })
-  mealExpense: number;
+  @Column({ name: 'breakfast_expense', comment: '이번달 식대(조식) 사용 금액', default: 0, nullable: false })
+  breakFastExpense: number;
+
+  @Column({ name: 'dinner_expense', comment: '이번달 식대(석식) 사용 금액', default: 0, nullable: false })
+  dinnerExpense: number;
 
   @ManyToOne(() => UserEntity, (user) => user.mealStatsRelation, {
     onDelete: 'CASCADE',

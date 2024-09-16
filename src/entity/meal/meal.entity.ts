@@ -1,5 +1,5 @@
-import { MealTypeEnum } from 'src/common/constant/enum';
-import { CommonEntity } from 'src/common/entity/common.entity';
+import { MealTypeEnum } from '../../common/constant/enum';
+import { CommonEntity } from '../../common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 
