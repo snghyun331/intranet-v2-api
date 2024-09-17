@@ -5,6 +5,7 @@ import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { HolidayInfoDto } from '../dto/holiday.dto';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
+import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
 
 @Injectable()
 export class SchedulerRepository {
@@ -27,7 +28,7 @@ export class SchedulerRepository {
       .where('userEntity.userAvail IS NULL')
       .getRawMany();
 
-    const userIdxList = result.map((r) => r.userIdx);
+    const userIdxList: number[] = result.map((r) => r.userIdx);
 
     return userIdxList;
   }
@@ -40,16 +41,15 @@ export class SchedulerRepository {
 
   async getPublicHolidayDate(year: number, month: number): Promise<string[]> {
     // 해당 월의 첫 번째 날과 마지막 날을 구함
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const endDate = new Date(year, month, 0).getDate(); // 해당 월의 마지막 날 계산
-    const endDateString = `${year}-${String(month).padStart(2, '0')}-${String(endDate).padStart(2, '0')}`;
-
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: any[] = await this.holidayModel
       .createQueryBuilder('holidayEntity')
       .select(['holidayEntity.holidayDate AS holidayDate'])
-      .where('holidayEntity.holidayDate BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate: endDateString,
+      .where('holidayEntity.holidayDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
+        firstDayOfMonthToString,
+        lastDayOfMonthToString,
       })
       .getRawMany();
 

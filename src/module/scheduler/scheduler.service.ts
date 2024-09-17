@@ -61,6 +61,7 @@ export class SchedulerService {
     }
   }
 
+  // 매달 25일에 다음달 식대 사용가능 금액 업데이트
   @Cron('0 0 25 * *')
   async updateMealStats(): Promise<void> {
     this.logger.log('🚀 Start Updating Meal Stats Job !');
@@ -68,7 +69,6 @@ export class SchedulerService {
     const nowMonth: number = date.getMonth() + 1;
     const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
     const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-
     const weekendDates: string[] = getWeekendDates(year, nextMonth);
     const publicHolidayDates: string[] = await this.schedulerRepository.getPublicHolidayDate(year, nextMonth);
     const holidayDates: Set<string> = new Set<string>([...weekendDates, ...publicHolidayDates]);
