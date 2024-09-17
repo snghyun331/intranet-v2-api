@@ -13,6 +13,6 @@ export const DATABASE_CONFIG: TypeOrmModuleAsyncOptions = {
     database: configService.get<string>('DB_NAME'),
     charset: 'utf8mb4',
     entities: ['dist/**/*.entity.js'],
-    synchronize: false,
+    synchronize: true,
   }),
 };

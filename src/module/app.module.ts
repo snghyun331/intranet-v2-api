@@ -2,10 +2,11 @@ import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/c
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
-import { LoggerMiddleware } from 'src/common/middleware/logger.middleware';
-import { DATABASE_CONFIG } from 'src/config/database.config';
-import { WINSTON_CONFIG } from 'src/config/logger.config';
+import { LoggerMiddleware } from '../common/middleware/logger.middleware';
+import { DATABASE_CONFIG } from '../config/database.config';
+import { WINSTON_CONFIG } from '../config/logger.config';
 import { HealthModule } from './health/health.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { HealthModule } from './health/health.module';
     WinstonModule.forRoot(WINSTON_CONFIG),
     TypeOrmModule.forRootAsync(DATABASE_CONFIG),
     HealthModule,
+    SchedulerModule,
   ],
 })
 export class AppModule implements NestModule {
