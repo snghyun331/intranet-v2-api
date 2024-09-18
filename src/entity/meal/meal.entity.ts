@@ -18,7 +18,7 @@ export class MealEntity extends CommonEntity {
   attendance: string;
 
   @Column({ type: 'enum', enum: MealTypeEnum, name: 'meal_type', comment: '조식 중식 석식', nullable: true })
-  mealType: string;
+  mealType: MealTypeEnum;
 
   @Column({ name: 'diner_name', comment: '식당 상호명', nullable: true })
   dinerName: string;

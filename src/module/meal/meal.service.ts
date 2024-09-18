@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { GetMealDto, MealDto, MealStatsDto } from './dto/meal.dto';
 import { MealRepository } from './repository/meal.repository';
+import { CreateMealDto } from './dto/createMeal.dto';
 
 @Injectable()
 export class MealService {
@@ -16,5 +17,16 @@ export class MealService {
     const result: GetMealDto = { mealStats, meals };
 
     return result;
+  }
+
+  async createMeal(userIdx: number, mealInfo: CreateMealDto) {
+    const userCnt: number = await this.mealRepository.getUserCount(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+    await this.mealRepository.createMeal(userIdx, mealInfo);
+
+    // 근무&휴일 (휴일근무)일 때
+    // -->
   }
 }

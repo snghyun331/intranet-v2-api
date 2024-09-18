@@ -6,6 +6,7 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
 import { MealDto, MealStatsDto } from '../dto/meal.dto';
+import { CreateMealDto } from '../dto/createMeal.dto';
 
 @Injectable()
 export class MealRepository {
@@ -66,5 +67,16 @@ export class MealRepository {
       .getCount();
 
     return userCnt;
+  }
+
+  async createMeal(userIdx: number, mealInfo: CreateMealDto): Promise<void> {
+    await this.mealModel.manager.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .insert()
+        .into(MealEntity)
+        .values({ userIdx, ...mealInfo })
+        .execute();
+    });
   }
 }
