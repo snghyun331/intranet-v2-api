@@ -4,7 +4,7 @@ import { AttendanceEnum, MealTypeEnum } from '../../../common/constant/enum';
 
 export class CreateMealDto {
   @ApiProperty({ type: String, example: '2024-09-18', description: '식대 사용일', required: true })
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '날짜는 필수로 입력해주세요.' })
   @IsString()
   useDate: string;
 
@@ -15,7 +15,7 @@ export class CreateMealDto {
     description: '근태(근무, 재택 근무, 연차, 휴무, 오전 반차, 오후 반차)',
     required: true,
   })
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '근무형태는 필수로 입력해주세요.' })
   @IsEnum(AttendanceEnum)
   attendance: AttendanceEnum;
 

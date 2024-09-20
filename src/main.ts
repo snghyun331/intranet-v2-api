@@ -4,11 +4,12 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonModule } from 'nest-winston';
 import { WINSTON_CONFIG } from './config/logger.config';
-import { LoggerService } from '@nestjs/common';
+import { LoggerService, ValidationPipe } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ServerErrorFilter } from './common/filter/exception.filter';
 import { setupSwagger } from './config/swagger.config';
 import { ResponseInterceptor } from './common/interceptor/response.interceptor';
+import { validationOptions } from './config/validation.config';
 
 async function bootstrap() {
   const winstonLogger: LoggerService = WinstonModule.createLogger(WINSTON_CONFIG);
@@ -16,6 +17,9 @@ async function bootstrap() {
     cors: true,
     logger: winstonLogger,
   });
+
+  app.set('trust proxy', true);
+
   const configService: ConfigService = app.get(ConfigService);
   const SERVER_PORT: number = configService.get<number>('SERVER_PORT');
   const corsOptions: CorsOptions = {
@@ -23,16 +27,15 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   };
-
-  setupSwagger(app);
-
   app.enableCors(corsOptions);
 
-  app.set('trust proxy', true);
+  setupSwagger(app);
 
   app.useGlobalFilters(new ServerErrorFilter(winstonLogger));
 
   app.useGlobalInterceptors(new ResponseInterceptor());
+
+  app.useGlobalPipes(new ValidationPipe(validationOptions));
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
