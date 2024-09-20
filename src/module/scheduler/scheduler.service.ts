@@ -61,7 +61,7 @@ export class SchedulerService {
     }
   }
 
-  // 매달 25일에 다음달 식대 사용가능 금액 업데이트
+  // 매달 25일에 오전 0시에 다음달 식대 사용가능 금액 업데이트
   @Cron('0 0 25 * *')
   async updateMealStats(): Promise<void> {
     this.logger.log('🚀 Start Updating Meal Stats Job !');
@@ -73,7 +73,7 @@ export class SchedulerService {
     const publicHolidayDates: string[] = await this.schedulerRepository.getPublicHolidayDate(year, nextMonth);
     const holidayDates: Set<string> = new Set<string>([...weekendDates, ...publicHolidayDates]);
     const holidays: number = holidayDates.size;
-    const totalDays: number = getTotalDaysInMonth(year, nextMonth); // 다음딜 총 일수
+    const totalDays: number = getTotalDaysInMonth(year, nextMonth); // 다음달 총 일수
     const workdays: number = totalDays - holidays;
     const mealBudget: number = DEFAULT_LUNCH_RATE * workdays;
     const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
@@ -93,5 +93,22 @@ export class SchedulerService {
     );
 
     this.logger.log('🏁 Updating Meal Stats Job Completed !');
+  }
+
+  // 매달 25일 오전 6시에 다음달 주말 정보 수집
+  @Cron('0 6 25 * *')
+  async insertWeekendDatas(): Promise<void> {
+    this.logger.log('🚀 Start Inserting Holiday Info Job !');
+    const date: Date = new Date();
+    const nowMonth: number = date.getMonth() + 1;
+    const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
+    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
+    const weekendDates: string[] = getWeekendDates(year, nextMonth);
+    await Promise.all(
+      weekendDates.map(async (weekendDate) => {
+        await this.schedulerRepository.insertWeekendInfo(weekendDate);
+      }),
+    );
+    this.logger.log('🏁 Inserting Holiday Info Job Completed !');
   }
 }

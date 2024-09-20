@@ -6,6 +6,7 @@ import { HolidayInfoDto } from '../dto/holiday.dto';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
+import { WeekendEntity } from '../../../entity/scheduler/weekend.entity';
 
 @Injectable()
 export class SchedulerRepository {
@@ -13,6 +14,7 @@ export class SchedulerRepository {
     @InjectRepository(HolidayEntity) private readonly holidayModel: Repository<HolidayEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
+    @InjectRepository(WeekendEntity) private readonly weekendModel: Repository<WeekendEntity>,
   ) {}
 
   async insertHolidayInfo(holidayInfo: HolidayInfoDto): Promise<void> {
@@ -56,5 +58,12 @@ export class SchedulerRepository {
     const holidayDates = result.map((r) => r.holidayDate);
 
     return holidayDates;
+  }
+
+  async insertWeekendInfo(weekendDate: string): Promise<void> {
+    console.log(weekendDate);
+    await this.weekendModel.manager.transaction(async (manager) => {
+      await manager.createQueryBuilder().insert().into(WeekendEntity).values({ weekendDate }).execute();
+    });
   }
 }
