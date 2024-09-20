@@ -7,6 +7,7 @@ import { UserEntity } from '../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
 import { MealDto, MealStatsDto } from '../dto/meal.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
+import { WeekendEntity } from 'src/entity/scheduler/weekend.entity';
 
 @Injectable()
 export class MealRepository {
@@ -14,6 +15,7 @@ export class MealRepository {
     @InjectRepository(MealEntity) private readonly mealModel: Repository<MealEntity>,
     @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
+    @InjectRepository(WeekendEntity) private readonly weekendModel: Repository<WeekendEntity>,
   ) {}
 
   async getMeal(year: number, month: number, userIdx: number): Promise<MealDto[]> {
@@ -78,5 +80,26 @@ export class MealRepository {
         .values({ userIdx, ...mealInfo })
         .execute();
     });
+  }
+
+  async getMonthWeekends(): Promise<string[]> {
+    const date: Date = new Date();
+    const nowMonth: number = date.getMonth() + 1;
+    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, nowMonth);
+    const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result: WeekendEntity[] = await this.weekendModel
+      .createQueryBuilder('weekendEntity')
+      .select('*')
+      .where('weekendEntity.weekendDates BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
+        firstDayOfMonthToString,
+        lastDayOfMonthToString,
+      })
+      .getRawMany();
+
+    const monthWeekends: string[] = result.map((r) => r.weekendDate);
+
+    return monthWeekends;
   }
 }

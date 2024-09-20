@@ -26,7 +26,11 @@ export class MealService {
     }
     await this.mealRepository.createMeal(userIdx, mealInfo);
 
-    // 근무&휴일 (휴일근무)일 때
-    // -->
+    /* 근무&휴일 (휴일근무)일 때 */
+    // 이번달 주말 날짜 가져오기  => 공휴일도 나중에 포함시켜야함
+    const monthWeekends: string[] = await this.mealRepository.getMonthWeekends();
+    if (monthWeekends.includes(mealInfo.useDate)) {
+      // 식태 통계에서 휴일근무수(Holidayworkdays) 1증가
+    }
   }
 }

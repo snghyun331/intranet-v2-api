@@ -6,9 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MealEntity } from '../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../entity/user/user.entity';
+import { WeekendEntity } from 'src/entity/scheduler/weekend.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MealEntity, MealStatsEntity, UserEntity])],
+  imports: [TypeOrmModule.forFeature([MealEntity, MealStatsEntity, UserEntity, WeekendEntity])],
   providers: [MealService, MealRepository],
   controllers: [MealController],
 })
