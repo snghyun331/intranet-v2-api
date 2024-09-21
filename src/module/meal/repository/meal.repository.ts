@@ -7,7 +7,7 @@ import { UserEntity } from '../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
 import { MealDto, MealStatsDto } from '../dto/meal.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
-import { WeekendEntity } from 'src/entity/scheduler/weekend.entity';
+import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 
 @Injectable()
 export class MealRepository {
@@ -15,7 +15,7 @@ export class MealRepository {
     @InjectRepository(MealEntity) private readonly mealModel: Repository<MealEntity>,
     @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
-    @InjectRepository(WeekendEntity) private readonly weekendModel: Repository<WeekendEntity>,
+    @InjectRepository(HolidayEntity) private readonly holidayModel: Repository<HolidayEntity>,
   ) {}
 
   async getMeal(year: number, month: number, userIdx: number): Promise<MealDto[]> {
@@ -82,24 +82,24 @@ export class MealRepository {
     });
   }
 
-  async getMonthWeekends(): Promise<string[]> {
+  async getMonthHolidays(): Promise<string[]> {
     const date: Date = new Date();
     const nowMonth: number = date.getMonth() + 1;
     const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, nowMonth);
     const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
     const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: WeekendEntity[] = await this.weekendModel
-      .createQueryBuilder('weekendEntity')
+    const result: HolidayEntity[] = await this.holidayModel
+      .createQueryBuilder('holidayEntity')
       .select('*')
-      .where('weekendEntity.weekendDates BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
+      .where('holidayEntity.holidayDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
         firstDayOfMonthToString,
         lastDayOfMonthToString,
       })
       .getRawMany();
 
-    const monthWeekends: string[] = result.map((r) => r.weekendDate);
+    const monthHolidays: string[] = result.map((r) => r.holidayDate);
 
-    return monthWeekends;
+    return monthHolidays;
   }
 }

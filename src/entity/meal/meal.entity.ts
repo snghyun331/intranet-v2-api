@@ -18,7 +18,7 @@ export class MealEntity extends CommonEntity {
     name: 'holiday_yn',
     type: 'enum',
     enum: YNEnum,
-    comment: '휴일 여부(주말/공휴일)',
+    comment: '업무일 구분',
     default: YNEnum.NO,
     nullable: false,
   })
