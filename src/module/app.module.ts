@@ -7,6 +7,7 @@ import { DATABASE_CONFIG } from '../config/database.config';
 import { WINSTON_CONFIG } from '../config/logger.config';
 import { HealthModule } from './health/health.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { MealModule } from './meal/meal.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     TypeOrmModule.forRootAsync(DATABASE_CONFIG),
     HealthModule,
     SchedulerModule,
+    MealModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -58,13 +58,19 @@ export const getWeekendDates = (year: number, month: number): string[] => {
   return weekends;
 };
 
-export const getTotalDaysInMonth = (year: number, month: number): number => {
+export const getStartAndLastDayofMonth = (year: number, month: number) => {
   // 월의 첫 날과 마지막 날 계산
   const firstDayOfMonth: moment.Moment = moment({ year: year, month: month - 1 })
     .startOf('month')
     .utcOffset(9);
 
   const lastDayOfMonth: moment.Moment = moment(firstDayOfMonth).endOf('month').utcOffset(9);
+
+  return { firstDayOfMonth, lastDayOfMonth };
+};
+
+export const getTotalDaysInMonth = (year: number, month: number): number => {
+  const { lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
   const totalDays: number = lastDayOfMonth.date();
 
   return totalDays;

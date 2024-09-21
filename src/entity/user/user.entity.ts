@@ -18,17 +18,17 @@ export class UserEntity extends CommonEntity {
   @Column({ name: 'password', comment: '패스워드', nullable: false })
   password: string;
 
-  @Column({ name: 'name', comment: '이름', nullable: false })
-  name: string;
+  @Column({ name: 'user_name', comment: '이름', nullable: false })
+  userName: string;
 
-  @Column({ type: 'enum', enum: GenderEnum, name: 'gender', comment: '성별', nullable: false })
-  gender: GenderEnum;
+  @Column({ type: 'enum', enum: GenderEnum, name: 'user_gender', comment: '성별', nullable: false })
+  userGender: GenderEnum;
 
-  @Column({ name: 'cell', comment: '전화번호', nullable: false })
-  cell: string;
+  @Column({ name: 'user_cell', comment: '전화번호', nullable: false })
+  userCell: string;
 
-  @Column({ name: 'birth', comment: '생년월일', nullable: false })
-  birth: string;
+  @Column({ name: 'user_birth', comment: '생년월일', nullable: false })
+  userBirth: string;
 
   @Column({ name: 'join_date', comment: '입사일', nullable: false })
   joinDate: string;

@@ -1,4 +1,4 @@
-import { MealTypeEnum } from '../../common/constant/enum';
+import { MealTypeEnum, YNEnum } from '../../common/constant/enum';
 import { CommonEntity } from '../../common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
@@ -14,11 +14,21 @@ export class MealEntity extends CommonEntity {
   @Column({ name: 'use_date', comment: '식대 사용일', nullable: false })
   useDate: string;
 
+  @Column({
+    name: 'holiday_yn',
+    type: 'enum',
+    enum: YNEnum,
+    comment: '업무일 구분',
+    default: YNEnum.NO,
+    nullable: false,
+  })
+  holidayYN: YNEnum;
+
   @Column({ name: 'attendance', comment: '근태', nullable: false })
   attendance: string;
 
-  @Column({ type: 'enum', enum: MealTypeEnum, name: 'meal_type', comment: '조식 중식 석식', nullable: true })
-  mealType: string;
+  @Column({ name: 'meal_type', comment: '조식 중식 석식', type: 'enum', enum: MealTypeEnum, nullable: true })
+  mealType: MealTypeEnum;
 
   @Column({ name: 'diner_name', comment: '식당 상호명', nullable: true })
   dinerName: string;
