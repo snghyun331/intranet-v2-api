@@ -1,5 +1,5 @@
 import { PickType } from '@nestjs/swagger';
-import { MealStatsEntity } from 'src/entity/meal/mealStats.entity';
+import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 
 export class NewMealStatsDto extends PickType(MealStatsEntity, [
   'userIdx',

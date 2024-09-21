@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { AttendanceEnum, MealTypeEnum } from '../../../common/constant/enum';
+import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
 
 export class CreateMealDto {
   @ApiProperty({ type: String, example: '2024-09-18', description: '식대 사용일', required: true })
@@ -44,4 +44,8 @@ export class CreateMealDto {
   @IsOptional()
   @IsString()
   payer?: string;
+
+  @IsOptional()
+  @IsEnum(YNEnum)
+  holidayYN?: YNEnum;
 }

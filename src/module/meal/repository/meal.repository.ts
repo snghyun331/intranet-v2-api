@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { MealDto, MealStatsDto } from '../dto/meal.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
+import { AttendanceEnum, YNEnum } from '../../../common/constant/enum';
 
 @Injectable()
 export class MealRepository {
@@ -20,8 +21,8 @@ export class MealRepository {
 
   async getMeal(year: number, month: number, userIdx: number): Promise<MealDto[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
-    const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
-    const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: MealDto[] = await this.mealModel
       .createQueryBuilder('mealEntity')
       .select([
@@ -32,9 +33,9 @@ export class MealRepository {
         'mealEntity.payer AS payer',
       ])
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
-        firstDayOfMonthToString,
-        lastDayOfMonthToString,
+      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
       })
       .orderBy('mealEntity.useDate', 'DESC')
       .getRawMany();
@@ -72,7 +73,7 @@ export class MealRepository {
   }
 
   async createMeal(userIdx: number, mealInfo: CreateMealDto): Promise<void> {
-    await this.mealModel.manager.transaction(async (manager) => {
+    return this.mealModel.manager.transaction(async (manager) => {
       await manager
         .createQueryBuilder()
         .insert()
@@ -82,24 +83,125 @@ export class MealRepository {
     });
   }
 
-  async getMonthHolidays(): Promise<string[]> {
-    const date: Date = new Date();
-    const nowMonth: number = date.getMonth() + 1;
-    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, nowMonth);
-    const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
-    const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
+  async getMonthHolidays(year: number, month: number): Promise<string[]> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: HolidayEntity[] = await this.holidayModel
       .createQueryBuilder('holidayEntity')
-      .select('*')
-      .where('holidayEntity.holidayDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
-        firstDayOfMonthToString,
-        lastDayOfMonthToString,
+      .select([
+        'holidayEntity.holidayIdx AS holidayIdx',
+        'holidayEntity.holidayDate AS holidayDate',
+        'holidayEntity.holidayName AS holidayName',
+      ])
+      .where('holidayEntity.holidayDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
       })
       .getRawMany();
 
     const monthHolidays: string[] = result.map((r) => r.holidayDate);
 
     return monthHolidays;
+  }
+
+  async getTotalTimeoffDays(year: number, month: number, userIdx: number): Promise<number> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result: number = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .where('mealEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('mealEntity.attendance NOT IN (:...attendance)', {
+        attendance: [AttendanceEnum.WORKING, AttendanceEnum.REMOTE_WORK],
+      })
+      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .getCount();
+
+    return result;
+  }
+
+  async updateTimeOffDaysInStats(timeoffDays: number, year: number, month: number, userIdx: number): Promise<void> {
+    return this.mealStatsModel.manager.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(MealStatsEntity)
+        .set({ timeoffDays })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .andWhere('month = :month', { month })
+        .execute();
+    });
+  }
+
+  async getTotalMealExpense(year: number, month: number, userIdx: number): Promise<number> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result: { total: number } = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .select('SUM(mealEntity.pay_amount)', 'total')
+      .where('mealEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .getRawOne();
+
+    return result.total;
+  }
+
+  async updateMealExpenseInStats(mealExpense: number, year: number, month: number, userIdx: number) {
+    return this.mealStatsModel.manager.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(MealStatsEntity)
+        .set({ mealExpense })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .andWhere('month = :month', { month })
+        .execute();
+    });
+  }
+
+  async getTotalHolidayWorkdays(year: number, month: number, userIdx: number): Promise<number> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result: number = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .where('mealEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .andWhere('mealEntity.attendance IN (:...attendance)', {
+        attendance: [AttendanceEnum.WORKING, AttendanceEnum.REMOTE_WORK],
+      })
+      .andWhere('mealEntity.holidayYN = :holidayYN', { holidayYN: YNEnum.YES })
+      .getCount();
+
+    return result;
+  }
+
+  async updateHolidayWorkdaysInStats(
+    holidayWorkdays: number,
+    year: number,
+    month: number,
+    userIdx: number,
+  ): Promise<void> {
+    return this.mealStatsModel.manager.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(MealStatsEntity)
+        .set({ holidayWorkdays })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .andWhere('month = :month', { month })
+        .execute();
+    });
   }
 }

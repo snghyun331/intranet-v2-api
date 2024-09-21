@@ -47,7 +47,11 @@ export class SchedulerRepository {
     const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: HolidayEntity[] = await this.holidayModel
       .createQueryBuilder('holidayEntity')
-      .select('*')
+      .select([
+        'holidayEntity.holidayIdx AS holidayIdx',
+        'holidayEntity.holidayDate AS holidayDate',
+        'holidayEntity.holidayName AS holidayName',
+      ])
       .where('holidayEntity.holidayDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
         firstDayOfMonthToString,
         lastDayOfMonthToString,
