@@ -17,6 +17,9 @@ async function bootstrap() {
     cors: true,
     logger: winstonLogger,
   });
+
+  app.set('trust proxy', true);
+
   const configService: ConfigService = app.get(ConfigService);
   const SERVER_PORT: number = configService.get<number>('SERVER_PORT');
   const corsOptions: CorsOptions = {
@@ -24,12 +27,9 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   };
-
-  setupSwagger(app);
-
   app.enableCors(corsOptions);
 
-  app.set('trust proxy', true);
+  setupSwagger(app);
 
   app.useGlobalFilters(new ServerErrorFilter(winstonLogger));
 
