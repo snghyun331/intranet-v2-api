@@ -87,11 +87,11 @@ export const USERS_MEALS: SwaggerMethod = {
         a: {
           summary: '근무 & 식사 O',
           value: {
-            useDate: '2024-09-13',
+            useDate: '2024-09-18',
             attendance: '근무',
             mealType: 'launch',
-            dinerName: '김가네',
-            payAmount: 8000,
+            dinerName: '이여곰탕',
+            payAmount: 11000,
             payer: '이승현',
           },
         },
@@ -103,7 +103,7 @@ export const USERS_MEALS: SwaggerMethod = {
           },
         },
         c: {
-          summary: '휴무/반차 등일 떄',
+          summary: '휴무/반차 등일 때',
           value: {
             useDate: '2024-09-13',
             attendance: '오후 반차',
@@ -117,6 +117,55 @@ export const USERS_MEALS: SwaggerMethod = {
           example: {
             statusCode: 201,
             message: '식대 사용내역 저장 성공',
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '휴일에 (재택)근무 외 다른 근무형태 선택 시',
+              value: {
+                message: '휴일에는 근무일 때만 등록할 수 있습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 9. 17. 오후 2:17:56',
+                path: '/users/meals',
+              },
+            },
+            b: {
+              summary: 'DB에 없는 userId',
+              value: {
+                message: '올바른 유저가 아닙니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 9. 17. 오후 2:17:56',
+                path: '/users/meals',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  DELETE: {
+    API_OPERATION: {
+      summary: '식대 사용내역 초기화 API',
+    },
+    API_PARAM1: {
+      name: 'mealIdx',
+      type: Number,
+      required: true,
+      description: '식대 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '식대 사용내역 초기화 성공',
           },
         },
       },

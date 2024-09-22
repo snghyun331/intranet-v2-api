@@ -1,12 +1,14 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
 import * as moment from 'moment';
 import { ResponseDto } from '../../common/dto/response.dto';
 import { MealService } from './meal.service';
 import {
   ApiBadRequestResponse,
+  ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -40,13 +42,29 @@ export class MealController {
   }
 
   @ApiOperation(USERS_MEALS.POST.API_OPERATION)
+  @ApiBody(USERS_MEALS.POST.API_BODY)
   @ApiCreatedResponse(USERS_MEALS.POST.API_CREATED_RESPONSE)
   @ApiBadRequestResponse(USERS_MEALS.POST.API_BAD_REQUEST_RESPONSE)
   @Post()
   async createMeal(@Body() mealInfo: CreateMealDto): Promise<ResponseDto> {
     const userIdx = 1;
     await this.mealService.createMeal(userIdx, mealInfo);
+
     const response: ResponseDto = { message: '식대 사용내역 저장 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_MEALS.DELETE.API_OPERATION)
+  @ApiParam(USERS_MEALS.DELETE.API_PARAM1)
+  @ApiOkResponse(USERS_MEALS.DELETE.API_OK_RESPONSE)
+  @ApiBadRequestResponse(USERS_MEALS.DELETE.API_BAD_REQUEST_RESPONSE)
+  @Delete(':mealIdx')
+  async deleteMeal(@Param('mealIdx', ParseIntPipe) mealIdx: number): Promise<ResponseDto> {
+    const userIdx = 1;
+    await this.mealService.deleteMeal(userIdx, mealIdx);
+
+    const response: ResponseDto = { message: '식대 사용내역 초기화 성공' };
 
     return response;
   }

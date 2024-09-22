@@ -47,4 +47,11 @@ export class MealService {
     const holidayWorkdays: number = await this.mealRepository.getTotalHolidayWorkdays(year, month, userIdx);
     await this.mealRepository.updateHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx);
   }
+
+  async deleteMeal(userIdx: number, mealIdx: number): Promise<void> {
+    const userCnt: number = await this.mealRepository.getUserCount(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+  }
 }
