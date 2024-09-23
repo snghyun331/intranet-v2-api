@@ -6,6 +6,7 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -58,6 +59,7 @@ export class MealController {
   @ApiOperation(USERS_MEALS.DELETE.API_OPERATION)
   @ApiParam(USERS_MEALS.DELETE.API_PARAM1)
   @ApiOkResponse(USERS_MEALS.DELETE.API_OK_RESPONSE)
+  @ApiForbiddenResponse(USERS_MEALS.DELETE.API_FORBIDDEN_RESPONSE)
   @ApiBadRequestResponse(USERS_MEALS.DELETE.API_BAD_REQUEST_RESPONSE)
   @Delete(':mealIdx')
   async deleteMeal(@Param('mealIdx', ParseIntPipe) mealIdx: number): Promise<ResponseDto> {

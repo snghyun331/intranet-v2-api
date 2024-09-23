@@ -63,7 +63,7 @@ export const USERS_MEALS: SwaggerMethod = {
         'application/json': {
           examples: {
             a: {
-              summary: 'DB에 없는 userId',
+              summary: 'DB에 없는 userIdx',
               value: {
                 message: '올바른 유저가 아닙니다.',
                 error: 'Bad Request',
@@ -136,7 +136,7 @@ export const USERS_MEALS: SwaggerMethod = {
               },
             },
             b: {
-              summary: 'DB에 없는 userId',
+              summary: 'DB에 없는 userIdx',
               value: {
                 message: '올바른 유저가 아닙니다.',
                 error: 'Bad Request',
@@ -170,12 +170,31 @@ export const USERS_MEALS: SwaggerMethod = {
         },
       },
     },
+    API_FORBIDDEN_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '삭제 권한 없음',
+              value: {
+                message: '식대 삭제 권한이 없습니다',
+                error: 'Forbidden',
+                statusCode: 403,
+                timeStamp: '2024. 9. 23. 오전 10:10:20',
+                path: '/users/meals/4',
+              },
+              description: '로그인한 유저IDX와 meal작성자의 IDX가 일치하지 않음',
+            },
+          },
+        },
+      },
+    },
     API_BAD_REQUEST_RESPONSE: {
       content: {
         'application/json': {
           examples: {
             a: {
-              summary: 'DB에 없는 userId',
+              summary: 'DB에 없는 userIdx',
               value: {
                 message: '올바른 유저가 아닙니다.',
                 error: 'Bad Request',
