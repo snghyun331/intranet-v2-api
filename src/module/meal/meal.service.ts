@@ -10,7 +10,7 @@ export class MealService {
   constructor(private readonly mealRepository: MealRepository) {}
 
   async getMeal(year: number, month: number, userIdx: number): Promise<GetMealCalenderDto> {
-    const userCnt: number = await this.mealRepository.getUserCount(userIdx);
+    const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -22,10 +22,17 @@ export class MealService {
   }
 
   async createMeal(userIdx: number, mealInfo: CreateMealDto): Promise<void> {
-    const userCnt: number = await this.mealRepository.getUserCount(userIdx);
+    const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
 
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
+    if (mealInfo.payer) {
+      const allUserNames: string[] = await this.mealRepository.getAllUserNames();
+      if (!allUserNames.includes(mealInfo.payer)) {
+        throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
+      }
     }
 
     const year: number = Number(mealInfo.useDate.substring(0, 4));
@@ -54,7 +61,7 @@ export class MealService {
   }
 
   async deleteMeal(userIdx: number, mealIdx: number): Promise<void> {
-    const userCnt: number = await this.mealRepository.getUserCount(userIdx);
+    const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -80,7 +87,7 @@ export class MealService {
   }
 
   async getMealDetail(userIdx: number, mealIdx: number): Promise<MealEntity> {
-    const userCnt: number = await this.mealRepository.getUserCount(userIdx);
+    const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }

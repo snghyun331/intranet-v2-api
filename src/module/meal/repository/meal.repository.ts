@@ -63,13 +63,24 @@ export class MealRepository {
     return result;
   }
 
-  async getUserCount(userIdx: number): Promise<number> {
+  async getUserCountByIdx(userIdx: number): Promise<number> {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .getCount();
 
     return userCnt;
+  }
+
+  async getAllUserNames(): Promise<string[]> {
+    const result: { userName: string }[] = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userName AS userName'])
+      .getRawMany();
+
+    const allNames: string[] = result.map((r) => r.userName);
+
+    return allNames;
   }
 
   async createMeal(userIdx: number, mealInfo: CreateMealDto): Promise<void> {

@@ -145,6 +145,16 @@ export const USERS_MEALS: SwaggerMethod = {
                 path: '/users/meals',
               },
             },
+            c: {
+              summary: '결제자 이름을 잘못 입력 시',
+              value: {
+                message: '잘못된 결제자를 입력하였습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 9. 23. 오후 3:22:49',
+                path: '/users/meals',
+              },
+            },
           },
         },
       },
