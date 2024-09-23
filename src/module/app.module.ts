@@ -8,6 +8,7 @@ import { WINSTON_CONFIG } from '../config/logger.config';
 import { HealthModule } from './health/health.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { MealModule } from './meal/meal.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { MealModule } from './meal/meal.module';
     HealthModule,
     SchedulerModule,
     MealModule,
+    AuthModule,
   ],
 })
 export class AppModule implements NestModule {

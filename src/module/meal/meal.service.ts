@@ -3,7 +3,7 @@ import { GetMealCalenderDto, MealCalenderDto, MealInfoDto, MealStatsDto } from '
 import { MealRepository } from './repository/meal.repository';
 import { CreateMealDto } from './dto/createMeal.dto';
 import { AttendanceEnum, YNEnum } from '../../common/constant/enum';
-import { MealEntity } from 'src/entity/meal/meal.entity';
+import { MealEntity } from '../../entity/meal/meal.entity';
 
 @Injectable()
 export class MealService {

@@ -16,7 +16,7 @@ import {
 import { USERS_MEALS, USERS_MEALS_DETAIL } from './swagger/meal.swagger';
 import { GetMealCalenderDto } from './dto/meal.dto';
 import { CreateMealDto } from './dto/createMeal.dto';
-import { MealEntity } from 'src/entity/meal/meal.entity';
+import { MealEntity } from '../../entity/meal/meal.entity';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
