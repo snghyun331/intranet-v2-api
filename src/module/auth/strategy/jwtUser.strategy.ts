@@ -16,7 +16,7 @@ export class JwtUserStrategy extends PassportStrategy(Strategy, 'user') {
     try {
       const userToken: string = req.headers['authorization']?.slice(7);
       const secretKey: string = this.configService.get<string>('JWT_SECRET_KEY');
-      const payload = jwt.verify(userToken, secretKey) as UserTokenDto;
+      const payload: UserTokenDto = jwt.verify(userToken, secretKey) as UserTokenDto;
 
       return payload;
     } catch (err) {
