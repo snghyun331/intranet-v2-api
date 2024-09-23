@@ -5,10 +5,11 @@ import { MealEntity } from '../../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
-import { MealDto, MealInfoDto, MealStatsDto } from '../dto/meal.dto';
+import { MealCalenderDto, MealInfoDto, MealStatsDto } from '../dto/meal.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, YNEnum } from '../../../common/constant/enum';
+import { UpdateMealDto } from '../dto/updateMeal.dto';
 
 @Injectable()
 export class MealRepository {
@@ -19,11 +20,11 @@ export class MealRepository {
     @InjectRepository(HolidayEntity) private readonly holidayModel: Repository<HolidayEntity>,
   ) {}
 
-  async getMeal(year: number, month: number, userIdx: number): Promise<MealDto[]> {
+  async getMealCalender(year: number, month: number, userIdx: number): Promise<MealCalenderDto[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: MealDto[] = await this.mealModel
+    const result: MealCalenderDto[] = await this.mealModel
       .createQueryBuilder('mealEntity')
       .select([
         'mealEntity.useDate AS useDate',
@@ -63,13 +64,24 @@ export class MealRepository {
     return result;
   }
 
-  async getUserCount(userIdx: number): Promise<number> {
+  async getUserCountByIdx(userIdx: number): Promise<number> {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .getCount();
 
     return userCnt;
+  }
+
+  async getAllUserNames(): Promise<string[]> {
+    const result: { userName: string }[] = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userName AS userName'])
+      .getRawMany();
+
+    const allNames: string[] = result.map((r) => r.userName);
+
+    return allNames;
   }
 
   async createMeal(userIdx: number, mealInfo: CreateMealDto): Promise<void> {
@@ -219,5 +231,36 @@ export class MealRepository {
       .getRawOne();
 
     return result;
+  }
+
+  async getMealDetail(mealIdx: number): Promise<MealEntity> {
+    const result: MealEntity = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .select([
+        'mealEntity.mealIdx AS mealIdx',
+        'mealEntity.userIdx AS userIdx',
+        'mealEntity.useDate AS useDate',
+        'mealEntity.holidayYN AS holidayYN',
+        'mealEntity.attendance AS attendance',
+        'mealEntity.mealType AS mealType',
+        'mealEntity.dinerName AS dinerName',
+        'mealEntity.payAmount AS payAmount',
+        'mealEntity.payer AS payer',
+      ])
+      .where('mealEntity.mealIdx = :mealIdx', { mealIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async updateMeal(mealIdx: number, updateMealInfo: UpdateMealDto): Promise<void> {
+    return this.mealModel.manager.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(MealEntity)
+        .set(updateMealInfo)
+        .where('mealIdx = :mealIdx', { mealIdx })
+        .execute();
+    });
   }
 }

@@ -22,3 +22,13 @@ export enum AttendanceEnum {
   AM_HALF = '오전 반차',
   PM_HALF = '오후 반차',
 }
+
+export enum UserGradeEnum {
+  CEO = '대표',
+  DIRECTOR = '본부장',
+  MANAGER = '팀장',
+  LEADER = '책임',
+  SENIOR = '선임',
+  ADVISOR = '위원',
+  INTERN = '인턴',
+}
