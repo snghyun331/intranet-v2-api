@@ -5,7 +5,7 @@ import { MealEntity } from '../../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
-import { MealDto, MealStatsDto } from '../dto/meal.dto';
+import { MealDto, MealInfoDto, MealStatsDto } from '../dto/meal.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, YNEnum } from '../../../common/constant/enum';
@@ -203,5 +203,21 @@ export class MealRepository {
         .andWhere('month = :month', { month })
         .execute();
     });
+  }
+
+  async deleteMeal(mealIdx: number): Promise<void> {
+    return this.mealModel.manager.transaction(async (manager) => {
+      await manager.createQueryBuilder().delete().from(MealEntity).where('mealIdx = :mealIdx', { mealIdx }).execute();
+    });
+  }
+
+  async getMealInfoByIdx(mealIdx: number): Promise<MealInfoDto> {
+    const result: MealInfoDto = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .select(['mealEntity.mealIdx AS mealIdx', 'mealEntity.userIdx AS userIdx', 'mealEntity.useDate AS useDate'])
+      .where('mealEntity.mealIdx = :mealIdx', { mealIdx })
+      .getRawOne();
+
+    return result;
   }
 }
