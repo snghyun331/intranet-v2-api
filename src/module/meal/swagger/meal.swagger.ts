@@ -200,7 +200,102 @@ export const USERS_MEALS: SwaggerMethod = {
                 error: 'Bad Request',
                 statusCode: 400,
                 timeStamp: '2024. 9. 17. 오후 2:17:56',
-                path: '/users/meals',
+                path: '/users/meals/4',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const USERS_MEALS_DETAIL: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 식대 상세조회 API',
+    },
+    API_PARAM1: {
+      name: 'mealIdx',
+      type: Number,
+      required: true,
+      description: '식대 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '근무',
+              value: {
+                statusCode: 200,
+                message: '식대 사용내역 상세조회 성공',
+                data: {
+                  mealIdx: 1,
+                  userIdx: 1,
+                  useDate: '2024-10-01',
+                  holidayYN: 'Y',
+                  attendance: '근무',
+                  mealType: 'launch',
+                  dinerName: '이여곰탕',
+                  payAmount: 11000,
+                  payer: '이승현',
+                },
+              },
+            },
+            b: {
+              summary: '반차 or 휴무',
+              value: {
+                statusCode: 200,
+                message: '식대 사용내역 상세조회 성공',
+                data: {
+                  mealIdx: 3,
+                  userIdx: 1,
+                  useDate: '2024-10-04',
+                  holidayYN: 'N',
+                  attendance: '오후 반차',
+                  mealType: null,
+                  dinerName: null,
+                  payAmount: 0,
+                  payer: null,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    API_FORBIDDEN_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '조회 권한 없음',
+              value: {
+                message: '식대 조회 권한이 없습니다',
+                error: 'Forbidden',
+                statusCode: 403,
+                timeStamp: '2024. 9. 23. 오전 10:10:20',
+                path: '/users/meals/2',
+              },
+              description: '로그인한 유저IDX와 meal작성자의 IDX가 일치하지 않음',
+            },
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: 'DB에 없는 userIdx',
+              value: {
+                message: '올바른 유저가 아닙니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 9. 17. 오후 2:17:56',
+                path: '/users/meals/2',
               },
             },
           },

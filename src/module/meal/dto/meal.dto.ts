@@ -5,7 +5,7 @@ import { MealEntity } from '../../../entity/meal/meal.entity';
 import { IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class MealDto extends PickType(MealEntity, [
+export class MealCalenderDto extends PickType(MealEntity, [
   'useDate',
   'attendance',
   'dinerName',
@@ -18,15 +18,15 @@ export class MealStatsDto extends IntersectionType(
   PickType(UserEntity, ['userName'] as const),
 ) {}
 
-export class GetMealDto {
+export class GetMealCalenderDto {
   @ValidateNested()
   @Type(() => MealStatsDto)
   mealStats: MealStatsDto;
 
   @IsArray()
   @ValidateNested({ each: true }) // each: true 옵션 => 배열에 있는 각 MealDto 객체도 개별적으로 유효성 검사를 하도록 설정
-  @Type(() => MealDto)
-  meals: MealDto[];
+  @Type(() => MealCalenderDto)
+  meals: MealCalenderDto[];
 }
 
 export class MealInfoDto extends PickType(MealEntity, ['mealIdx', 'userIdx', 'useDate'] as const) {}

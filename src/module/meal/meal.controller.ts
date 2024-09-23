@@ -13,9 +13,10 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { USERS_MEALS } from './swagger/meal.swagger';
-import { GetMealDto } from './dto/meal.dto';
+import { USERS_MEALS, USERS_MEALS_DETAIL } from './swagger/meal.swagger';
+import { GetMealCalenderDto } from './dto/meal.dto';
 import { CreateMealDto } from './dto/createMeal.dto';
+import { MealEntity } from 'src/entity/meal/meal.entity';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
@@ -35,7 +36,7 @@ export class MealController {
     const userIdx = 1;
     const yearToNum: number = Number(year);
     const monthToNum: number = Number(month);
-    const meals: GetMealDto = await this.mealService.getMeal(yearToNum, monthToNum, userIdx);
+    const meals: GetMealCalenderDto = await this.mealService.getMeal(yearToNum, monthToNum, userIdx);
 
     const response: ResponseDto = { message: '식대 사용내역 조회 성공', data: meals };
 
@@ -67,6 +68,21 @@ export class MealController {
     await this.mealService.deleteMeal(userIdx, mealIdx);
 
     const response: ResponseDto = { message: '식대 사용내역 초기화 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_MEALS_DETAIL.GET.API_OPERATION)
+  @ApiParam(USERS_MEALS_DETAIL.GET.API_PARAM1)
+  @ApiOkResponse(USERS_MEALS_DETAIL.GET.API_OK_RESPONSE)
+  @ApiForbiddenResponse(USERS_MEALS_DETAIL.GET.API_FORBIDDEN_RESPONSE)
+  @ApiBadRequestResponse(USERS_MEALS_DETAIL.GET.API_BAD_REQUEST_RESPONSE)
+  @Get(':mealIdx')
+  async getMealDetail(@Param('mealIdx', ParseIntPipe) mealIdx: number): Promise<ResponseDto> {
+    const userIdx = 1;
+    const mealEntity: MealEntity = await this.mealService.getMealDetail(userIdx, mealIdx);
+
+    const response: ResponseDto = { message: '식대 사용내역 상세조회 성공', data: mealEntity };
 
     return response;
   }

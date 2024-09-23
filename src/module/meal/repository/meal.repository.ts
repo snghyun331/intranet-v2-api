@@ -5,7 +5,7 @@ import { MealEntity } from '../../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
-import { MealDto, MealInfoDto, MealStatsDto } from '../dto/meal.dto';
+import { MealCalenderDto, MealInfoDto, MealStatsDto } from '../dto/meal.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, YNEnum } from '../../../common/constant/enum';
@@ -19,11 +19,11 @@ export class MealRepository {
     @InjectRepository(HolidayEntity) private readonly holidayModel: Repository<HolidayEntity>,
   ) {}
 
-  async getMeal(year: number, month: number, userIdx: number): Promise<MealDto[]> {
+  async getMealCalender(year: number, month: number, userIdx: number): Promise<MealCalenderDto[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: MealDto[] = await this.mealModel
+    const result: MealCalenderDto[] = await this.mealModel
       .createQueryBuilder('mealEntity')
       .select([
         'mealEntity.useDate AS useDate',
@@ -215,6 +215,26 @@ export class MealRepository {
     const result: MealInfoDto = await this.mealModel
       .createQueryBuilder('mealEntity')
       .select(['mealEntity.mealIdx AS mealIdx', 'mealEntity.userIdx AS userIdx', 'mealEntity.useDate AS useDate'])
+      .where('mealEntity.mealIdx = :mealIdx', { mealIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async getMealDetail(mealIdx: number): Promise<MealEntity> {
+    const result: MealEntity = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .select([
+        'mealEntity.mealIdx AS mealIdx',
+        'mealEntity.userIdx AS userIdx',
+        'mealEntity.useDate AS useDate',
+        'mealEntity.holidayYN AS holidayYN',
+        'mealEntity.attendance AS attendance',
+        'mealEntity.mealType AS mealType',
+        'mealEntity.dinerName AS dinerName',
+        'mealEntity.payAmount AS payAmount',
+        'mealEntity.payer AS payer',
+      ])
       .where('mealEntity.mealIdx = :mealIdx', { mealIdx })
       .getRawOne();
 

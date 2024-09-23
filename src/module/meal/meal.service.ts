@@ -1,21 +1,22 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { GetMealDto, MealDto, MealInfoDto, MealStatsDto } from './dto/meal.dto';
+import { GetMealCalenderDto, MealCalenderDto, MealInfoDto, MealStatsDto } from './dto/meal.dto';
 import { MealRepository } from './repository/meal.repository';
 import { CreateMealDto } from './dto/createMeal.dto';
 import { AttendanceEnum, YNEnum } from '../../common/constant/enum';
+import { MealEntity } from 'src/entity/meal/meal.entity';
 
 @Injectable()
 export class MealService {
   constructor(private readonly mealRepository: MealRepository) {}
 
-  async getMeal(year: number, month: number, userIdx: number): Promise<GetMealDto> {
+  async getMeal(year: number, month: number, userIdx: number): Promise<GetMealCalenderDto> {
     const userCnt: number = await this.mealRepository.getUserCount(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
-    const meals: MealDto[] = await this.mealRepository.getMeal(year, month, userIdx);
+    const meals: MealCalenderDto[] = await this.mealRepository.getMealCalender(year, month, userIdx);
     const mealStats: MealStatsDto = await this.mealRepository.getMealStats(year, month, userIdx);
-    const result: GetMealDto = { mealStats, meals };
+    const result: GetMealCalenderDto = { mealStats, meals };
 
     return result;
   }
@@ -76,5 +77,19 @@ export class MealService {
     // holidayWorkdays(휴일근무일 수) 업데이트
     const holidayWorkdays: number = await this.mealRepository.getTotalHolidayWorkdays(year, month, userIdx);
     await this.mealRepository.updateHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx);
+  }
+
+  async getMealDetail(userIdx: number, mealIdx: number): Promise<MealEntity> {
+    const userCnt: number = await this.mealRepository.getUserCount(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
+    const mealEntity: MealEntity = await this.mealRepository.getMealDetail(mealIdx);
+    if (userIdx !== mealEntity.userIdx) {
+      throw new ForbiddenException('식대 조회 권한이 없습니다');
+    }
+
+    return mealEntity;
   }
 }
