@@ -1,5 +1,6 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateMealDto } from '../dto/createMeal.dto';
+import { UpdateMealDto } from '../dto/updateMeal.dto';
 
 export const USERS_MEALS: SwaggerMethod = {
   GET: {
@@ -218,12 +219,131 @@ export const USERS_MEALS: SwaggerMethod = {
       },
     },
   },
+  PUT: {
+    API_OPERATION: {
+      summary: '식대 사용내역 수정 API',
+    },
+    API_PARAM1: {
+      name: 'mealIdx',
+      type: Number,
+      required: true,
+      description: '식대 IDX',
+    },
+    API_BODY: {
+      type: UpdateMealDto,
+      examples: {
+        a: {
+          summary: '모두 수정(useDate제외)',
+          value: {
+            attendance: '근무',
+            mealType: 'launch',
+            dinerName: '이여곰탕',
+            payAmount: 11000,
+            payer: '이승현',
+          },
+          description: 'useDate는 수정할 수 없습니다.',
+        },
+        b: {
+          summary: '일부 수정',
+          value: {
+            payAmount: 9000,
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '식대 사용내역 수정 성공',
+          },
+        },
+      },
+    },
+    API_FORBIDDEN_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '수정 권한 없음',
+              value: {
+                message: '식대 수정 권한이 없습니다',
+                error: 'Forbidden',
+                statusCode: 403,
+                timeStamp: '2024. 9. 23. 오전 10:10:20',
+                path: '/users/meals/3',
+              },
+              description: '로그인한 유저IDX와 meal작성자의 IDX가 일치하지 않음',
+            },
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: 'DB에 없는 userIdx',
+              value: {
+                message: '올바른 유저가 아닙니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 9. 17. 오후 2:17:56',
+                path: '/users/meals/3',
+              },
+            },
+            b: {
+              summary: '결제자 이름을 잘못 입력 시',
+              value: {
+                message: '잘못된 결제자를 입력하였습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 9. 23. 오후 3:22:49',
+                path: '/users/meals/3',
+              },
+            },
+            c: {
+              summary: '휴일에 (재택)근무 외 다른 근무형태 선택 시',
+              value: {
+                message: '휴일에는 근무일 때만 등록할 수 있습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 9. 17. 오후 2:17:56',
+                path: '/users/meals/3',
+              },
+            },
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '식대 존재X',
+              value: {
+                message: '해당 식대는 존재하지 않거나 삭제되었습니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 9. 23. 오후 4:26:49',
+                path: '/users/meals/10',
+              },
+              description: 'mealIdx에 해당하는 식대가 없음',
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 export const USERS_MEALS_DETAIL: SwaggerMethod = {
   GET: {
     API_OPERATION: {
-      summary: '사용자 식대 상세조회 API',
+      summary: '식대 사용내역 상세조회 API',
     },
     API_PARAM1: {
       name: 'mealIdx',

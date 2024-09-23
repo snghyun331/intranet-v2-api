@@ -9,6 +9,7 @@ import { MealCalenderDto, MealInfoDto, MealStatsDto } from '../dto/meal.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, YNEnum } from '../../../common/constant/enum';
+import { UpdateMealDto } from '../dto/updateMeal.dto';
 
 @Injectable()
 export class MealRepository {
@@ -250,5 +251,16 @@ export class MealRepository {
       .getRawOne();
 
     return result;
+  }
+
+  async updateMeal(mealIdx: number, updateMealInfo: UpdateMealDto): Promise<void> {
+    return this.mealModel.manager.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(MealEntity)
+        .set(updateMealInfo)
+        .where('mealIdx = :mealIdx', { mealIdx })
+        .execute();
+    });
   }
 }

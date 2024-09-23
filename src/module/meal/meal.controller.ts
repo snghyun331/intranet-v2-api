@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import * as moment from 'moment';
 import { ResponseDto } from '../../common/dto/response.dto';
 import { MealService } from './meal.service';
@@ -8,6 +8,7 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -23,6 +24,7 @@ import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserRole } from 'src/common/decorator/userRole.decorator';
 import { UserGradeEnum } from 'src/common/constant/enum';
 import { CurrentUserIdx } from 'src/common/decorator/currentUser.decorator';
+import { UpdateMealDto } from './dto/updateMeal.dto';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
@@ -60,8 +62,9 @@ export class MealController {
   @UseGuards(UserAuthGuard, UserRolesGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post()
-  async createMeal(@Body() mealInfo: CreateMealDto, @CurrentUserIdx() userIdx: number): Promise<ResponseDto> {
-    await this.mealService.createMeal(userIdx, mealInfo);
+  async createMeal(@Body() newMealInfo: CreateMealDto, @CurrentUserIdx() userIdx: number): Promise<ResponseDto> {
+    console.log(newMealInfo);
+    await this.mealService.createMeal(userIdx, newMealInfo);
 
     const response: ResponseDto = { message: '식대 사용내역 저장 성공' };
 
@@ -104,6 +107,30 @@ export class MealController {
     const mealEntity: MealEntity = await this.mealService.getMealDetail(userIdx, mealIdx);
 
     const response: ResponseDto = { message: '식대 사용내역 상세조회 성공', data: mealEntity };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_MEALS.PUT.API_OPERATION)
+  @ApiParam(USERS_MEALS.PUT.API_PARAM1)
+  @ApiBody(USERS_MEALS.PUT.API_BODY)
+  @ApiOkResponse(USERS_MEALS.PUT.API_OK_RESPONSE)
+  @ApiForbiddenResponse(USERS_MEALS.PUT.API_FORBIDDEN_RESPONSE)
+  @ApiBadRequestResponse(USERS_MEALS.PUT.API_BAD_REQUEST_RESPONSE)
+  @ApiNotFoundResponse(USERS_MEALS.PUT.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Put(':mealIdx')
+  async updateMeal(
+    @Param('mealIdx', ParseIntPipe) mealIdx: number,
+    @Body() updateMealInfo: UpdateMealDto,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseDto> {
+    console.log(updateMealInfo);
+    await this.mealService.updateMeal(userIdx, mealIdx, updateMealInfo);
+
+    const response: ResponseDto = { message: '식대 사용내역 수정 성공' };
 
     return response;
   }
