@@ -41,6 +41,7 @@ export const LOGIN: SwaggerMethod = {
               hqName: 'HR솔루션본부',
               teamName: 'HR Tech',
               gradeName: '위원',
+              adminRole: 'Y',
             },
           },
         },
