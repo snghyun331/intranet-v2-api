@@ -41,6 +41,8 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+.dev.env
+.prod.env
 
 # temp directory
 .temp
@@ -62,7 +64,12 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Docker file
 docker-compose.dev.yaml
 Dockerfile.dev
+docker-compose.prod.yaml
+Dockerfile.prod
 
 # resource
 /resource
 /resource/*
+
+# script.sh
+script.sh

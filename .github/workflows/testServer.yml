@@ -1,0 +1,38 @@
+name: Deploy to testServer
+on:
+  pull_request:
+    branches: ['master']
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: remote ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.TEST_SSH_HOST }}
+          username: ${{ secrets.TEST_SSH_USER }}
+          key: ${{ secrets.TEST_PRIVATE_KEY }}
+          timeout: 60s
+          script: |
+            echo "############# MOVE DIRECTORY #############"
+            cd ../../main/testServer/benefit2024/api/
+            echo "############# GIT PULL #############"
+            git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com:ACG-INSA/BENEFIT-MANAGEMENT.git
+            git pull origin master
+            echo "############# CREATE .ENV #############"
+            [ -f .env ] && rm .env
+            touch .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "DB_PW=${{ secrets.DB_PW }}" >> .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+            echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> .env
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+            echo "AXIOS_TIMEOUT=${{ secrets.AXIOS_TIMEOUT }}" >> .env
+            echo "AXIOS_MAX_REDIRECTS=${{ secrets.AXIOS_MAX_REDIRECTS }}" >> .env
+            echo "HOLIDAY_API_URL=${{ secrets.HOLIDAY_API_URL }}" >> .env            
+            echo "HOLIDAY_API_KEY=${{ secrets.HOLIDAY_API_KEY }}" >> .env            
+            echo "############# RUN SCRIPT #############"
+            sh script.sh
