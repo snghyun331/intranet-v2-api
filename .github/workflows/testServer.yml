@@ -17,6 +17,7 @@ jobs:
             echo "############# MOVE DIRECTORY #############"
             cd ../../main/testServer/benefit2024/api/
             echo "############# GIT PULL #############"
+            git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com:ACG-INSA/BENEFIT-MANAGEMENT.git
             git pull origin master
             echo "############# CREATE .ENV #############"
             [ -f .env ] && rm .env
