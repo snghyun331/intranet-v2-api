@@ -13,4 +13,5 @@ export class UserTokenDto extends PickType(IntersectionType(UserEntity, Headquar
   'hqName',
   'teamName',
   'gradeName',
+  'adminRole',
 ] as const) {}
