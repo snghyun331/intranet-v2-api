@@ -25,6 +25,7 @@ export class AuthRepository {
         'hqEntity.hqName AS hqName',
         'teamEntity.teamName AS teamName',
         'gradeEntity.gradeName AS gradeName',
+        'userEntity.adminRole AS adminRole',
       ])
       .innerJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .innerJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')

@@ -15,4 +15,5 @@ export class UserDto extends PickType(IntersectionType(UserEntity, HeadquarterEn
   'hqName',
   'teamName',
   'gradeName',
+  'adminRole',
 ] as const) {}
