@@ -21,7 +21,7 @@ export class SchedulerService {
   ) {}
 
   // 매달 25일에 오전 6시에 다음달 식대 사용가능 금액 업데이트
-  @Cron('0 6 25 * *')
+  // @Cron('0 6 25 * *')
   async updateMealStats(): Promise<void> {
     this.logger.log('🚀 Start Updating Meal Stats Job !');
     const date: Date = new Date();
@@ -53,7 +53,7 @@ export class SchedulerService {
   }
 
   // 매달 25일 오전 0시에 다음달 휴일 정보 수집 및 저장
-  @Cron('0 0 25 * *')
+  // @Cron('0 0 25 * *')
   async insertHolday2() {
     this.logger.log('🚀 Start Inserting Holiday Info Job !');
     const date: Date = new Date();

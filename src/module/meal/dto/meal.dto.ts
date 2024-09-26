@@ -7,6 +7,7 @@ import { Type } from 'class-transformer';
 
 export class MealCalenderDto extends PickType(MealEntity, [
   'useDate',
+  'mealType',
   'attendance',
   'dinerName',
   'payAmount',
@@ -25,8 +26,8 @@ export class GetMealCalenderDto {
 
   @IsArray()
   @ValidateNested({ each: true }) // each: true 옵션 => 배열에 있는 각 MealDto 객체도 개별적으로 유효성 검사를 하도록 설정
-  @Type(() => MealCalenderDto)
-  meals: MealCalenderDto[];
+  @Type(() => MealEntity)
+  meals: MealEntity[];
 }
 
 export class MealInfoDto extends PickType(MealEntity, ['mealIdx', 'userIdx', 'useDate'] as const) {}
