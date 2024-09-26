@@ -15,15 +15,14 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { USERS_MEALS, USERS_MEALS_DETAIL } from './swagger/meal.swagger';
+import { USERS_MEALS } from './swagger/meal.swagger';
 import { GetMealCalenderDto } from './dto/meal.dto';
 import { CreateMealDto } from './dto/createMeal.dto';
-import { MealEntity } from '../../entity/meal/meal.entity';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
-import { UserRole } from 'src/common/decorator/userRole.decorator';
-import { UserGradeEnum } from 'src/common/constant/enum';
-import { CurrentUserIdx } from 'src/common/decorator/currentUser.decorator';
+import { UserRole } from '../../common/decorator/userRole.decorator';
+import { UserGradeEnum } from '../../common/constant/enum';
+import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { UpdateMealDto } from './dto/updateMeal.dto';
 
 @ApiTags('식대(USER)')
@@ -63,7 +62,6 @@ export class MealController {
   @UserRole(UserGradeEnum.INTERN)
   @Post()
   async createMeal(@Body() newMealInfo: CreateMealDto, @CurrentUserIdx() userIdx: number): Promise<ResponseDto> {
-    console.log(newMealInfo);
     await this.mealService.createMeal(userIdx, newMealInfo);
 
     const response: ResponseDto = { message: '식대 사용내역 저장 성공' };
@@ -91,25 +89,25 @@ export class MealController {
     return response;
   }
 
-  @ApiOperation(USERS_MEALS_DETAIL.GET.API_OPERATION)
-  @ApiParam(USERS_MEALS_DETAIL.GET.API_PARAM1)
-  @ApiOkResponse(USERS_MEALS_DETAIL.GET.API_OK_RESPONSE)
-  @ApiForbiddenResponse(USERS_MEALS_DETAIL.GET.API_FORBIDDEN_RESPONSE)
-  @ApiBadRequestResponse(USERS_MEALS_DETAIL.GET.API_BAD_REQUEST_RESPONSE)
-  @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
-  @UserRole(UserGradeEnum.INTERN)
-  @Get(':mealIdx')
-  async getMealDetail(
-    @Param('mealIdx', ParseIntPipe) mealIdx: number,
-    @CurrentUserIdx() userIdx: number,
-  ): Promise<ResponseDto> {
-    const mealEntity: MealEntity = await this.mealService.getMealDetail(userIdx, mealIdx);
+  // @ApiOperation(USERS_MEALS_DETAIL.GET.API_OPERATION)
+  // @ApiParam(USERS_MEALS_DETAIL.GET.API_PARAM1)
+  // @ApiOkResponse(USERS_MEALS_DETAIL.GET.API_OK_RESPONSE)
+  // @ApiForbiddenResponse(USERS_MEALS_DETAIL.GET.API_FORBIDDEN_RESPONSE)
+  // @ApiBadRequestResponse(USERS_MEALS_DETAIL.GET.API_BAD_REQUEST_RESPONSE)
+  // @ApiBearerAuth('accessToken')
+  // @UseGuards(UserAuthGuard, UserRolesGuard)
+  // @UserRole(UserGradeEnum.INTERN)
+  // @Get(':mealIdx')
+  // async getMealDetail(
+  //   @Param('mealIdx', ParseIntPipe) mealIdx: number,
+  //   @CurrentUserIdx() userIdx: number,
+  // ): Promise<ResponseDto> {
+  //   const mealEntity: MealEntity = await this.mealService.getMealDetail(userIdx, mealIdx);
 
-    const response: ResponseDto = { message: '식대 사용내역 상세조회 성공', data: mealEntity };
+  //   const response: ResponseDto = { message: '식대 사용내역 상세조회 성공', data: mealEntity };
 
-    return response;
-  }
+  //   return response;
+  // }
 
   @ApiOperation(USERS_MEALS.PUT.API_OPERATION)
   @ApiParam(USERS_MEALS.PUT.API_PARAM1)
@@ -127,7 +125,6 @@ export class MealController {
     @Body() updateMealInfo: UpdateMealDto,
     @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseDto> {
-    console.log(updateMealInfo);
     await this.mealService.updateMeal(userIdx, mealIdx, updateMealInfo);
 
     const response: ResponseDto = { message: '식대 사용내역 수정 성공' };
