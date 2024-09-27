@@ -45,7 +45,6 @@ export const USERS_MEALS: SwaggerMethod = {
                     {
                       mealIdx: 5,
                       userIdx: 1,
-                      useDate: '2024-10-08',
                       holidayYN: 'N',
                       attendance: '근무',
                       mealType: 'launch',
@@ -61,7 +60,6 @@ export const USERS_MEALS: SwaggerMethod = {
                     {
                       mealIdx: 3,
                       userIdx: 1,
-                      useDate: '2024-10-04',
                       holidayYN: 'N',
                       attendance: '오후 반차',
                       mealType: null,
@@ -77,7 +75,6 @@ export const USERS_MEALS: SwaggerMethod = {
                     {
                       mealIdx: 2,
                       userIdx: 1,
-                      useDate: '2024-10-02',
                       holidayYN: 'N',
                       attendance: '근무',
                       mealType: 'launch',
@@ -88,7 +85,6 @@ export const USERS_MEALS: SwaggerMethod = {
                     {
                       mealIdx: 7,
                       userIdx: 1,
-                      useDate: '2024-10-02',
                       holidayYN: 'N',
                       attendance: '근무',
                       mealType: 'dinner',

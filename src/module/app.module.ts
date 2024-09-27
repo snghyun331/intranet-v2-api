@@ -15,10 +15,10 @@ import { AuthModule } from './auth/auth.module';
     ConfigModule.forRoot({ isGlobal: true }),
     WinstonModule.forRoot(WINSTON_CONFIG),
     TypeOrmModule.forRootAsync(DATABASE_CONFIG),
-    HealthModule,
     SchedulerModule,
-    MealModule,
     AuthModule,
+    MealModule,
+    HealthModule,
   ],
 })
 export class AppModule implements NestModule {
