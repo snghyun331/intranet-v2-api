@@ -1,10 +1,12 @@
 import { CommonEntity } from '../../common/entity/common.entity';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
+import { YNEnum } from '../../common/constant/enum';
+import { PayeeEntity } from './payee.entity';
 
 @Entity({ name: 'welfare', comment: '복지포인트 사용내역 tb' })
 export class WelfareEntity extends CommonEntity {
-  @PrimaryGeneratedColumn({ name: 'welfare_idx', comment: '복포 IDX' })
+  @PrimaryGeneratedColumn({ name: 'welfare_idx', comment: '복포내역IDX' })
   welfareIdx: number;
 
   @Column({ name: 'user_idx', comment: '사용자 IDX', nullable: false })
@@ -19,8 +21,11 @@ export class WelfareEntity extends CommonEntity {
   @Column({ name: 'pay_amount', comment: '결제 금액', nullable: false })
   payAmount: number;
 
-  @Column({ name: 'payer', comment: '대리결제 대상자', nullable: true })
-  payer: string;
+  @Column({ name: 'confirm_yn', comment: 'P&C 확인여부', default: YNEnum.NO, nullable: false })
+  confirmYN: YNEnum;
+
+  @Column({ name: 'confirm_date', comment: 'P&C 확인 날짜', nullable: true })
+  confirmDate: string;
 
   @ManyToOne(() => UserEntity, (user) => user.welfareRelation, {
     onDelete: 'CASCADE',
@@ -28,4 +33,7 @@ export class WelfareEntity extends CommonEntity {
   })
   @JoinColumn({ name: 'user_idx', referencedColumnName: 'userIdx' })
   userIdxRelation: UserEntity;
+
+  @OneToMany(() => PayeeEntity, (payee) => payee.welfareIdxRelation)
+  payeesRelation: PayeeEntity[];
 }

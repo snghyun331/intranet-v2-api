@@ -7,6 +7,7 @@ import { GradeEntity } from './grade.entity';
 import { MealEntity } from '../meal/meal.entity';
 import { MealStatsEntity } from '../meal/mealStats.entity';
 import { WelfareEntity } from '../welfare/welfare.entity';
+import { PayeeEntity } from '../welfare/payee.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -85,4 +86,7 @@ export class UserEntity extends CommonEntity {
 
   @OneToMany(() => WelfareEntity, (welfare) => welfare.userIdxRelation)
   welfareRelation: WelfareEntity[];
+
+  @OneToMany(() => PayeeEntity, (payee) => payee.userIdxRelation)
+  payeeRelation: PayeeEntity[];
 }

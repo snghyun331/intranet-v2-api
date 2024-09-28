@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { UserTokenDto } from 'src/common/dto/token.dto';
+import { UserTokenDto } from '../../../common/dto/token.dto';
 
 export class LoginUserDto {
   @ApiProperty({ type: String, description: '아이디', required: true })
