@@ -32,3 +32,8 @@ export enum UserGradeEnum {
   ADVISOR = '위원',
   INTERN = '인턴',
 }
+
+export enum HalfYearEnum {
+  H1 = '상반기',
+  H2 = '하반기',
+}

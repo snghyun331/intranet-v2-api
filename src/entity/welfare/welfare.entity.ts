@@ -2,7 +2,7 @@ import { CommonEntity } from '../../common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 import { YNEnum } from '../../common/constant/enum';
-import { PayeeEntity } from './payee.entity';
+import { WelfarePayeeEntity } from './payee.entity';
 
 @Entity({ name: 'welfare', comment: '복지포인트 사용내역 tb' })
 export class WelfareEntity extends CommonEntity {
@@ -34,6 +34,6 @@ export class WelfareEntity extends CommonEntity {
   @JoinColumn({ name: 'user_idx', referencedColumnName: 'userIdx' })
   userIdxRelation: UserEntity;
 
-  @OneToMany(() => PayeeEntity, (payee) => payee.welfareIdxRelation)
-  payeesRelation: PayeeEntity[];
+  @OneToMany(() => WelfarePayeeEntity, (payee) => payee.welfareIdxRelation)
+  payeesRelation: WelfarePayeeEntity[];
 }
