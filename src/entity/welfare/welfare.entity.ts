@@ -21,6 +21,9 @@ export class WelfareEntity extends CommonEntity {
   @Column({ name: 'pay_amount', comment: '결제 금액', nullable: false })
   payAmount: number;
 
+  @Column({ name: 'payer', comment: '결제자 이름', nullable: true })
+  payer: string;
+
   @Column({ name: 'confirm_yn', comment: 'P&C 확인여부', default: YNEnum.NO, nullable: false })
   confirmYN: YNEnum;
 

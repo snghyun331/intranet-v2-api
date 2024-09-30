@@ -88,13 +88,13 @@ export class MealRepository {
     return allNames;
   }
 
-  async createMeal(userIdx: number, mealInfo: CreateMealDto): Promise<void> {
+  async createMeal(userIdx: number, newMealInfo: CreateMealDto): Promise<void> {
     return this.mealModel.manager.transaction(async (manager) => {
       await manager
         .createQueryBuilder()
         .insert()
         .into(MealEntity)
-        .values({ userIdx, ...mealInfo })
+        .values({ userIdx, ...newMealInfo })
         .execute();
     });
   }

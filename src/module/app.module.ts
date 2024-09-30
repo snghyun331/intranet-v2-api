@@ -9,6 +9,7 @@ import { HealthModule } from './health/health.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { MealModule } from './meal/meal.module';
 import { AuthModule } from './auth/auth.module';
+import { WelfareModule } from './welfare/welfare.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
     SchedulerModule,
     AuthModule,
     MealModule,
+    WelfareModule,
     HealthModule,
   ],
 })

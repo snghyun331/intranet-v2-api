@@ -17,7 +17,7 @@ export class WelfareMonthlyStatsEntity extends CommonEntity {
   month: string;
 
   @Column({ name: 'welfare_month_expense', comment: '복지포인트 월별 사용금액', default: 0, nullable: false })
-  welfare_month_Expense: number;
+  welfareMonthExpense: number;
 
   @ManyToOne(() => UserEntity, (user) => user.welfareStatsRelation, {
     onDelete: 'CASCADE',
