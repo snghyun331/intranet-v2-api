@@ -3,7 +3,7 @@ import { CommonEntity } from '../../common/entity/common.entity';
 import { UserEntity } from '../user/user.entity';
 import { HalfYearEnum } from '../../common/constant/enum';
 
-@Entity({ name: 'welfare_stas', comment: '복포 통계 tb' })
+@Entity({ name: 'welfare_stats', comment: '복포 통계 tb' })
 export class WelfareStatsEntity extends CommonEntity {
   @PrimaryGeneratedColumn({ name: 'welfare_stats_idx', comment: '복포 통계 IDX' })
   welfareStasIdx: number;
@@ -14,7 +14,7 @@ export class WelfareStatsEntity extends CommonEntity {
   @Column({ name: 'year', comment: '연도', nullable: false })
   year: string;
 
-  @Column({ name: 'half_year', comment: '상하반기 구분', nullable: false })
+  @Column({ name: 'half_year', type: 'enum', enum: HalfYearEnum, comment: '상하반기 구분', nullable: false })
   halfYear: HalfYearEnum;
 
   @Column({ name: 'welfare_budget', comment: '복지포인트 사용가능 금액', nullable: false })
