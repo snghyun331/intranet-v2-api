@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 import { CommonEntity } from '../../common/entity/common.entity';
 import { UserEntity } from '../user/user.entity';
 
-@Entity({ name: 'welfare_monthly_stas', comment: '복포 월별 통계 tb' })
+@Entity({ name: 'welfare_monthly_stats', comment: '복포 월별 통계 tb' })
 export class WelfareMonthlyStatsEntity extends CommonEntity {
   @PrimaryGeneratedColumn({ name: 'welfare_monthly_stats_idx', comment: '복포 월별 통계 IDX' })
   welfareMonthlyStasIdx: number;

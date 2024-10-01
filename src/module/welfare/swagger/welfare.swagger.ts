@@ -8,7 +8,10 @@ export const USERS_WELFARES: SwaggerMethod = {
     API_CREATED_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          example: {
+            statusCode: 201,
+            message: '복지포인트 사용내역 저장 성공',
+          },
         },
       },
     },

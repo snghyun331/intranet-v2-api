@@ -7,8 +7,9 @@ import { UserEntity } from '../../../entity/user/user.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
 import { NewMealStatsDto } from '../dto/meal.dto';
-import { NewWelfareStatsDto } from '../dto/welfare.dto';
+import { NewWelfareMonthStatsDto, NewWelfareStatsDto } from '../dto/welfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
+import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 
 @Injectable()
 export class SchedulerRepository {
@@ -69,6 +70,17 @@ export class SchedulerRepository {
   async updateWelfareStats(newWelfareStatsInfo: NewWelfareStatsDto): Promise<void> {
     return this.welfareStatsModel.manager.transaction(async (manager) => {
       await manager.createQueryBuilder().insert().into(WelfareStatsEntity).values(newWelfareStatsInfo).execute();
+    });
+  }
+
+  async updateWelfareMonthStats(newWelfareMonthStatsInfo: NewWelfareMonthStatsDto): Promise<void> {
+    return this.welfareStatsModel.manager.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .insert()
+        .into(WelfareMonthlyStatsEntity)
+        .values(newWelfareMonthStatsInfo)
+        .execute();
     });
   }
 }

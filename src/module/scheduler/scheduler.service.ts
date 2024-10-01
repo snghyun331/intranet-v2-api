@@ -10,7 +10,7 @@ import { SchedulerRepository } from './repository/scheduler.repository';
 import { HolidayInfoDto } from './dto/holiday.dto';
 import { NewMealStatsDto } from './dto/meal.dto';
 import { HalfYearEnum } from '../../common/constant/enum';
-import { NewWelfareStatsDto } from './dto/welfare.dto';
+import { NewWelfareMonthStatsDto, NewWelfareStatsDto } from './dto/welfare.dto';
 
 @Injectable()
 export class SchedulerService {
@@ -155,7 +155,7 @@ export class SchedulerService {
     const nowMonth: number = date.getMonth() + 1;
     const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
     const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const halfYear: HalfYearEnum = nextMonth === 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
+    const halfYear: HalfYearEnum = nextMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
 
     const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
 
@@ -172,5 +172,30 @@ export class SchedulerService {
     );
 
     this.logger.log('🏁 Updating Welfare Stats Job Completed !');
+  }
+
+  @Cron('0 0 25 * *')
+  async updateWelfareMonthStats(): Promise<void> {
+    this.logger.log('🚀 Start Updating Welfare Month Stats Job !');
+    const date: Date = new Date();
+    const nowMonth: number = date.getMonth() + 1;
+    const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
+    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
+
+    const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
+
+    await Promise.all(
+      userIdxList.map(async (userIdx) => {
+        const newWelfareMonthStatsInfo: NewWelfareMonthStatsDto = {
+          userIdx,
+          year: year.toString(),
+          month: nextMonth.toString(),
+          welfareMonthExpense: 0,
+        };
+        await this.schedulerRepository.updateWelfareMonthStats(newWelfareMonthStatsInfo);
+      }),
+    );
+
+    this.logger.log('🏁 Updating Welfare Month Stats Job Completed !');
   }
 }
