@@ -16,4 +16,25 @@ export const USERS_WELFARES: SwaggerMethod = {
       },
     },
   },
+  DELETE: {
+    API_OPERATION: {
+      summary: '복지포인트 사용내역 초기화 API',
+    },
+    API_PARAM1: {
+      name: 'welfareIdx',
+      type: Number,
+      required: true,
+      description: '복포 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '복지포인트 사용내역 초기화 성공',
+          },
+        },
+      },
+    },
+  },
 };

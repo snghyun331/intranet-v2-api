@@ -6,6 +6,7 @@ import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { WelfareEntity } from '../../../entity/welfare/welfare.entity';
 import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
+import { WelfareInfoDto } from '../dto/welfare.dto';
 
 @Injectable()
 export class WelfareRepository {
@@ -73,6 +74,31 @@ export class WelfareRepository {
         .where('userIdx = :userIdx', { userIdx })
         .andWhere('year = :year', { year })
         .andWhere('month = :month', { month })
+        .execute();
+    });
+  }
+
+  async getWelfareInfoByIdx(welfareIdx: number): Promise<WelfareInfoDto> {
+    const result: WelfareInfoDto = await this.welfareModel
+      .createQueryBuilder('welfareEntity')
+      .select([
+        'welfareEntity.welfareIdx AS welfareIdx',
+        'welfareEntity.userIdx AS userIdx',
+        'welfareEntity.useDate AS useDate',
+      ])
+      .where('welfareEntity.welfareIdx = :welfareIdx', { welfareIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async deleteWelfare(welfareIdx: number): Promise<void> {
+    return this.welfareModel.manager.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .delete()
+        .from(WelfareEntity)
+        .where('welfareIdx = :welfareIdx', { welfareIdx })
         .execute();
     });
   }
