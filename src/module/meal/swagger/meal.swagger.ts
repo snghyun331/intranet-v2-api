@@ -274,15 +274,14 @@ export const USERS_MEALS: SwaggerMethod = {
       type: UpdateMealDto,
       examples: {
         a: {
-          summary: '모두 수정(useDate제외)',
+          summary: '모두 수정(useDat, mealType 제외)',
           value: {
             attendance: '근무',
-            mealType: 'launch',
             dinerName: '이여곰탕',
             payAmount: 11000,
             payer: '이승현',
           },
-          description: 'useDate는 수정할 수 없습니다.',
+          description: 'useDate, mealType는 수정할 수 없습니다.',
         },
         b: {
           summary: '일부 수정',

@@ -14,13 +14,17 @@ export const validationOptions = {
     for (const { property, constraints } of validationErrors) {
       const keys = Object.keys(constraints);
 
-      if (keys.includes('isNotEmpty') || keys.includes('matches')) {
+      if (keys.includes('isNotEmpty') || keys.includes('matches') || keys.includes('isEmpty')) {
         if (keys.includes('isNotEmpty')) {
           errMessage += constraints['isNotEmpty'] + ' ';
         }
 
         if (keys.includes('matches')) {
           errMessage += constraints['matches'] + ' ';
+        }
+
+        if (keys.includes('isEmpty')) {
+          errMessage += constraints['isEmpty'] + ' ';
         }
         hasSpecificConstraint = true;
       }
