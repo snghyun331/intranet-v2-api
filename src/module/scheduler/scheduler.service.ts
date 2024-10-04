@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
+import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
@@ -62,7 +62,7 @@ export class SchedulerService {
     const nowMonth: number = date.getMonth() + 1;
     const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
     const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const publicHolidayInfoList: HolidayInfoDto[] = await this.getPublicHolidayDatas(year, nextMonth);
+    const publicHolidayInfoList: HolidayInfoDto[] = (await this.getPublicHolidayDatas(year, nextMonth)) ?? [];
     const weekendInfoList: HolidayInfoDto[] = await this.getWeekendDatas(year, nextMonth);
     // Set을 이용하여 holidayDate 기준으로 중복 제거
     const mergedHolidaySet = new Set<string>();
@@ -116,10 +116,7 @@ export class SchedulerService {
     try {
       const axiosResponse: AxiosResponse = await this.httpService.axiosRef.get(HOLIDAY_API_URL);
       const axiosHolidayList: AxiosHoliday[] = axiosResponse.data.response?.body?.items?.item;
-
-      if (!axiosHolidayList || axiosHolidayList.length === 0) {
-        throw new BadRequestException('공휴일 정보 수집에 실패했습니다.');
-      }
+      if (!axiosHolidayList || axiosHolidayList.length === 0) return;
 
       const holidayInfoList: HolidayInfoDto[] = axiosHolidayList.map((axiosHoliday) => {
         const holidayDate: string = getDateFormYYYYMMDD(axiosHoliday.locdate.toString());
