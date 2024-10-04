@@ -7,6 +7,7 @@ import { WelfareEntity } from '../../../entity/welfare/welfare.entity';
 import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { WelfareInfoDto } from '../dto/welfare.dto';
+import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 
 @Injectable()
 export class WelfareRepository {
@@ -98,6 +99,17 @@ export class WelfareRepository {
         .createQueryBuilder()
         .delete()
         .from(WelfareEntity)
+        .where('welfareIdx = :welfareIdx', { welfareIdx })
+        .execute();
+    });
+  }
+
+  async updateWelfare(welfareIdx: number, updateWelfareInfo: UpdateWelfareDto): Promise<void> {
+    return this.welfareModel.manager.transaction(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(WelfareEntity)
+        .set(updateWelfareInfo)
         .where('welfareIdx = :welfareIdx', { welfareIdx })
         .execute();
     });

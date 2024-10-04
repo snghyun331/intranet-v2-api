@@ -1,7 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateWelfareDto } from './dto/createWelfare.dto';
 import { WelfareRepository } from './repository/welfare.repository';
 import { WelfareInfoDto } from './dto/welfare.dto';
+import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 
 @Injectable()
 export class WelfareService {
@@ -45,6 +46,37 @@ export class WelfareService {
     }
 
     await this.welfareRepository.deleteWelfare(welfareIdx);
+
+    // 복지포인트 사용금액 업데이트
+    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(year, month, userIdx);
+    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx);
+  }
+
+  async updateWelfare(userIdx: number, welfareIdx: number, updateWelfareInfo: UpdateWelfareDto): Promise<void> {
+    const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
+    if (updateWelfareInfo.payer) {
+      const allUserNames: string[] = await this.welfareRepository.getAllUserNames();
+      if (!allUserNames.includes(updateWelfareInfo.payer)) {
+        throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
+      }
+    }
+
+    const welfareInfo: WelfareInfoDto = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
+    if (!welfareInfo) {
+      throw new NotFoundException('해당 사용내역은 존재하지 않거나 삭제되었습니다.');
+    }
+    const year: number = Number(welfareInfo.useDate.substring(0, 4));
+    const month: number = Number(welfareInfo.useDate.substring(5, 7));
+
+    if (userIdx !== welfareInfo.userIdx) {
+      throw new ForbiddenException('식대 수정 권한이 없습니다');
+    }
+
+    await this.welfareRepository.updateWelfare(welfareIdx, updateWelfareInfo);
 
     // 복지포인트 사용금액 업데이트
     const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(year, month, userIdx);
