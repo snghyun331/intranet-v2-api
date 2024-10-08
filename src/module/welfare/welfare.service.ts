@@ -14,15 +14,15 @@ export class WelfareService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    if (newWelfareInfo.payer) {
+    if (newWelfareInfo.payerName) {
       const allUserNames: string[] = await this.welfareRepository.getAllUserNames();
-      if (!allUserNames.includes(newWelfareInfo.payer)) {
+      if (!allUserNames.includes(newWelfareInfo.payerName)) {
         throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
       }
     }
 
-    const year: number = Number(newWelfareInfo.useDate.substring(0, 4));
-    const month: number = Number(newWelfareInfo.useDate.substring(5, 7));
+    const year: number = Number(newWelfareInfo.targetDay.substring(0, 4));
+    const month: number = Number(newWelfareInfo.targetDay.substring(5, 7));
 
     await this.welfareRepository.createWelfare(userIdx, newWelfareInfo);
 
@@ -38,8 +38,8 @@ export class WelfareService {
     }
 
     const welfareInfo: WelfareInfoDto = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
-    const year: number = Number(welfareInfo.useDate.substring(0, 4));
-    const month: number = Number(welfareInfo.useDate.substring(5, 7));
+    const year: number = Number(welfareInfo.targetDay.substring(0, 4));
+    const month: number = Number(welfareInfo.targetDay.substring(5, 7));
 
     if (userIdx !== welfareInfo.userIdx) {
       throw new ForbiddenException('복포 사용내역 삭제 권한이 없습니다');
@@ -58,9 +58,9 @@ export class WelfareService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    if (updateWelfareInfo.payer) {
+    if (updateWelfareInfo.payerName) {
       const allUserNames: string[] = await this.welfareRepository.getAllUserNames();
-      if (!allUserNames.includes(updateWelfareInfo.payer)) {
+      if (!allUserNames.includes(updateWelfareInfo.payerName)) {
         throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
       }
     }
@@ -69,8 +69,8 @@ export class WelfareService {
     if (!welfareInfo) {
       throw new NotFoundException('해당 사용내역은 존재하지 않거나 삭제되었습니다.');
     }
-    const year: number = Number(welfareInfo.useDate.substring(0, 4));
-    const month: number = Number(welfareInfo.useDate.substring(5, 7));
+    const year: number = Number(welfareInfo.targetDay.substring(0, 4));
+    const month: number = Number(welfareInfo.targetDay.substring(5, 7));
 
     if (userIdx !== welfareInfo.userIdx) {
       throw new ForbiddenException('식대 수정 권한이 없습니다');

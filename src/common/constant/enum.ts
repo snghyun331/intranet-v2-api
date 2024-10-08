@@ -10,7 +10,7 @@ export enum YNEnum {
 
 export enum MealTypeEnum {
   BREAKFAST = 'breakfast',
-  LAUNCH = 'launch',
+  LUNCH = 'lunch',
   DINNER = 'dinner',
 }
 

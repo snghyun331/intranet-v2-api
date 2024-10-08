@@ -98,18 +98,18 @@ export const USERS_WELFARES: SwaggerMethod = {
       type: UpdateWelfareDto,
       examples: {
         a: {
-          summary: '모두 수정(useDate 제외)',
+          summary: '모두 수정(targetDay 제외)',
           value: {
-            payAmount: 3000,
+            amount: 3000,
             content: '와이브루',
-            payer: '이승현',
+            payerName: '이승현',
           },
-          description: 'useDate는 수정할 수 없습니다.',
+          description: 'targetDay는 수정할 수 없습니다.',
         },
         b: {
           summary: '일부 수정',
           value: {
-            payer: '김현민',
+            payerName: '김현민',
           },
         },
       },

@@ -10,8 +10,8 @@ export class WelfarePayeeEntity {
   @PrimaryColumn({ name: 'welfare_idx', comment: '복포내역IDX' })
   welfareIdx: number;
 
-  @Column({ name: 'pay_amount', comment: '결제 금액', nullable: false })
-  payAmount: number;
+  @Column({ name: 'amount', comment: '결제 금액', nullable: false })
+  amount: number;
 
   @ManyToOne(() => WelfareEntity, (welfare) => welfare.payeesRelation, {
     onDelete: 'CASCADE',

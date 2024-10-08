@@ -12,17 +12,17 @@ export class WelfareEntity extends CommonEntity {
   @Column({ name: 'user_idx', comment: '사용자 IDX', nullable: false })
   userIdx: number;
 
-  @Column({ name: 'use_date', comment: '복포 사용일', nullable: false })
-  useDate: string;
+  @Column({ name: 'target_day', comment: '복포 사용일', nullable: false })
+  targetDay: string;
 
   @Column({ name: 'content', comment: '사용처', nullable: false })
   content: string;
 
-  @Column({ name: 'pay_amount', comment: '결제 금액', nullable: false })
-  payAmount: number;
+  @Column({ name: 'amount', comment: '결제 금액', nullable: false })
+  amount: number;
 
-  @Column({ name: 'payer', comment: '결제자 이름', nullable: true })
-  payer: string;
+  @Column({ name: 'payer_name', comment: '결제자 이름', nullable: true })
+  payerName: string;
 
   @Column({ name: 'confirm_yn', comment: 'P&C 확인여부', default: YNEnum.NO, nullable: false })
   confirmYN: YNEnum;

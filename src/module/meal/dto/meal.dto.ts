@@ -21,4 +21,4 @@ export class GetMealCalenderDto {
   meals: MealEntity[];
 }
 
-export class MealInfoDto extends PickType(MealEntity, ['mealIdx', 'userIdx', 'useDate'] as const) {}
+export class MealInfoDto extends PickType(MealEntity, ['mealIdx', 'userIdx', 'targetDay'] as const) {}

@@ -5,6 +5,7 @@ import { CreateMealDto } from './dto/createMeal.dto';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../common/constant/enum';
 import { MealEntity } from '../../entity/meal/meal.entity';
 import { UpdateMealDto } from './dto/updateMeal.dto';
+import { MealDataInterface } from './interface/meal.interface';
 
 @Injectable()
 export class MealService {
@@ -16,19 +17,51 @@ export class MealService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const meals: MealEntity[] = await this.mealRepository.getMealCalender(year, month, userIdx);
+    const mealInfo: MealEntity[] = await this.mealRepository.getMealCalender(year, month, userIdx);
     const mealStats: MealStatsDto = await this.mealRepository.getMealStats(year, month, userIdx);
 
-    // meals를 날짜별로 그룹화
-    const mealsByDate: any[] = meals.reduce((acc, meal) => {
-      const existingDate = acc.find((m) => m.useDate === meal.useDate);
-      const { useDate, ...mealData } = meal;
+    // 날짜별로 그룹화하여 meals를 구성
+    const meals: any[] = mealInfo.reduce((acc, meal) => {
+      const existingDate = acc.find((m) => m.start === meal.targetDay);
+
+      const mealData: MealDataInterface = {
+        payerName: meal.payerName || null,
+        place: meal.place || null,
+        amount: meal.amount || null,
+      };
+      if (meal.mealType === MealTypeEnum.LUNCH && meal.attendance) {
+        mealData.attendance = meal.attendance; // attendance가 있을 때만 추가
+      } else if (meal.mealType === MealTypeEnum.LUNCH && !meal.attendance) {
+        mealData.attendance = null;
+      }
+
       if (existingDate) {
-        existingDate.mealsByDate.push(mealData);
+        // mealType에 따라 해당 식사 시간에 데이터를 할당
+        switch (meal.mealType) {
+          case MealTypeEnum.BREAKFAST:
+            existingDate.breakfast = mealData;
+            break;
+          case MealTypeEnum.LUNCH:
+            existingDate.lunch = mealData;
+            break;
+          case MealTypeEnum.DINNER:
+            existingDate.dinner = mealData;
+            break;
+          default:
+            break;
+        }
       } else {
+        // 새로운 날짜에 대한 식사 정보를 추가
         acc.push({
-          useDate,
-          mealsByDate: [mealData],
+          start: meal.targetDay,
+          holidayYN: meal.holidayYN,
+          breakfast:
+            meal.mealType === MealTypeEnum.BREAKFAST ? mealData : { payerName: null, place: null, amount: null },
+          lunch:
+            meal.mealType === MealTypeEnum.LUNCH
+              ? mealData
+              : { payerName: null, place: null, amount: null, attendance: null },
+          dinner: meal.mealType === MealTypeEnum.DINNER ? mealData : { payerName: null, place: null, amount: null },
         });
       }
 
@@ -37,25 +70,11 @@ export class MealService {
 
     const result: GetMealCalenderDto = {
       mealStats,
-      meals: mealsByDate,
+      meals,
     };
 
     return result;
   }
-
-  // async getMealDetail(userIdx: number, mealIdx: number): Promise<MealEntity> {
-  //   const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
-  //   if (userCnt !== 1) {
-  //     throw new BadRequestException('올바른 유저가 아닙니다.');
-  //   }
-
-  //   const mealEntity: MealEntity = await this.mealRepository.getMealDetail(mealIdx);
-  //   if (userIdx !== mealEntity.userIdx) {
-  //     throw new ForbiddenException('식대 조회 권한이 없습니다');
-  //   }
-
-  //   return mealEntity;
-  // }
 
   async createMeal(userIdx: number, newMealInfo: CreateMealDto): Promise<void> {
     const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
@@ -64,19 +83,19 @@ export class MealService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    if (newMealInfo.payer) {
+    if (newMealInfo.payerName) {
       const allUserNames: string[] = await this.mealRepository.getAllUserNames();
-      if (!allUserNames.includes(newMealInfo.payer)) {
+      if (!allUserNames.includes(newMealInfo.payerName)) {
         throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
       }
     }
 
-    const year: number = Number(newMealInfo.useDate.substring(0, 4));
-    const month: number = Number(newMealInfo.useDate.substring(5, 7));
+    const year: number = Number(newMealInfo.targetDay.substring(0, 4));
+    const month: number = Number(newMealInfo.targetDay.substring(5, 7));
 
     // 근무&휴일 (휴일근무)일 때 처리
     const monthHolidays: string[] = await this.mealRepository.getMonthHolidays(year, month);
-    if (monthHolidays.includes(newMealInfo.useDate)) {
+    if (monthHolidays.includes(newMealInfo.targetDay)) {
       const attendance: AttendanceEnum = newMealInfo.attendance;
       if (attendance !== AttendanceEnum.WORKING) {
         throw new BadRequestException('휴일에는 근무일 때만 등록할 수 있습니다.');
@@ -94,7 +113,7 @@ export class MealService {
     const holidayWorkdays: number = await this.mealRepository.getTotalHolidayWorkdays(year, month, userIdx);
     await this.mealRepository.updateHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx);
 
-    if (newMealInfo.mealType === MealTypeEnum.LAUNCH) {
+    if (newMealInfo.mealType === MealTypeEnum.LUNCH) {
       // mealExpense(중식 사용금액) 업데이트
       const mealExpense: number = await this.mealRepository.getTotalMealExpense(year, month, userIdx);
       await this.mealRepository.updateMealExpenseInStats(mealExpense, year, month, userIdx);
@@ -118,8 +137,8 @@ export class MealService {
     }
 
     const mealInfo: MealInfoDto = await this.mealRepository.getMealInfoByIdx(mealIdx);
-    const year: number = Number(mealInfo.useDate.substring(0, 4));
-    const month: number = Number(mealInfo.useDate.substring(5, 7));
+    const year: number = Number(mealInfo.targetDay.substring(0, 4));
+    const month: number = Number(mealInfo.targetDay.substring(5, 7));
 
     if (userIdx !== mealInfo.userIdx) {
       throw new ForbiddenException('식대 삭제 권한이 없습니다');
@@ -144,15 +163,15 @@ export class MealService {
     await this.mealRepository.updateDinnerExpenseInStats(dinnerExpense, year, month, userIdx);
   }
 
-  async updateMeal(userIdx: number, mealIdx: number, updateMealInfo: UpdateMealDto) {
+  async updateMeal(userIdx: number, mealIdx: number, updateMealInfo: UpdateMealDto): Promise<string> {
     const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    if (updateMealInfo.payer) {
+    if (updateMealInfo.payerName) {
       const allUserNames: string[] = await this.mealRepository.getAllUserNames();
-      if (!allUserNames.includes(updateMealInfo.payer)) {
+      if (!allUserNames.includes(updateMealInfo.payerName)) {
         throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
       }
     }
@@ -161,8 +180,8 @@ export class MealService {
     if (!mealInfo) {
       throw new NotFoundException('해당 식대는 존재하지 않거나 삭제되었습니다.');
     }
-    const year: number = Number(mealInfo.useDate.substring(0, 4));
-    const month: number = Number(mealInfo.useDate.substring(5, 7));
+    const year: number = Number(mealInfo.targetDay.substring(0, 4));
+    const month: number = Number(mealInfo.targetDay.substring(5, 7));
 
     if (userIdx !== mealInfo.userIdx) {
       throw new ForbiddenException('식대 수정 권한이 없습니다');
@@ -171,7 +190,7 @@ export class MealService {
     if (updateMealInfo.attendance) {
       // 근무&휴일 (휴일근무)일 때 처리
       const monthHolidays: string[] = await this.mealRepository.getMonthHolidays(year, month);
-      if (monthHolidays.includes(mealInfo.useDate)) {
+      if (monthHolidays.includes(mealInfo.targetDay)) {
         const attendance: AttendanceEnum = updateMealInfo.attendance;
         if (attendance !== AttendanceEnum.WORKING) {
           throw new BadRequestException('휴일에는 근무일 때만 등록할 수 있습니다.');
@@ -197,5 +216,7 @@ export class MealService {
     // dinnerExpense(조식 사용금액) 업데이트
     const dinnerExpense: number = await this.mealRepository.getTotalDinnerExpense(year, month, userIdx);
     await this.mealRepository.updateDinnerExpenseInStats(dinnerExpense, year, month, userIdx);
+
+    return mealInfo.targetDay;
   }
 }

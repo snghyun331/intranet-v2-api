@@ -17,6 +17,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async userLogin(@Body() userLoginInfo: LoginUserDto): Promise<ResponseDto> {
+    console.log(userLoginInfo);
     const user: LoginUserResultDto = await this.authService.userLogin(userLoginInfo);
 
     const response: ResponseDto = { message: '로그인 성공', data: user };

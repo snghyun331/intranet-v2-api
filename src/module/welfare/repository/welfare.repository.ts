@@ -55,9 +55,9 @@ export class WelfareRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.welfareModel
       .createQueryBuilder('welfareEntity')
-      .select('SUM(welfareEntity.pay_amount)', 'total')
+      .select('SUM(welfareEntity.amount)', 'total')
       .where('welfareEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('welfareEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('welfareEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
@@ -85,7 +85,7 @@ export class WelfareRepository {
       .select([
         'welfareEntity.welfareIdx AS welfareIdx',
         'welfareEntity.userIdx AS userIdx',
-        'welfareEntity.useDate AS useDate',
+        'welfareEntity.targetDay AS targetDay',
       ])
       .where('welfareEntity.welfareIdx = :welfareIdx', { welfareIdx })
       .getRawOne();

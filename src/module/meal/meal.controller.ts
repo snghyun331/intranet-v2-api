@@ -125,9 +125,9 @@ export class MealController {
     @Body() updateMealInfo: UpdateMealDto,
     @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseDto> {
-    await this.mealService.updateMeal(userIdx, mealIdx, updateMealInfo);
+    const targetDay: string = await this.mealService.updateMeal(userIdx, mealIdx, updateMealInfo);
 
-    const response: ResponseDto = { message: '식대 사용내역 수정 성공' };
+    const response: ResponseDto = { message: '식대 사용내역 수정 성공', data: { targetDay } };
 
     return response;
   }
