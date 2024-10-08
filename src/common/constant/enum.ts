@@ -10,7 +10,7 @@ export enum YNEnum {
 
 export enum MealTypeEnum {
   BREAKFAST = 'breakfast',
-  LAUNCH = 'launch',
+  LUNCH = 'lunch',
   DINNER = 'dinner',
 }
 
@@ -31,4 +31,9 @@ export enum UserGradeEnum {
   SENIOR = '선임',
   ADVISOR = '위원',
   INTERN = '인턴',
+}
+
+export enum HalfYearEnum {
+  H1 = '상반기',
+  H2 = '하반기',
 }

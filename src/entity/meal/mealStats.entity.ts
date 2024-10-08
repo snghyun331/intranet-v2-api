@@ -38,7 +38,7 @@ export class MealStatsEntity extends CommonEntity {
   mealBalance: number;
 
   @Column({ name: 'breakfast_expense', comment: '이번달 식대(조식) 사용 금액', default: 0, nullable: false })
-  breakFastExpense: number;
+  breakfastExpense: number;
 
   @Column({ name: 'dinner_expense', comment: '이번달 식대(석식) 사용 금액', default: 0, nullable: false })
   dinnerExpense: number;

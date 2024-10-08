@@ -29,20 +29,20 @@ export class MealRepository {
       .select([
         'mealEntity.mealIdx AS mealIdx',
         'mealEntity.userIdx AS userIdx',
-        'mealEntity.useDate AS useDate',
+        'mealEntity.targetDay AS targetDay',
         'mealEntity.holidayYN AS holidayYN',
         'mealEntity.attendance AS attendance',
         'mealEntity.mealType AS mealType',
-        'mealEntity.dinerName AS dinerName',
-        'mealEntity.payAmount AS payAmount',
-        'mealEntity.payer AS payer',
+        'mealEntity.place AS place',
+        'mealEntity.amount AS amount',
+        'mealEntity.payerName AS payerName',
       ])
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
-      .orderBy('mealEntity.useDate', 'DESC')
+      .orderBy('mealEntity.targetDay', 'ASC')
       .getRawMany();
 
     return result;
@@ -88,13 +88,13 @@ export class MealRepository {
     return allNames;
   }
 
-  async createMeal(userIdx: number, mealInfo: CreateMealDto): Promise<void> {
+  async createMeal(userIdx: number, newMealInfo: CreateMealDto): Promise<void> {
     return this.mealModel.manager.transaction(async (manager) => {
       await manager
         .createQueryBuilder()
         .insert()
         .into(MealEntity)
-        .values({ userIdx, ...mealInfo })
+        .values({ userIdx, ...newMealInfo })
         .execute();
     });
   }
@@ -131,7 +131,7 @@ export class MealRepository {
       .andWhere('mealEntity.attendance NOT IN (:...attendance)', {
         attendance: [AttendanceEnum.WORKING],
       })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
@@ -159,13 +159,13 @@ export class MealRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select('SUM(mealEntity.pay_amount)', 'total')
+      .select('SUM(mealEntity.amount)', 'total')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
-      .andWhere('mealEntity.mealType = :mealType', { mealType: MealTypeEnum.LAUNCH })
+      .andWhere('mealEntity.mealType = :mealType', { mealType: MealTypeEnum.LUNCH })
       .getRawOne();
 
     return result.total;
@@ -191,7 +191,7 @@ export class MealRepository {
     const result: number = await this.mealModel
       .createQueryBuilder('mealEntity')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
@@ -231,7 +231,7 @@ export class MealRepository {
   async getMealInfoByIdx(mealIdx: number): Promise<MealInfoDto> {
     const result: MealInfoDto = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select(['mealEntity.mealIdx AS mealIdx', 'mealEntity.userIdx AS userIdx', 'mealEntity.useDate AS useDate'])
+      .select(['mealEntity.mealIdx AS mealIdx', 'mealEntity.userIdx AS userIdx', 'mealEntity.targetDay AS targetDay'])
       .where('mealEntity.mealIdx = :mealIdx', { mealIdx })
       .getRawOne();
 
@@ -255,9 +255,9 @@ export class MealRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select('SUM(mealEntity.pay_amount)', 'total')
+      .select('SUM(mealEntity.amount)', 'total')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
@@ -286,9 +286,9 @@ export class MealRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select('SUM(mealEntity.pay_amount)', 'total')
+      .select('SUM(mealEntity.amount)', 'total')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })

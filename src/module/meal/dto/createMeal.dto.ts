@@ -6,7 +6,7 @@ export class CreateMealDto {
   @ApiProperty({ type: String, description: '식대 사용일', required: true })
   @IsNotEmpty({ message: '날짜는 필수로 입력해주세요.' })
   @IsString()
-  useDate: string;
+  targetDay: string;
 
   @ApiProperty({
     type: Object.values(AttendanceEnum),
@@ -31,17 +31,17 @@ export class CreateMealDto {
   @ApiProperty({ type: String, description: '식당 상호명', required: false })
   @IsOptional()
   @IsString()
-  dinerName?: string;
+  place?: string;
 
   @ApiProperty({ type: Number, description: '결제 금액', required: false })
   @IsOptional()
   @IsNumber()
-  payAmount?: number;
+  amount?: number;
 
   @ApiProperty({ type: String, description: '결제자(이름만 넣어주세요)', required: false })
   @IsOptional()
   @IsString()
-  payer?: string;
+  payerName?: string;
 
   @IsOptional()
   @IsEnum(YNEnum)

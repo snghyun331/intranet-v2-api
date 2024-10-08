@@ -11,8 +11,8 @@ export class MealEntity extends CommonEntity {
   @Column({ name: 'user_idx', comment: '사용자 IDX', nullable: false })
   userIdx: number;
 
-  @Column({ name: 'use_date', comment: '식대 사용일', nullable: false })
-  useDate: string;
+  @Column({ name: 'target_day', comment: '식대 사용일', nullable: false })
+  targetDay: string;
 
   @Column({
     name: 'holiday_yn',
@@ -30,14 +30,14 @@ export class MealEntity extends CommonEntity {
   @Column({ name: 'meal_type', comment: '조식 중식 석식', type: 'enum', enum: MealTypeEnum, nullable: true })
   mealType: MealTypeEnum;
 
-  @Column({ name: 'diner_name', comment: '식당 상호명', nullable: true })
-  dinerName: string;
+  @Column({ name: 'place', comment: '식당 상호명', nullable: true })
+  place: string;
 
-  @Column({ name: 'pay_amount', comment: '결제 금액', nullable: false, default: 0 })
-  payAmount: number;
+  @Column({ name: 'amount', comment: '결제 금액', nullable: false, default: 0 })
+  amount: number;
 
-  @Column({ name: 'payer', comment: '결제자 이름', nullable: true })
-  payer: string;
+  @Column({ name: 'payer_name', comment: '결제자 이름', nullable: true })
+  payerName: string;
 
   @ManyToOne(() => UserEntity, (user) => user.mealRelation, {
     onDelete: 'CASCADE',
