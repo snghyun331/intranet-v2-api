@@ -6,10 +6,10 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
 import { MealInfoDto, MealStatsDto } from '../dto/meal.dto';
-import { CreateMealDto } from '../dto/createMeal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
 import { UpdateMealDto } from '../dto/updateMeal.dto';
+import { DetailedMealData } from '../interface/meal.interface';
 
 @Injectable()
 export class MealRepository {
@@ -88,13 +88,19 @@ export class MealRepository {
     return allNames;
   }
 
-  async createMeal(userIdx: number, newMealInfo: CreateMealDto): Promise<void> {
+  async createMeal2(
+    userIdx: number,
+    targetDay: string,
+    attendance: AttendanceEnum,
+    newMealInfo: DetailedMealData,
+    mealType: MealTypeEnum,
+  ): Promise<void> {
     return this.mealModel.manager.transaction(async (manager) => {
       await manager
         .createQueryBuilder()
         .insert()
         .into(MealEntity)
-        .values({ userIdx, ...newMealInfo })
+        .values({ userIdx, targetDay, attendance, mealType, ...newMealInfo })
         .execute();
     });
   }
@@ -159,7 +165,7 @@ export class MealRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select('SUM(mealEntity.amount)', 'total')
+      .select('COALESCE(SUM(mealEntity.amount), 0)', 'total') // null일 경우 0으로
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
@@ -255,7 +261,7 @@ export class MealRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select('SUM(mealEntity.amount)', 'total')
+      .select('COALESCE(SUM(mealEntity.amount), 0)', 'total') // null일 경우 0으로
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
@@ -286,7 +292,7 @@ export class MealRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select('SUM(mealEntity.amount)', 'total')
+      .select('COALESCE(SUM(mealEntity.amount), 0)', 'total') // null일 경우 0으로
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
@@ -309,5 +315,19 @@ export class MealRepository {
         .andWhere('month = :month', { month })
         .execute();
     });
+  }
+
+  async getMealIdx(userIdx: number, targetDay: string, mealType: MealTypeEnum): Promise<number> {
+    const result = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .select(['mealEntity.mealIdx AS mealIdx'])
+      .where('mealEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('mealEntity.mealType = :mealType', { mealType })
+      .andWhere('mealEntity.targetDay = :targetDay', { targetDay })
+      .getRawOne();
+
+    const mealIdx: number = result.mealIdx;
+
+    return mealIdx;
   }
 }

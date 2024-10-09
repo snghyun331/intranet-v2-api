@@ -62,9 +62,9 @@ export class MealController {
   @UserRole(UserGradeEnum.INTERN)
   @Post()
   async createMeal(@Body() newMealInfo: CreateMealDto, @CurrentUserIdx() userIdx: number): Promise<ResponseDto> {
-    await this.mealService.createMeal(userIdx, newMealInfo);
+    const targetDay: string = await this.mealService.createMeal(userIdx, newMealInfo);
 
-    const response: ResponseDto = { message: '식대 사용내역 저장 성공' };
+    const response: ResponseDto = { message: '식대 사용내역 저장 성공', data: { targetDay } };
 
     return response;
   }
@@ -88,26 +88,6 @@ export class MealController {
 
     return response;
   }
-
-  // @ApiOperation(USERS_MEALS_DETAIL.GET.API_OPERATION)
-  // @ApiParam(USERS_MEALS_DETAIL.GET.API_PARAM1)
-  // @ApiOkResponse(USERS_MEALS_DETAIL.GET.API_OK_RESPONSE)
-  // @ApiForbiddenResponse(USERS_MEALS_DETAIL.GET.API_FORBIDDEN_RESPONSE)
-  // @ApiBadRequestResponse(USERS_MEALS_DETAIL.GET.API_BAD_REQUEST_RESPONSE)
-  // @ApiBearerAuth('accessToken')
-  // @UseGuards(UserAuthGuard, UserRolesGuard)
-  // @UserRole(UserGradeEnum.INTERN)
-  // @Get(':mealIdx')
-  // async getMealDetail(
-  //   @Param('mealIdx', ParseIntPipe) mealIdx: number,
-  //   @CurrentUserIdx() userIdx: number,
-  // ): Promise<ResponseDto> {
-  //   const mealEntity: MealEntity = await this.mealService.getMealDetail(userIdx, mealIdx);
-
-  //   const response: ResponseDto = { message: '식대 사용내역 상세조회 성공', data: mealEntity };
-
-  //   return response;
-  // }
 
   @ApiOperation(USERS_MEALS.PUT.API_OPERATION)
   @ApiParam(USERS_MEALS.PUT.API_PARAM1)

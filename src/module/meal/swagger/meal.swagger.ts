@@ -108,32 +108,59 @@ export const USERS_MEALS: SwaggerMethod = {
     API_OPERATION: {
       summary: '식대 사용내역 등록 API',
     },
+    // API_BODY: {
+    //   type: CreateMealDto,
+    //   examples: {
+    //     a: {
+    //       summary: '근무 & 식사 O',
+    //       value: {
+    //         targetDay: '2024-09-18',
+    //         attendance: '근무',
+    //         mealType: 'lunch',
+    //         place: '이여곰탕',
+    //         amount: 11000,
+    //         payerName: '이승현',
+    //       },
+    //     },
+    //     b: {
+    //       summary: '근무 & 식사 X',
+    //       value: {
+    //         targetDay: '2024-09-13',
+    //         attendance: '근무',
+    //       },
+    //     },
+    //     c: {
+    //       summary: '휴무/반차 등일 때',
+    //       value: {
+    //         targetDay: '2024-09-13',
+    //         attendance: '오후 반차',
+    //       },
+    //     },
+    //   },
+    // },
     API_BODY: {
       type: CreateMealDto,
       examples: {
         a: {
-          summary: '근무 & 식사 O',
+          summary: '',
           value: {
-            targetDay: '2024-09-18',
-            attendance: '근무',
-            mealType: 'lunch',
-            place: '이여곰탕',
-            amount: 11000,
-            payerName: '이승현',
-          },
-        },
-        b: {
-          summary: '근무 & 식사 X',
-          value: {
-            targetDay: '2024-09-13',
-            attendance: '근무',
-          },
-        },
-        c: {
-          summary: '휴무/반차 등일 때',
-          value: {
-            targetDay: '2024-09-13',
-            attendance: '오후 반차',
+            targetDay: '2024-10-29',
+            breakfast: {
+              payerName: null,
+              place: null,
+              amount: null,
+            },
+            lunch: {
+              payerName: '이승현',
+              place: '김가네',
+              amount: 5000,
+              attendance: '근무',
+            },
+            dinner: {
+              payerName: null,
+              place: null,
+              amount: null,
+            },
           },
         },
       },

@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
+import { Type } from 'class-transformer';
 
-export class CreateMealDto {
+export class CreateMealDto2 {
   @ApiProperty({ type: String, description: '식대 사용일', required: true })
   @IsNotEmpty({ message: '날짜는 필수로 입력해주세요.' })
   @IsString()
@@ -42,6 +43,59 @@ export class CreateMealDto {
   @IsOptional()
   @IsString()
   payerName?: string;
+
+  @IsOptional()
+  @IsEnum(YNEnum)
+  holidayYN?: YNEnum;
+}
+
+class MealInputDto {
+  @ApiProperty({ type: String, description: '결제자(이름만 넣어주세요)', required: false })
+  @IsOptional()
+  @IsString()
+  payerName: string | null;
+
+  @ApiProperty({ type: String, description: '식당 상호명', required: false })
+  @IsOptional()
+  @IsString()
+  place: string | null;
+
+  @ApiProperty({ type: Number, description: '결제 금액', required: false })
+  @IsOptional()
+  @IsNumber()
+  amount: number | null;
+}
+
+export class CreateMealDto {
+  @ApiProperty({ type: String, description: '식대 사용일', required: true })
+  @IsNotEmpty({ message: '날짜는 필수로 입력해주세요.' })
+  @IsString()
+  targetDay: string;
+
+  @ApiProperty({
+    type: Object.values(AttendanceEnum),
+    enum: AttendanceEnum,
+    description: '근태(근무, 재택 근무, 연차, 휴무, 오전 반차, 오후 반차)',
+    required: true,
+  })
+  @IsNotEmpty({ message: '근무형태는 필수로 입력해주세요.' })
+  @IsEnum(AttendanceEnum)
+  attendance: AttendanceEnum;
+
+  @ApiProperty({ type: MealInputDto, description: '조식 정보' })
+  @ValidateNested()
+  @Type(() => MealInputDto)
+  breakfast: MealInputDto;
+
+  @ApiProperty({ type: MealInputDto, description: '중식 정보' })
+  @ValidateNested()
+  @Type(() => MealInputDto)
+  lunch: MealInputDto;
+
+  @ApiProperty({ type: MealInputDto, description: '석식 정보' })
+  @ValidateNested()
+  @Type(() => MealInputDto)
+  dinner: MealInputDto;
 
   @IsOptional()
   @IsEnum(YNEnum)

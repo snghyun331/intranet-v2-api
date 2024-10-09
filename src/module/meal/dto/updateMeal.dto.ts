@@ -1,8 +1,8 @@
 import { OmitType, PartialType } from '@nestjs/swagger';
-import { CreateMealDto } from './createMeal.dto';
+import { CreateMealDto2 } from './createMeal.dto';
 import { IsEmpty } from 'class-validator';
 
-export class UpdateMealDto extends PartialType(OmitType(CreateMealDto, ['targetDay', 'mealType'] as const)) {
+export class UpdateMealDto extends PartialType(OmitType(CreateMealDto2, ['targetDay', 'mealType'] as const)) {
   @IsEmpty({ message: 'mealType은 수정할 수 없습니다.' })
   mealType?: never;
 
