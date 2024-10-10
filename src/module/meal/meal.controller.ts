@@ -23,7 +23,6 @@ import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
-import { UpdateMealDto } from './dto/updateMeal.dto';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
@@ -85,29 +84,6 @@ export class MealController {
     await this.mealService.deleteMeal(userIdx, mealIdx);
 
     const response: ResponseDto = { message: '식대 사용내역 초기화 성공' };
-
-    return response;
-  }
-
-  @ApiOperation(USERS_MEALS.PUT.API_OPERATION)
-  @ApiParam(USERS_MEALS.PUT.API_PARAM1)
-  @ApiBody(USERS_MEALS.PUT.API_BODY)
-  @ApiOkResponse(USERS_MEALS.PUT.API_OK_RESPONSE)
-  @ApiForbiddenResponse(USERS_MEALS.PUT.API_FORBIDDEN_RESPONSE)
-  @ApiBadRequestResponse(USERS_MEALS.PUT.API_BAD_REQUEST_RESPONSE)
-  @ApiNotFoundResponse(USERS_MEALS.PUT.API_NOT_FOUND_RESPONSE)
-  @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
-  @UserRole(UserGradeEnum.INTERN)
-  @Put(':mealIdx')
-  async updateMeal(
-    @Param('mealIdx', ParseIntPipe) mealIdx: number,
-    @Body() updateMealInfo: UpdateMealDto,
-    @CurrentUserIdx() userIdx: number,
-  ): Promise<ResponseDto> {
-    const targetDay: string = await this.mealService.updateMeal(userIdx, mealIdx, updateMealInfo);
-
-    const response: ResponseDto = { message: '식대 사용내역 수정 성공', data: { targetDay } };
 
     return response;
   }

@@ -88,10 +88,9 @@ export class MealRepository {
     return allNames;
   }
 
-  async createMeal2(
+  async createMeal(
     userIdx: number,
     targetDay: string,
-    attendance: AttendanceEnum,
     newMealInfo: DetailedMealData,
     mealType: MealTypeEnum,
   ): Promise<void> {
@@ -100,7 +99,7 @@ export class MealRepository {
         .createQueryBuilder()
         .insert()
         .into(MealEntity)
-        .values({ userIdx, targetDay, attendance, mealType, ...newMealInfo })
+        .values({ userIdx, targetDay, mealType, ...newMealInfo })
         .execute();
     });
   }
@@ -244,7 +243,17 @@ export class MealRepository {
     return result;
   }
 
-  async updateMeal(mealIdx: number, updateMealInfo: UpdateMealDto): Promise<void> {
+  // async updateMeal(mealIdx: number, updateMealInfo: UpdateMealDto): Promise<void> {
+  //   return this.mealModel.manager.transaction(async (manager) => {
+  //     await manager
+  //       .createQueryBuilder()
+  //       .update(MealEntity)
+  //       .set(updateMealInfo)
+  //       .where('mealIdx = :mealIdx', { mealIdx })
+  //       .execute();
+  //   });
+  // }
+  async updateMeal(mealIdx: number, updateMealInfo): Promise<void> {
     return this.mealModel.manager.transaction(async (manager) => {
       await manager
         .createQueryBuilder()
@@ -317,8 +326,8 @@ export class MealRepository {
     });
   }
 
-  async getMealIdx(userIdx: number, targetDay: string, mealType: MealTypeEnum): Promise<number> {
-    const result = await this.mealModel
+  async getMealIdx(userIdx: number, targetDay: string, mealType: MealTypeEnum): Promise<any> {
+    const result: any = await this.mealModel
       .createQueryBuilder('mealEntity')
       .select(['mealEntity.mealIdx AS mealIdx'])
       .where('mealEntity.userIdx = :userIdx', { userIdx })
@@ -326,8 +335,6 @@ export class MealRepository {
       .andWhere('mealEntity.targetDay = :targetDay', { targetDay })
       .getRawOne();
 
-    const mealIdx: number = result.mealIdx;
-
-    return mealIdx;
+    return result;
   }
 }

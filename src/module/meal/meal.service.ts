@@ -99,96 +99,74 @@ export class MealService {
     // 중식 저장
     if (newMealInfo.lunch) {
       const newLunch: DetailedMealData = newMealInfo.lunch;
-      const lunchMealIdx: any = await this.mealRepository.getMealIdx(
-        userIdx,
-        newMealInfo.targetDay,
-        MealTypeEnum.LUNCH,
-      );
-      // 기존 정보가 없을 경우 새로 생성
-      if (!lunchMealIdx) {
-        const { place, payerName, amount } = newLunch;
-        // 조식란에 아무 정보도 없을 때(모두 null일 때)
-        if (place === null && payerName === null && amount === null) {
-        } else {
-          // 조식란에 정보가 있을 때 (변수 하나라도 null이 아닐 때)
-          const allUserNames: string[] = await this.mealRepository.getAllUserNames();
-          if (!allUserNames.includes(newMealInfo.lunch.payerName)) {
-            throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
-          }
-          newLunch.holidayYn = newMealInfo.holidayYN;
+      const result: any = await this.mealRepository.getMealIdx(userIdx, newMealInfo.targetDay, MealTypeEnum.LUNCH);
 
-          await this.mealRepository.createMeal2(
-            userIdx,
-            newMealInfo.targetDay,
-            newMealInfo.attendance,
-            newLunch,
-            MealTypeEnum.LUNCH,
-          );
+      if (newLunch.payerName) {
+        const allUserNames: string[] = await this.mealRepository.getAllUserNames();
+        if (!allUserNames.includes(newLunch.payerName)) {
+          throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
         }
+      }
+      if (newMealInfo.holidayYN) {
+        newLunch.holidayYn = newMealInfo.holidayYN;
+      }
+      newLunch.attendance = newMealInfo.attendance;
+      // 기존 정보가 있을 경우 업데이트
+      if (result) {
+        await this.mealRepository.updateMeal(result.mealIdx, newLunch);
       } else {
-        // 기존 정보가 있을 경우 업데이트
-        const { place, payerName, amount } = newLunch;
-        // 조식란에 아무 정보도 없을 때(모두 null일 때)
-        if (place === null && payerName === null && amount === null) {
-          // 삭제 로직 추가
-        } else {
-          // 조식란에 정보가 있을 때 (변수 하나라도 null이 아닐 때)
-          const allUserNames: string[] = await this.mealRepository.getAllUserNames();
-          if (!allUserNames.includes(newMealInfo.lunch.payerName)) {
-            throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
-          }
-          newLunch.holidayYn = newMealInfo.holidayYN;
-
-          await this.mealRepository.createMeal2(
-            userIdx,
-            newMealInfo.targetDay,
-            newMealInfo.attendance,
-            newLunch,
-            MealTypeEnum.LUNCH,
-          );
-        }
+        // 기존 정보가 없을 경우 새로 생성
+        await this.mealRepository.createMeal(userIdx, newMealInfo.targetDay, newLunch, MealTypeEnum.LUNCH);
       }
     }
 
     // 조식 저장
     if (newMealInfo.breakfast) {
       const newBreakfast: DetailedMealData = newMealInfo.breakfast;
-      const { place, payerName, amount } = newBreakfast;
-      if (place === null && payerName === null && amount === null) {
-      } else {
+      const result: any = await this.mealRepository.getMealIdx(userIdx, newMealInfo.targetDay, MealTypeEnum.BREAKFAST);
+
+      if (newBreakfast.payerName) {
         const allUserNames: string[] = await this.mealRepository.getAllUserNames();
-        if (!allUserNames.includes(newMealInfo.breakfast.payerName)) {
+        if (!allUserNames.includes(newBreakfast.payerName)) {
           throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
         }
+      }
+      if (newMealInfo.holidayYN) {
         newBreakfast.holidayYn = newMealInfo.holidayYN;
-        await this.mealRepository.createMeal2(
-          userIdx,
-          newMealInfo.targetDay,
-          newMealInfo.attendance,
-          newBreakfast,
-          MealTypeEnum.BREAKFAST,
-        );
+      }
+      newBreakfast.attendance = newMealInfo.attendance;
+
+      // 기존 정보가 있을 경우 업데이트
+      if (result) {
+        await this.mealRepository.updateMeal(result.mealIdx, newBreakfast);
+      } else {
+        // 기존 정보가 없을 경우 새로 생성
+        await this.mealRepository.createMeal(userIdx, newMealInfo.targetDay, newBreakfast, MealTypeEnum.BREAKFAST);
       }
     }
 
     // 석식 저장
     if (newMealInfo.dinner) {
       const newDinner: DetailedMealData = newMealInfo.dinner;
-      const { place, payerName, amount } = newDinner;
-      if (place === null && payerName === null && amount === null) {
-      } else {
+      const result: any = await this.mealRepository.getMealIdx(userIdx, newMealInfo.targetDay, MealTypeEnum.DINNER);
+
+      if (newDinner.payerName) {
         const allUserNames: string[] = await this.mealRepository.getAllUserNames();
-        if (!allUserNames.includes(newMealInfo.dinner.payerName)) {
+        if (!allUserNames.includes(newDinner.payerName)) {
           throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
         }
+      }
+      if (newMealInfo.holidayYN) {
         newDinner.holidayYn = newMealInfo.holidayYN;
-        await this.mealRepository.createMeal2(
-          userIdx,
-          newMealInfo.targetDay,
-          newMealInfo.attendance,
-          newDinner,
-          MealTypeEnum.DINNER,
-        );
+      }
+      newDinner.attendance = newMealInfo.attendance;
+
+      // 기존 정보가 있을 경우 업데이트
+      if (result) {
+        await this.mealRepository.updateMeal(result.mealIdx, newDinner);
+      } else {
+        // 기존 정보가 없을 경우 새로 생성
+        await this.mealRepository.createMeal(userIdx, newMealInfo.targetDay, newDinner, MealTypeEnum.DINNER);
       }
     }
 
@@ -247,62 +225,5 @@ export class MealService {
     // dinnerExpense(조식 사용금액) 업데이트
     const dinnerExpense: number = await this.mealRepository.getTotalDinnerExpense(year, month, userIdx);
     await this.mealRepository.updateDinnerExpenseInStats(dinnerExpense, year, month, userIdx);
-  }
-
-  async updateMeal(userIdx: number, mealIdx: number, updateMealInfo: UpdateMealDto): Promise<string> {
-    const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
-    if (userCnt !== 1) {
-      throw new BadRequestException('올바른 유저가 아닙니다.');
-    }
-
-    if (updateMealInfo.payerName) {
-      const allUserNames: string[] = await this.mealRepository.getAllUserNames();
-      if (!allUserNames.includes(updateMealInfo.payerName)) {
-        throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
-      }
-    }
-
-    const mealInfo: MealInfoDto = await this.mealRepository.getMealInfoByIdx(mealIdx);
-    if (!mealInfo) {
-      throw new NotFoundException('해당 식대는 존재하지 않거나 삭제되었습니다.');
-    }
-    const year: number = Number(mealInfo.targetDay.substring(0, 4));
-    const month: number = Number(mealInfo.targetDay.substring(5, 7));
-
-    if (userIdx !== mealInfo.userIdx) {
-      throw new ForbiddenException('식대 수정 권한이 없습니다');
-    }
-
-    if (updateMealInfo.attendance) {
-      // 근무&휴일 (휴일근무)일 때 처리
-      const monthHolidays: string[] = await this.mealRepository.getMonthHolidays(year, month);
-      if (monthHolidays.includes(mealInfo.targetDay)) {
-        const attendance: AttendanceEnum = updateMealInfo.attendance;
-        if (attendance !== AttendanceEnum.WORKING) {
-          throw new BadRequestException('휴일에는 근무일 때만 등록할 수 있습니다.');
-        }
-        updateMealInfo.holidayYN = YNEnum.YES;
-      }
-    }
-
-    await this.mealRepository.updateMeal(mealIdx, updateMealInfo);
-
-    // timeoffDays(반)연차/휴무일수) 업데이트
-    const timeoffDays: number = await this.mealRepository.getTotalTimeoffDays(year, month, userIdx);
-    await this.mealRepository.updateTimeOffDaysInStats(timeoffDays, year, month, userIdx);
-    // holidayWorkdays(휴일근무일 수) 업데이트
-    const holidayWorkdays: number = await this.mealRepository.getTotalHolidayWorkdays(year, month, userIdx);
-    await this.mealRepository.updateHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx);
-    // mealExpense(중식 사용금액) 업데이트
-    const mealExpense: number = await this.mealRepository.getTotalMealExpense(year, month, userIdx);
-    await this.mealRepository.updateMealExpenseInStats(mealExpense, year, month, userIdx);
-    // breakExpense(조식 사용금액) 업데이트
-    const breakfastExpense: number = await this.mealRepository.getTotalBreakfastExpense(year, month, userIdx);
-    await this.mealRepository.updateBreakfastExpenseInStats(breakfastExpense, year, month, userIdx);
-    // dinnerExpense(조식 사용금액) 업데이트
-    const dinnerExpense: number = await this.mealRepository.getTotalDinnerExpense(year, month, userIdx);
-    await this.mealRepository.updateDinnerExpenseInStats(dinnerExpense, year, month, userIdx);
-
-    return mealInfo.targetDay;
   }
 }

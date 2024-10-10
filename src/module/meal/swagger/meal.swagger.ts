@@ -145,6 +145,7 @@ export const USERS_MEALS: SwaggerMethod = {
           summary: '',
           value: {
             targetDay: '2024-10-29',
+            attendance: '근무',
             breakfast: {
               payerName: null,
               place: null,
@@ -154,7 +155,6 @@ export const USERS_MEALS: SwaggerMethod = {
               payerName: '이승현',
               place: '김가네',
               amount: 5000,
-              attendance: '근무',
             },
             dinner: {
               payerName: null,
