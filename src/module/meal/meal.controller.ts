@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import * as moment from 'moment';
 import { ResponseDto } from '../../common/dto/response.dto';
 import { MealService } from './meal.service';
@@ -21,6 +21,9 @@ import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
+import { EntityManager } from 'typeorm';
+import { TransactionManager } from '../../common/decorator/transaction.decorator';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
@@ -55,11 +58,16 @@ export class MealController {
   @ApiCreatedResponse(USERS_MEALS.POST.API_CREATED_RESPONSE)
   @ApiBadRequestResponse(USERS_MEALS.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRolesGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post()
-  async createMeal(@Body() newMealInfo: CreateMealDto, @CurrentUserIdx() userIdx: number): Promise<ResponseDto> {
-    const targetDay: string = await this.mealService.createMeal(userIdx, newMealInfo);
+  async createMeal(
+    @Body() newMealInfo: CreateMealDto,
+    @CurrentUserIdx() userIdx: number,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseDto> {
+    const targetDay: string = await this.mealService.createMeal(userIdx, newMealInfo, manager);
 
     const response: ResponseDto = { message: '식대 사용내역 저장 성공', data: { targetDay } };
 
@@ -71,12 +79,16 @@ export class MealController {
   @ApiOkResponse(USERS_MEALS.DELETE.API_OK_RESPONSE)
   @ApiBadRequestResponse(USERS_MEALS.DELETE.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRolesGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Delete(':targetDay')
-  async deleteMeal(@Param('targetDay') targetDay: string, @CurrentUserIdx() userIdx: number): Promise<ResponseDto> {
-    console.log(targetDay);
-    await this.mealService.deleteMeal(userIdx, targetDay);
+  async deleteMeal(
+    @Param('targetDay') targetDay: string,
+    @CurrentUserIdx() userIdx: number,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseDto> {
+    await this.mealService.deleteMeal(userIdx, targetDay, manager);
 
     const response: ResponseDto = { message: '식대 사용내역 초기화 성공' };
 
