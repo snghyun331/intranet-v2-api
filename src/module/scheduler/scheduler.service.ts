@@ -1,14 +1,16 @@
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
+import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
-import { DEFAULT_LUNCH_RATE, NUM_OF_ROWS, PAGE_NO } from '../../common/constant/constant';
+import { DEFAULT_LUNCH_RATE, DEFAULT_TOTAL_WELFARE, NUM_OF_ROWS, PAGE_NO } from '../../common/constant/constant';
 import { errSeparation, getDateFormYYYYMMDD, getTotalDaysInMonth, getWeekendDates } from '../../common/utils/utility';
 import { AxiosHoliday } from './interface/axiosData.interface';
 import { SchedulerRepository } from './repository/scheduler.repository';
 import { HolidayInfoDto } from './dto/holiday.dto';
 import { NewMealStatsDto } from './dto/meal.dto';
+import { HalfYearEnum } from '../../common/constant/enum';
+import { NewWelfareMonthStatsDto, NewWelfareStatsDto } from './dto/welfare.dto';
 
 @Injectable()
 export class SchedulerService {
@@ -21,7 +23,7 @@ export class SchedulerService {
   ) {}
 
   // 매달 25일에 오전 6시에 다음달 식대 사용가능 금액 업데이트
-  // @Cron('0 6 25 * *')
+  @Cron('0 6 25 * *')
   async updateMealStats(): Promise<void> {
     this.logger.log('🚀 Start Updating Meal Stats Job !');
     const date: Date = new Date();
@@ -44,6 +46,7 @@ export class SchedulerService {
           workdays,
           holidays,
           mealBudget,
+          mealBalance: 0,
         };
         await this.schedulerRepository.updateMealStats(newMealStatsInfo);
       }),
@@ -53,14 +56,14 @@ export class SchedulerService {
   }
 
   // 매달 25일 오전 0시에 다음달 휴일 정보 수집 및 저장
-  // @Cron('0 0 25 * *')
+  @Cron('0 0 25 * *')
   async insertHolday2() {
     this.logger.log('🚀 Start Inserting Holiday Info Job !');
     const date: Date = new Date();
     const nowMonth: number = date.getMonth() + 1;
     const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
     const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const publicHolidayInfoList: HolidayInfoDto[] = await this.getPublicHolidayDatas(year, nextMonth);
+    const publicHolidayInfoList: HolidayInfoDto[] = (await this.getPublicHolidayDatas(year, nextMonth)) ?? [];
     const weekendInfoList: HolidayInfoDto[] = await this.getWeekendDatas(year, nextMonth);
     // Set을 이용하여 holidayDate 기준으로 중복 제거
     const mergedHolidaySet = new Set<string>();
@@ -114,10 +117,7 @@ export class SchedulerService {
     try {
       const axiosResponse: AxiosResponse = await this.httpService.axiosRef.get(HOLIDAY_API_URL);
       const axiosHolidayList: AxiosHoliday[] = axiosResponse.data.response?.body?.items?.item;
-
-      if (!axiosHolidayList || axiosHolidayList.length === 0) {
-        throw new BadRequestException('공휴일 정보 수집에 실패했습니다.');
-      }
+      if (!axiosHolidayList || axiosHolidayList.length === 0) return;
 
       const holidayInfoList: HolidayInfoDto[] = axiosHolidayList.map((axiosHoliday) => {
         const holidayDate: string = getDateFormYYYYMMDD(axiosHoliday.locdate.toString());
@@ -144,5 +144,56 @@ export class SchedulerService {
     );
 
     return weekendInfoList;
+  }
+
+  @Cron('0 0 25 6,12 *')
+  async updateWelfareStats(): Promise<void> {
+    this.logger.log('🚀 Start Updating Welfare Stats Job !');
+    const date: Date = new Date();
+    const nowMonth: number = date.getMonth() + 1;
+    const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
+    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
+    const halfYear: HalfYearEnum = nextMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
+
+    const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
+
+    await Promise.all(
+      userIdxList.map(async (userIdx) => {
+        const newWelfareStatsInfo: NewWelfareStatsDto = {
+          userIdx,
+          year: year.toString(),
+          halfYear,
+          welfareBudget: DEFAULT_TOTAL_WELFARE,
+        };
+        await this.schedulerRepository.updateWelfareStats(newWelfareStatsInfo);
+      }),
+    );
+
+    this.logger.log('🏁 Updating Welfare Stats Job Completed !');
+  }
+
+  @Cron('0 0 25 * *')
+  async updateWelfareMonthStats(): Promise<void> {
+    this.logger.log('🚀 Start Updating Welfare Month Stats Job !');
+    const date: Date = new Date();
+    const nowMonth: number = date.getMonth() + 1;
+    const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
+    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
+
+    const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
+
+    await Promise.all(
+      userIdxList.map(async (userIdx) => {
+        const newWelfareMonthStatsInfo: NewWelfareMonthStatsDto = {
+          userIdx,
+          year: year.toString(),
+          month: nextMonth.toString(),
+          welfareMonthExpense: 0,
+        };
+        await this.schedulerRepository.updateWelfareMonthStats(newWelfareMonthStatsInfo);
+      }),
+    );
+
+    this.logger.log('🏁 Updating Welfare Month Stats Job Completed !');
   }
 }

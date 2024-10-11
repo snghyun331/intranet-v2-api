@@ -9,16 +9,18 @@ import { HealthModule } from './health/health.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { MealModule } from './meal/meal.module';
 import { AuthModule } from './auth/auth.module';
+import { WelfareModule } from './welfare/welfare.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     WinstonModule.forRoot(WINSTON_CONFIG),
     TypeOrmModule.forRootAsync(DATABASE_CONFIG),
-    HealthModule,
     SchedulerModule,
-    MealModule,
     AuthModule,
+    MealModule,
+    WelfareModule,
+    HealthModule,
   ],
 })
 export class AppModule implements NestModule {

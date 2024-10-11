@@ -6,10 +6,9 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
 import { MealInfoDto, MealStatsDto } from '../dto/meal.dto';
-import { CreateMealDto } from '../dto/createMeal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
-import { UpdateMealDto } from '../dto/updateMeal.dto';
+import { DetailedMealData } from '../interface/meal.interface';
 
 @Injectable()
 export class MealRepository {
@@ -29,20 +28,20 @@ export class MealRepository {
       .select([
         'mealEntity.mealIdx AS mealIdx',
         'mealEntity.userIdx AS userIdx',
-        'mealEntity.useDate AS useDate',
+        'mealEntity.targetDay AS targetDay',
         'mealEntity.holidayYN AS holidayYN',
         'mealEntity.attendance AS attendance',
         'mealEntity.mealType AS mealType',
-        'mealEntity.dinerName AS dinerName',
-        'mealEntity.payAmount AS payAmount',
-        'mealEntity.payer AS payer',
+        'mealEntity.place AS place',
+        'mealEntity.amount AS amount',
+        'mealEntity.payerName AS payerName',
       ])
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
-      .orderBy('mealEntity.useDate', 'DESC')
+      .orderBy('mealEntity.targetDay', 'ASC')
       .getRawMany();
 
     return result;
@@ -88,13 +87,18 @@ export class MealRepository {
     return allNames;
   }
 
-  async createMeal(userIdx: number, mealInfo: CreateMealDto): Promise<void> {
+  async createMeal(
+    userIdx: number,
+    targetDay: string,
+    newMealInfo: DetailedMealData,
+    mealType: MealTypeEnum,
+  ): Promise<void> {
     return this.mealModel.manager.transaction(async (manager) => {
       await manager
         .createQueryBuilder()
         .insert()
         .into(MealEntity)
-        .values({ userIdx, ...mealInfo })
+        .values({ userIdx, targetDay, mealType, ...newMealInfo })
         .execute();
     });
   }
@@ -125,19 +129,20 @@ export class MealRepository {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: number = await this.mealModel
+    const result: any = await this.mealModel
       .createQueryBuilder('mealEntity')
+      .select('COUNT(DISTINCT(mealEntity.targetDay))', 'count')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.attendance NOT IN (:...attendance)', {
         attendance: [AttendanceEnum.WORKING],
       })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
-      .getCount();
+      .getRawOne();
 
-    return result;
+    return result.count;
   }
 
   async updateTimeOffDaysInStats(timeoffDays: number, year: number, month: number, userIdx: number): Promise<void> {
@@ -159,13 +164,13 @@ export class MealRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select('SUM(mealEntity.pay_amount)', 'total')
+      .select('COALESCE(SUM(mealEntity.amount), 0)', 'total') // null일 경우 0으로
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
-      .andWhere('mealEntity.mealType = :mealType', { mealType: MealTypeEnum.LAUNCH })
+      .andWhere('mealEntity.mealType = :mealType', { mealType: MealTypeEnum.LUNCH })
       .getRawOne();
 
     return result.total;
@@ -188,10 +193,11 @@ export class MealRepository {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: number = await this.mealModel
+    const result: any = await this.mealModel
       .createQueryBuilder('mealEntity')
+      .select('COUNT(DISTINCT(mealEntity.targetDay))', 'count')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
@@ -199,9 +205,9 @@ export class MealRepository {
         attendance: [AttendanceEnum.WORKING],
       })
       .andWhere('mealEntity.holidayYN = :holidayYN', { holidayYN: YNEnum.YES })
-      .getCount();
+      .getRawOne();
 
-    return result;
+    return result.count;
   }
 
   async updateHolidayWorkdaysInStats(
@@ -231,14 +237,24 @@ export class MealRepository {
   async getMealInfoByIdx(mealIdx: number): Promise<MealInfoDto> {
     const result: MealInfoDto = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select(['mealEntity.mealIdx AS mealIdx', 'mealEntity.userIdx AS userIdx', 'mealEntity.useDate AS useDate'])
+      .select(['mealEntity.mealIdx AS mealIdx', 'mealEntity.userIdx AS userIdx', 'mealEntity.targetDay AS targetDay'])
       .where('mealEntity.mealIdx = :mealIdx', { mealIdx })
       .getRawOne();
 
     return result;
   }
 
-  async updateMeal(mealIdx: number, updateMealInfo: UpdateMealDto): Promise<void> {
+  // async updateMeal(mealIdx: number, updateMealInfo: UpdateMealDto): Promise<void> {
+  //   return this.mealModel.manager.transaction(async (manager) => {
+  //     await manager
+  //       .createQueryBuilder()
+  //       .update(MealEntity)
+  //       .set(updateMealInfo)
+  //       .where('mealIdx = :mealIdx', { mealIdx })
+  //       .execute();
+  //   });
+  // }
+  async updateMeal(mealIdx: number, updateMealInfo): Promise<void> {
     return this.mealModel.manager.transaction(async (manager) => {
       await manager
         .createQueryBuilder()
@@ -255,9 +271,9 @@ export class MealRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select('SUM(mealEntity.pay_amount)', 'total')
+      .select('COALESCE(SUM(mealEntity.amount), 0)', 'total') // null일 경우 0으로
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
@@ -286,9 +302,9 @@ export class MealRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
-      .select('SUM(mealEntity.pay_amount)', 'total')
+      .select('COALESCE(SUM(mealEntity.amount), 0)', 'total') // null일 경우 0으로
       .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.useDate BETWEEN :startDate AND :endDate', {
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
@@ -309,5 +325,17 @@ export class MealRepository {
         .andWhere('month = :month', { month })
         .execute();
     });
+  }
+
+  async getMealIdx(userIdx: number, targetDay: string, mealType: MealTypeEnum): Promise<any> {
+    const result: any = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .select(['mealEntity.mealIdx AS mealIdx'])
+      .where('mealEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('mealEntity.mealType = :mealType', { mealType })
+      .andWhere('mealEntity.targetDay = :targetDay', { targetDay })
+      .getRawOne();
+
+    return result;
   }
 }

@@ -10,15 +10,14 @@ export enum YNEnum {
 
 export enum MealTypeEnum {
   BREAKFAST = 'breakfast',
-  LAUNCH = 'launch',
+  LUNCH = 'lunch',
   DINNER = 'dinner',
 }
 
 export enum AttendanceEnum {
   WORKING = '근무',
   REMOTE_WORK = '재택 근무',
-  ANNUAL_LEAVE = '연차',
-  DAY_OFF = '휴무',
+  REST = '연차/휴무',
   AM_HALF = '오전 반차',
   PM_HALF = '오후 반차',
 }
@@ -31,4 +30,9 @@ export enum UserGradeEnum {
   SENIOR = '선임',
   ADVISOR = '위원',
   INTERN = '인턴',
+}
+
+export enum HalfYearEnum {
+  H1 = '상반기',
+  H2 = '하반기',
 }
