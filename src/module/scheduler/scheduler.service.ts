@@ -46,6 +46,7 @@ export class SchedulerService {
           workdays,
           holidays,
           mealBudget,
+          mealBalance: 0,
         };
         await this.schedulerRepository.updateMealStats(newMealStatsInfo);
       }),

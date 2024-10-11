@@ -8,4 +8,5 @@ export class NewMealStatsDto extends PickType(MealStatsEntity, [
   'workdays',
   'holidays',
   'mealBudget',
+  'mealBalance',
 ] as const) {}

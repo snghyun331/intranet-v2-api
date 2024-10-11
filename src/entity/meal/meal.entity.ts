@@ -33,7 +33,7 @@ export class MealEntity extends CommonEntity {
   @Column({ name: 'place', comment: '식당 상호명', nullable: true })
   place: string;
 
-  @Column({ name: 'amount', comment: '결제 금액', nullable: false, default: 0 })
+  @Column({ name: 'amount', comment: '결제 금액', nullable: true, default: 0 })
   amount: number;
 
   @Column({ name: 'payer_name', comment: '결제자 이름', nullable: true })
