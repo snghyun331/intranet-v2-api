@@ -266,10 +266,11 @@ export const USERS_MEALS: SwaggerMethod = {
       summary: '식대 사용내역 초기화 API',
     },
     API_PARAM1: {
-      name: 'mealIdx',
-      type: Number,
+      name: 'targetDay',
+      type: String,
       required: true,
-      description: '식대 IDX',
+      description: '식대 사용일',
+      example: '2024-10-07',
     },
     API_OK_RESPONSE: {
       content: {
@@ -277,25 +278,6 @@ export const USERS_MEALS: SwaggerMethod = {
           example: {
             statusCode: 200,
             message: '식대 사용내역 초기화 성공',
-          },
-        },
-      },
-    },
-    API_FORBIDDEN_RESPONSE: {
-      content: {
-        'application/json': {
-          examples: {
-            a: {
-              summary: '삭제 권한 없음',
-              value: {
-                message: '식대 삭제 권한이 없습니다',
-                error: 'Forbidden',
-                statusCode: 403,
-                timeStamp: '2024. 9. 23. 오전 10:10:20',
-                path: '/users/meals/4',
-              },
-              description: '로그인한 유저IDX와 meal작성자의 IDX가 일치하지 않음',
-            },
           },
         },
       },

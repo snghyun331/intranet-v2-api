@@ -20,5 +20,3 @@ export class GetMealCalenderDto {
   @Type(() => MealEntity)
   meals: MealEntity[];
 }
-
-export class MealInfoDto extends PickType(MealEntity, ['mealIdx', 'userIdx', 'targetDay'] as const) {}
