@@ -4,8 +4,8 @@ import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
 import { MealEntity } from '../../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
-import { Repository } from 'typeorm';
-import { MealInfoDto, MealStatsDto } from '../dto/meal.dto';
+import { DeleteResult, EntityManager, InsertResult, Repository, UpdateResult } from 'typeorm';
+import { MealStatsDto } from '../dto/meal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
 import { DetailedMealData } from '../interface/meal.interface';
@@ -92,15 +92,14 @@ export class MealRepository {
     targetDay: string,
     newMealInfo: DetailedMealData,
     mealType: MealTypeEnum,
-  ): Promise<void> {
-    return this.mealModel.manager.transaction(async (manager) => {
-      await manager
-        .createQueryBuilder()
-        .insert()
-        .into(MealEntity)
-        .values({ userIdx, targetDay, mealType, ...newMealInfo })
-        .execute();
-    });
+    manager: EntityManager,
+  ): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(MealEntity)
+      .values({ userIdx, targetDay, mealType, ...newMealInfo })
+      .execute();
   }
 
   async getMonthHolidays(year: number, month: number): Promise<string[]> {
@@ -145,17 +144,21 @@ export class MealRepository {
     return result.count;
   }
 
-  async updateTimeOffDaysInStats(timeoffDays: number, year: number, month: number, userIdx: number): Promise<void> {
-    return this.mealStatsModel.manager.transaction(async (manager) => {
-      await manager
-        .createQueryBuilder()
-        .update(MealStatsEntity)
-        .set({ timeoffDays })
-        .where('userIdx = :userIdx', { userIdx })
-        .andWhere('year = :year', { year })
-        .andWhere('month = :month', { month })
-        .execute();
-    });
+  async updateTimeOffDaysInStats(
+    timeoffDays: number,
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ timeoffDays })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
   }
 
   async getTotalMealExpense(year: number, month: number, userIdx: number): Promise<number> {
@@ -176,17 +179,21 @@ export class MealRepository {
     return result.total;
   }
 
-  async updateMealExpenseInStats(mealExpense: number, year: number, month: number, userIdx: number) {
-    return this.mealStatsModel.manager.transaction(async (manager) => {
-      await manager
-        .createQueryBuilder()
-        .update(MealStatsEntity)
-        .set({ mealExpense })
-        .where('userIdx = :userIdx', { userIdx })
-        .andWhere('year = :year', { year })
-        .andWhere('month = :month', { month })
-        .execute();
-    });
+  async updateMealExpenseInStats(
+    mealExpense: number,
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ) {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ mealExpense })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
   }
 
   async getTotalHolidayWorkdays(year: number, month: number, userIdx: number): Promise<number> {
@@ -215,54 +222,35 @@ export class MealRepository {
     year: number,
     month: number,
     userIdx: number,
-  ): Promise<void> {
-    return this.mealStatsModel.manager.transaction(async (manager) => {
-      await manager
-        .createQueryBuilder()
-        .update(MealStatsEntity)
-        .set({ holidayWorkdays })
-        .where('userIdx = :userIdx', { userIdx })
-        .andWhere('year = :year', { year })
-        .andWhere('month = :month', { month })
-        .execute();
-    });
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ holidayWorkdays })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
   }
 
-  async deleteMeal(mealIdx: number): Promise<void> {
-    return this.mealModel.manager.transaction(async (manager) => {
-      await manager.createQueryBuilder().delete().from(MealEntity).where('mealIdx = :mealIdx', { mealIdx }).execute();
-    });
+  async deleteMeal(userIdx: number, targetDay: string, manager: EntityManager): Promise<DeleteResult> {
+    return await manager
+      .createQueryBuilder()
+      .delete()
+      .from(MealEntity)
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('targetDay = :targetDay', { targetDay })
+      .execute();
   }
 
-  async getMealInfoByIdx(mealIdx: number): Promise<MealInfoDto> {
-    const result: MealInfoDto = await this.mealModel
-      .createQueryBuilder('mealEntity')
-      .select(['mealEntity.mealIdx AS mealIdx', 'mealEntity.userIdx AS userIdx', 'mealEntity.targetDay AS targetDay'])
-      .where('mealEntity.mealIdx = :mealIdx', { mealIdx })
-      .getRawOne();
-
-    return result;
-  }
-
-  // async updateMeal(mealIdx: number, updateMealInfo: UpdateMealDto): Promise<void> {
-  //   return this.mealModel.manager.transaction(async (manager) => {
-  //     await manager
-  //       .createQueryBuilder()
-  //       .update(MealEntity)
-  //       .set(updateMealInfo)
-  //       .where('mealIdx = :mealIdx', { mealIdx })
-  //       .execute();
-  //   });
-  // }
-  async updateMeal(mealIdx: number, updateMealInfo): Promise<void> {
-    return this.mealModel.manager.transaction(async (manager) => {
-      await manager
-        .createQueryBuilder()
-        .update(MealEntity)
-        .set(updateMealInfo)
-        .where('mealIdx = :mealIdx', { mealIdx })
-        .execute();
-    });
+  async updateMeal(mealIdx: number, updateMealInfo: DetailedMealData, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealEntity)
+      .set(updateMealInfo)
+      .where('mealIdx = :mealIdx', { mealIdx })
+      .execute();
   }
 
   async getTotalBreakfastExpense(year: number, month: number, userIdx: number): Promise<number> {
@@ -283,17 +271,21 @@ export class MealRepository {
     return result.total;
   }
 
-  async updateBreakfastExpenseInStats(breakfastExpense: number, year: number, month: number, userIdx: number) {
-    return this.mealStatsModel.manager.transaction(async (manager) => {
-      await manager
-        .createQueryBuilder()
-        .update(MealStatsEntity)
-        .set({ breakfastExpense })
-        .where('userIdx = :userIdx', { userIdx })
-        .andWhere('year = :year', { year })
-        .andWhere('month = :month', { month })
-        .execute();
-    });
+  async updateBreakfastExpenseInStats(
+    breakfastExpense: number,
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ breakfastExpense })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
   }
 
   async getTotalDinnerExpense(year: number, month: number, userIdx: number): Promise<number> {
@@ -314,17 +306,21 @@ export class MealRepository {
     return result.total;
   }
 
-  async updateDinnerExpenseInStats(dinnerExpense: number, year: number, month: number, userIdx: number) {
-    return this.mealStatsModel.manager.transaction(async (manager) => {
-      await manager
-        .createQueryBuilder()
-        .update(MealStatsEntity)
-        .set({ dinnerExpense })
-        .where('userIdx = :userIdx', { userIdx })
-        .andWhere('year = :year', { year })
-        .andWhere('month = :month', { month })
-        .execute();
-    });
+  async updateDinnerExpenseInStats(
+    dinnerExpense: number,
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ dinnerExpense })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
   }
 
   async getMealIdx(userIdx: number, targetDay: string, mealType: MealTypeEnum): Promise<any> {
