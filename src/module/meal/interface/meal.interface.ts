@@ -8,5 +8,5 @@ export interface BasicMealData {
 }
 
 export interface DetailedMealData extends BasicMealData {
-  holidayYn?: YNEnum;
+  holidayYN?: YNEnum;
 }

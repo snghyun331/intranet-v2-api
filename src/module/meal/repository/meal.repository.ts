@@ -8,7 +8,6 @@ import { Repository } from 'typeorm';
 import { MealInfoDto, MealStatsDto } from '../dto/meal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
-import { UpdateMealDto } from '../dto/updateMeal.dto';
 import { DetailedMealData } from '../interface/meal.interface';
 
 @Injectable()
@@ -130,8 +129,9 @@ export class MealRepository {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: number = await this.mealModel
+    const result: any = await this.mealModel
       .createQueryBuilder('mealEntity')
+      .select('COUNT(DISTINCT(mealEntity.targetDay))', 'count')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.attendance NOT IN (:...attendance)', {
         attendance: [AttendanceEnum.WORKING],
@@ -140,9 +140,9 @@ export class MealRepository {
         startDate,
         endDate,
       })
-      .getCount();
+      .getRawOne();
 
-    return result;
+    return result.count;
   }
 
   async updateTimeOffDaysInStats(timeoffDays: number, year: number, month: number, userIdx: number): Promise<void> {
@@ -193,8 +193,9 @@ export class MealRepository {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: number = await this.mealModel
+    const result: any = await this.mealModel
       .createQueryBuilder('mealEntity')
+      .select('COUNT(DISTINCT(mealEntity.targetDay))', 'count')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
@@ -204,9 +205,9 @@ export class MealRepository {
         attendance: [AttendanceEnum.WORKING],
       })
       .andWhere('mealEntity.holidayYN = :holidayYN', { holidayYN: YNEnum.YES })
-      .getCount();
+      .getRawOne();
 
-    return result;
+    return result.count;
   }
 
   async updateHolidayWorkdaysInStats(

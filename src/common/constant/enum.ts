@@ -17,8 +17,7 @@ export enum MealTypeEnum {
 export enum AttendanceEnum {
   WORKING = '근무',
   REMOTE_WORK = '재택 근무',
-  ANNUAL_LEAVE = '연차',
-  DAY_OFF = '휴무',
+  REST = '연차/휴무',
   AM_HALF = '오전 반차',
   PM_HALF = '오후 반차',
 }

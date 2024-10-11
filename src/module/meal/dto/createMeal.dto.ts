@@ -49,7 +49,7 @@ export class CreateMealDto2 {
   holidayYN?: YNEnum;
 }
 
-class MealInputDto {
+export class MealInputDto {
   @ApiProperty({ type: String, description: '결제자(이름만 넣어주세요)', required: false })
   @IsOptional()
   @IsString()
