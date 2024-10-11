@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import * as moment from 'moment';
 import { ResponseDto } from '../../common/dto/response.dto';
 import { MealService } from './meal.service';
@@ -7,7 +7,6 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
-  ApiForbiddenResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -70,17 +69,14 @@ export class MealController {
   @ApiOperation(USERS_MEALS.DELETE.API_OPERATION)
   @ApiParam(USERS_MEALS.DELETE.API_PARAM1)
   @ApiOkResponse(USERS_MEALS.DELETE.API_OK_RESPONSE)
-  @ApiForbiddenResponse(USERS_MEALS.DELETE.API_FORBIDDEN_RESPONSE)
   @ApiBadRequestResponse(USERS_MEALS.DELETE.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRolesGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @Delete(':mealIdx')
-  async deleteMeal(
-    @Param('mealIdx', ParseIntPipe) mealIdx: number,
-    @CurrentUserIdx() userIdx: number,
-  ): Promise<ResponseDto> {
-    await this.mealService.deleteMeal(userIdx, mealIdx);
+  @Delete(':targetDay')
+  async deleteMeal(@Param('targetDay') targetDay: string, @CurrentUserIdx() userIdx: number): Promise<ResponseDto> {
+    console.log(targetDay);
+    await this.mealService.deleteMeal(userIdx, targetDay);
 
     const response: ResponseDto = { message: '식대 사용내역 초기화 성공' };
 

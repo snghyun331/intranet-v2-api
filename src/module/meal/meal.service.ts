@@ -1,5 +1,5 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { GetMealCalenderDto, MealInfoDto, MealStatsDto } from './dto/meal.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { GetMealCalenderDto, MealStatsDto } from './dto/meal.dto';
 import { MealRepository } from './repository/meal.repository';
 import { CreateMealDto, MealInputDto } from './dto/createMeal.dto';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../common/constant/enum';
@@ -215,21 +215,16 @@ export class MealService {
     return newMealInfo.targetDay;
   }
 
-  async deleteMeal(userIdx: number, mealIdx: number): Promise<void> {
+  async deleteMeal(userIdx: number, targetDay: string): Promise<void> {
     const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const mealInfo: MealInfoDto = await this.mealRepository.getMealInfoByIdx(mealIdx);
-    const year: number = Number(mealInfo.targetDay.substring(0, 4));
-    const month: number = Number(mealInfo.targetDay.substring(5, 7));
+    const year: number = Number(targetDay.substring(0, 4));
+    const month: number = Number(targetDay.substring(5, 7));
 
-    if (userIdx !== mealInfo.userIdx) {
-      throw new ForbiddenException('식대 삭제 권한이 없습니다');
-    }
-
-    await this.mealRepository.deleteMeal(mealIdx);
+    await this.mealRepository.deleteMeal(userIdx, targetDay);
 
     // timeoffDays(반)연차/휴무일수) 업데이트
     const timeoffDays: number = await this.mealRepository.getTotalTimeoffDays(year, month, userIdx);

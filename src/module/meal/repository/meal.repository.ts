@@ -5,7 +5,7 @@ import { MealEntity } from '../../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
-import { MealInfoDto, MealStatsDto } from '../dto/meal.dto';
+import { MealStatsDto } from '../dto/meal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
 import { DetailedMealData } from '../interface/meal.interface';
@@ -228,33 +228,19 @@ export class MealRepository {
     });
   }
 
-  async deleteMeal(mealIdx: number): Promise<void> {
+  async deleteMeal(userIdx: number, targetDay: string): Promise<void> {
     return this.mealModel.manager.transaction(async (manager) => {
-      await manager.createQueryBuilder().delete().from(MealEntity).where('mealIdx = :mealIdx', { mealIdx }).execute();
+      await manager
+        .createQueryBuilder()
+        .delete()
+        .from(MealEntity)
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('targetDay = :targetDay', { targetDay })
+        .execute();
     });
   }
 
-  async getMealInfoByIdx(mealIdx: number): Promise<MealInfoDto> {
-    const result: MealInfoDto = await this.mealModel
-      .createQueryBuilder('mealEntity')
-      .select(['mealEntity.mealIdx AS mealIdx', 'mealEntity.userIdx AS userIdx', 'mealEntity.targetDay AS targetDay'])
-      .where('mealEntity.mealIdx = :mealIdx', { mealIdx })
-      .getRawOne();
-
-    return result;
-  }
-
-  // async updateMeal(mealIdx: number, updateMealInfo: UpdateMealDto): Promise<void> {
-  //   return this.mealModel.manager.transaction(async (manager) => {
-  //     await manager
-  //       .createQueryBuilder()
-  //       .update(MealEntity)
-  //       .set(updateMealInfo)
-  //       .where('mealIdx = :mealIdx', { mealIdx })
-  //       .execute();
-  //   });
-  // }
-  async updateMeal(mealIdx: number, updateMealInfo): Promise<void> {
+  async updateMeal(mealIdx: number, updateMealInfo: DetailedMealData): Promise<void> {
     return this.mealModel.manager.transaction(async (manager) => {
       await manager
         .createQueryBuilder()
