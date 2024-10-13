@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateWelfareDto {
   @ApiProperty({ type: String, required: true })
@@ -21,4 +21,12 @@ export class CreateWelfareDto {
   @IsNotEmpty()
   @IsString()
   payerName: string;
+
+  @ApiProperty({
+    type: Array,
+    description: '대리 결제자IDX 리스트',
+    required: true,
+  })
+  @IsArray()
+  payeerIdxs: number[];
 }
