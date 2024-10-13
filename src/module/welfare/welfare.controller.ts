@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Param, ParseIntPipe, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
 import { WelfareService } from './welfare.service';
 import { CreateWelfareDto } from './dto/createWelfare.dto';
 import { ResponseDto } from '../../common/dto/response.dto';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -14,6 +15,13 @@ import {
 } from '@nestjs/swagger';
 import { USERS_WELFARES } from './swagger/welfare.swagger';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
+import { TransactionManager } from '../../common/decorator/transaction.decorator';
+import { EntityManager } from 'typeorm';
+import { UserRole } from '../../common/decorator/userRole.decorator';
+import { UserGradeEnum } from '../../common/constant/enum';
+import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
+import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
 
 @ApiTags('복지포인트(USER)')
 @Controller('users/welfares')
@@ -21,13 +29,22 @@ export class WelfareController {
   constructor(private readonly welfareService: WelfareService) {}
 
   @ApiOperation(USERS_WELFARES.POST.API_OPERATION)
+  @ApiBody(USERS_WELFARES.POST.API_BODY)
   @ApiCreatedResponse(USERS_WELFARES.POST.API_CREATED_RESPONSE)
+  @ApiBadRequestResponse(USERS_WELFARES.POST.API_BAD_REQUEST_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UserRole(UserGradeEnum.INTERN)
   @Post()
-  async createWelfare(@Body() welfareInfo: CreateWelfareDto): Promise<ResponseDto> {
+  async createWelfare(
+    @Body() welfareInfo: CreateWelfareDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseDto> {
     const userIdx = 1;
-    await this.welfareService.createWelfare(userIdx, welfareInfo);
+    const targetDay: string = await this.welfareService.createWelfare(userIdx, welfareInfo, manager);
 
-    const response: ResponseDto = { message: '복지포인트 사용내역 저장 성공' };
+    const response: ResponseDto = { message: '복지포인트 사용내역 저장 성공', data: { targetDay } };
 
     return response;
   }
