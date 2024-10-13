@@ -1,10 +1,56 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
+import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 
 export const USERS_WELFARES: SwaggerMethod = {
   POST: {
     API_OPERATION: {
       summary: '월별 복지포인트 사용내역 등록 API',
+    },
+    API_BODY: {
+      type: CreateWelfareDto,
+      examples: {
+        a: {
+          summary: '본인 카드로 여러 명 결제',
+          value: {
+            targetDay: '2024-11-05',
+            amount: 2500,
+            content: '마린커피',
+            payerName: '이승현',
+            payeerIdxs: [2, 3],
+          },
+        },
+        b: {
+          summary: '본인 카드로 단독 결제',
+          value: {
+            targetDay: '2024-11-05',
+            amount: 2500,
+            content: '마린커피',
+            payerName: '이승현',
+            payeerIdxs: [],
+          },
+        },
+        c: {
+          summary: '다른 사람 카드로 단독 결제',
+          value: {
+            targetDay: '2024-11-12',
+            amount: 4500,
+            content: '스타벅스',
+            payerName: '김현민',
+            payeerIdxs: [],
+          },
+        },
+        d: {
+          summary: '다른 사람 카드로 여러 명 결제',
+          value: {
+            targetDay: '2024-11-12',
+            amount: 4500,
+            content: '스타벅스',
+            payerName: '김현민',
+            payeerIdxs: [3],
+          },
+        },
+      },
     },
     API_CREATED_RESPONSE: {
       content: {
@@ -47,7 +93,7 @@ export const USERS_WELFARES: SwaggerMethod = {
   },
   DELETE: {
     API_OPERATION: {
-      summary: '복지포인트 사용내역 초기화 API',
+      summary: '복지포인트 사용내역 초기화 API (미완성)',
     },
     API_PARAM1: {
       name: 'welfareIdx',
@@ -86,7 +132,7 @@ export const USERS_WELFARES: SwaggerMethod = {
   },
   PUT: {
     API_OPERATION: {
-      summary: '복지포인트 사용내역 수정 API',
+      summary: '복지포인트 사용내역 수정 API(미완성)',
     },
     API_PARAM1: {
       name: 'welfareIdx',

@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../../../entity/user/user.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, InsertResult, Repository } from 'typeorm';
 import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { WelfareEntity } from '../../../entity/welfare/welfare.entity';
 import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { WelfareInfoDto } from '../dto/welfare.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
+import { WelfarePayeeEntity } from '../../../entity/welfare/payee.entity';
 
 @Injectable()
 export class WelfareRepository {
@@ -38,15 +39,21 @@ export class WelfareRepository {
     return allNames;
   }
 
-  async createWelfare(userIdx: number, newWelfareInfo: CreateWelfareDto): Promise<void> {
-    return this.welfareModel.manager.transaction(async (manager) => {
-      await manager
-        .createQueryBuilder()
-        .insert()
-        .into(WelfareEntity)
-        .values({ userIdx, ...newWelfareInfo })
-        .execute();
-    });
+  async createWelfare(
+    userIdx: number,
+    { targetDay, amount, content, payerName }: CreateWelfareDto,
+    manager: EntityManager,
+  ): Promise<number> {
+    const result: InsertResult = await manager
+      .createQueryBuilder()
+      .insert()
+      .into(WelfareEntity)
+      .values({ userIdx, targetDay, amount, content, payerName })
+      .execute();
+
+    const welfareIdx: number = result.identifiers[0].welfareIdx;
+
+    return welfareIdx;
   }
 
   async getTotalWelfareExpense(year: number, month: number, userIdx: number): Promise<number> {
@@ -113,5 +120,14 @@ export class WelfareRepository {
         .where('welfareIdx = :welfareIdx', { welfareIdx })
         .execute();
     });
+  }
+
+  async createPayeer(welfareIdx: number, payeerIdx: number, manager: EntityManager): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(WelfarePayeeEntity)
+      .values({ welfareIdx, userIdx: payeerIdx })
+      .execute();
   }
 }

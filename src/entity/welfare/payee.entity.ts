@@ -4,13 +4,13 @@ import { UserEntity } from '../user/user.entity';
 
 @Entity({ name: 'welfare_payee', comment: '(복지포인트)대리결제 대상자 tb' })
 export class WelfarePayeeEntity {
-  @PrimaryColumn({ name: 'user_idx', comment: '사용자IDX' })
-  userIdx: number;
-
   @PrimaryColumn({ name: 'welfare_idx', comment: '복포내역IDX' })
   welfareIdx: number;
 
-  @Column({ name: 'amount', comment: '결제 금액', nullable: false })
+  @PrimaryColumn({ name: 'user_idx', comment: '사용자IDX' })
+  userIdx: number;
+
+  @Column({ name: 'amount', comment: '결제 금액', nullable: true })
   amount: number;
 
   @ManyToOne(() => WelfareEntity, (welfare) => welfare.payeesRelation, {
