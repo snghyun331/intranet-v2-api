@@ -5,7 +5,7 @@ import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 export const USERS_WELFARES: SwaggerMethod = {
   POST: {
     API_OPERATION: {
-      summary: '월별 복지포인트 사용내역 등록 API',
+      summary: ' 복지포인트 사용내역 등록 API',
     },
     API_BODY: {
       type: CreateWelfareDto,
