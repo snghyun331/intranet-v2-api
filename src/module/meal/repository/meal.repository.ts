@@ -124,12 +124,12 @@ export class MealRepository {
     return monthHolidays;
   }
 
-  async getTotalTimeoffDays(year: number, month: number, userIdx: number): Promise<number> {
+  async getTotalTimeoffDays(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: any = await this.mealModel
-      .createQueryBuilder('mealEntity')
+    const result: any = await manager
+      .createQueryBuilder(MealEntity, 'mealEntity')
       .select('COUNT(DISTINCT(mealEntity.targetDay))', 'count')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.attendance NOT IN (:...attendance)', {
@@ -161,12 +161,12 @@ export class MealRepository {
       .execute();
   }
 
-  async getTotalMealExpense(year: number, month: number, userIdx: number): Promise<number> {
+  async getTotalMealExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: { total: number } = await this.mealModel
-      .createQueryBuilder('mealEntity')
+    const result: { total: number } = await manager
+      .createQueryBuilder(MealEntity, 'mealEntity')
       .select('COALESCE(SUM(mealEntity.amount), 0)', 'total') // null일 경우 0으로
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
@@ -196,12 +196,12 @@ export class MealRepository {
       .execute();
   }
 
-  async getTotalHolidayWorkdays(year: number, month: number, userIdx: number): Promise<number> {
+  async getTotalHolidayWorkdays(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: any = await this.mealModel
-      .createQueryBuilder('mealEntity')
+    const result: any = await manager
+      .createQueryBuilder(MealEntity, 'mealEntity')
       .select('COUNT(DISTINCT(mealEntity.targetDay))', 'count')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
@@ -253,12 +253,17 @@ export class MealRepository {
       .execute();
   }
 
-  async getTotalBreakfastExpense(year: number, month: number, userIdx: number): Promise<number> {
+  async getTotalBreakfastExpense(
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: { total: number } = await this.mealModel
-      .createQueryBuilder('mealEntity')
+    const result: { total: number } = await manager
+      .createQueryBuilder(MealEntity, 'mealEntity')
       .select('COALESCE(SUM(mealEntity.amount), 0)', 'total') // null일 경우 0으로
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
@@ -288,12 +293,12 @@ export class MealRepository {
       .execute();
   }
 
-  async getTotalDinnerExpense(year: number, month: number, userIdx: number): Promise<number> {
+  async getTotalDinnerExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: { total: number } = await this.mealModel
-      .createQueryBuilder('mealEntity')
+    const result: { total: number } = await manager
+      .createQueryBuilder(MealEntity, 'mealEntity')
       .select('COALESCE(SUM(mealEntity.amount), 0)', 'total') // null일 경우 0으로
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
