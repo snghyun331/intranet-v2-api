@@ -7,9 +7,18 @@ import { UserEntity } from '../../entity/user/user.entity';
 import { WelfareEntity } from '../../entity/welfare/welfare.entity';
 import { WelfareStatsEntity } from '../../entity/welfare/welfareStats.entity';
 import { WelfareMonthlyStatsEntity } from '../../entity/welfare/welfareMonthlyStats.entity';
+import { WelfarePayeeEntity } from '../../entity/welfare/payee.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, WelfareEntity, WelfareStatsEntity, WelfareMonthlyStatsEntity])],
+  imports: [
+    TypeOrmModule.forFeature([
+      UserEntity,
+      WelfareEntity,
+      WelfareStatsEntity,
+      WelfareMonthlyStatsEntity,
+      WelfarePayeeEntity,
+    ]),
+  ],
   providers: [WelfareService, WelfareRepository],
   controllers: [WelfareController],
 })

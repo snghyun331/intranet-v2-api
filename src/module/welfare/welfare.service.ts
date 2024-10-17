@@ -1,9 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateWelfareDto } from './dto/createWelfare.dto';
 import { WelfareRepository } from './repository/welfare.repository';
-import { WelfareInfoDto } from './dto/welfare.dto';
+import { GetWelfareDto, WelfareInfoDto, WelfareStatsDto } from './dto/welfare.dto';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { EntityManager } from 'typeorm';
+import { WelfareEntity } from '../../entity/welfare/welfare.entity';
+import { HalfYearEnum } from '../../common/constant/enum';
 
 @Injectable()
 export class WelfareService {
@@ -22,9 +24,7 @@ export class WelfareService {
 
     const year: number = Number(newWelfareInfo.targetDay.substring(0, 4));
     const month: number = Number(newWelfareInfo.targetDay.substring(5, 7));
-
     const welfareIdx: number = await this.welfareRepository.createWelfare(userIdx, newWelfareInfo, manager);
-
     if (newWelfareInfo.payeerIdxs.length > 0) {
       await Promise.all(
         newWelfareInfo.payeerIdxs.map(async (payeerIdx) => {
@@ -34,13 +34,18 @@ export class WelfareService {
     }
 
     // 복지포인트 사용금액 업데이트
-    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(year, month, userIdx);
-    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx);
+    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
+      year,
+      month,
+      userIdx,
+      manager,
+    );
+    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
 
     return newWelfareInfo.targetDay;
   }
 
-  async deleteWelfare(userIdx: number, welfareIdx: number): Promise<void> {
+  async deleteWelfare(userIdx: number, welfareIdx: number, manager: EntityManager): Promise<void> {
     const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -57,11 +62,21 @@ export class WelfareService {
     await this.welfareRepository.deleteWelfare(welfareIdx);
 
     // 복지포인트 사용금액 업데이트
-    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(year, month, userIdx);
-    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx);
+    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
+      year,
+      month,
+      userIdx,
+      manager,
+    );
+    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
   }
 
-  async updateWelfare(userIdx: number, welfareIdx: number, updateWelfareInfo: UpdateWelfareDto): Promise<void> {
+  async updateWelfare(
+    userIdx: number,
+    welfareIdx: number,
+    updateWelfareInfo: UpdateWelfareDto,
+    manager: EntityManager,
+  ): Promise<void> {
     const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -88,7 +103,42 @@ export class WelfareService {
     await this.welfareRepository.updateWelfare(welfareIdx, updateWelfareInfo);
 
     // 복지포인트 사용금액 업데이트
-    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(year, month, userIdx);
-    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx);
+    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
+      year,
+      month,
+      userIdx,
+      manager,
+    );
+    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
+  }
+
+  async getWelfare(year: string, month: string, userIdx: number): Promise<GetWelfareDto> {
+    const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
+    let welfareInfo: WelfareEntity[] = [];
+    if (year && month) {
+      const yearToNum: number = Number(year);
+      const monthToNum: number = Number(month);
+      welfareInfo = await this.welfareRepository.getMonthWelfares(yearToNum, monthToNum, userIdx);
+    } else if (!year && !month) {
+      welfareInfo = await this.welfareRepository.getAllWelfares(userIdx);
+    } else {
+      throw new BadRequestException('연도와 월은 모두 입력하거나, 모두 입력하지 않아야 합니다');
+    }
+    const nowDate: Date = new Date();
+    const nowYear: number = nowDate.getFullYear();
+    const nowMonth: number = nowDate.getMonth() + 1;
+    const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
+    const welfareStats: WelfareStatsDto = await this.welfareRepository.getWelfareStats(nowYear, halfYear, userIdx);
+
+    const result: GetWelfareDto = {
+      welfareStats,
+      welfares: welfareInfo,
+    };
+
+    return result;
   }
 }

@@ -88,7 +88,6 @@ export class MealController {
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseDto> {
-    console.log(targetDay);
     await this.mealService.deleteMeal(userIdx, targetDay, manager);
 
     const response: ResponseDto = { message: '식대 사용내역 초기화 성공' };

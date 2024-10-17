@@ -3,9 +3,64 @@ import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 
 export const USERS_WELFARES: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '전체/월별 복포 사용내역 조회 API',
+      description: '복포 사용일 기준으로 내림차순 정렬됩니다. Query Param이 없으면 전체 데이터 조회로 검색됩니다.',
+    },
+    API_QUERY1: {
+      name: 'year',
+      type: String,
+      description: '연도',
+      required: false,
+    },
+    API_QUERY2: {
+      name: 'month',
+      type: String,
+      description: '월(03,3 모두 가능)',
+      required: false,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '복포 사용내역 조회 성공',
+            data: {
+              welfareStats: {
+                year: '2024',
+                welfareBudget: 200000,
+                welfareExpense: 5000,
+                welfareBalance: 195000,
+                userName: '이승현',
+              },
+              welfares: [
+                {
+                  welfareIdx: 14,
+                  userIdx: 1,
+                  targetDay: '2024-11-05',
+                  content: '마린커피',
+                  amount: 2500,
+                  payerName: '이승현',
+                },
+                {
+                  welfareIdx: 18,
+                  userIdx: 1,
+                  targetDay: '2024-11-05',
+                  content: '마린커피',
+                  amount: 2500,
+                  payerName: '이승현',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
   POST: {
     API_OPERATION: {
-      summary: ' 복지포인트 사용내역 등록 API',
+      summary: '복지포인트 사용내역 등록 API',
     },
     API_BODY: {
       type: CreateWelfareDto,
@@ -58,6 +113,9 @@ export const USERS_WELFARES: SwaggerMethod = {
           example: {
             statusCode: 201,
             message: '복지포인트 사용내역 저장 성공',
+            data: {
+              targetDay: '2024-11-05',
+            },
           },
         },
       },
