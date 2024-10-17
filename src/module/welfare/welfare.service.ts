@@ -4,8 +4,8 @@ import { WelfareRepository } from './repository/welfare.repository';
 import { GetWelfareDto, WelfareInfoDto, WelfareStatsDto } from './dto/welfare.dto';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { EntityManager } from 'typeorm';
-import { WelfareEntity } from '../../entity/welfare/welfare.entity';
 import { HalfYearEnum } from '../../common/constant/enum';
+import { Welfares } from './interface/welfare.interface';
 
 @Injectable()
 export class WelfareService {
@@ -118,7 +118,7 @@ export class WelfareService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    let welfareInfo: WelfareEntity[] = [];
+    let welfareInfo: Welfares[] = [];
     if (year && month) {
       const yearToNum: number = Number(year);
       const monthToNum: number = Number(month);

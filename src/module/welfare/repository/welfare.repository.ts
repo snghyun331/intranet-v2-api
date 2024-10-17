@@ -10,7 +10,8 @@ import { WelfareInfoDto, WelfareStatsDto } from '../dto/welfare.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfarePayeeEntity } from '../../../entity/welfare/payee.entity';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
-import { HalfYearEnum } from '../../../common/constant/enum';
+import { HalfYearEnum, YNEnum } from '../../../common/constant/enum';
+import { Welfares } from '../interface/welfare.interface';
 
 @Injectable()
 export class WelfareRepository {
@@ -140,72 +141,154 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getMonthWelfares(year: number, month: number, userIdx: number): Promise<WelfareEntity[]> {
+  // async getMonthWelfares(year: number, month: number, userIdx: number): Promise<WelfareEntity[]> {
+  //   const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+  //   const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+  //   const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+
+  //   const query = `
+  //   (SELECT
+  //       welfareEntity.welfare_idx AS welfareIdx,
+  //       welfareEntity.user_idx AS userIdx,
+  //       welfareEntity.target_day AS targetDay,
+  //       welfareEntity.content AS content,
+  //       welfareEntity.amount AS amount,
+  //       welfareEntity.payer_name AS payerName
+  //    FROM welfare welfareEntity
+  //    WHERE welfareEntity.user_idx = '${userIdx}'
+  //    AND welfareEntity.target_day BETWEEN '${startDate}' AND '${endDate}')
+  //   UNION ALL
+  //   (SELECT
+  //       payeeEntity.welfare_idx AS welfareIdx,
+  //       payeeEntity.user_idx AS userIdx,
+  //       welfareEntity.target_day AS targetDay,
+  //       welfareEntity.content AS content,
+  //       payeeEntity.amount AS amount,
+  //       welfareEntity.payer_name AS payerName
+  //    FROM welfare_payee payeeEntity
+  //    INNER JOIN welfare welfareEntity
+  //      ON welfareEntity.welfare_idx = payeeEntity.welfare_idx
+  //    WHERE payeeEntity.user_idx = '${userIdx}'
+  //    AND welfareEntity.target_day BETWEEN '${startDate}' AND '${endDate}')
+  //   ORDER BY targetDay DESC
+  // `;
+
+  //   const result: WelfareEntity[] = await this.welfareModel.query(query);
+
+  //   return result;
+  // }
+  async getMonthWelfares(year: number, month: number, userIdx: number): Promise<Welfares[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
 
-    const query = `
-    (SELECT 
-        welfareEntity.welfare_idx AS welfareIdx,
-        welfareEntity.user_idx AS userIdx,
-        welfareEntity.target_day AS targetDay,
-        welfareEntity.content AS content,
-        welfareEntity.amount AS amount,
-        welfareEntity.payer_name AS payerName
-     FROM welfare welfareEntity
-     WHERE welfareEntity.user_idx = '${userIdx}'
-     AND welfareEntity.target_day BETWEEN '${startDate}' AND '${endDate}')
-    UNION ALL
-    (SELECT 
-        payeeEntity.welfare_idx AS welfareIdx,
-        payeeEntity.user_idx AS userIdx,
-        welfareEntity.target_day AS targetDay,
-        welfareEntity.content AS content,
-        payeeEntity.amount AS amount,
-        welfareEntity.payer_name AS payerName
-     FROM welfare_payee payeeEntity
-     INNER JOIN welfare welfareEntity 
-       ON welfareEntity.welfare_idx = payeeEntity.welfare_idx
-     WHERE payeeEntity.user_idx = '${userIdx}'
-     AND welfareEntity.target_day BETWEEN '${startDate}' AND '${endDate}')
-    ORDER BY targetDay DESC
-  `;
+    const result1: WelfareEntity[] = await this.welfareModel
+      .createQueryBuilder('welfareEntity')
+      .select([
+        'welfareEntity.welfareIdx AS welfareIdx',
+        'welfareEntity.userIdx AS userIdx',
+        'welfareEntity.targetDay AS targetDay',
+        'welfareEntity.content AS content',
+        'welfareEntity.amount AS amount',
+        'welfareEntity.payerName AS payerName',
+      ])
+      .where('welfareEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('welfareEntity.targetDay BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .orderBy('welfareEntity.targetDay', 'DESC')
+      .getRawMany();
 
-    const result: WelfareEntity[] = await this.welfareModel.query(query);
+    const result2: WelfareEntity[] = await this.payeeModel
+      .createQueryBuilder('payeeEntity')
+      .select([
+        'payeeEntity.welfareIdx AS welfareIdx',
+        'payeeEntity.userIdx AS userIdx',
+        'welfareEntity.targetDay AS targetDay',
+        'welfareEntity.content AS content',
+        'payeeEntity.amount AS amount',
+        'welfareEntity.payerName AS payerName',
+      ])
+      .innerJoin(WelfareEntity, 'welfareEntity', 'welfareEntity.welfareIdx = payeeEntity.welfareIdx')
+      .where('payeeEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('welfareEntity.targetDay BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .getRawMany();
 
-    return result;
+    const finalResult: Welfares[] = [
+      ...result1.map((item) => ({ ...item, selfWrittenYN: YNEnum.YES })),
+      ...result2.map((item) => ({ ...item, selfWrittenYN: YNEnum.NO })),
+    ];
+
+    finalResult.sort((a, b) => new Date(b.targetDay).getTime() - new Date(a.targetDay).getTime());
+
+    return finalResult;
   }
 
-  async getAllWelfares(userIdx: number): Promise<WelfareEntity[]> {
-    const query = `
-    (SELECT 
-        welfareEntity.welfare_idx AS welfareIdx,
-        welfareEntity.user_idx AS userIdx,
-        welfareEntity.target_day AS targetDay,
-        welfareEntity.content AS content,
-        welfareEntity.amount AS amount,
-        welfareEntity.payer_name AS payerName
-     FROM welfare welfareEntity
-     WHERE welfareEntity.user_idx = '${userIdx}')
-    UNION ALL
-    (SELECT 
-        payeeEntity.welfare_idx AS welfareIdx,
-        payeeEntity.user_idx AS userIdx,
-        welfareEntity.target_day AS targetDay,
-        welfareEntity.content AS content,
-        payeeEntity.amount AS amount,
-        welfareEntity.payer_name AS payerName
-     FROM welfare_payee payeeEntity
-     INNER JOIN welfare welfareEntity 
-       ON welfareEntity.welfare_idx = payeeEntity.welfare_idx
-     WHERE payeeEntity.user_idx = '${userIdx}')
-    ORDER BY targetDay DESC
-  `;
+  // async getAllWelfares(userIdx: number): Promise<WelfareEntity[]> {
+  //   const query = `
+  //   (SELECT
+  //       welfareEntity.welfare_idx AS welfareIdx,
+  //       welfareEntity.user_idx AS userIdx,
+  //       welfareEntity.target_day AS targetDay,
+  //       welfareEntity.content AS content,
+  //       welfareEntity.amount AS amount,
+  //       welfareEntity.payer_name AS payerName
+  //    FROM welfare welfareEntity
+  //    WHERE welfareEntity.user_idx = '${userIdx}')
+  //   UNION ALL
+  //   (SELECT
+  //       payeeEntity.welfare_idx AS welfareIdx,
+  //       payeeEntity.user_idx AS userIdx,
+  //       welfareEntity.target_day AS targetDay,
+  //       welfareEntity.content AS content,
+  //       payeeEntity.amount AS amount,
+  //       welfareEntity.payer_name AS payerName
+  //    FROM welfare_payee payeeEntity
+  //    INNER JOIN welfare welfareEntity
+  //      ON welfareEntity.welfare_idx = payeeEntity.welfare_idx
+  //    WHERE payeeEntity.user_idx = '${userIdx}')
+  //   ORDER BY targetDay DESC
+  // `;
 
-    const result: WelfareEntity[] = await this.welfareModel.query(query);
+  //   const result: WelfareEntity[] = await this.welfareModel.query(query);
 
-    return result;
+  //   return result;
+  // }
+  async getAllWelfares(userIdx: number): Promise<Welfares[]> {
+    const result1: WelfareEntity[] = await this.welfareModel
+      .createQueryBuilder('welfareEntity')
+      .select([
+        'welfareEntity.welfareIdx AS welfareIdx',
+        'welfareEntity.userIdx AS userIdx',
+        'welfareEntity.targetDay AS targetDay',
+        'welfareEntity.content AS content',
+        'welfareEntity.amount AS amount',
+        'welfareEntity.payerName AS payerName',
+      ])
+      .where('welfareEntity.userIdx = :userIdx', { userIdx })
+      .orderBy('welfareEntity.targetDay', 'DESC')
+      .getRawMany();
+
+    const result2: WelfareEntity[] = await this.payeeModel
+      .createQueryBuilder('payeeEntity')
+      .select([
+        'payeeEntity.welfareIdx AS welfareIdx',
+        'payeeEntity.userIdx AS userIdx',
+        'welfareEntity.targetDay AS targetDay',
+        'welfareEntity.content AS content',
+        'payeeEntity.amount AS amount',
+        'welfareEntity.payerName AS payerName',
+      ])
+      .innerJoin(WelfareEntity, 'welfareEntity', 'welfareEntity.welfareIdx = payeeEntity.welfareIdx')
+      .where('payeeEntity.userIdx = :userIdx', { userIdx })
+      .getRawMany();
+
+    const finalResult: Welfares[] = [
+      ...result1.map((item) => ({ ...item, selfWrittenYN: YNEnum.YES })),
+      ...result2.map((item) => ({ ...item, selfWrittenYN: YNEnum.NO })),
+    ];
+
+    finalResult.sort((a, b) => new Date(b.targetDay).getTime() - new Date(a.targetDay).getTime());
+
+    return finalResult;
   }
 
   async getWelfareStats(year: number, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareStatsDto> {
