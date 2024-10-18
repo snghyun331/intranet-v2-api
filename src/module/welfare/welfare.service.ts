@@ -5,7 +5,7 @@ import { GetWelfareDto, WelfareInfoDto, WelfareStatsDto } from './dto/welfare.dt
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { EntityManager } from 'typeorm';
 import { HalfYearEnum, YNEnum } from '../../common/constant/enum';
-import { WelfareEntity } from '../../entity/welfare/welfare.entity';
+import { Welfares } from './interface/welfare.interface';
 
 @Injectable()
 export class WelfareService {
@@ -25,10 +25,10 @@ export class WelfareService {
     const year: number = Number(newWelfareInfo.targetDay.substring(0, 4));
     const month: number = Number(newWelfareInfo.targetDay.substring(5, 7));
     const welfareIdx: number = await this.welfareRepository.createWelfare(userIdx, newWelfareInfo, manager);
-    if (newWelfareInfo.payeerIdxs.length > 0) {
+    if (newWelfareInfo.payeeIdxs.length > 0) {
       await Promise.all(
-        newWelfareInfo.payeerIdxs.map(async (payeerIdx) => {
-          await this.welfareRepository.createPayeer(welfareIdx, payeerIdx, newWelfareInfo, manager);
+        newWelfareInfo.payeeIdxs.map(async (payeeIdx) => {
+          await this.welfareRepository.createPayee(welfareIdx, payeeIdx, newWelfareInfo, manager);
         }),
       );
     }
@@ -52,15 +52,19 @@ export class WelfareService {
     }
 
     const welfareInfo: WelfareInfoDto = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
-    const year: number = Number(welfareInfo.targetDay.substring(0, 4));
-    const month: number = Number(welfareInfo.targetDay.substring(5, 7));
+    if (!welfareInfo) {
+      throw new NotFoundException('해당 사용내역은 존재하지 않거나 삭제되었습니다.');
+    }
 
     if (userIdx !== welfareInfo.userIdx) {
       throw new ForbiddenException('복포 삭제 권한이 없습니다');
     }
 
+    const year: number = Number(welfareInfo.targetDay.substring(0, 4));
+    const month: number = Number(welfareInfo.targetDay.substring(5, 7));
+
     // 대리 결제자 목록 불러오기
-    const payeerIdxList: number[] = await this.welfareRepository.getUserIdxFromPayerWelfareIdx(welfareIdx);
+    const payeeIdxList: number[] = await this.welfareRepository.getUserIdxFromPayerWelfareIdx(welfareIdx);
 
     await this.welfareRepository.deleteWelfare(welfareIdx, manager);
 
@@ -74,16 +78,16 @@ export class WelfareService {
     await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
 
     // 대리결제자의 복지포인트 사용금액 업데이트
-    if (payeerIdxList.length > 0) {
+    if (payeeIdxList.length > 0) {
       await Promise.all(
-        payeerIdxList.map(async (payeerIdx) => {
+        payeeIdxList.map(async (payeeIdx) => {
           const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
             year,
             month,
-            payeerIdx,
+            payeeIdx,
             manager,
           );
-          await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, payeerIdx, manager);
+          await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, payeeIdx, manager);
         }),
       );
     }
@@ -124,25 +128,25 @@ export class WelfareService {
     // 본인 결제자의 내역 업데이트
     await this.welfareRepository.updateWelfare(welfareIdx, updateWelfareInfo, manager);
     // 대리 결제자 내역도 업데이트
-    await this.welfareRepository.updatePayeerWelfare(welfareIdx, updateWelfareInfo, manager);
+    await this.welfareRepository.updatePayeeWelfare(welfareIdx, updateWelfareInfo, manager);
 
-    /* payeerIdxs 처리 */
+    /* payeeIdxs 처리 */
     if (updateWelfareInfo.selfWrittenYN === YNEnum.YES) {
       // 1. 기존 userIdx 목록 가져오기
-      const payeerIdxList: number[] = await this.welfareRepository.getUserIdxFromPayerWelfareIdx(welfareIdx);
+      const payeeIdxList: number[] = await this.welfareRepository.getUserIdxFromPayerWelfareIdx(welfareIdx);
       // 2. 제거할 userIdx 목록 계산
-      const payeerIdxToRemove = payeerIdxList.filter((userIdx) => !updateWelfareInfo.payeerIdxs.includes(userIdx));
+      const payeeIdxToRemove = payeeIdxList.filter((userIdx) => !updateWelfareInfo.payeeIdxs.includes(userIdx));
       // 3. 새로 추가할 userIdx 목록 계산
-      const payeerIdxToAdd = updateWelfareInfo.payeerIdxs.filter((userIdx) => !payeerIdxList.includes(userIdx));
+      const payeeIdxToAdd = updateWelfareInfo.payeeIdxs.filter((userIdx) => !payeeIdxList.includes(userIdx));
       // 4. 삭제할 데이터 처리
-      if (payeerIdxToRemove.length > 0) {
-        await this.welfareRepository.deleteWelfareFromIdxAndUserIdx(welfareIdx, payeerIdxToRemove, manager);
+      if (payeeIdxToRemove.length > 0) {
+        await this.welfareRepository.deleteWelfareFromIdxAndUserIdx(welfareIdx, payeeIdxToRemove, manager);
       }
       // 5. 추가할 데이터 처리
-      if (payeerIdxToAdd.length > 0) {
+      if (payeeIdxToAdd.length > 0) {
         await Promise.all(
-          payeerIdxToAdd.map(async (payeerIdx) => {
-            await this.welfareRepository.createPayeer(welfareIdx, payeerIdx, updateWelfareInfo, manager);
+          payeeIdxToAdd.map(async (payeeIdx) => {
+            await this.welfareRepository.createPayee(welfareIdx, payeeIdx, updateWelfareInfo, manager);
           }),
         );
       }
@@ -166,7 +170,7 @@ export class WelfareService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    let welfareInfo: WelfareEntity[] = [];
+    let welfareInfo: Welfares[] = [];
     if (year && month) {
       const yearToNum: number = Number(year);
       const monthToNum: number = Number(month);

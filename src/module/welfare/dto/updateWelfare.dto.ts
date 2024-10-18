@@ -6,6 +6,6 @@ export class UpdateWelfareDto extends PickType(CreateWelfareDto, [
   'amount',
   'content',
   'payerName',
-  'payeerIdxs',
+  'payeeIdxs',
   'selfWrittenYN',
 ] as const) {}

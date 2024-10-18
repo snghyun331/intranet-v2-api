@@ -30,7 +30,7 @@ export class CreateWelfareDto {
   })
   @IsNotEmpty()
   @IsArray()
-  payeerIdxs: number[];
+  payeeIdxs: number[];
 
   @ApiProperty({ type: 'enum', enum: YNEnum, description: '본인 등록 여부', required: true })
   @IsNotEmpty()

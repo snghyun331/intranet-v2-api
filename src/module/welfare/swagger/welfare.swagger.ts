@@ -30,28 +30,39 @@ export const USERS_WELFARES: SwaggerMethod = {
               welfareStats: {
                 year: '2024',
                 welfareBudget: 200000,
-                welfareExpense: 3400,
-                welfareBalance: 196600,
+                welfareExpense: 5500,
+                welfareBalance: 194500,
                 userName: '김현민',
               },
               welfares: [
                 {
-                  welfareIdx: 34,
-                  userIdx: 2,
-                  targetDay: '2024-11-10',
-                  content: '스타벅스',
-                  amount: 3400,
-                  payerName: '김현민',
-                  selfWrittenYN: 'Y',
-                },
-                {
-                  welfareIdx: 32,
+                  welfareIdx: 42,
                   userIdx: 2,
                   targetDay: '2024-11-05',
-                  content: '마린커피',
+                  content: '스타벅스 용산점',
+                  amount: 5500,
+                  payerName: '김현민',
+                  selfWrittenYN: 'Y',
+                  payeeList: [],
+                },
+                {
+                  welfareIdx: 39,
+                  userIdx: 2,
+                  targetDay: '2024-11-04',
+                  content: '메가커피',
                   amount: null,
                   payerName: '이승현',
                   selfWrittenYN: 'N',
+                  payeeList: [
+                    {
+                      userIdx: 2,
+                      userName: '김현민',
+                    },
+                    {
+                      userIdx: 3,
+                      userName: '윤용설',
+                    },
+                  ],
                 },
               ],
             },
@@ -59,6 +70,34 @@ export const USERS_WELFARES: SwaggerMethod = {
         },
       },
       description: '현민님 로그인 기준',
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: 'query param에 연도와 월 중, 하나만 입력했을 때',
+              value: {
+                message: '연도와 월은 모두 입력하거나, 모두 입력하지 않아야 합니다',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 10. 18. 오후 1:18:19',
+                path: '/users/welfares?year=2024',
+              },
+            },
+            b: {
+              summary: 'DB에 없는 userIdx',
+              value: {
+                message: '올바른 유저가 아닙니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 9. 17. 오후 2:17:56',
+                path: '/users/welfares',
+              },
+            },
+          },
+        },
+      },
     },
   },
   POST: {
@@ -75,7 +114,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             amount: 2500,
             content: '마린커피',
             payerName: '이승현',
-            payeerIdxs: [2, 3],
+            payeeIdxs: [2, 3],
             selfWrittenYN: 'Y',
           },
         },
@@ -86,7 +125,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             amount: 2500,
             content: '마린커피',
             payerName: '이승현',
-            payeerIdxs: [],
+            payeeIdxs: [],
             selfWrittenYN: 'Y',
           },
         },
@@ -97,7 +136,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             amount: 4500,
             content: '스타벅스',
             payerName: '김현민',
-            payeerIdxs: [],
+            payeeIdxs: [],
             selfWrittenYN: 'Y',
           },
         },
@@ -108,7 +147,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             amount: 4500,
             content: '스타벅스',
             payerName: '김현민',
-            payeerIdxs: [3],
+            payeeIdxs: [3],
             selfWrittenYN: 'Y',
           },
         },
@@ -216,6 +255,24 @@ export const USERS_WELFARES: SwaggerMethod = {
         },
       },
     },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '해당 사용내역은 존재하지 않거나 삭제되었습니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 10. 18. 오후 3:18:24',
+                path: '/users/welfares/36',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   PUT: {
     API_OPERATION: {
@@ -237,10 +294,10 @@ export const USERS_WELFARES: SwaggerMethod = {
             amount: 2500,
             content: '마린커피',
             payerName: '이승현',
-            payeerIdxs: [2, 3],
+            payeeIdxs: [2, 3],
             selfWrittenYN: 'Y',
           },
-          description: 'targetDay, amount, content, payerName, payeerIdxs 수정 가능',
+          description: 'targetDay, amount, content, payerName, payeeIdxs 수정 가능',
         },
         b: {
           summary: '다른 사람 등록 복포 내역을 수정',
@@ -249,10 +306,10 @@ export const USERS_WELFARES: SwaggerMethod = {
             amount: 2500,
             content: '마린커피',
             payerName: '이승현',
-            payeerIdxs: [2, 3],
+            payeeIdxs: [2, 3],
             selfWrittenYN: 'N',
           },
-          description: 'amount만 수정 가능(targetDay, content, payerName, payeerIdxs는 고정',
+          description: 'amount만 수정 가능(targetDay, content, payerName, payeeIdxs는 고정',
         },
       },
     },

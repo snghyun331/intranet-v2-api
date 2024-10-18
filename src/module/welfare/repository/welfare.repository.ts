@@ -10,6 +10,7 @@ import { WelfareInfoDto, WelfareStatsDto } from '../dto/welfare.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
 import { HalfYearEnum, YNEnum } from '../../../common/constant/enum';
+import { UserInfo, Welfares } from '../interface/welfare.interface';
 
 @Injectable()
 export class WelfareRepository {
@@ -57,9 +58,9 @@ export class WelfareRepository {
     return welfareIdx;
   }
 
-  async createPayeer(
+  async createPayee(
     welfareIdx: number,
-    payeerIdx: number,
+    payeeIdx: number,
     { targetDay, content, payerName }: CreateWelfareDto | UpdateWelfareDto,
     manager: EntityManager,
   ): Promise<InsertResult> {
@@ -68,7 +69,7 @@ export class WelfareRepository {
       .insert()
       .into(WelfareEntity)
       .values({
-        userIdx: payeerIdx,
+        userIdx: payeeIdx,
         payerWelfareIdx: welfareIdx,
         amount: null,
         selfWrittenYN: YNEnum.NO,
@@ -149,7 +150,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  async updatePayeerWelfare(
+  async updatePayeeWelfare(
     welfareIdx: number,
     { content, targetDay, payerName }: UpdateWelfareDto,
     manager: EntityManager,
@@ -162,7 +163,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getMonthWelfares(year: number, month: number, userIdx: number): Promise<WelfareEntity[]> {
+  async getMonthWelfares(year: number, month: number, userIdx: number): Promise<Welfares[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -177,16 +178,36 @@ export class WelfareRepository {
         'welfareEntity.amount AS amount',
         'welfareEntity.payerName AS payerName',
         'welfareEntity.selfWrittenYN AS selfWrittenYN',
+        'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
       ])
       .where('welfareEntity.userIdx = :userIdx', { userIdx })
       .andWhere('welfareEntity.targetDay BETWEEN :startDate AND :endDate', { startDate, endDate })
       .orderBy('welfareEntity.targetDay', 'DESC')
       .getRawMany();
 
-    return result;
+    // 데이터를 변환하여 payeeList를 추가
+    const transformedResult: Welfares[] = await Promise.all(
+      result.map(async (welfare) => {
+        const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
+        const payeeList: UserInfo[] = await this.getUserInfoFromPayerWelfareIdx(welfareIdx);
+
+        return {
+          welfareIdx: welfare.welfareIdx,
+          userIdx: welfare.userIdx,
+          targetDay: welfare.targetDay,
+          content: welfare.content,
+          amount: welfare.amount,
+          payerName: welfare.payerName,
+          selfWrittenYN: welfare.selfWrittenYN,
+          payeeList: payeeList.length > 0 ? payeeList : [],
+        };
+      }),
+    );
+
+    return transformedResult;
   }
 
-  async getAllWelfares(userIdx: number): Promise<WelfareEntity[]> {
+  async getAllWelfares(userIdx: number): Promise<Welfares[]> {
     const result: WelfareEntity[] = await this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
@@ -197,12 +218,32 @@ export class WelfareRepository {
         'welfareEntity.amount AS amount',
         'welfareEntity.payerName AS payerName',
         'welfareEntity.selfWrittenYN AS selfWrittenYN',
+        'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
       ])
       .where('welfareEntity.userIdx = :userIdx', { userIdx })
       .orderBy('welfareEntity.targetDay', 'DESC')
       .getRawMany();
 
-    return result;
+    // 데이터를 변환하여 payeeList를 추가
+    const transformedResult: Welfares[] = await Promise.all(
+      result.map(async (welfare) => {
+        const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
+        const payeeList: UserInfo[] = await this.getUserInfoFromPayerWelfareIdx(welfareIdx);
+
+        return {
+          welfareIdx: welfare.welfareIdx,
+          userIdx: welfare.userIdx,
+          targetDay: welfare.targetDay,
+          content: welfare.content,
+          amount: welfare.amount,
+          payerName: welfare.payerName,
+          selfWrittenYN: welfare.selfWrittenYN,
+          payeeList: payeeList.length > 0 ? payeeList : [],
+        };
+      }),
+    );
+
+    return transformedResult;
   }
 
   async getWelfareStats(year: number, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareStatsDto> {
@@ -248,5 +289,16 @@ export class WelfareRepository {
       .where('payerWelfareIdx = :welfareIdx', { welfareIdx })
       .andWhere('userIdx IN (:...userIdxs)', { userIdxs })
       .execute();
+  }
+
+  private async getUserInfoFromPayerWelfareIdx(welfareIdx: number): Promise<UserInfo[]> {
+    const result: UserInfo[] = await this.welfareModel
+      .createQueryBuilder('welfareEntity')
+      .select(['welfareEntity.userIdx AS userIdx', 'userEntity.userName AS userName'])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
+      .where('welfareEntity.payerWelfareIdx = :welfareIdx', { welfareIdx })
+      .getRawMany();
+
+    return result;
   }
 }
