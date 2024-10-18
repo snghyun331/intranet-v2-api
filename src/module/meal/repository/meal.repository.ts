@@ -176,7 +176,7 @@ export class MealRepository {
       .andWhere('mealEntity.mealType = :mealType', { mealType: MealTypeEnum.LUNCH })
       .getRawOne();
 
-    return result.total;
+    return result.total || 0;
   }
 
   async updateMealExpenseInStats(
@@ -273,7 +273,7 @@ export class MealRepository {
       .andWhere('mealEntity.mealType = :mealType', { mealType: MealTypeEnum.BREAKFAST })
       .getRawOne();
 
-    return result.total;
+    return result.total || 0;
   }
 
   async updateBreakfastExpenseInStats(
@@ -308,7 +308,7 @@ export class MealRepository {
       .andWhere('mealEntity.mealType = :mealType', { mealType: MealTypeEnum.DINNER })
       .getRawOne();
 
-    return result.total;
+    return result.total || 0;
   }
 
   async updateDinnerExpenseInStats(

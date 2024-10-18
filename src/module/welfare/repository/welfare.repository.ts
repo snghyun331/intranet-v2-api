@@ -93,7 +93,7 @@ export class WelfareRepository {
       })
       .getRawOne();
 
-    return result.total;
+    return result.total || 0;
   }
 
   async updateMonthlyWelfareStats(
@@ -127,15 +127,13 @@ export class WelfareRepository {
     return result;
   }
 
-  async deleteWelfare(welfareIdx: number): Promise<void> {
-    return this.welfareModel.manager.transaction(async (manager) => {
-      await manager
-        .createQueryBuilder()
-        .delete()
-        .from(WelfareEntity)
-        .where('welfareIdx = :welfareIdx', { welfareIdx })
-        .execute();
-    });
+  async deleteWelfare(welfareIdx: number, manager: EntityManager): Promise<DeleteResult> {
+    return await manager
+      .createQueryBuilder()
+      .delete()
+      .from(WelfareEntity)
+      .where('welfareIdx = :welfareIdx', { welfareIdx })
+      .execute();
   }
 
   async updateWelfare(

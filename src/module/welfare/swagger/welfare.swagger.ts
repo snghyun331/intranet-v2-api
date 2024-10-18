@@ -30,52 +30,35 @@ export const USERS_WELFARES: SwaggerMethod = {
               welfareStats: {
                 year: '2024',
                 welfareBudget: 200000,
-                welfareExpense: 5000,
-                welfareBalance: 195000,
-                userName: '이승현',
+                welfareExpense: 3400,
+                welfareBalance: 196600,
+                userName: '김현민',
               },
               welfares: [
                 {
-                  welfareIdx: 21,
-                  userIdx: 1,
-                  targetDay: '2024-11-13',
-                  content: 'CU',
-                  amount: null,
-                  payerName: '김현민',
-                  selfWrittenYN: 'N',
-                },
-                {
-                  welfareIdx: 19,
-                  userIdx: 1,
+                  welfareIdx: 34,
+                  userIdx: 2,
                   targetDay: '2024-11-10',
                   content: '스타벅스',
-                  amount: null,
+                  amount: 3400,
                   payerName: '김현민',
+                  selfWrittenYN: 'Y',
+                },
+                {
+                  welfareIdx: 32,
+                  userIdx: 2,
+                  targetDay: '2024-11-05',
+                  content: '마린커피',
+                  amount: null,
+                  payerName: '이승현',
                   selfWrittenYN: 'N',
-                },
-                {
-                  welfareIdx: 14,
-                  userIdx: 1,
-                  targetDay: '2024-11-05',
-                  content: '마린커피',
-                  amount: 2500,
-                  payerName: '이승현',
-                  selfWrittenYN: 'Y',
-                },
-                {
-                  welfareIdx: 18,
-                  userIdx: 1,
-                  targetDay: '2024-11-05',
-                  content: '마린커피',
-                  amount: 2500,
-                  payerName: '이승현',
-                  selfWrittenYN: 'Y',
                 },
               ],
             },
           },
         },
       },
+      description: '현민님 로그인 기준',
     },
   },
   POST: {
@@ -175,7 +158,7 @@ export const USERS_WELFARES: SwaggerMethod = {
   },
   DELETE: {
     API_OPERATION: {
-      summary: '복지포인트 사용내역 초기화 API (미완성)',
+      summary: '복지포인트 사용내역 초기화 API',
     },
     API_PARAM1: {
       name: 'welfareIdx',
@@ -189,6 +172,9 @@ export const USERS_WELFARES: SwaggerMethod = {
           example: {
             statusCode: 200,
             message: '복지포인트 사용내역 초기화 성공',
+            data: {
+              targetDay: '2024-11-05',
+            },
           },
         },
       },
@@ -206,6 +192,25 @@ export const USERS_WELFARES: SwaggerMethod = {
                 timeStamp: '2024. 9. 17. 오후 2:17:56',
                 path: '/users/welfares/1',
               },
+            },
+          },
+        },
+      },
+    },
+    API_FORBIDDEN_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '삭제 권한 없음',
+              value: {
+                message: '복포 삭제 권한이 없습니다',
+                error: 'Forbidden',
+                statusCode: 403,
+                timeStamp: '2024. 9. 23. 오전 10:10:20',
+                path: '/users/welfares/1',
+              },
+              description: '로그인한 유저IDX와 welfare의 유저IDX가 일치하지 않음',
             },
           },
         },

@@ -112,16 +112,20 @@ export class WelfareController {
   @ApiParam(USERS_WELFARES.DELETE.API_PARAM1)
   @ApiOkResponse(USERS_WELFARES.DELETE.API_OK_RESPONSE)
   @ApiBadRequestResponse(USERS_WELFARES.DELETE.API_BAD_REQUEST_RESPONSE)
+  @ApiForbiddenResponse(USERS_WELFARES.DELETE.API_FORBIDDEN_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UserRole(UserGradeEnum.INTERN)
   @UseInterceptors(TransactionInterceptor)
   @Delete(':welfareIdx')
   async deleteWelfare(
     @Param('welfareIdx', ParseIntPipe) welfareIdx: number,
+    @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseDto> {
-    const userIdx = 1;
-    await this.welfareService.deleteWelfare(userIdx, welfareIdx, manager);
+    const targetDay: string = await this.welfareService.deleteWelfare(userIdx, welfareIdx, manager);
 
-    const response: ResponseDto = { message: '복지포인트 사용내역 초기화 성공' };
+    const response: ResponseDto = { message: '복지포인트 사용내역 초기화 성공', data: { targetDay } };
 
     return response;
   }
