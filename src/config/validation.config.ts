@@ -1,5 +1,6 @@
 import { BadRequestException, Logger } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
+import { ValidationDetailDto, ValidationErrorBodyDto } from '../common/dto/validationError.dto';
 
 /*  validateErr Key가 isNotEmpty일 경우, 해당 값이 에러메세지로 전달됩니다. */
 export const validationOptions = {
@@ -8,38 +9,25 @@ export const validationOptions = {
   transform: true,
   exceptionFactory: (validationErrors: ValidationError[] = []) => {
     const logger = new Logger();
-    let errMessage: string = '';
-    let hasSpecificConstraint: boolean = false;
+    const details: ValidationDetailDto[] = [];
 
     for (const { property, constraints } of validationErrors) {
-      const keys = Object.keys(constraints);
-
-      if (keys.includes('isNotEmpty') || keys.includes('matches') || keys.includes('isEmpty')) {
-        if (keys.includes('isNotEmpty')) {
-          errMessage += constraints['isNotEmpty'] + ' ';
-        }
-
-        if (keys.includes('matches')) {
-          errMessage += constraints['matches'] + ' ';
-        }
-
-        if (keys.includes('isEmpty')) {
-          errMessage += constraints['isEmpty'] + ' ';
-        }
-        hasSpecificConstraint = true;
-      }
-
+      const keys: string[] = Object.keys(constraints);
       logger.warn(
         `에러 발생 키 : ${property}, 에러 제목 : ${keys} , 에러 내용 : ${Object.values(constraints)}`,
         '🚧🚧🚧🚧 유효성 검사 에러 🚧🚧🚧🚧',
       );
-
-      if (!hasSpecificConstraint) {
-        errMessage = '요청 입력 값이 잘못되었습니다.';
-      }
+      const errObject: ValidationDetailDto = { field: property, error: Object.values(constraints) };
+      details.push(errObject);
     }
 
-    throw new BadRequestException(errMessage.trim());
-    // throw new BadRequestException(Object.values(constraints));
+    const validationErrResponseBody: ValidationErrorBodyDto = {
+      statusCode: 400,
+      message: '요청 입력 값이 잘못되었습니다.',
+      details,
+      error: 'Validation Error',
+    };
+
+    throw new BadRequestException(validationErrResponseBody);
   },
 };

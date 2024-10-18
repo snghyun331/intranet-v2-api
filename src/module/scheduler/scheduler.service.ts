@@ -146,6 +146,7 @@ export class SchedulerService {
     return weekendInfoList;
   }
 
+  // 다음 분기 복포 통계 업데이트
   @Cron('0 0 25 6,12 *')
   async updateWelfareStats(): Promise<void> {
     this.logger.log('🚀 Start Updating Welfare Stats Job !');
@@ -172,6 +173,7 @@ export class SchedulerService {
     this.logger.log('🏁 Updating Welfare Stats Job Completed !');
   }
 
+  // 다음달 복포 통계 업데이트
   @Cron('0 0 25 * *')
   async updateWelfareMonthStats(): Promise<void> {
     this.logger.log('🚀 Start Updating Welfare Month Stats Job !');
