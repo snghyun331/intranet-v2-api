@@ -199,23 +199,23 @@ export class MealService {
     }
 
     // timeoffDays(반)연차/휴무일수) 업데이트
-    const timeoffDays: number = await this.mealRepository.getTotalTimeoffDays(year, month, userIdx);
+    const timeoffDays: number = await this.mealRepository.getTotalTimeoffDays(year, month, userIdx, manager);
     await this.mealRepository.updateTimeOffDaysInStats(timeoffDays, year, month, userIdx, manager);
 
     // holidayWorkdays(휴일근무일 수) 업데이트
-    const holidayWorkdays: number = await this.mealRepository.getTotalHolidayWorkdays(year, month, userIdx);
+    const holidayWorkdays: number = await this.mealRepository.getTotalHolidayWorkdays(year, month, userIdx, manager);
     await this.mealRepository.updateHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx, manager);
 
     // mealExpense(중식 사용금액) 업데이트
-    const mealExpense: number = await this.mealRepository.getTotalMealExpense(year, month, userIdx);
+    const mealExpense: number = await this.mealRepository.getTotalMealExpense(year, month, userIdx, manager);
     await this.mealRepository.updateMealExpenseInStats(mealExpense, year, month, userIdx, manager);
 
     // breakExpense(조식 사용금액) 업데이트
-    const breakfastExpense: number = await this.mealRepository.getTotalBreakfastExpense(year, month, userIdx);
+    const breakfastExpense: number = await this.mealRepository.getTotalBreakfastExpense(year, month, userIdx, manager);
     await this.mealRepository.updateBreakfastExpenseInStats(breakfastExpense, year, month, userIdx, manager);
 
     // dinnerExpense(조식 사용금액) 업데이트
-    const dinnerExpense: number = await this.mealRepository.getTotalDinnerExpense(year, month, userIdx);
+    const dinnerExpense: number = await this.mealRepository.getTotalDinnerExpense(year, month, userIdx, manager);
     await this.mealRepository.updateDinnerExpenseInStats(dinnerExpense, year, month, userIdx, manager);
 
     return newMealInfo.targetDay;
@@ -233,19 +233,19 @@ export class MealService {
     await this.mealRepository.deleteMeal(userIdx, targetDay, manager);
 
     // timeoffDays(반)연차/휴무일수) 업데이트
-    const timeoffDays: number = await this.mealRepository.getTotalTimeoffDays(year, month, userIdx);
+    const timeoffDays: number = await this.mealRepository.getTotalTimeoffDays(year, month, userIdx, manager);
     await this.mealRepository.updateTimeOffDaysInStats(timeoffDays, year, month, userIdx, manager);
     // holidayWorkdays(휴일근무일 수) 업데이트
-    const holidayWorkdays: number = await this.mealRepository.getTotalHolidayWorkdays(year, month, userIdx);
+    const holidayWorkdays: number = await this.mealRepository.getTotalHolidayWorkdays(year, month, userIdx, manager);
     await this.mealRepository.updateHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx, manager);
     // mealExpense(중식 사용금액) 업데이트
-    const mealExpense: number = await this.mealRepository.getTotalMealExpense(year, month, userIdx);
+    const mealExpense: number = await this.mealRepository.getTotalMealExpense(year, month, userIdx, manager);
     await this.mealRepository.updateMealExpenseInStats(mealExpense, year, month, userIdx, manager);
     // breakExpense(조식 사용금액) 업데이트
-    const breakfastExpense: number = await this.mealRepository.getTotalBreakfastExpense(year, month, userIdx);
+    const breakfastExpense: number = await this.mealRepository.getTotalBreakfastExpense(year, month, userIdx, manager);
     await this.mealRepository.updateBreakfastExpenseInStats(breakfastExpense, year, month, userIdx, manager);
     // dinnerExpense(조식 사용금액) 업데이트
-    const dinnerExpense: number = await this.mealRepository.getTotalDinnerExpense(year, month, userIdx);
+    const dinnerExpense: number = await this.mealRepository.getTotalDinnerExpense(year, month, userIdx, manager);
     await this.mealRepository.updateDinnerExpenseInStats(dinnerExpense, year, month, userIdx, manager);
   }
 
