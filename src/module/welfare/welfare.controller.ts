@@ -84,6 +84,30 @@ export class WelfareController {
     return response;
   }
 
+  @ApiOperation(USERS_WELFARES.PUT.API_OPERATION)
+  @ApiParam(USERS_WELFARES.PUT.API_PARAM1)
+  @ApiBody(USERS_WELFARES.PUT.API_BODY)
+  @ApiOkResponse(USERS_WELFARES.PUT.API_OK_RESPONSE)
+  @ApiForbiddenResponse(USERS_WELFARES.PUT.API_FORBIDDEN_RESPONSE)
+  @ApiBadRequestResponse(USERS_WELFARES.PUT.API_BAD_REQUEST_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @UseInterceptors(TransactionInterceptor)
+  @Put(':welfareIdx')
+  async updateWelfare(
+    @Param('welfareIdx', ParseIntPipe) welfareIdx: number,
+    @Body() updateWelfareInfo: UpdateWelfareDto,
+    @CurrentUserIdx() userIdx: number,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseDto> {
+    const targetDay: string = await this.welfareService.updateWelfare(userIdx, welfareIdx, updateWelfareInfo, manager);
+
+    const response: ResponseDto = { message: '복지포인트 사용내역 수정 성공', data: { targetDay } };
+
+    return response;
+  }
+
   @ApiOperation(USERS_WELFARES.DELETE.API_OPERATION)
   @ApiParam(USERS_WELFARES.DELETE.API_PARAM1)
   @ApiOkResponse(USERS_WELFARES.DELETE.API_OK_RESPONSE)
@@ -98,27 +122,6 @@ export class WelfareController {
     await this.welfareService.deleteWelfare(userIdx, welfareIdx, manager);
 
     const response: ResponseDto = { message: '복지포인트 사용내역 초기화 성공' };
-
-    return response;
-  }
-
-  @ApiOperation(USERS_WELFARES.PUT.API_OPERATION)
-  @ApiParam(USERS_WELFARES.PUT.API_PARAM1)
-  @ApiBody(USERS_WELFARES.PUT.API_BODY)
-  @ApiOkResponse(USERS_WELFARES.PUT.API_OK_RESPONSE)
-  @ApiForbiddenResponse(USERS_WELFARES.PUT.API_FORBIDDEN_RESPONSE)
-  @ApiBadRequestResponse(USERS_WELFARES.PUT.API_BAD_REQUEST_RESPONSE)
-  @UseInterceptors(TransactionInterceptor)
-  @Put(':welfareIdx')
-  async updateWelfare(
-    @Param('welfareIdx', ParseIntPipe) welfareIdx: number,
-    @Body() updateWelfareInfo: UpdateWelfareDto,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseDto> {
-    const userIdx = 1;
-    await this.welfareService.updateWelfare(userIdx, welfareIdx, updateWelfareInfo, manager);
-
-    const response: ResponseDto = { message: '복지포인트 사용내역 수정 성공' };
 
     return response;
   }

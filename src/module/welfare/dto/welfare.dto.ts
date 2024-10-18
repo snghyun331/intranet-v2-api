@@ -4,7 +4,6 @@ import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity'
 import { UserEntity } from '../../../entity/user/user.entity';
 import { IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Welfares } from '../interface/welfare.interface';
 
 export class WelfareInfoDto extends PickType(WelfareEntity, ['welfareIdx', 'userIdx', 'targetDay'] as const) {}
 
@@ -19,5 +18,7 @@ export class GetWelfareDto {
   welfareStats: WelfareStatsDto;
 
   @IsArray()
-  welfares: Welfares[];
+  @ValidateNested({ each: true }) // each: true 옵션 => 배열에 있는 각 dto 객체도 개별적으로 유효성 검사를 하도록 설정
+  @Type(() => WelfareEntity)
+  welfares: WelfareEntity[];
 }

@@ -93,6 +93,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             content: '마린커피',
             payerName: '이승현',
             payeerIdxs: [2, 3],
+            selfWrittenYN: 'Y',
           },
         },
         b: {
@@ -103,6 +104,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             content: '마린커피',
             payerName: '이승현',
             payeerIdxs: [],
+            selfWrittenYN: 'Y',
           },
         },
         c: {
@@ -113,6 +115,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             content: '스타벅스',
             payerName: '김현민',
             payeerIdxs: [],
+            selfWrittenYN: 'Y',
           },
         },
         d: {
@@ -123,6 +126,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             content: '스타벅스',
             payerName: '김현민',
             payeerIdxs: [3],
+            selfWrittenYN: 'Y',
           },
         },
       },
@@ -210,7 +214,7 @@ export const USERS_WELFARES: SwaggerMethod = {
   },
   PUT: {
     API_OPERATION: {
-      summary: '복지포인트 사용내역 수정 API(미완성)',
+      summary: '복지포인트 사용내역 수정 API',
     },
     API_PARAM1: {
       name: 'welfareIdx',
@@ -222,19 +226,28 @@ export const USERS_WELFARES: SwaggerMethod = {
       type: UpdateWelfareDto,
       examples: {
         a: {
-          summary: '모두 수정(targetDay 제외)',
+          summary: '본인등록 복포 내역을 수정',
           value: {
-            amount: 3000,
-            content: '와이브루',
+            targetDay: '2024-11-05',
+            amount: 2500,
+            content: '마린커피',
             payerName: '이승현',
+            payeerIdxs: [2, 3],
+            selfWrittenYN: 'Y',
           },
-          description: 'targetDay는 수정할 수 없습니다.',
+          description: 'targetDay, amount, content, payerName, payeerIdxs 수정 가능',
         },
         b: {
-          summary: '일부 수정',
+          summary: '다른 사람 등록 복포 내역을 수정',
           value: {
-            payerName: '김현민',
+            targetDay: '2024-11-05',
+            amount: 2500,
+            content: '마린커피',
+            payerName: '이승현',
+            payeerIdxs: [2, 3],
+            selfWrittenYN: 'N',
           },
+          description: 'amount만 수정 가능(targetDay, content, payerName, payeerIdxs는 고정',
         },
       },
     },
@@ -244,6 +257,9 @@ export const USERS_WELFARES: SwaggerMethod = {
           example: {
             statusCode: 200,
             message: '복지포인트 사용내역 수정 성공',
+            data: {
+              targetDay: '2024-11-05',
+            },
           },
         },
       },
@@ -261,7 +277,7 @@ export const USERS_WELFARES: SwaggerMethod = {
                 timeStamp: '2024. 9. 23. 오전 10:10:20',
                 path: '/users/welfares/1',
               },
-              description: '로그인한 유저IDX와 meal작성자의 IDX가 일치하지 않음',
+              description: '로그인한 유저IDX와 welfare의 유저IDX가 일치하지 않음',
             },
           },
         },
@@ -289,6 +305,24 @@ export const USERS_WELFARES: SwaggerMethod = {
                 statusCode: 400,
                 timeStamp: '2024. 9. 23. 오후 3:22:49',
                 path: '/users/welfares/1',
+              },
+            },
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '해당 사용내역은 존재하지 않거나 삭제되었습니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 10. 18. 오전 11:01:56',
+                path: '/users/welfares/60',
               },
             },
           },

@@ -1,8 +1,7 @@
 import { CommonEntity } from '../../common/entity/common.entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 import { YNEnum } from '../../common/constant/enum';
-import { WelfarePayeeEntity } from './payee.entity';
 
 @Entity({ name: 'welfare', comment: '복지포인트 사용내역 tb' })
 export class WelfareEntity extends CommonEntity {
@@ -18,11 +17,17 @@ export class WelfareEntity extends CommonEntity {
   @Column({ name: 'content', comment: '사용처', nullable: false })
   content: string;
 
-  @Column({ name: 'amount', comment: '결제 금액', nullable: false })
+  @Column({ name: 'amount', comment: '결제 금액', nullable: true })
   amount: number;
 
   @Column({ name: 'payer_name', comment: '결제자 이름', nullable: true })
   payerName: string;
+
+  @Column({ name: 'self_written_yn', comment: '본인 등록 여부', default: YNEnum.YES, nullable: false })
+  selfWrittenYN: YNEnum;
+
+  @Column({ name: 'payer_welfare_idx', comment: '결제자 복포IDX', nullable: true })
+  payerWelfareIdx: number;
 
   @Column({ name: 'confirm_yn', comment: 'P&C 확인여부', default: YNEnum.NO, nullable: false })
   confirmYN: YNEnum;
@@ -37,6 +42,11 @@ export class WelfareEntity extends CommonEntity {
   @JoinColumn({ name: 'user_idx', referencedColumnName: 'userIdx' })
   userIdxRelation: UserEntity;
 
-  @OneToMany(() => WelfarePayeeEntity, (payee) => payee.welfareIdxRelation)
-  payeesRelation: WelfarePayeeEntity[];
+  @ManyToOne(() => WelfareEntity, (welfare) => welfare.payerWelfareRelation, {
+    nullable: true,
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn({ name: 'payer_welfare_idx', referencedColumnName: 'welfareIdx' })
+  payerWelfareRelation: WelfareEntity;
 }
