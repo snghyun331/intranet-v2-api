@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
 import { DEFAULT_LUNCH_RATE, DEFAULT_TOTAL_WELFARE, NUM_OF_ROWS, PAGE_NO } from '../../common/constant/constant';
-import { errSeparation, getDateFormYYYYMMDD, getTotalDaysInMonth, getWeekendDates } from '../../common/utils/utility';
+import { getDateFormYYYYMMDD, getTotalDaysInMonth, getWeekendDates } from '../../common/utils/utility';
 import { AxiosHoliday } from './interface/axiosData.interface';
 import { SchedulerRepository } from './repository/scheduler.repository';
 import { HolidayInfoDto } from './dto/holiday.dto';
@@ -116,21 +116,24 @@ export class SchedulerService {
 
     try {
       const axiosResponse: AxiosResponse = await this.httpService.axiosRef.get(HOLIDAY_API_URL);
-      const axiosHolidayList: AxiosHoliday[] = axiosResponse.data.response?.body?.items?.item;
-      if (!axiosHolidayList || axiosHolidayList.length === 0) return;
+      const axiosHolidayList: AxiosHoliday[] | AxiosHoliday = axiosResponse.data.response?.body?.items?.item;
+      if (!axiosHolidayList) return;
 
-      const holidayInfoList: HolidayInfoDto[] = axiosHolidayList.map((axiosHoliday) => {
-        const holidayDate: string = getDateFormYYYYMMDD(axiosHoliday.locdate.toString());
-        const holidayInfo: HolidayInfoDto = { holidayName: axiosHoliday.dateName, holidayDate };
-        return holidayInfo;
-      });
+      let holiday: HolidayInfoDto[] = [];
+      if (Array.isArray(axiosHolidayList)) {
+        holiday = axiosHolidayList.map((axiosHoliday) => {
+          const holidayDate: string = getDateFormYYYYMMDD(axiosHoliday.locdate.toString());
+          const holidayInfo: HolidayInfoDto = { holidayName: axiosHoliday.dateName, holidayDate };
+          return holidayInfo;
+        });
+      } else {
+        const holidayDate: string = getDateFormYYYYMMDD(axiosHolidayList.locdate.toString());
+        holiday = [{ holidayName: axiosHolidayList.dateName, holidayDate }];
+      }
 
-      return holidayInfoList;
+      return holiday;
     } catch (err) {
-      const statusCode = err.response.status;
-      const errMsg = err.response.data;
-
-      errSeparation(statusCode, errMsg);
+      this.logger.error(err);
     }
   }
 

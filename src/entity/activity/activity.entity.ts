@@ -20,6 +20,9 @@ export class ActivityEntity extends CommonEntity {
   @Column({ name: 'amount', comment: '결제 금액', nullable: true })
   amount: number;
 
+  @Column({ name: 'payer_name', comment: '결제자(법인카드 주인) 이름', nullable: false })
+  payerName: string;
+
   @Column({ name: 'confirm_yn', comment: 'P&C 확인여부', default: YNEnum.NO, nullable: false })
   confirmYN: YNEnum;
 

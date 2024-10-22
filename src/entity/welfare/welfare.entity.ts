@@ -20,7 +20,7 @@ export class WelfareEntity extends CommonEntity {
   @Column({ name: 'amount', comment: '결제 금액', nullable: true })
   amount: number;
 
-  @Column({ name: 'payer_name', comment: '결제자 이름', nullable: true })
+  @Column({ name: 'payer_name', comment: '결제자 이름', nullable: false })
   payerName: string;
 
   @Column({ name: 'self_written_yn', comment: '본인 등록 여부', default: YNEnum.YES, nullable: false })

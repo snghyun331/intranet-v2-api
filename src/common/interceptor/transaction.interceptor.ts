@@ -22,14 +22,11 @@ export class TransactionInterceptor implements NestInterceptor {
     request.queryRunnerManager = queryRunner.manager;
 
     return next.handle().pipe(
-      catchError(async (e) => {
+      catchError(async (err) => {
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
 
-        if (e instanceof HttpException) {
-          throw new HttpException(e.getResponse(), e.getStatus());
-        }
-        throw new InternalServerErrorException(e);
+        throw err;
       }),
       tap(async () => {
         await queryRunner.commitTransaction();

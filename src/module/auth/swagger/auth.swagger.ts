@@ -23,6 +23,48 @@ export const LOGIN: SwaggerMethod = {
             password: 'hmkim2467',
           },
         },
+        c: {
+          summary: '윤용설',
+          value: {
+            id: 'ysyoon',
+            password: 'ysyoon2467',
+          },
+        },
+        d: {
+          summary: '신효은',
+          value: {
+            id: 'heshin',
+            password: 'heshin2467',
+          },
+        },
+        e: {
+          summary: '김현근',
+          value: {
+            id: 'hkkim',
+            password: 'hkkim2467',
+          },
+        },
+        f: {
+          summary: '박민수',
+          value: {
+            id: 'mspark',
+            password: 'mspark2467',
+          },
+        },
+        g: {
+          summary: '정진우',
+          value: {
+            id: 'jwjung',
+            password: 'jwjung2467',
+          },
+        },
+        h: {
+          summary: '안지훈',
+          value: {
+            id: 'jhahn1',
+            password: 'jhahn12467',
+          },
+        },
       },
     },
     API_OK_RESPONSE: {
