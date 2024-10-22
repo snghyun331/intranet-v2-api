@@ -53,7 +53,7 @@ export class WelfareService {
 
     const welfareInfo: WelfareInfoDto = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
     if (!welfareInfo) {
-      throw new NotFoundException('해당 사용내역은 존재하지 않거나 삭제되었습니다.');
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
     if (userIdx !== welfareInfo.userIdx) {
@@ -115,11 +115,11 @@ export class WelfareService {
 
     const welfareInfo: WelfareInfoDto = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
     if (!welfareInfo) {
-      throw new NotFoundException('해당 사용내역은 존재하지 않거나 삭제되었습니다.');
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
     if (userIdx !== welfareInfo.userIdx) {
-      throw new ForbiddenException('식대 수정 권한이 없습니다');
+      throw new ForbiddenException('복포 수정 권한이 없습니다');
     }
 
     const year: number = Number(welfareInfo.targetDay.substring(0, 4));
@@ -135,9 +135,11 @@ export class WelfareService {
       // 1. 기존 userIdx 목록 가져오기
       const payeeIdxList: number[] = await this.welfareRepository.getUserIdxFromPayerWelfareIdx(welfareIdx);
       // 2. 제거할 userIdx 목록 계산
-      const payeeIdxToRemove = payeeIdxList.filter((userIdx) => !updateWelfareInfo.payeeIdxs.includes(userIdx));
+      const payeeIdxToRemove: number[] = payeeIdxList.filter(
+        (userIdx) => !updateWelfareInfo.payeeIdxs.includes(userIdx),
+      );
       // 3. 새로 추가할 userIdx 목록 계산
-      const payeeIdxToAdd = updateWelfareInfo.payeeIdxs.filter((userIdx) => !payeeIdxList.includes(userIdx));
+      const payeeIdxToAdd: number[] = updateWelfareInfo.payeeIdxs.filter((userIdx) => !payeeIdxList.includes(userIdx));
       // 4. 삭제할 데이터 처리
       if (payeeIdxToRemove.length > 0) {
         await this.welfareRepository.deleteWelfareFromIdxAndUserIdx(welfareIdx, payeeIdxToRemove, manager);

@@ -1,26 +1,5 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import * as moment from 'moment';
-
-export const errSeparation = (statusCode: number, errMsg: string) => {
-  switch (statusCode) {
-    case 400:
-      throw new BadRequestException(errMsg);
-    case 401:
-      throw new UnauthorizedException(errMsg);
-    case 403:
-      throw new ForbiddenException(errMsg);
-    case 409:
-      throw new ConflictException(errMsg);
-    default:
-      throw new InternalServerErrorException('서버 에러');
-  }
-};
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (dateString: string): string => {

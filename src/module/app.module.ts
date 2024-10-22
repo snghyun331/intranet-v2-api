@@ -11,6 +11,7 @@ import { MealModule } from './meal/meal.module';
 import { AuthModule } from './auth/auth.module';
 import { WelfareModule } from './welfare/welfare.module';
 import { UserModule } from './user/user.module';
+import { ActivityModule } from './activity/activity.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UserModule } from './user/user.module';
     AuthModule,
     MealModule,
     WelfareModule,
+    ActivityModule,
     UserModule,
     HealthModule,
   ],

@@ -41,7 +41,12 @@ export class ServerErrorFilter implements ExceptionFilter {
       const status: number = exception.getStatus();
       const err: string | object = exception.getResponse();
       const errReponse = typeof err === 'string' ? { message: err } : err;
-      const errResponseBody: object = { ...errReponse, timeStamp, path: request.url };
+
+      const errResponseBody: object = {
+        ...errReponse,
+        timeStamp,
+        path: request.url,
+      };
 
       return response.status(status).json(errResponseBody);
     } else {

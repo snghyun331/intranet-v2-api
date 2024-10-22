@@ -2,10 +2,10 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 import { CommonEntity } from '../../common/entity/common.entity';
 import { UserEntity } from '../user/user.entity';
 
-@Entity({ name: 'welfare_monthly_stats', comment: '복포 월별 통계 tb' })
-export class WelfareMonthlyStatsEntity extends CommonEntity {
-  @PrimaryGeneratedColumn({ name: 'welfare_monthly_stats_idx', comment: '복포 월별 통계 IDX' })
-  welfareMonthlyStasIdx: number;
+@Entity({ name: 'activity_monthly_stats', comment: '활동비 월별 통계 tb' })
+export class ActivityMonthlyStatsEntity extends CommonEntity {
+  @PrimaryGeneratedColumn({ name: 'activity_monthly_stats_idx', comment: '활동비 월별 통계 IDX' })
+  activityMonthlyStasIdx: number;
 
   @Column({ name: 'user_idx', comment: '사용자 IDX', nullable: false })
   userIdx: number;
@@ -16,10 +16,10 @@ export class WelfareMonthlyStatsEntity extends CommonEntity {
   @Column({ name: 'month', comment: '월', nullable: false })
   month: string;
 
-  @Column({ name: 'welfare_month_expense', comment: '복지포인트 월별 사용금액', default: 0, nullable: false })
-  welfareMonthExpense: number;
+  @Column({ name: 'activity_month_expense', comment: '활동비 월별 사용금액', default: 0, nullable: false })
+  activityMonthExpense: number;
 
-  @ManyToOne(() => UserEntity, (user) => user.welfareMonthStatsRelation, {
+  @ManyToOne(() => UserEntity, (user) => user.activityMonthStatsRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })

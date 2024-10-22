@@ -8,6 +8,10 @@ import { MealEntity } from '../meal/meal.entity';
 import { MealStatsEntity } from '../meal/mealStats.entity';
 import { WelfareEntity } from '../welfare/welfare.entity';
 import { WelfareStatsEntity } from '../welfare/welfareStats.entity';
+import { WelfareMonthlyStatsEntity } from '../welfare/welfareMonthlyStats.entity';
+import { ActivityMonthlyStatsEntity } from '../activity/activityMonthlyStats.entity';
+import { ActivityStatsEntity } from '../activity/activityStats.entity';
+import { ActivityEntity } from '../activity/activity.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -87,6 +91,18 @@ export class UserEntity extends CommonEntity {
   @OneToMany(() => WelfareEntity, (welfare) => welfare.userIdxRelation)
   welfareRelation: WelfareEntity[];
 
+  @OneToMany(() => WelfareMonthlyStatsEntity, (welfareMonthStats) => welfareMonthStats.userIdxRelation)
+  welfareMonthStatsRelation: WelfareMonthlyStatsEntity[];
+
   @OneToMany(() => WelfareStatsEntity, (welfareStats) => welfareStats.userIdxRelation)
   welfareStatsRelation: WelfareStatsEntity[];
+
+  @OneToMany(() => ActivityEntity, (activity) => activity.userIdxRelation)
+  activityRelation: ActivityEntity[];
+
+  @OneToMany(() => ActivityMonthlyStatsEntity, (activityMonthStats) => activityMonthStats.userIdxRelation)
+  activityMonthStatsRelation: ActivityMonthlyStatsEntity[];
+
+  @OneToMany(() => ActivityStatsEntity, (activityStats) => activityStats.userIdxRelation)
+  activityStatsRelation: ActivityStatsEntity[];
 }
