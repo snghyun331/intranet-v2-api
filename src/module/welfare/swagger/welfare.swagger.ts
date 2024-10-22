@@ -262,7 +262,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             a: {
               summary: '존재하지 않는 내역',
               value: {
-                message: '해당 사용내역은 존재하지 않거나 삭제되었습니다.',
+                message: '해당 내역은 존재하지 않거나 삭제되었습니다.',
                 error: 'Not Found',
                 statusCode: 404,
                 timeStamp: '2024. 10. 18. 오후 3:18:24',
@@ -380,7 +380,7 @@ export const USERS_WELFARES: SwaggerMethod = {
             a: {
               summary: '존재하지 않는 내역',
               value: {
-                message: '해당 사용내역은 존재하지 않거나 삭제되었습니다.',
+                message: '해당 내역은 존재하지 않거나 삭제되었습니다.',
                 error: 'Not Found',
                 statusCode: 404,
                 timeStamp: '2024. 10. 18. 오전 11:01:56',

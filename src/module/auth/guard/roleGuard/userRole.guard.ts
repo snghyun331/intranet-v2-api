@@ -9,14 +9,10 @@ export class UserRolesGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     const requireRole: UserGradeEnum = this.reflector.get<UserGradeEnum>('roles', context.getHandler());
-    const { userGrade } = context.switchToHttp().getRequest().user;
-
+    const { gradeName } = context.switchToHttp().getRequest().user;
     const userGradeList: UserGradeEnum[] = Object.values(UserGradeEnum);
-    const [loginUserRole, permissionLevel] = [
-      userGradeList.indexOf(UserGradeEnum[userGrade]),
-      userGradeList.indexOf(requireRole),
-    ];
 
+    const [loginUserRole, permissionLevel] = [userGradeList.indexOf(gradeName), userGradeList.indexOf(requireRole)];
     if (loginUserRole > permissionLevel) {
       throw new ForbiddenException('권한이 없습니다.');
     }
