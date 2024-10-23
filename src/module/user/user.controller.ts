@@ -1,13 +1,14 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { USERS_IDXS } from './swagger/user.swagger';
+import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { USERS_IDXS, USERS_MY } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { UserIdxsResult } from './interface/result.interface';
+import { CurrentUserInfoResult, UserIdxsResult } from './interface/result.interface';
+import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -24,6 +25,21 @@ export class UserController {
     const userIdxInfo: UserIdxsResult[] = await this.userService.getAllUserIdxInfo();
 
     const response: ResponseInterface = { message: '모든 사용자 IDX 조회 성공', data: userIdxInfo };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_MY.GET.API_OPERATION)
+  @ApiOkResponse(USERS_MY.GET.API_OK_RESPONSE)
+  @ApiNotFoundResponse(USERS_MY.GET.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('me')
+  async getMyInfo(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
+    const user: CurrentUserInfoResult = await this.userService.getUserInfo(userIdx);
+
+    const response: ResponseInterface = { message: '현재 로그인 되어있는 사용자 정보 조회 성공', data: user };
 
     return response;
   }
