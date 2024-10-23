@@ -1,9 +1,10 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { LOGIN } from './swagger/auth.swagger';
-import { LoginUserDto, LoginUserResultDto } from './dto/loginUser.dto';
-import { ResponseDto } from '../../common/dto/response.dto';
+import { LoginUserDto } from './dto/loginUser.dto';
 import { AuthService } from './auth.service';
+import { LoginUserResult } from './interface/result.interface';
+import { ResponseInterface } from '../../common/interface/response.interface';
 
 @Controller()
 export class AuthController {
@@ -16,10 +17,10 @@ export class AuthController {
   @ApiUnauthorizedResponse(LOGIN.POST.API_UNAUTHORIZED_RESPONSE)
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async userLogin(@Body() userLoginInfo: LoginUserDto): Promise<ResponseDto> {
-    const user: LoginUserResultDto = await this.authService.userLogin(userLoginInfo);
+  async userLogin(@Body() userLoginInfo: LoginUserDto): Promise<ResponseInterface> {
+    const user: LoginUserResult = await this.authService.userLogin(userLoginInfo);
 
-    const response: ResponseDto = { message: '로그인 성공', data: user };
+    const response: ResponseInterface = { message: '로그인 성공', data: user };
 
     return response;
   }

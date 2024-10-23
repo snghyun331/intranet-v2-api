@@ -5,10 +5,9 @@ import { MealEntity } from '../../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, UpdateResult } from 'typeorm';
-import { MealStatsDto } from '../dto/meal.dto';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
-import { DetailedMealData } from '../interface/meal.interface';
+import { DetailedMealData, MealStats } from '../interface/meal.interface';
 
 @Injectable()
 export class MealRepository {
@@ -47,8 +46,8 @@ export class MealRepository {
     return result;
   }
 
-  async getMealStats(year: number, month: number, userIdx: number): Promise<MealStatsDto> {
-    const result: MealStatsDto = await this.mealStatsModel
+  async getMealStats(year: number, month: number, userIdx: number): Promise<MealStats> {
+    const result: MealStats = await this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([
         'mealStatsEntity.year AS year',

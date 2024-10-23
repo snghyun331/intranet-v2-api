@@ -1,24 +1,24 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { GetMealCalenderDto, MealStatsDto } from './dto/meal.dto';
 import { MealRepository } from './repository/meal.repository';
 import { CreateMealDto, MealInputDto } from './dto/createMeal.dto';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../common/constant/enum';
 import { MealEntity } from '../../entity/meal/meal.entity';
-import { BasicMealData, DetailedMealData } from './interface/meal.interface';
+import { BasicMealData, DetailedMealData, MealStats } from './interface/meal.interface';
 import { EntityManager } from 'typeorm';
+import { MealCalenderResult } from './interface/result.interface';
 
 @Injectable()
 export class MealService {
   constructor(private readonly mealRepository: MealRepository) {}
 
-  async getMeal(year: number, month: number, userIdx: number): Promise<GetMealCalenderDto> {
+  async getMeal(year: number, month: number, userIdx: number): Promise<MealCalenderResult> {
     const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
     const mealInfo: MealEntity[] = await this.mealRepository.getMealCalender(year, month, userIdx);
-    const mealStats: MealStatsDto = await this.mealRepository.getMealStats(year, month, userIdx);
+    const mealStats: MealStats = await this.mealRepository.getMealStats(year, month, userIdx);
 
     // 날짜별로 그룹화하여 meals를 구성
     const meals: any[] = mealInfo.reduce((acc, meal) => {
@@ -68,7 +68,7 @@ export class MealService {
       return acc;
     }, []);
 
-    const result: GetMealCalenderDto = {
+    const result: MealCalenderResult = {
       mealStats,
       meals,
     };

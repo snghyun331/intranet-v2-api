@@ -6,11 +6,10 @@ import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { WelfareEntity } from '../../../entity/welfare/welfare.entity';
 import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
-import { WelfareInfoDto, WelfareStatsDto } from '../dto/welfare.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
 import { HalfYearEnum, YNEnum } from '../../../common/constant/enum';
-import { UserInfo, Welfares } from '../interface/welfare.interface';
+import { UserInfo, WelfareInfo, Welfares, WelfareStats } from '../interface/welfare.interface';
 
 @Injectable()
 export class WelfareRepository {
@@ -114,8 +113,8 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getWelfareInfoByIdx(welfareIdx: number): Promise<WelfareInfoDto> {
-    const result: WelfareInfoDto = await this.welfareModel
+  async getWelfareInfoByIdx(welfareIdx: number): Promise<WelfareInfo> {
+    const result: WelfareInfo = await this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
         'welfareEntity.welfareIdx AS welfareIdx',
@@ -246,8 +245,8 @@ export class WelfareRepository {
     return transformedResult;
   }
 
-  async getWelfareStats(year: number, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareStatsDto> {
-    const result: WelfareStatsDto = await this.welfareStatsModel
+  async getWelfareStats(year: number, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareStats> {
+    const result: WelfareStats = await this.welfareStatsModel
       .createQueryBuilder('welfareStatsEntity')
       .select([
         'welfareStatsEntity.year AS year',

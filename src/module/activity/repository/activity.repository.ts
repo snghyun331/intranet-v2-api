@@ -6,8 +6,8 @@ import { CreateActivityDto } from '../dto/createActivity.dto';
 import { ActivityEntity } from '../../../entity/activity/activity.entity';
 import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
-import { ActivityInfoDto } from '../dto/activity.dto';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
+import { ActivityInfo } from '../interface/activity.interface';
 
 @Injectable()
 export class ActivityRepository {
@@ -98,8 +98,8 @@ export class ActivityRepository {
       .execute();
   }
 
-  async getActivityInfoByIdx(activityIdx: number): Promise<ActivityInfoDto> {
-    const result: ActivityInfoDto = await this.activityModel
+  async getActivityInfoByIdx(activityIdx: number): Promise<ActivityInfo> {
+    const result: ActivityInfo = await this.activityModel
       .createQueryBuilder('activityEntity')
       .select([
         'activityEntity.activityIdx AS activityIdx',

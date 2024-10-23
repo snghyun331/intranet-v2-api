@@ -1,9 +1,12 @@
 import { YNEnum } from '../../../common/constant/enum';
 
-export interface Welfares {
+export interface WelfareInfo {
   welfareIdx: number;
   userIdx: number;
   targetDay: string;
+}
+
+export interface Welfares extends WelfareInfo {
   content: string;
   amount: number;
   payerName: string;
@@ -13,5 +16,13 @@ export interface Welfares {
 
 export interface UserInfo {
   userIdx: number;
+  userName: string;
+}
+
+export interface WelfareStats {
+  year: string;
+  welfareBudget: number;
+  welfareExpense: number;
+  welfareBalance: number;
   userName: string;
 }

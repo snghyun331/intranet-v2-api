@@ -1,11 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateWelfareDto } from './dto/createWelfare.dto';
 import { WelfareRepository } from './repository/welfare.repository';
-import { GetWelfareDto, WelfareInfoDto, WelfareStatsDto } from './dto/welfare.dto';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { EntityManager } from 'typeorm';
 import { HalfYearEnum, YNEnum } from '../../common/constant/enum';
-import { Welfares } from './interface/welfare.interface';
+import { WelfareInfo, Welfares, WelfareStats } from './interface/welfare.interface';
+import { WelfareResult } from './interface/result.interface';
 
 @Injectable()
 export class WelfareService {
@@ -51,7 +51,7 @@ export class WelfareService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const welfareInfo: WelfareInfoDto = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
+    const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
     if (!welfareInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
@@ -113,7 +113,7 @@ export class WelfareService {
       }
     }
 
-    const welfareInfo: WelfareInfoDto = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
+    const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
     if (!welfareInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
@@ -166,7 +166,7 @@ export class WelfareService {
     return updateWelfareInfo.targetDay;
   }
 
-  async getWelfare(year: string, month: string, userIdx: number): Promise<GetWelfareDto> {
+  async getWelfare(year: string, month: string, userIdx: number): Promise<WelfareResult> {
     const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -186,9 +186,9 @@ export class WelfareService {
     const nowYear: number = nowDate.getFullYear();
     const nowMonth: number = nowDate.getMonth() + 1;
     const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
-    const welfareStats: WelfareStatsDto = await this.welfareRepository.getWelfareStats(nowYear, halfYear, userIdx);
+    const welfareStats: WelfareStats = await this.welfareRepository.getWelfareStats(nowYear, halfYear, userIdx);
 
-    const result: GetWelfareDto = {
+    const result: WelfareResult = {
       welfareStats,
       welfares: welfareInfo,
     };
