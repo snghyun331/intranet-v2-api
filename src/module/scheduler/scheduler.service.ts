@@ -7,10 +7,10 @@ import { DEFAULT_LUNCH_RATE, DEFAULT_TOTAL_WELFARE, NUM_OF_ROWS, PAGE_NO } from 
 import { getDateFormYYYYMMDD, getTotalDaysInMonth, getWeekendDates } from '../../common/utils/utility';
 import { AxiosHoliday } from './interface/axiosData.interface';
 import { SchedulerRepository } from './repository/scheduler.repository';
-import { HolidayInfoDto } from './dto/holiday.dto';
-import { NewMealStatsDto } from './dto/meal.dto';
 import { HalfYearEnum } from '../../common/constant/enum';
-import { NewWelfareMonthStatsDto, NewWelfareStatsDto } from './dto/welfare.dto';
+import { NewMealStats } from './interface/meal.interface';
+import { HolidayInfo } from './interface/holiday.interface';
+import { NewWelfareMonthStats, NewWelfareStats } from './interface/welfare.interface';
 
 @Injectable()
 export class SchedulerService {
@@ -39,7 +39,7 @@ export class SchedulerService {
 
     await Promise.all(
       userIdxList.map(async (userIdx) => {
-        const newMealStatsInfo: NewMealStatsDto = {
+        const newMealStatsInfo: NewMealStats = {
           userIdx,
           year: year.toString(),
           month: nextMonth.toString(),
@@ -63,12 +63,12 @@ export class SchedulerService {
     const nowMonth: number = date.getMonth() + 1;
     const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
     const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const publicHolidayInfoList: HolidayInfoDto[] = (await this.getPublicHolidayDatas(year, nextMonth)) ?? [];
-    const weekendInfoList: HolidayInfoDto[] = await this.getWeekendDatas(year, nextMonth);
+    const publicHolidayInfoList: HolidayInfo[] = (await this.getPublicHolidayDatas(year, nextMonth)) ?? [];
+    const weekendInfoList: HolidayInfo[] = await this.getWeekendDatas(year, nextMonth);
     // Set을 이용하여 holidayDate 기준으로 중복 제거
     const mergedHolidaySet = new Set<string>();
     // 중복 제거를 위한 결과 배열 생성
-    const mergedHolidayInfoList: HolidayInfoDto[] = [];
+    const mergedHolidayInfoList: HolidayInfo[] = [];
     // 공휴일 정보 추가
     publicHolidayInfoList.forEach((holiday) => {
       if (!mergedHolidaySet.has(holiday.holidayDate)) {
@@ -91,7 +91,7 @@ export class SchedulerService {
     this.logger.log('🏁 Inserting Holiday Info Job Completed !');
   }
 
-  private async getPublicHolidayDatas(year: number, month: number): Promise<HolidayInfoDto[]> {
+  private async getPublicHolidayDatas(year: number, month: number): Promise<HolidayInfo[]> {
     const SOL_YEAR: string = year.toString();
     let SOL_MONTH: string;
     if (month < 10) {
@@ -119,11 +119,11 @@ export class SchedulerService {
       const axiosHolidayList: AxiosHoliday[] | AxiosHoliday = axiosResponse.data.response?.body?.items?.item;
       if (!axiosHolidayList) return;
 
-      let holiday: HolidayInfoDto[] = [];
+      let holiday: HolidayInfo[] = [];
       if (Array.isArray(axiosHolidayList)) {
         holiday = axiosHolidayList.map((axiosHoliday) => {
           const holidayDate: string = getDateFormYYYYMMDD(axiosHoliday.locdate.toString());
-          const holidayInfo: HolidayInfoDto = { holidayName: axiosHoliday.dateName, holidayDate };
+          const holidayInfo: HolidayInfo = { holidayName: axiosHoliday.dateName, holidayDate };
           return holidayInfo;
         });
       } else {
@@ -137,11 +137,11 @@ export class SchedulerService {
     }
   }
 
-  private async getWeekendDatas(year: number, month: number): Promise<HolidayInfoDto[]> {
+  private async getWeekendDatas(year: number, month: number): Promise<HolidayInfo[]> {
     const weekendDates: string[] = getWeekendDates(year, month);
-    const weekendInfoList: HolidayInfoDto[] = await Promise.all(
+    const weekendInfoList: HolidayInfo[] = await Promise.all(
       weekendDates.map(async (weekendDate) => {
-        const weekendInfo: HolidayInfoDto = { holidayName: '주말', holidayDate: weekendDate };
+        const weekendInfo: HolidayInfo = { holidayName: '주말', holidayDate: weekendDate };
         return weekendInfo;
       }),
     );
@@ -163,7 +163,7 @@ export class SchedulerService {
 
     await Promise.all(
       userIdxList.map(async (userIdx) => {
-        const newWelfareStatsInfo: NewWelfareStatsDto = {
+        const newWelfareStatsInfo: NewWelfareStats = {
           userIdx,
           year: year.toString(),
           halfYear,
@@ -189,7 +189,7 @@ export class SchedulerService {
 
     await Promise.all(
       userIdxList.map(async (userIdx) => {
-        const newWelfareMonthStatsInfo: NewWelfareMonthStatsDto = {
+        const newWelfareMonthStatsInfo: NewWelfareMonthStats = {
           userIdx,
           year: year.toString(),
           month: nextMonth.toString(),

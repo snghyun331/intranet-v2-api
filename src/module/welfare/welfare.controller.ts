@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { WelfareService } from './welfare.service';
 import { CreateWelfareDto } from './dto/createWelfare.dto';
-import { ResponseDto } from '../../common/dto/response.dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -37,7 +36,8 @@ import { UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
-import { GetWelfareDto } from './dto/welfare.dto';
+import { ResponseInterface } from '../../common/interface/response.interface';
+import { WelfareResult } from './interface/result.interface';
 
 @ApiTags('복지포인트(USER)')
 @Controller('users/welfares')
@@ -56,10 +56,10 @@ export class WelfareController {
     @Query('year') year: string,
     @Query('month') month: string,
     @CurrentUserIdx() userIdx: number,
-  ): Promise<ResponseDto> {
-    const welfares: GetWelfareDto = await this.welfareService.getWelfare(year, month, userIdx);
+  ): Promise<ResponseInterface> {
+    const welfares: WelfareResult = await this.welfareService.getWelfare(year, month, userIdx);
 
-    const response: ResponseDto = { message: '복포 사용내역 조회 성공', data: welfares };
+    const response: ResponseInterface = { message: '복포 사용내역 조회 성공', data: welfares };
 
     return response;
   }
@@ -77,10 +77,10 @@ export class WelfareController {
     @Body() welfareInfo: CreateWelfareDto,
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseInterface> {
     const targetDay: string = await this.welfareService.createWelfare(userIdx, welfareInfo, manager);
 
-    const response: ResponseDto = { message: '복지포인트 사용내역 저장 성공', data: { targetDay } };
+    const response: ResponseInterface = { message: '복지포인트 사용내역 저장 성공', data: { targetDay } };
 
     return response;
   }
@@ -101,10 +101,10 @@ export class WelfareController {
     @Body() updateWelfareInfo: UpdateWelfareDto,
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseInterface> {
     const targetDay: string = await this.welfareService.updateWelfare(userIdx, welfareIdx, updateWelfareInfo, manager);
 
-    const response: ResponseDto = { message: '복지포인트 사용내역 수정 성공', data: { targetDay } };
+    const response: ResponseInterface = { message: '복지포인트 사용내역 수정 성공', data: { targetDay } };
 
     return response;
   }
@@ -124,10 +124,10 @@ export class WelfareController {
     @Param('welfareIdx', ParseIntPipe) welfareIdx: number,
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseInterface> {
     const targetDay: string = await this.welfareService.deleteWelfare(userIdx, welfareIdx, manager);
 
-    const response: ResponseDto = { message: '복지포인트 사용내역 초기화 성공', data: { targetDay } };
+    const response: ResponseInterface = { message: '복지포인트 사용내역 초기화 성공', data: { targetDay } };
 
     return response;
   }

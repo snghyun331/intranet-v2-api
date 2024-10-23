@@ -1,9 +1,9 @@
-export class ValidationDetailDto {
+export interface ValidationErrorDetail {
   field: string;
   error: string[];
 }
 
-export class ValidationErrorBodyDto {
+export interface ValidationErrorBody {
   statusCode: number;
   message: string;
   details: any[];

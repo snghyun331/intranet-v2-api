@@ -10,3 +10,12 @@ export interface BasicMealData {
 export interface DetailedMealData extends BasicMealData {
   holidayYN?: YNEnum;
 }
+
+export interface MealStats {
+  year: string;
+  month: string;
+  mealBudget: number;
+  mealExpense: number;
+  mealBalance: number;
+  userName: string;
+}

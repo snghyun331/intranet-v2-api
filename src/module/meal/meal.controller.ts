@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import * as moment from 'moment';
-import { ResponseDto } from '../../common/dto/response.dto';
 import { MealService } from './meal.service';
 import {
   ApiBadRequestResponse,
@@ -14,7 +13,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { USERS_MEALS } from './swagger/meal.swagger';
-import { GetMealCalenderDto } from './dto/meal.dto';
 import { CreateMealDto } from './dto/createMeal.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -24,6 +22,8 @@ import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { EntityManager } from 'typeorm';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
+import { ResponseInterface } from '../../common/interface/response.interface';
+import { MealCalenderResult } from './interface/result.interface';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
@@ -43,12 +43,12 @@ export class MealController {
     @Query('year') year: string = moment().utcOffset(9).format('YYYY'),
     @Query('month') month: string = moment().utcOffset(9).format('MM'),
     @CurrentUserIdx() userIdx: number,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseInterface> {
     const yearToNum: number = Number(year);
     const monthToNum: number = Number(month);
-    const meals: GetMealCalenderDto = await this.mealService.getMeal(yearToNum, monthToNum, userIdx);
+    const meals: MealCalenderResult = await this.mealService.getMeal(yearToNum, monthToNum, userIdx);
 
-    const response: ResponseDto = { message: '식대 사용내역 조회 성공', data: meals };
+    const response: ResponseInterface = { message: '식대 사용내역 조회 성공', data: meals };
 
     return response;
   }
@@ -66,10 +66,10 @@ export class MealController {
     @Body() newMealInfo: CreateMealDto,
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseInterface> {
     const targetDay: string = await this.mealService.createMeal(userIdx, newMealInfo, manager);
 
-    const response: ResponseDto = { message: '식대 사용내역 저장 성공', data: { targetDay } };
+    const response: ResponseInterface = { message: '식대 사용내역 저장 성공', data: { targetDay } };
 
     return response;
   }
@@ -87,10 +87,10 @@ export class MealController {
     @Param('targetDay') targetDay: string,
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseInterface> {
     await this.mealService.deleteMeal(userIdx, targetDay, manager);
 
-    const response: ResponseDto = { message: '식대 사용내역 초기화 성공' };
+    const response: ResponseInterface = { message: '식대 사용내역 초기화 성공' };
 
     return response;
   }

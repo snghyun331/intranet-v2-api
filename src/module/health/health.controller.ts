@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ResponseDto } from '../../common/dto/response.dto';
+import { ResponseInterface } from '../../common/interface/response.interface';
 
 @ApiTags('HEALTH CHECK')
 @Controller('health')
@@ -8,8 +8,8 @@ export class HealthController {
   constructor() {}
 
   @Get()
-  async checkHealth(): Promise<ResponseDto> {
-    const result: ResponseDto = { message: 'Healthy!!' };
+  async checkHealth(): Promise<ResponseInterface> {
+    const result: ResponseInterface = { message: 'Healthy!!' };
     return result;
   }
 }
