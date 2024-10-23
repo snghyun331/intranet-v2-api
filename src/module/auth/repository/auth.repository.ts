@@ -2,17 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../../../entity/user/user.entity';
-import { UserDto } from '../dto/user.dto';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
+import { User } from '../interface/user.interface';
 
 @Injectable()
 export class AuthRepository {
   constructor(@InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>) {}
 
-  async getUserPersonal(id: string): Promise<UserDto> {
-    const result: UserDto = await this.userModel
+  async getUserPersonal(id: string): Promise<User> {
+    const result: User = await this.userModel
       .createQueryBuilder('userEntity')
       .select([
         'userEntity.userIdx AS userIdx',

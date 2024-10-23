@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import { HolidayInfoDto } from '../dto/holiday.dto';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
-import { NewMealStatsDto } from '../dto/meal.dto';
-import { NewWelfareMonthStatsDto, NewWelfareStatsDto } from '../dto/welfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
+import { HolidayInfo } from '../interface/holiday.interface';
+import { NewMealStats } from '../interface/meal.interface';
+import { NewWelfareMonthStats, NewWelfareStats } from '../interface/welfare.interface';
 
 @Injectable()
 export class SchedulerRepository {
@@ -20,7 +20,7 @@ export class SchedulerRepository {
     @InjectRepository(WelfareStatsEntity) private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
   ) {}
 
-  async insertHolidayInfo(holidayInfo: HolidayInfoDto): Promise<void> {
+  async insertHolidayInfo(holidayInfo: HolidayInfo): Promise<void> {
     await this.holidayModel.manager.transaction(async (manager) => {
       await manager.createQueryBuilder().insert().into(HolidayEntity).values(holidayInfo).execute();
     });
@@ -38,7 +38,7 @@ export class SchedulerRepository {
     return userIdxList;
   }
 
-  async updateMealStats(mealStatsUpdateInfo: NewMealStatsDto): Promise<void> {
+  async updateMealStats(mealStatsUpdateInfo: NewMealStats): Promise<void> {
     await this.mealStatsModel.manager.transaction(async (manager) => {
       await manager.createQueryBuilder().insert().into(MealStatsEntity).values(mealStatsUpdateInfo).execute();
     });
@@ -67,13 +67,13 @@ export class SchedulerRepository {
     return holidayDates;
   }
 
-  async updateWelfareStats(newWelfareStatsInfo: NewWelfareStatsDto): Promise<void> {
+  async updateWelfareStats(newWelfareStatsInfo: NewWelfareStats): Promise<void> {
     return this.welfareStatsModel.manager.transaction(async (manager) => {
       await manager.createQueryBuilder().insert().into(WelfareStatsEntity).values(newWelfareStatsInfo).execute();
     });
   }
 
-  async updateWelfareMonthStats(newWelfareMonthStatsInfo: NewWelfareMonthStatsDto): Promise<void> {
+  async updateWelfareMonthStats(newWelfareMonthStatsInfo: NewWelfareMonthStats): Promise<void> {
     return this.welfareStatsModel.manager.transaction(async (manager) => {
       await manager
         .createQueryBuilder()

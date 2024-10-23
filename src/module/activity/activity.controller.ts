@@ -32,9 +32,9 @@ import { UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
 import { EntityManager } from 'typeorm';
-import { ResponseDto } from '../../common/dto/response.dto';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
+import { ResponseInterface } from '../../common/interface/response.interface';
 
 @ApiTags('활동비(USER)')
 @Controller('users/activities')
@@ -55,10 +55,10 @@ export class ActivityController {
     @Body() activityInfo: CreateActivityDto,
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseInterface> {
     const targetDay: string = await this.activityService.createActivity(userIdx, activityInfo, manager);
 
-    const response: ResponseDto = { message: '활동비 사용내역 저장 성공', data: { targetDay } };
+    const response: ResponseInterface = { message: '활동비 사용내역 저장 성공', data: { targetDay } };
 
     return response;
   }
@@ -80,10 +80,10 @@ export class ActivityController {
     @Body() activityInfo: UpdateActivityDto,
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseInterface> {
     const targetDay: string = await this.activityService.updateActivity(userIdx, activityIdx, activityInfo, manager);
 
-    const response: ResponseDto = { message: '활동비 사용내역 수정 성공', data: { targetDay } };
+    const response: ResponseInterface = { message: '활동비 사용내역 수정 성공', data: { targetDay } };
 
     return response;
   }
@@ -103,10 +103,10 @@ export class ActivityController {
     @Param('activityIdx', ParseIntPipe) activityIdx: number,
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseInterface> {
     const targetDay: string = await this.activityService.deleteActivity(userIdx, activityIdx, manager);
 
-    const response: ResponseDto = { message: '활동비 사용내역 초기화 성공', data: { targetDay } };
+    const response: ResponseInterface = { message: '활동비 사용내역 초기화 성공', data: { targetDay } };
 
     return response;
   }
@@ -116,8 +116,8 @@ export class ActivityController {
   @UseGuards(UserAuthGuard, UserRolesGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
-  async getWelfare(): Promise<ResponseDto> {
-    const response: ResponseDto = { message: '복포 사용내역 조회 성공' };
+  async getWelfare(): Promise<ResponseInterface> {
+    const response: ResponseInterface = { message: '복포 사용내역 조회 성공' };
 
     return response;
   }

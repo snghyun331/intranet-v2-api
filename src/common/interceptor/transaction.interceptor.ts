@@ -1,11 +1,4 @@
-import {
-  CallHandler,
-  ExecutionContext,
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Observable, catchError, tap } from 'rxjs';
 import { DataSource, QueryRunner } from 'typeorm';
 

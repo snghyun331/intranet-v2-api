@@ -33,6 +33,9 @@ export class UserEntity extends CommonEntity {
   @Column({ name: 'user_cell', comment: '전화번호', nullable: false })
   userCell: string;
 
+  @Column({ name: 'user_email', comment: '회사 이메일', nullable: false })
+  userEmail: string;
+
   @Column({ name: 'user_birth', comment: '생년월일', nullable: false })
   userBirth: string;
 
