@@ -62,6 +62,9 @@ export class UserEntity extends CommonEntity {
   })
   adminRole: YNEnum;
 
+  @Column({ name: 'login_token', comment: '로그인 토큰', length: 1000, nullable: true })
+  loginToken: string;
+
   @DeleteDateColumn({ type: 'datetime', name: 'user_avail', comment: '유효성 여부', nullable: true })
   userAvail: Date | null;
 
