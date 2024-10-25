@@ -1,7 +1,7 @@
 import { CommonEntity } from '../../common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
-import { YNEnum } from '../../common/constant/enum';
+import { ConfirmEnum } from '../../common/constant/enum';
 
 @Entity({ name: 'activity', comment: '활동비 사용내역 tb' })
 export class ActivityEntity extends CommonEntity {
@@ -23,8 +23,15 @@ export class ActivityEntity extends CommonEntity {
   @Column({ name: 'payer_name', comment: '결제자(법인카드 주인) 이름', nullable: false })
   payerName: string;
 
-  @Column({ name: 'confirm_yn', comment: 'P&C 확인여부', default: YNEnum.NO, nullable: false })
-  confirmYN: YNEnum;
+  @Column({
+    name: 'confirm_yn',
+    comment: 'P&C 확인여부',
+    type: 'enum',
+    enum: ConfirmEnum,
+    default: ConfirmEnum.NO,
+    nullable: false,
+  })
+  confirmYN: ConfirmEnum;
 
   @Column({ name: 'confirm_date', comment: 'P&C 확인 날짜', nullable: true })
   confirmDate: string;

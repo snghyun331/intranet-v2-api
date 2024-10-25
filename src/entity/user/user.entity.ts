@@ -12,6 +12,7 @@ import { WelfareMonthlyStatsEntity } from '../welfare/welfareMonthlyStats.entity
 import { ActivityMonthlyStatsEntity } from '../activity/activityMonthlyStats.entity';
 import { ActivityStatsEntity } from '../activity/activityStats.entity';
 import { ActivityEntity } from '../activity/activity.entity';
+import { QnaEntity } from '../qna/qna.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -108,4 +109,7 @@ export class UserEntity extends CommonEntity {
 
   @OneToMany(() => ActivityStatsEntity, (activityStats) => activityStats.userIdxRelation)
   activityStatsRelation: ActivityStatsEntity[];
+
+  @OneToMany(() => QnaEntity, (qna) => qna.userIdxRelation)
+  qnaRelation: QnaEntity[];
 }
