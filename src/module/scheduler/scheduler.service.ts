@@ -22,23 +22,23 @@ export class SchedulerService {
     public readonly configService: ConfigService,
   ) {}
 
-  // 매달 25일에 오전 6시에 다음달 식대 사용가능 금액 업데이트
-  @Cron('0 6 25 * *')
+  // 다음 분기 식대 통계 업데이트
+  @Cron('1 0 25 6,12 *')
   async updateMealStats(): Promise<void> {
     this.logger.log('🚀 Start Updating Meal Stats Job !');
     const date: Date = new Date();
     const nowMonth: number = date.getMonth() + 1;
-    const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
+    const initialNextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
     const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const holidayDates: string[] = await this.schedulerRepository.getHolidayDates(year, nextMonth);
-    const holidays: number = holidayDates.length;
-    const totalDays: number = getTotalDaysInMonth(year, nextMonth); // 다음달 총 일수
-    const workdays: number = totalDays - holidays;
-    const mealBudget: number = DEFAULT_LUNCH_RATE * workdays;
     const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
-
-    await Promise.all(
-      userIdxList.map(async (userIdx) => {
+    for (const userIdx of userIdxList) {
+      let nextMonth: number = initialNextMonth;
+      for (let i = 0; i < 6; i++) {
+        const holidayDates: string[] = await this.schedulerRepository.getHolidayDates(year, nextMonth);
+        const holidays: number = holidayDates.length;
+        const totalDays: number = getTotalDaysInMonth(year, nextMonth);
+        const workdays: number = totalDays - holidays;
+        const mealBudget: number = DEFAULT_LUNCH_RATE * workdays;
         const newMealStatsInfo: NewMealStats = {
           userIdx,
           year: year.toString(),
@@ -49,45 +49,50 @@ export class SchedulerService {
           mealBalance: 0,
         };
         await this.schedulerRepository.updateMealStats(newMealStatsInfo);
-      }),
-    );
+        nextMonth++;
+      }
+    }
 
     this.logger.log('🏁 Updating Meal Stats Job Completed !');
   }
 
-  // 매달 25일 오전 0시에 다음달 휴일 정보 수집 및 저장
-  @Cron('0 0 25 * *')
-  async insertHolday2() {
+  // 다음 분기 휴일 정보 수집 및 저장
+  @Cron('0 0 25 6,12 *')
+  async insertHoliday() {
     this.logger.log('🚀 Start Inserting Holiday Info Job !');
     const date: Date = new Date();
     const nowMonth: number = date.getMonth() + 1;
-    const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
+    let nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
     const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const publicHolidayInfoList: HolidayInfo[] = (await this.getPublicHolidayDatas(year, nextMonth)) ?? [];
-    const weekendInfoList: HolidayInfo[] = await this.getWeekendDatas(year, nextMonth);
-    // Set을 이용하여 holidayDate 기준으로 중복 제거
-    const mergedHolidaySet = new Set<string>();
-    // 중복 제거를 위한 결과 배열 생성
-    const mergedHolidayInfoList: HolidayInfo[] = [];
-    // 공휴일 정보 추가
-    publicHolidayInfoList.forEach((holiday) => {
-      if (!mergedHolidaySet.has(holiday.holidayDate)) {
-        mergedHolidaySet.add(holiday.holidayDate);
-        mergedHolidayInfoList.push(holiday);
-      }
-    });
-    // 주말 정보 추가
-    weekendInfoList.forEach((weekend) => {
-      if (!mergedHolidaySet.has(weekend.holidayDate)) {
-        mergedHolidaySet.add(weekend.holidayDate);
-        mergedHolidayInfoList.push(weekend);
-      }
-    });
-    await Promise.all(
-      mergedHolidayInfoList.map(async (holidayInfo) => {
-        await this.schedulerRepository.insertHolidayInfo(holidayInfo);
-      }),
-    );
+    for (let i = 0; i < 6; i++) {
+      const publicHolidayInfoList: HolidayInfo[] = (await this.getPublicHolidayDatas(year, nextMonth)) ?? [];
+      const weekendInfoList: HolidayInfo[] = await this.getWeekendDatas(year, nextMonth);
+      // Set을 이용하여 holidayDate 기준으로 중복 제거
+      const mergedHolidaySet = new Set<string>();
+      // 중복 제거를 위한 결과 배열 생성
+      const mergedHolidayInfoList: HolidayInfo[] = [];
+      // 공휴일 정보 추가
+      publicHolidayInfoList.forEach((holiday) => {
+        if (!mergedHolidaySet.has(holiday.holidayDate)) {
+          mergedHolidaySet.add(holiday.holidayDate);
+          mergedHolidayInfoList.push(holiday);
+        }
+      });
+      // 주말 정보 추가
+      weekendInfoList.forEach((weekend) => {
+        if (!mergedHolidaySet.has(weekend.holidayDate)) {
+          mergedHolidaySet.add(weekend.holidayDate);
+          mergedHolidayInfoList.push(weekend);
+        }
+      });
+      await Promise.all(
+        mergedHolidayInfoList.map(async (holidayInfo) => {
+          await this.schedulerRepository.insertHolidayInfo(holidayInfo);
+        }),
+      );
+      nextMonth++;
+    }
+
     this.logger.log('🏁 Inserting Holiday Info Job Completed !');
   }
 
@@ -150,7 +155,7 @@ export class SchedulerService {
   }
 
   // 다음 분기 복포 통계 업데이트
-  @Cron('0 0 25 6,12 *')
+  @Cron('3 0 25 6,12 *')
   async updateWelfareStats(): Promise<void> {
     this.logger.log('🚀 Start Updating Welfare Stats Job !');
     const date: Date = new Date();
@@ -176,19 +181,18 @@ export class SchedulerService {
     this.logger.log('🏁 Updating Welfare Stats Job Completed !');
   }
 
-  // 다음달 복포 통계 업데이트
-  @Cron('0 0 25 * *')
+  // 다음 분기 월 복포 사용금액 통계 업데이트
+  @Cron('2 0 25 6,12 *')
   async updateWelfareMonthStats(): Promise<void> {
     this.logger.log('🚀 Start Updating Welfare Month Stats Job !');
     const date: Date = new Date();
     const nowMonth: number = date.getMonth() + 1;
-    const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
+    const initialNextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
     const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-
     const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
-
-    await Promise.all(
-      userIdxList.map(async (userIdx) => {
+    for (const userIdx of userIdxList) {
+      let nextMonth: number = initialNextMonth;
+      for (let i = 0; i < 6; i++) {
         const newWelfareMonthStatsInfo: NewWelfareMonthStats = {
           userIdx,
           year: year.toString(),
@@ -196,8 +200,9 @@ export class SchedulerService {
           welfareMonthExpense: 0,
         };
         await this.schedulerRepository.updateWelfareMonthStats(newWelfareMonthStatsInfo);
-      }),
-    );
+        nextMonth++;
+      }
+    }
 
     this.logger.log('🏁 Updating Welfare Month Stats Job Completed !');
   }
