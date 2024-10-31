@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
@@ -34,5 +34,32 @@ export class AuthRepository {
       .getRawOne();
 
     return result;
+  }
+
+  async updateUserToken(id: string, loginToken: string): Promise<UpdateResult> {
+    return await this.userModel
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set({ loginToken })
+      .where('id = :id', { id })
+      .execute();
+  }
+
+  async deleteUserToken(userIdx: number): Promise<UpdateResult> {
+    return await this.userModel
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set({ loginToken: null })
+      .where('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async getUserCountByIdx(userIdx: number): Promise<number> {
+    const userCnt: number = await this.userModel
+      .createQueryBuilder('userEntity')
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .getCount();
+
+    return userCnt;
   }
 }

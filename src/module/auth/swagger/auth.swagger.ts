@@ -109,3 +109,11 @@ export const LOGIN: SwaggerMethod = {
     },
   },
 };
+
+export const LOGOUT: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '',
+    },
+  },
+};

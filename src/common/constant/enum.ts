@@ -36,3 +36,15 @@ export enum HalfYearEnum {
   H1 = '상반기',
   H2 = '하반기',
 }
+
+export enum ConfirmEnum {
+  NO = 'N',
+  HOLD = 'H',
+  YES = 'Y',
+}
+
+export enum QnaCategoryEnum {
+  QUESTION = 'question',
+  BUG = 'bug',
+  PROPOSAL = 'proposal',
+}
