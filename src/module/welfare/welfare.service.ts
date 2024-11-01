@@ -12,14 +12,14 @@ export class WelfareService {
   constructor(private readonly welfareRepository: WelfareRepository) {}
 
   async createWelfare(userIdx: number, newWelfareInfo: CreateWelfareDto, manager: EntityManager): Promise<string> {
-    const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
-    if (userCnt !== 1) {
+    const currentUserInfo: { userName: string } = await this.welfareRepository.getUserNameByIdx(userIdx);
+    if (!currentUserInfo) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const allUserNames: string[] = await this.welfareRepository.getAllUserNames();
-    if (!allUserNames.includes(newWelfareInfo.payerName)) {
-      throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
+    const { userName } = currentUserInfo;
+    if (userName !== newWelfareInfo.payerName) {
+      throw new BadRequestException('결제자는 본인 이름만 입력 가능합니다.');
     }
 
     const year: number = Number(newWelfareInfo.targetDay.substring(0, 4));
@@ -101,16 +101,14 @@ export class WelfareService {
     updateWelfareInfo: UpdateWelfareDto,
     manager: EntityManager,
   ): Promise<string> {
-    const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
-    if (userCnt !== 1) {
+    const currentUserInfo: { userName: string } = await this.welfareRepository.getUserNameByIdx(userIdx);
+    if (!currentUserInfo) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    if (updateWelfareInfo.payerName) {
-      const allUserNames: string[] = await this.welfareRepository.getAllUserNames();
-      if (!allUserNames.includes(updateWelfareInfo.payerName)) {
-        throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
-      }
+    const { userName } = currentUserInfo;
+    if (userName !== updateWelfareInfo.payerName) {
+      throw new BadRequestException('결제자는 본인 이름만 입력 가능합니다.');
     }
 
     const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
@@ -173,6 +171,7 @@ export class WelfareService {
     }
 
     let welfareInfo: Welfares[] = [];
+
     if (year && month) {
       const yearToNum: number = Number(year);
       const monthToNum: number = Number(month);
