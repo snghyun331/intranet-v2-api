@@ -15,6 +15,7 @@ export class UserRepository {
     const result: UserIdxsResult[] = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx', 'userEntity.userName AS userName'])
+      .where('userEntity.userAvail IS NULL')
       .getRawMany();
 
     return result;

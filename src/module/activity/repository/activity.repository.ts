@@ -20,6 +20,7 @@ export class ActivityRepository {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
       .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail IS NULL')
       .getCount();
 
     return userCnt;
@@ -29,6 +30,7 @@ export class ActivityRepository {
     const result: { userName: string }[] = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userName AS userName'])
+      .where('userEntity.userAvail IS NULL')
       .getRawMany();
 
     const allNames: string[] = result.map((r) => r.userName);

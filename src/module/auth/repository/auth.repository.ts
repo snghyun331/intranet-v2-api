@@ -31,6 +31,7 @@ export class AuthRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('userEntity.id = :id', { id })
+      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     return result;
@@ -58,6 +59,7 @@ export class AuthRepository {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
       .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail IS NULL')
       .getCount();
 
     return userCnt;

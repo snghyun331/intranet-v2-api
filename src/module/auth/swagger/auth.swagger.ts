@@ -113,7 +113,21 @@ export const LOGIN: SwaggerMethod = {
 export const LOGOUT: SwaggerMethod = {
   POST: {
     API_OPERATION: {
-      summary: '',
+      summary: '로그아웃 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '로그아웃 성공',
+            data: {
+              userIdx: 1,
+            },
+          },
+        },
+      },
+      description: '토큰 만료 시에도 로그아웃 가능',
     },
   },
 };
