@@ -29,6 +29,16 @@ export class WelfareRepository {
     return userCnt;
   }
 
+  async getUserNameByIdx(userIdx: number): Promise<{ userName: string }> {
+    const result: { userName: string } = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userName AS userName'])
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .getRawOne();
+
+    return result;
+  }
+
   async getAllUserNames(): Promise<string[]> {
     const result: { userName: string }[] = await this.userModel
       .createQueryBuilder('userEntity')
