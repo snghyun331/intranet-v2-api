@@ -4,7 +4,7 @@ import { CreateQnaDto } from '../dto/createQna.dto';
 export const USERS_QNA: SwaggerMethod = {
   POST: {
     API_OPERATION: {
-      summary: '사용자 문의 등록 API',
+      summary: '현재 사용자 문의 등록 API',
     },
     API_BODY: {
       type: CreateQnaDto,
@@ -59,6 +59,33 @@ export const USERS_QNA: SwaggerMethod = {
           },
         },
       },
+    },
+  },
+  GET: {
+    API_OPERATION: {
+      summary: '현재 사용자 문의 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '로그인 사용자 문의 내역 조회 성공',
+            data: [
+              {
+                qnaIdx: 1,
+                userIdx: 1,
+                category: 'question',
+                text: '질문',
+                replySuccessYN: 'N',
+                replyText: null,
+                createdAt: '2024-10-25T04:18:00.370Z',
+              },
+            ],
+          },
+        },
+      },
+      description: 'createdAt은 UTC 기준입니다.',
     },
   },
 };

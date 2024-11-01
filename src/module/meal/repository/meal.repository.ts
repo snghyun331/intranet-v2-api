@@ -18,6 +18,28 @@ export class MealRepository {
     @InjectRepository(HolidayEntity) private readonly holidayModel: Repository<HolidayEntity>,
   ) {}
 
+  async getUserCountByIdx(userIdx: number): Promise<number> {
+    const userCnt: number = await this.userModel
+      .createQueryBuilder('userEntity')
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail IS NULL')
+      .getCount();
+
+    return userCnt;
+  }
+
+  async getAllUserNames(): Promise<string[]> {
+    const result: { userName: string }[] = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userName AS userName'])
+      .where('userEntity.userAvail IS NULL')
+      .getRawMany();
+
+    const allNames: string[] = result.map((r) => r.userName);
+
+    return allNames;
+  }
+
   async getMealCalender(year: number, month: number, userIdx: number): Promise<MealEntity[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
@@ -64,26 +86,6 @@ export class MealRepository {
       .getRawOne();
 
     return result;
-  }
-
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .getCount();
-
-    return userCnt;
-  }
-
-  async getAllUserNames(): Promise<string[]> {
-    const result: { userName: string }[] = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userName AS userName'])
-      .getRawMany();
-
-    const allNames: string[] = result.map((r) => r.userName);
-
-    return allNames;
   }
 
   async createMeal(

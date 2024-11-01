@@ -1,4 +1,4 @@
-import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '../../common/entity/common.entity';
 import { UserEntity } from '../user/user.entity';
 import { QnaCategoryEnum, YNEnum } from '../../common/constant/enum';
@@ -29,9 +29,6 @@ export class QnaEntity extends CommonEntity {
 
   @Column({ name: 'reply_text', comment: '답변 내용', type: 'text', default: null, nullable: true })
   replyText: string;
-
-  @DeleteDateColumn({ name: 'qna_avail', comment: '유효성 여부', type: 'datetime' })
-  qnaAvail: Date | null;
 
   @ManyToOne(() => UserEntity, (user) => user.qnaRelation, {
     onDelete: 'CASCADE',
