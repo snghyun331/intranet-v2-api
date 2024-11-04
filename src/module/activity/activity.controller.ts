@@ -26,7 +26,7 @@ import { ActivityService } from './activity.service';
 import { USERS_ACTIVITIES } from './swagger/activity.swagger';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
+import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
@@ -48,7 +48,7 @@ export class ActivityController {
   @ApiBadRequestResponse(USERS_ACTIVITIES.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseInterceptors(TransactionInterceptor)
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.MANAGER)
   @Post()
   async createActivity(
@@ -71,7 +71,7 @@ export class ActivityController {
   @ApiBadRequestResponse(USERS_ACTIVITIES.PUT.API_BAD_REQUEST_RESPONSE)
   @ApiNotFoundResponse(USERS_ACTIVITIES.PUT.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.MANAGER)
   @UseInterceptors(TransactionInterceptor)
   @Put(':activityIdx')
@@ -95,7 +95,7 @@ export class ActivityController {
   @ApiForbiddenResponse(USERS_ACTIVITIES.DELETE.API_FORBIDDEN_RESPONSE)
   @ApiNotFoundResponse(USERS_ACTIVITIES.DELETE.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.MANAGER)
   @UseInterceptors(TransactionInterceptor)
   @Delete(':activityIdx')
@@ -113,7 +113,7 @@ export class ActivityController {
 
   @ApiOperation(USERS_ACTIVITIES.GET.API_OPERATION)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
   async getWelfare(): Promise<ResponseInterface> {

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { UserGradeEnum } from '../../../../common/constant/enum';
 
 @Injectable()
-export class UserRolesGuard implements CanActivate {
+export class UserRoleGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {

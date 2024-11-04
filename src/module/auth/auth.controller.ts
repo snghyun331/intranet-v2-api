@@ -8,7 +8,7 @@ import { ResponseInterface } from '../../common/interface/response.interface';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from './guard/authGuard/userAuth.guard';
-import { UserRolesGuard } from './guard/roleGuard/userRole.guard';
+import { UserRoleGuard } from './guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 
 @ApiTags('AUTH')
@@ -33,7 +33,7 @@ export class AuthController {
   @ApiOperation(LOGOUT.POST.API_OPERATION)
   @ApiOkResponse(LOGOUT.POST.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @HttpCode(HttpStatus.OK)
   @Post('logout')

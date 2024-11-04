@@ -34,7 +34,7 @@ import { EntityManager } from 'typeorm';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
+import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { WelfareResult } from './interface/result.interface';
@@ -49,7 +49,7 @@ export class WelfareController {
   @ApiQuery(USERS_WELFARES.GET.API_QUERY2)
   @ApiOkResponse(USERS_WELFARES.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
   async getWelfare(
@@ -70,7 +70,7 @@ export class WelfareController {
   @ApiBadRequestResponse(USERS_WELFARES.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseInterceptors(TransactionInterceptor)
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post()
   async createWelfare(
@@ -92,7 +92,7 @@ export class WelfareController {
   @ApiForbiddenResponse(USERS_WELFARES.PUT.API_FORBIDDEN_RESPONSE)
   @ApiBadRequestResponse(USERS_WELFARES.PUT.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @UseInterceptors(TransactionInterceptor)
   @Put(':welfareIdx')
@@ -116,7 +116,7 @@ export class WelfareController {
   @ApiForbiddenResponse(USERS_WELFARES.DELETE.API_FORBIDDEN_RESPONSE)
   @ApiNotFoundResponse(USERS_WELFARES.DELETE.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @UseInterceptors(TransactionInterceptor)
   @Delete(':welfareIdx')
