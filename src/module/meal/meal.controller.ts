@@ -15,7 +15,7 @@ import {
 import { USERS_MEALS } from './swagger/meal.swagger';
 import { CreateMealDto } from './dto/createMeal.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
+import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
@@ -36,7 +36,7 @@ export class MealController {
   @ApiOkResponse(USERS_MEALS.GET.API_OK_RESPONSE)
   @ApiBadRequestResponse(USERS_MEALS.GET.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
   async getMeal(
@@ -59,7 +59,7 @@ export class MealController {
   @ApiBadRequestResponse(USERS_MEALS.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseInterceptors(TransactionInterceptor)
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post()
   async createMeal(
@@ -80,7 +80,7 @@ export class MealController {
   @ApiBadRequestResponse(USERS_MEALS.DELETE.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseInterceptors(TransactionInterceptor)
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Delete(':targetDay')
   async deleteMeal(

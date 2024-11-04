@@ -5,7 +5,7 @@ import { Request } from 'express';
 import { Strategy } from 'passport-custom';
 
 import * as jwt from 'jsonwebtoken';
-import { UserPayload } from '../../../common/interface/token.interface';
+import { UserPayload } from '../../../common/interface/payload.interface';
 
 @Injectable()
 export class JwtUserStrategy extends PassportStrategy(Strategy, 'user') {
