@@ -97,20 +97,6 @@ export const ADMIN_QNA: SwaggerMethod = {
       summary: '어드민 전체 문의 내역 조회',
       description: '생성시간 기준으로 내림차순 정렬됩니다.',
     },
-    API_QUERY1: {
-      name: 'replySuccessYN',
-      type: String,
-      example: 'N',
-      description: '답변 완료 여부',
-      required: false,
-    },
-    API_QUERY2: {
-      name: 'userCell',
-      type: String,
-      example: '010-4194-5718',
-      description: '문의자 핸폰번호',
-      required: false,
-    },
     API_OK_RESPONSE: {
       content: {
         'application/json': {

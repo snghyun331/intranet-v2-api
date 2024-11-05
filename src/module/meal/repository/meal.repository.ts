@@ -99,7 +99,7 @@ export class MealRepository {
       .createQueryBuilder()
       .insert()
       .into(MealEntity)
-      .values({ userIdx, targetDay, mealType, ...newMealInfo })
+      .values({ userIdx, targetDay, mealType, amount: Number(newMealInfo.amount), ...newMealInfo })
       .execute();
   }
 
@@ -329,8 +329,8 @@ export class MealRepository {
       .execute();
   }
 
-  async getMealIdx(userIdx: number, targetDay: string, mealType: MealTypeEnum): Promise<any> {
-    const result: any = await this.mealModel
+  async getMealIdx(userIdx: number, targetDay: string, mealType: MealTypeEnum): Promise<{ mealIdx: number }> {
+    const result: { mealIdx: number } = await this.mealModel
       .createQueryBuilder('mealEntity')
       .select(['mealEntity.mealIdx AS mealIdx'])
       .where('mealEntity.userIdx = :userIdx', { userIdx })
