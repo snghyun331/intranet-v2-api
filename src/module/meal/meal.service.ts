@@ -25,14 +25,14 @@ export class MealService {
       const existingDate = acc.find((m) => m.start === meal.targetDay);
 
       const mealData: BasicMealData = {
-        payerName: meal.payerName || null,
-        place: meal.place || null,
-        amount: meal.amount || null,
+        payerName: meal.payerName,
+        place: meal.place,
+        amount: meal.amount === null ? ('' as unknown as number) : meal.amount,
       };
       if (meal.mealType === MealTypeEnum.LUNCH && meal.attendance) {
         mealData.attendance = meal.attendance; // attendance가 있을 때만 추가
       } else if (meal.mealType === MealTypeEnum.LUNCH && !meal.attendance) {
-        mealData.attendance = null;
+        mealData.attendance = '';
       }
 
       if (existingDate) {
@@ -55,13 +55,10 @@ export class MealService {
         acc.push({
           start: meal.targetDay,
           holidayYN: meal.holidayYN,
-          breakfast:
-            meal.mealType === MealTypeEnum.BREAKFAST ? mealData : { payerName: null, place: null, amount: null },
+          breakfast: meal.mealType === MealTypeEnum.BREAKFAST ? mealData : { payerName: '', place: '', amount: '' },
           lunch:
-            meal.mealType === MealTypeEnum.LUNCH
-              ? mealData
-              : { payerName: null, place: null, amount: null, attendance: null },
-          dinner: meal.mealType === MealTypeEnum.DINNER ? mealData : { payerName: null, place: null, amount: null },
+            meal.mealType === MealTypeEnum.LUNCH ? mealData : { payerName: '', place: '', amount: '', attendance: '' },
+          dinner: meal.mealType === MealTypeEnum.DINNER ? mealData : { payerName: '', place: '', amount: '' },
         });
       }
 
@@ -98,9 +95,9 @@ export class MealService {
     // 식대 등록 예외처리(연차/휴무 & 재택근무)
     if (newMealInfo.attendance === AttendanceEnum.REST || newMealInfo.attendance === AttendanceEnum.REMOTE_WORK) {
       if (
-        this.isAnyFieldNull(newMealInfo.breakfast) ||
-        this.isAnyFieldNull(newMealInfo.lunch) ||
-        this.isAnyFieldNull(newMealInfo.dinner)
+        this.isAnyFieldBlank(newMealInfo.breakfast) ||
+        this.isAnyFieldBlank(newMealInfo.lunch) ||
+        this.isAnyFieldBlank(newMealInfo.dinner)
       ) {
         throw new BadRequestException('연차/휴무 및 재택 근무는 식대 지원이 불가합니다.');
       }
@@ -108,23 +105,27 @@ export class MealService {
     // 식대 등록 예외처리(오후반차)
     if (newMealInfo.attendance === AttendanceEnum.PM_HALF) {
       if (
-        this.isAnyFieldNull(newMealInfo.breakfast) ||
-        this.isAnyFieldNull(newMealInfo.lunch) ||
-        this.isAnyFieldNull(newMealInfo.dinner)
+        this.isAnyFieldBlank(newMealInfo.breakfast) ||
+        this.isAnyFieldBlank(newMealInfo.lunch) ||
+        this.isAnyFieldBlank(newMealInfo.dinner)
       ) {
         throw new BadRequestException('오후 반차는 식대 지원이 불가합니다');
       }
     }
     // 식대 등록 예외처리(오전반차)
     if (newMealInfo.attendance === AttendanceEnum.AM_HALF) {
-      if (this.isAnyFieldNull(newMealInfo.lunch) || this.isAnyFieldNull(newMealInfo.breakfast)) {
+      if (this.isAnyFieldBlank(newMealInfo.lunch) || this.isAnyFieldBlank(newMealInfo.breakfast)) {
         throw new BadRequestException('오전 반차는 식대(조식, 중식) 지원이 불가합니다');
       }
     }
 
     // 중식 저장
     const newLunch: DetailedMealData = newMealInfo.lunch;
-    const lunchInfo: any = await this.mealRepository.getMealIdx(userIdx, newMealInfo.targetDay, MealTypeEnum.LUNCH);
+    const lunchInfo: { mealIdx: number } = await this.mealRepository.getMealIdx(
+      userIdx,
+      newMealInfo.targetDay,
+      MealTypeEnum.LUNCH,
+    );
     if (newLunch.payerName) {
       const allUserNames: string[] = await this.mealRepository.getAllUserNames();
       if (!allUserNames.includes(newLunch.payerName)) {
@@ -145,7 +146,7 @@ export class MealService {
 
     // 조식 저장
     const newBreakfast: DetailedMealData = newMealInfo.breakfast;
-    const breakfastInfo: any = await this.mealRepository.getMealIdx(
+    const breakfastInfo: { mealIdx: number } = await this.mealRepository.getMealIdx(
       userIdx,
       newMealInfo.targetDay,
       MealTypeEnum.BREAKFAST,
@@ -177,7 +178,11 @@ export class MealService {
 
     // 석식 저장
     const newDinner: DetailedMealData = newMealInfo.dinner;
-    const dinnerInfo: any = await this.mealRepository.getMealIdx(userIdx, newMealInfo.targetDay, MealTypeEnum.DINNER);
+    const dinnerInfo: { mealIdx: number } = await this.mealRepository.getMealIdx(
+      userIdx,
+      newMealInfo.targetDay,
+      MealTypeEnum.DINNER,
+    );
 
     if (newDinner.payerName) {
       const allUserNames: string[] = await this.mealRepository.getAllUserNames();
@@ -249,7 +254,8 @@ export class MealService {
     await this.mealRepository.updateDinnerExpenseInStats(dinnerExpense, year, month, userIdx, manager);
   }
 
-  private isAnyFieldNull(mealInput: MealInputDto): boolean {
-    return Object.values(mealInput).some((value) => value !== null);
+  /* 필드 중 하나라도 값이 있으면 true 반환 */
+  private isAnyFieldBlank(mealInput: MealInputDto): boolean {
+    return Object.values(mealInput).some((value) => value !== '');
   }
 }
