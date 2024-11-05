@@ -13,7 +13,7 @@ export const validationOptions = {
 
     for (const { property, constraints } of validationErrors) {
       const keys: string[] = Object.keys(constraints);
-      logger.warn(
+      logger.error(
         `에러 발생 키 : ${property}, 에러 제목 : ${keys} , 에러 내용 : ${Object.values(constraints)}`,
         '🚧🚧🚧🚧 유효성 검사 에러 🚧🚧🚧🚧',
       );

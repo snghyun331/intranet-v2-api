@@ -4,7 +4,7 @@ import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
 import { UNAUTHORIZED } from '../../../../common/error/unauthorized.error';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { UserPayload } from '../../../../common/interface/token.interface';
+import { UserPayload } from '../../../../common/interface/payload.interface';
 
 @Injectable()
 export class UserAuthGuard extends AuthGuard('user') {

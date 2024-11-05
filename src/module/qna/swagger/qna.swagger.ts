@@ -79,6 +79,7 @@ export const USERS_QNA: SwaggerMethod = {
                 text: '질문',
                 replySuccessYN: 'N',
                 replyText: null,
+                replyAdmin: null,
                 createdAt: '2024-10-25T04:18:00.370Z',
               },
             ],
@@ -86,6 +87,104 @@ export const USERS_QNA: SwaggerMethod = {
         },
       },
       description: 'createdAt은 UTC 기준입니다.',
+    },
+  },
+};
+
+export const ADMIN_QNA: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 전체 문의 내역 조회',
+      description: '생성시간 기준으로 내림차순 정렬됩니다.',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '어드민 문의 내역 조회 성공',
+            data: {
+              totalPage: 1,
+              total: 5,
+              qna: [
+                {
+                  qnaIdx: 5,
+                  userIdx: 2,
+                  userName: '김현민',
+                  userCell: '010-6209-2023',
+                  category: 'proposal',
+                  text: '점심조 없애주세요',
+                  replySuccessYN: 'N',
+                  replyText: null,
+                  replyAdmin: null,
+                  createdAt: '2024-11-04T05:58:38.624Z',
+                },
+                {
+                  qnaIdx: 4,
+                  userIdx: 2,
+                  userName: '김현민',
+                  userCell: '010-6209-2023',
+                  category: 'bug',
+                  text: '버그 제보합니다',
+                  replySuccessYN: 'N',
+                  replyText: null,
+                  replyAdmin: null,
+                  createdAt: '2024-11-04T05:58:11.572Z',
+                },
+                {
+                  qnaIdx: 3,
+                  userIdx: 4,
+                  userName: '박민수',
+                  userCell: '010-2536-5474',
+                  category: 'proposal',
+                  text: '점심조 없애주세요',
+                  replySuccessYN: 'N',
+                  replyText: null,
+                  replyAdmin: null,
+                  createdAt: '2024-11-04T05:57:27.837Z',
+                },
+                {
+                  qnaIdx: 2,
+                  userIdx: 1,
+                  userName: '이승현',
+                  userCell: '010-4194-5718',
+                  category: 'question',
+                  text: '복포 버그 언제 수정되나요? 좀 불편하네요',
+                  replySuccessYN: 'N',
+                  replyText: null,
+                  replyAdmin: null,
+                  createdAt: '2024-11-04T05:55:29.036Z',
+                },
+                {
+                  qnaIdx: 1,
+                  userIdx: 1,
+                  userName: '이승현',
+                  userCell: '010-4194-5718',
+                  category: 'question',
+                  text: '질문',
+                  replySuccessYN: 'N',
+                  replyText: null,
+                  replyAdmin: null,
+                  createdAt: '2024-10-25T04:18:00.370Z',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    API_FORBIDDEN_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            message: '어드민 접근 권한이 없습니다.',
+            error: 'Forbidden',
+            statusCode: 403,
+            timeStamp: '2024. 11. 4. 오후 1:29:20',
+            path: '/admin/qna',
+          },
+        },
+      },
     },
   },
 };

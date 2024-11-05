@@ -5,7 +5,7 @@ import { UserService } from './user.service';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRolesGuard } from '../auth/guard/roleGuard/userRole.guard';
+import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { CurrentUserInfoResult, UserIdxsResult } from './interface/result.interface';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
@@ -18,7 +18,7 @@ export class UserController {
   @ApiOperation(USERS_IDXS.GET.API_OPERATION)
   @ApiOkResponse(USERS_IDXS.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get('ids')
   async getAllUserIdxs(): Promise<ResponseInterface> {
@@ -33,7 +33,7 @@ export class UserController {
   @ApiOkResponse(USERS_MY.GET.API_OK_RESPONSE)
   @ApiNotFoundResponse(USERS_MY.GET.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRolesGuard)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get('me')
   async getMyInfo(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {

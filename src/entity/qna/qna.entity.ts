@@ -30,6 +30,9 @@ export class QnaEntity extends CommonEntity {
   @Column({ name: 'reply_text', comment: '답변 내용', type: 'text', default: null, nullable: true })
   replyText: string;
 
+  @Column({ name: 'reply_admin', comment: '답변 어드민 이름', default: null, nullable: true })
+  replyAdmin: string;
+
   @ManyToOne(() => UserEntity, (user) => user.qnaRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

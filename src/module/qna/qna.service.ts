@@ -3,6 +3,7 @@ import { CreateQnaDto } from './dto/createQna.dto';
 import { QnaRepository } from './repository/qna.repository';
 import { EntityManager } from 'typeorm';
 import { QnaEntity } from '../../entity/qna/qna.entity';
+import { QnaAdminResult } from './interface/result.interface';
 
 @Injectable()
 export class QnaService {
@@ -28,5 +29,11 @@ export class QnaService {
     const userQnaInfo: QnaEntity[] = await this.qnaRepository.getUserQna(userIdx);
 
     return userQnaInfo;
+  }
+
+  async getQna({ pageNo, perPage, ...filterInfo }) {
+    const { totalPage, total, qna }: QnaAdminResult = await this.qnaRepository.getQna(pageNo, perPage, filterInfo);
+
+    return { totalPage, total, qna };
   }
 }
