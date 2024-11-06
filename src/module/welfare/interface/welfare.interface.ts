@@ -1,4 +1,4 @@
-import { YNEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, YNEnum } from '../../../common/constant/enum';
 
 export interface WelfareInfo {
   welfareIdx: number;
@@ -11,6 +11,7 @@ export interface Welfares extends WelfareInfo {
   amount: number;
   payerName: string;
   selfWrittenYN: YNEnum;
+  confirmYN: ConfirmEnum;
   payeeList: UserInfo[];
 }
 

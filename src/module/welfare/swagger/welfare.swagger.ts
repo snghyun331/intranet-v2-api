@@ -1,3 +1,4 @@
+import { HalfYearEnum } from '../../../common/constant/enum';
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
@@ -18,6 +19,13 @@ export const USERS_WELFARES: SwaggerMethod = {
       name: 'month',
       type: String,
       description: '월(03,3 모두 가능)',
+      required: false,
+    },
+    API_QUERY3: {
+      name: 'half',
+      type: 'enum',
+      enum: HalfYearEnum,
+      description: 'H1: 상반기, H2: 하반기',
       required: false,
     },
     API_OK_RESPONSE: {
@@ -353,16 +361,6 @@ export const USERS_WELFARES: SwaggerMethod = {
               summary: '결제자는 본인 이름만 기입',
               value: {
                 message: '결제자는 본인 이름만 입력 가능합니다.',
-                error: 'Bad Request',
-                statusCode: 400,
-                timeStamp: '2024. 10. 31. 오후 5:52:57',
-                path: '/users/welfares/1',
-              },
-            },
-            c: {
-              summary: 'selfWritten = N 유저가 payee 수정 시도할 경우',
-              value: {
-                message: '결제자만 Payee를 수정할 수 있습니다.',
                 error: 'Bad Request',
                 statusCode: 400,
                 timeStamp: '2024. 10. 31. 오후 5:52:57',

@@ -150,8 +150,6 @@ export class WelfareService {
           }),
         );
       }
-    } else {
-      throw new BadRequestException('결제자만 Payee를 수정할 수 있습니다.');
     }
 
     // 복지포인트 사용금액 업데이트
@@ -183,6 +181,28 @@ export class WelfareService {
     } else {
       throw new BadRequestException('연도와 월은 모두 입력하거나, 모두 입력하지 않아야 합니다');
     }
+    const nowDate: Date = new Date();
+    const nowYear: number = nowDate.getFullYear();
+    const nowMonth: number = nowDate.getMonth() + 1;
+    const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
+    const welfareStats: WelfareStats = await this.welfareRepository.getWelfareStats(nowYear, halfYear, userIdx);
+
+    const result: WelfareResult = {
+      welfareStats,
+      welfares: welfareInfo,
+    };
+
+    return result;
+  }
+
+  async getHalfYearWelfare(year: string, half: HalfYearEnum, userIdx: number): Promise<WelfareResult> {
+    const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
+    const welfareInfo: Welfares[] = await this.welfareRepository.getHalfYearWelfare(year, half, userIdx);
+
     const nowDate: Date = new Date();
     const nowYear: number = nowDate.getFullYear();
     const nowMonth: number = nowDate.getMonth() + 1;
