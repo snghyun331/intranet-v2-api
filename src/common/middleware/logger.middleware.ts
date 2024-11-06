@@ -1,6 +1,7 @@
 import { Inject, Injectable, LoggerService, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { UserPayload } from '../interface/payload.interface';
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
@@ -11,13 +12,17 @@ export class LoggerMiddleware implements NestMiddleware {
 
     res.on('finish', async () => {
       const ip: string = req.ip;
+      const userPayload: UserPayload = req.user as UserPayload;
+      const loginUserName: string = userPayload ? userPayload.userName : undefined;
       const method: string = req.method;
       const originalUrl: string = req.originalUrl;
       const statusCode: number = res.statusCode;
       const endTime: number = Date.now();
       const delay: number = endTime - startTime;
 
-      this.logger.log(`${ip} ${originalUrl} ${method} ${statusCode} - ${delay}ms`);
+      this.logger.log(
+        `${ip} ${loginUserName ? `(${loginUserName})` : ''} ${originalUrl} ${method} ${statusCode} - ${delay}ms`,
+      );
     });
     next();
   }
