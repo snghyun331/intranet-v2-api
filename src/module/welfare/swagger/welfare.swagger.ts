@@ -359,6 +359,16 @@ export const USERS_WELFARES: SwaggerMethod = {
                 path: '/users/welfares/1',
               },
             },
+            c: {
+              summary: 'selfWritten = N 유저가 payee 수정 시도할 경우',
+              value: {
+                message: '결제자만 Payee를 수정할 수 있습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 10. 31. 오후 5:52:57',
+                path: '/users/welfares/1',
+              },
+            },
           },
         },
       },
