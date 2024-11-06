@@ -150,6 +150,8 @@ export class WelfareService {
           }),
         );
       }
+    } else {
+      throw new BadRequestException('결제자만 Payee를 수정할 수 있습니다.');
     }
 
     // 복지포인트 사용금액 업데이트

@@ -11,6 +11,7 @@ import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Request, Response } from 'express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { QueryFailedError } from 'typeorm';
+import { UserPayload } from '../interface/payload.interface';
 
 @Catch(HttpException, QueryFailedError, Error)
 export class ServerErrorFilter implements ExceptionFilter {
@@ -29,11 +30,13 @@ export class ServerErrorFilter implements ExceptionFilter {
     const params = JSON.stringify(request.params);
     const body = JSON.stringify(request.body);
     const query = JSON.stringify(request.query);
+    const userPayload: UserPayload = request.user as UserPayload;
+    const loginUserName: string = userPayload ? userPayload.userName : undefined;
     const timeStamp: string = new Date().toLocaleString('ko-KR');
 
     if (request) {
       this.logger.error(
-        `(${clientIp}) Path: ${originalUrl}, Method: ${method}, Params: ${params}, Body: ${body}, Query: ${query} \n ⛔️ ${exception.stack}`,
+        `${clientIp} ${loginUserName ? `(${loginUserName})` : ''} ${originalUrl} - ${method}  Params: ${params}, Body: ${body}, Query: ${query} \n ⛔️ ${exception.stack}`,
       );
     }
 
