@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -32,7 +33,7 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
 import { EntityManager } from 'typeorm';
 import { UserRole } from '../../common/decorator/userRole.decorator';
-import { UserGradeEnum } from '../../common/constant/enum';
+import { HalfYearEnum, UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
@@ -47,6 +48,7 @@ export class WelfareController {
   @ApiOperation(USERS_WELFARES.GET.API_OPERATION)
   @ApiQuery(USERS_WELFARES.GET.API_QUERY1)
   @ApiQuery(USERS_WELFARES.GET.API_QUERY2)
+  @ApiQuery(USERS_WELFARES.GET.API_QUERY3)
   @ApiOkResponse(USERS_WELFARES.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
@@ -55,9 +57,23 @@ export class WelfareController {
   async getWelfare(
     @Query('year') year: string,
     @Query('month') month: string,
+    @Query('half') half: HalfYearEnum,
     @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseInterface> {
-    const welfares: WelfareResult = await this.welfareService.getWelfare(year, month, userIdx);
+    if ((month && half) || (!month && !half)) {
+      throw new BadRequestException('월(month) 또는 상/하반기(half) 중 하나만 입력해 주세요.');
+    }
+    if (half && !year) {
+      throw new BadRequestException('상/하반기(half) 입력 시, 연도(year)도 함께 입력해주세요.');
+    }
+
+    let welfares = {} as WelfareResult;
+
+    if (half) {
+      welfares = await this.welfareService.getHalfYearWelfare(year, half, userIdx);
+    } else {
+      welfares = await this.welfareService.getWelfare(year, month, userIdx);
+    }
 
     const response: ResponseInterface = { message: '복포 사용내역 조회 성공', data: welfares };
 

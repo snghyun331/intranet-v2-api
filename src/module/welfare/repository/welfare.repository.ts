@@ -4,7 +4,7 @@ import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, UpdateResult } from 'typeorm';
 import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { WelfareEntity } from '../../../entity/welfare/welfare.entity';
-import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
+import { getStartAndLastDayofHalf, getStartAndLastDayofMonth } from '../../../common/utils/utility';
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
@@ -190,6 +190,7 @@ export class WelfareRepository {
         'welfareEntity.amount AS amount',
         'welfareEntity.payerName AS payerName',
         'welfareEntity.selfWrittenYN AS selfWrittenYN',
+        'welfareEntity.confirmYN AS confirmYN',
         'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
       ])
       .where('welfareEntity.userIdx = :userIdx', { userIdx })
@@ -211,6 +212,51 @@ export class WelfareRepository {
           amount: welfare.amount,
           payerName: welfare.payerName,
           selfWrittenYN: welfare.selfWrittenYN,
+          confirmYN: welfare.confirmYN,
+          payeeList: payeeList.length > 0 ? payeeList : [],
+        };
+      }),
+    );
+
+    return transformedResult;
+  }
+
+  async getHalfYearWelfare(year: string, half: HalfYearEnum, userIdx: number): Promise<Welfares[]> {
+    const { firstDayOfHalf, lastDayOfHalf } = getStartAndLastDayofHalf(year, half);
+
+    const result: WelfareEntity[] = await this.welfareModel
+      .createQueryBuilder('welfareEntity')
+      .select([
+        'welfareEntity.welfareIdx AS welfareIdx',
+        'welfareEntity.userIdx AS userIdx',
+        'welfareEntity.targetDay AS targetDay',
+        'welfareEntity.content AS content',
+        'welfareEntity.amount AS amount',
+        'welfareEntity.payerName AS payerName',
+        'welfareEntity.selfWrittenYN AS selfWrittenYN',
+        'welfareEntity.confirmYN AS confirmYN',
+        'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
+      ])
+      .where('welfareEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('welfareEntity.targetDay BETWEEN :firstDayOfHalf AND :lastDayOfHalf', { firstDayOfHalf, lastDayOfHalf })
+      .orderBy('welfareEntity.targetDay', 'DESC')
+      .getRawMany();
+
+    // 데이터를 변환하여 payeeList를 추가
+    const transformedResult: Welfares[] = await Promise.all(
+      result.map(async (welfare) => {
+        const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
+        const payeeList: UserInfo[] = await this.getUserInfoFromPayerWelfareIdx(welfareIdx);
+
+        return {
+          welfareIdx: welfare.welfareIdx,
+          userIdx: welfare.userIdx,
+          targetDay: welfare.targetDay,
+          content: welfare.content,
+          amount: welfare.amount,
+          payerName: welfare.payerName,
+          selfWrittenYN: welfare.selfWrittenYN,
+          confirmYN: welfare.confirmYN,
           payeeList: payeeList.length > 0 ? payeeList : [],
         };
       }),
@@ -230,6 +276,7 @@ export class WelfareRepository {
         'welfareEntity.amount AS amount',
         'welfareEntity.payerName AS payerName',
         'welfareEntity.selfWrittenYN AS selfWrittenYN',
+        'welfareEntity.confirmYN AS confirmYN',
         'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
       ])
       .where('welfareEntity.userIdx = :userIdx', { userIdx })
@@ -250,6 +297,7 @@ export class WelfareRepository {
           amount: welfare.amount,
           payerName: welfare.payerName,
           selfWrittenYN: welfare.selfWrittenYN,
+          confirmYN: welfare.confirmYN,
           payeeList: payeeList.length > 0 ? payeeList : [],
         };
       }),
