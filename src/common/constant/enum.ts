@@ -33,8 +33,8 @@ export enum UserGradeEnum {
 }
 
 export enum HalfYearEnum {
-  H1 = '상반기',
-  H2 = '하반기',
+  H1 = 'H1',
+  H2 = 'H2',
 }
 
 export enum ConfirmEnum {

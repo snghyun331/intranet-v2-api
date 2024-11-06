@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import * as moment from 'moment';
+import { HalfYearEnum } from '../constant/enum';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (dateString: string): string => {
@@ -46,6 +47,21 @@ export const getStartAndLastDayofMonth = (year: number, month: number) => {
   const lastDayOfMonth: moment.Moment = moment(firstDayOfMonth).endOf('month').utcOffset(9);
 
   return { firstDayOfMonth, lastDayOfMonth };
+};
+
+export const getStartAndLastDayofHalf = (year: string, half: HalfYearEnum) => {
+  // 반기별 첫 날과 마지막 날 계산
+  if (half === HalfYearEnum.H1) {
+    const firstDayOfHalf = year + '-' + '01-01';
+    const lastDayOfHalf = year + '-' + '06-30';
+
+    return { firstDayOfHalf, lastDayOfHalf };
+  } else {
+    const firstDayOfHalf = year + '-' + '07-01';
+    const lastDayOfHalf = year + '-' + '12-31';
+
+    return { firstDayOfHalf, lastDayOfHalf };
+  }
 };
 
 export const getTotalDaysInMonth = (year: number, month: number): number => {
