@@ -1,4 +1,4 @@
-import { ConfirmEnum, YNEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
 
 export interface WelfareInfo {
   welfareIdx: number;
@@ -22,6 +22,7 @@ export interface UserInfo {
 
 export interface WelfareStats {
   year: string;
+  halfYear: HalfYearEnum;
   welfareBudget: number;
   welfareExpense: number;
   welfareBalance: number;

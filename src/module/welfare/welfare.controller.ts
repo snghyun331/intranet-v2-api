@@ -60,7 +60,7 @@ export class WelfareController {
     @Query('half') half: HalfYearEnum,
     @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseInterface> {
-    if ((month && half) || (!month && !half)) {
+    if (month && half) {
       throw new BadRequestException('월(month) 또는 상/하반기(half) 중 하나만 입력해 주세요.');
     }
     if (half && !year) {

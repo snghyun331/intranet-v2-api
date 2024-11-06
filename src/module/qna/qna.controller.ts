@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import {
   ApiBadRequestResponse,
@@ -65,6 +65,9 @@ export class UserQnaController {
 
     return response;
   }
+
+  @Delete(':qnaIdx')
+  async deleteMyQna() {}
 }
 
 @ApiTags('어드민')
