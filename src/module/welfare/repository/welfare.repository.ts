@@ -311,6 +311,7 @@ export class WelfareRepository {
       .createQueryBuilder('welfareStatsEntity')
       .select([
         'welfareStatsEntity.year AS year',
+        'welfareStatsEntity.halfYear AS halfYear',
         'welfareStatsEntity.welfareBudget AS welfareBudget',
         'welfareStatsEntity.welfareExpense AS welfareExpense',
         'welfareStatsEntity.welfareBalance AS welfareBalance',
