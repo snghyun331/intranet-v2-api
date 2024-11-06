@@ -27,7 +27,7 @@ export class MealService {
       const mealData: BasicMealData = {
         payerName: meal.payerName,
         place: meal.place,
-        amount: meal.amount === null ? ('' as unknown as number) : meal.amount,
+        amount: meal.amount,
       };
       if (meal.mealType === MealTypeEnum.LUNCH && meal.attendance) {
         mealData.attendance = meal.attendance; // attendance가 있을 때만 추가
@@ -55,10 +55,12 @@ export class MealService {
         acc.push({
           start: meal.targetDay,
           holidayYN: meal.holidayYN,
-          breakfast: meal.mealType === MealTypeEnum.BREAKFAST ? mealData : { payerName: '', place: '', amount: '' },
+          breakfast: meal.mealType === MealTypeEnum.BREAKFAST ? mealData : { payerName: '', place: '', amount: null },
           lunch:
-            meal.mealType === MealTypeEnum.LUNCH ? mealData : { payerName: '', place: '', amount: '', attendance: '' },
-          dinner: meal.mealType === MealTypeEnum.DINNER ? mealData : { payerName: '', place: '', amount: '' },
+            meal.mealType === MealTypeEnum.LUNCH
+              ? mealData
+              : { payerName: '', place: '', amount: null, attendance: '' },
+          dinner: meal.mealType === MealTypeEnum.DINNER ? mealData : { payerName: '', place: '', amount: null },
         });
       }
 
@@ -99,6 +101,8 @@ export class MealService {
         this.isAnyFieldBlank(newMealInfo.lunch) ||
         this.isAnyFieldBlank(newMealInfo.dinner)
       ) {
+        console.log(newMealInfo.breakfast);
+        console.log(this.isAnyFieldBlank(newMealInfo.breakfast));
         throw new BadRequestException('연차/휴무 및 재택 근무는 식대 지원이 불가합니다.');
       }
     }
@@ -256,6 +260,6 @@ export class MealService {
 
   /* 필드 중 하나라도 값이 있으면 true 반환 */
   private isAnyFieldBlank(mealInput: MealInputDto): boolean {
-    return Object.values(mealInput).some((value) => value !== '');
+    return Object.values(mealInput).some((value) => value !== '' && value !== null);
   }
 }

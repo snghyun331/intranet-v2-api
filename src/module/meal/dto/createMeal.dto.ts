@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { AttendanceEnum, YNEnum } from '../../../common/constant/enum';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 export class MealInputDto {
   @ApiProperty({ type: String, description: '결제자(이름만 넣어주세요)', required: true })
@@ -12,9 +12,9 @@ export class MealInputDto {
   @IsString()
   place: string;
 
-  @ApiProperty({ type: String, description: '결제 금액', required: true })
-  @Transform(({ value }) => (value === '' ? null : Number(value)))
-  amount: number;
+  @ApiProperty({ type: Number, description: '결제 금액', required: false })
+  @IsOptional()
+  amount: number | null;
 }
 
 export class CreateMealDto {
