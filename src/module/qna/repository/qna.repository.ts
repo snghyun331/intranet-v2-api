@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateQnaDto } from '../dto/createQna.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QnaEntity } from '../../../entity/qna/qna.entity';
-import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
+import { DeleteResult, EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { QnaAdminResult, QnaInfo } from '../interface/result.interface';
 import { QnaFilterDto } from '../dto/query.dto';
@@ -88,5 +88,19 @@ export class QnaRepository {
     const result: QnaInfo[] = await query.getRawMany();
 
     return { totalPage, total, qna: result };
+  }
+
+  async getQnaInfoByIdx(qnaIdx: number): Promise<QnaInfo> {
+    const result: QnaInfo = await this.qnaModel
+      .createQueryBuilder('qnaEntity')
+      .select(['qnaEntity.qnaIdx AS qnaIdx', 'qnaEntity.userIdx AS userIdx'])
+      .where('qnaEntity.qnaIdx = :qnaIdx', { qnaIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async deleteMyQna(qnaIdx: number, manager: EntityManager): Promise<DeleteResult> {
+    return await manager.createQueryBuilder().delete().from(QnaEntity).where('qnaIdx = :qnaIdx', { qnaIdx }).execute();
   }
 }

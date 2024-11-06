@@ -89,6 +89,82 @@ export const USERS_QNA: SwaggerMethod = {
       description: 'createdAt은 UTC 기준입니다.',
     },
   },
+  DELETE: {
+    API_OPERATION: {
+      summary: '사용자 문의 삭제 API',
+    },
+    API_PARAM1: {
+      name: 'qnaIdx',
+      type: Number,
+      required: true,
+      description: '문의 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '문의 내역 삭제 성공',
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: 'DB에 없는 userIdx',
+              value: {
+                message: '올바른 유저가 아닙니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 9. 17. 오후 2:17:56',
+                path: '/users/qna/1',
+              },
+            },
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '해당 내역은 존재하지 않거나 삭제되었습니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 10. 18. 오후 3:18:24',
+                path: '/users/qna/36',
+              },
+            },
+          },
+        },
+      },
+    },
+    API_FORBIDDEN_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '삭제 권한 없음',
+              value: {
+                message: '문의내역 삭제 권한이 없습니다',
+                error: 'Forbidden',
+                statusCode: 403,
+                timeStamp: '2024. 9. 23. 오전 10:10:20',
+                path: '/users/qna/1',
+              },
+              description: '로그인한 유저IDX와 qna의 유저IDX가 일치하지 않음',
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 export const ADMIN_QNA: SwaggerMethod = {
