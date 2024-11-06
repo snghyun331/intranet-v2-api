@@ -107,7 +107,7 @@ export class WelfareService {
     }
 
     const { userName } = currentUserInfo;
-    if (userName !== updateWelfareInfo.payerName) {
+    if (updateWelfareInfo.selfWrittenYN === YNEnum.YES && userName !== updateWelfareInfo.payerName) {
       throw new BadRequestException('결제자는 본인 이름만 입력 가능합니다.');
     }
 
