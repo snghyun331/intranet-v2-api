@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, EntityManager, InsertResult, Repository, UpdateResult } from 'typeorm';
 import { CreateActivityDto } from '../dto/createActivity.dto';
 import { ActivityEntity } from '../../../entity/activity/activity.entity';
-import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
+import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
 import { ActivityInfo } from '../interface/activity.interface';
@@ -67,7 +67,7 @@ export class ActivityRepository {
     payerName: string,
     manager: EntityManager,
   ): Promise<number> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await manager
