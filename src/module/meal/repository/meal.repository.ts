@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
+import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
 import { MealEntity } from '../../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
@@ -41,7 +41,7 @@ export class MealRepository {
   }
 
   async getMealCalender(year: number, month: number, userIdx: number): Promise<MealEntity[]> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: MealEntity[] = await this.mealModel
@@ -104,7 +104,7 @@ export class MealRepository {
   }
 
   async getMonthHolidays(year: number, month: number): Promise<string[]> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: HolidayEntity[] = await this.holidayModel
@@ -126,7 +126,7 @@ export class MealRepository {
   }
 
   async getTotalTimeoffDays(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: any = await manager
@@ -163,7 +163,7 @@ export class MealRepository {
   }
 
   async getTotalMealExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await manager
@@ -198,7 +198,7 @@ export class MealRepository {
   }
 
   async getTotalHolidayWorkdays(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: any = await manager
@@ -260,7 +260,7 @@ export class MealRepository {
     userIdx: number,
     manager: EntityManager,
   ): Promise<number> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await manager
@@ -295,7 +295,7 @@ export class MealRepository {
   }
 
   async getTotalDinnerExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: { total: number } = await manager

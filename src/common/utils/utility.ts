@@ -1,6 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
 import * as moment from 'moment';
-import { HalfYearEnum } from '../constant/enum';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (dateString: string): string => {
@@ -38,7 +37,7 @@ export const getWeekendDates = (year: number, month: number): string[] => {
   return weekends;
 };
 
-export const getStartAndLastDayofMonth = (year: number, month: number) => {
+export const getStartAndEndDateByMonth = (year: number, month: number) => {
   // 월의 첫 날과 마지막 날 계산
   const firstDayOfMonth: moment.Moment = moment({ year: year, month: month - 1 })
     .startOf('month')
@@ -49,23 +48,24 @@ export const getStartAndLastDayofMonth = (year: number, month: number) => {
   return { firstDayOfMonth, lastDayOfMonth };
 };
 
-export const getStartAndLastDayofHalf = (year: string, half: HalfYearEnum) => {
-  // 반기별 첫 날과 마지막 날 계산
-  if (half === HalfYearEnum.H1) {
-    const firstDayOfHalf = year + '-' + '01-01';
-    const lastDayOfHalf = year + '-' + '06-30';
+export const getStartAndEndDateByMonths = (year: number, monthArray: string[]) => {
+  // 배열로 입력된 월 기준으로 시작일과 종료일 계산
+  const minMonth: number = Math.min(...monthArray.map(Number));
+  const maxMonth: number = Math.max(...monthArray.map(Number));
 
-    return { firstDayOfHalf, lastDayOfHalf };
-  } else {
-    const firstDayOfHalf = year + '-' + '07-01';
-    const lastDayOfHalf = year + '-' + '12-31';
+  const firstDayOfMonth: moment.Moment = moment({ year: year, month: minMonth - 1 })
+    .startOf('month')
+    .utcOffset(9);
 
-    return { firstDayOfHalf, lastDayOfHalf };
-  }
+  const lastDayOfMonth: moment.Moment = moment({ year: year, month: maxMonth - 1 })
+    .endOf('month')
+    .utcOffset(9);
+
+  return { firstDayOfMonth, lastDayOfMonth };
 };
 
 export const getTotalDaysInMonth = (year: number, month: number): number => {
-  const { lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+  const { lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
   const totalDays: number = lastDayOfMonth.date();
 
   return totalDays;

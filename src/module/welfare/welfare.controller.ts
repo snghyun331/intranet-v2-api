@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -24,7 +23,6 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { USERS_WELFARES } from './swagger/welfare.swagger';
@@ -33,12 +31,13 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
 import { EntityManager } from 'typeorm';
 import { UserRole } from '../../common/decorator/userRole.decorator';
-import { HalfYearEnum, UserGradeEnum } from '../../common/constant/enum';
+import { UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { WelfareResult } from './interface/result.interface';
+import { WelfareFilterDto } from './dto/query.dto';
 
 @ApiTags('복지포인트(USER)')
 @Controller('users/welfares')
@@ -46,34 +45,13 @@ export class WelfareController {
   constructor(private readonly welfareService: WelfareService) {}
 
   @ApiOperation(USERS_WELFARES.GET.API_OPERATION)
-  @ApiQuery(USERS_WELFARES.GET.API_QUERY1)
-  @ApiQuery(USERS_WELFARES.GET.API_QUERY2)
-  @ApiQuery(USERS_WELFARES.GET.API_QUERY3)
   @ApiOkResponse(USERS_WELFARES.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
-  async getWelfare(
-    @Query('year') year: string,
-    @Query('month') month: string,
-    @Query('half') half: HalfYearEnum,
-    @CurrentUserIdx() userIdx: number,
-  ): Promise<ResponseInterface> {
-    if (month && half) {
-      throw new BadRequestException('월(month) 또는 상/하반기(half) 중 하나만 입력해 주세요.');
-    }
-    if (half && !year) {
-      throw new BadRequestException('상/하반기(half) 입력 시, 연도(year)도 함께 입력해주세요.');
-    }
-
-    let welfares = {} as WelfareResult;
-
-    if (half) {
-      welfares = await this.welfareService.getHalfYearWelfare(year, half, userIdx);
-    } else {
-      welfares = await this.welfareService.getWelfare(year, month, userIdx);
-    }
+  async getWelfare(@Query() query: WelfareFilterDto, @CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
+    const welfares: WelfareResult = await this.welfareService.getWelfare(query.year, query.month, userIdx);
 
     const response: ResponseInterface = { message: '복포 사용내역 조회 성공', data: welfares };
 
