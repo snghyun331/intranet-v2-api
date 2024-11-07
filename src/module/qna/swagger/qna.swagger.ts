@@ -91,13 +91,22 @@ export const USERS_QNA: SwaggerMethod = {
   },
   DELETE: {
     API_OPERATION: {
-      summary: '사용자 문의 삭제 API',
+      summary: '사용자 문의 개별 및 복수 삭제 API',
     },
-    API_PARAM1: {
-      name: 'qnaIdx',
-      type: Number,
+    API_BODY: {
+      type: Array,
+      description: '문의IDX 배열',
+      examples: {
+        a: {
+          summary: '문의IDX 개별삭제',
+          value: { qnaIdxList: [1] },
+        },
+        b: {
+          summary: '문의IDX 복수삭제',
+          value: { qnaIdxList: [1, 2, 3] },
+        },
+      },
       required: true,
-      description: '문의 IDX',
     },
     API_OK_RESPONSE: {
       content: {
@@ -140,25 +149,6 @@ export const USERS_QNA: SwaggerMethod = {
                 timeStamp: '2024. 10. 18. 오후 3:18:24',
                 path: '/users/qna/36',
               },
-            },
-          },
-        },
-      },
-    },
-    API_FORBIDDEN_RESPONSE: {
-      content: {
-        'application/json': {
-          examples: {
-            a: {
-              summary: '삭제 권한 없음',
-              value: {
-                message: '문의내역 삭제 권한이 없습니다',
-                error: 'Forbidden',
-                statusCode: 403,
-                timeStamp: '2024. 9. 23. 오전 10:10:20',
-                path: '/users/qna/1',
-              },
-              description: '로그인한 유저IDX와 qna의 유저IDX가 일치하지 않음',
             },
           },
         },
