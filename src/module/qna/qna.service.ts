@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateQnaDto } from './dto/createQna.dto';
 import { QnaRepository } from './repository/qna.repository';
 import { EntityManager } from 'typeorm';
@@ -37,22 +37,21 @@ export class QnaService {
     return { totalPage, total, qna };
   }
 
-  async deleteMyQna(userIdx: number, qnaIdx: number, manager: EntityManager): Promise<void> {
+  async deleteMyQna(userIdx: number, qnaIdxList: number[], manager: EntityManager): Promise<void> {
     const userCnt: number = await this.qnaRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const qnaInfo: QnaInfo = await this.qnaRepository.getQnaInfoByIdx(qnaIdx);
-    if (!qnaInfo) {
-      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
-    }
-
-    if (userIdx !== qnaInfo.userIdx) {
-      throw new ForbiddenException('문의내역 삭제 권한이 없습니다');
-    }
-
-    await this.qnaRepository.deleteMyQna(qnaIdx, manager);
+    await Promise.all(
+      qnaIdxList.map(async (qnaIdx) => {
+        const qnaInfo: QnaInfo = await this.qnaRepository.getQnaInfoByIdx(qnaIdx);
+        if (!qnaInfo) {
+          throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+        }
+        await this.qnaRepository.deleteMyQna(qnaIdx, manager);
+      }),
+    );
 
     return;
   }

@@ -1,15 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import {
   ApiBadRequestResponse,
@@ -20,7 +9,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { ADMIN_QNA, USERS_QNA } from './swagger/qna.swagger';
@@ -80,23 +68,24 @@ export class UserQnaController {
   }
 
   @ApiOperation(USERS_QNA.DELETE.API_OPERATION)
-  @ApiParam(USERS_QNA.DELETE.API_PARAM1)
+  @ApiBody(USERS_QNA.DELETE.API_BODY)
   @ApiOkResponse(USERS_QNA.DELETE.API_OK_RESPONSE)
   @ApiNotFoundResponse(USERS_QNA.DELETE.API_NOT_FOUND_RESPONSE)
   @ApiBadRequestResponse(USERS_QNA.DELETE.API_BAD_REQUEST_RESPONSE)
-  @ApiForbiddenResponse(USERS_QNA.DELETE.API_FORBIDDEN_RESPONSE)
   @UseInterceptors(TransactionInterceptor)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @Delete(':qnaIdx')
+  @Delete()
   async deleteMyQna(
-    @Param('qnaIdx', ParseIntPipe) qnaIdx: number,
+    @Body('qnaIdxList') qnaIdxList: number[],
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.qnaService.deleteMyQna(userIdx, qnaIdx, manager);
+    await this.qnaService.deleteMyQna(userIdx, qnaIdxList, manager);
+
     const response: ResponseInterface = { message: '문의 내역 삭제 성공' };
+
     return response;
   }
 }
