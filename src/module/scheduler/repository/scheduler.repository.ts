@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
-import { getStartAndLastDayofMonth } from '../../../common/utils/utility';
+import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { HolidayInfo } from '../interface/holiday.interface';
@@ -46,7 +46,7 @@ export class SchedulerRepository {
 
   async getHolidayDates(year: number, month: number): Promise<string[]> {
     // 해당 월의 첫 번째 날과 마지막 날을 구함
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndLastDayofMonth(year, month);
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
     const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
     const result: HolidayEntity[] = await this.holidayModel
