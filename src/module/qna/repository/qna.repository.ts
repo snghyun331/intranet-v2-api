@@ -47,6 +47,7 @@ export class QnaRepository {
         'qnaEntity.createdAt AS createdAt',
       ])
       .where('qnaEntity.userIdx = :userIdx', { userIdx })
+      .orderBy('qnaEntity.createdAt', 'DESC')
       .getRawMany();
 
     return result;
