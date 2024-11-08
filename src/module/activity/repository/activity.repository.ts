@@ -209,7 +209,7 @@ export class ActivityRepository {
   }
 
   async getActivityStats(year: number, halfYear: HalfYearEnum, user: UserPayload): Promise<ActivityStats> {
-    const query: SelectQueryBuilder<ActivityStatsEntity> = await this.activityStatsModel
+    const query: SelectQueryBuilder<ActivityStatsEntity> = this.activityStatsModel
       .createQueryBuilder('activityStatsEntity')
       .select([
         'activityStatsEntity.year AS year',
@@ -231,7 +231,6 @@ export class ActivityRepository {
     } else if (user.teamName) {
       query.andWhere('teamEntity.teamName = :teamName', { teamName: user.teamName });
     }
-
     const result: ActivityStats = await query.getRawOne();
 
     return result;

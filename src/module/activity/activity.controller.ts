@@ -117,6 +117,7 @@ export class ActivityController {
 
   @ApiOperation(USERS_ACTIVITIES.GET.API_OPERATION)
   @ApiOkResponse(USERS_ACTIVITIES.GET.API_OK_RESPONSE)
+  @ApiBadRequestResponse(USERS_ACTIVITIES.GET.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)

@@ -101,8 +101,6 @@ export class MealService {
         this.isAnyFieldBlank(newMealInfo.lunch) ||
         this.isAnyFieldBlank(newMealInfo.dinner)
       ) {
-        console.log(newMealInfo.breakfast);
-        console.log(this.isAnyFieldBlank(newMealInfo.breakfast));
         throw new BadRequestException('연차/휴무 및 재택 근무는 식대 지원이 불가합니다.');
       }
     }
