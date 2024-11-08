@@ -196,6 +196,7 @@ export class WelfareRepository {
       .where('welfareEntity.userIdx = :userIdx', { userIdx })
       .andWhere('welfareEntity.targetDay BETWEEN :startDate AND :endDate', { startDate, endDate })
       .orderBy('welfareEntity.targetDay', 'DESC')
+      .addOrderBy('welfareEntity.createdAt', 'DESC')
       .getRawMany();
 
     // 데이터를 변환하여 payeeList를 추가
@@ -237,6 +238,7 @@ export class WelfareRepository {
       ])
       .where('welfareEntity.userIdx = :userIdx', { userIdx })
       .orderBy('welfareEntity.targetDay', 'DESC')
+      .addOrderBy('welfareEntity.createdAt', 'DESC')
       .getRawMany();
 
     // 데이터를 변환하여 payeeList를 추가
