@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import {
   ApiBadRequestResponse,
@@ -9,6 +21,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { ADMIN_QNA, USERS_QNA } from './swagger/qna.swagger';
@@ -16,7 +29,7 @@ import { UserGradeEnum } from '../../common/constant/enum';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRole } from '../../common/decorator/userRole.decorator';
-import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
+import { CurrentUser, CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { QnaService } from './qna.service';
 import { CreateQnaDto } from './dto/createQna.dto';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -26,6 +39,8 @@ import { QnaEntity } from '../../entity/qna/qna.entity';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { QnaAdminResult } from './interface/result.interface';
 import { PaginationDto } from './dto/query.dto';
+import { UserPayload } from '../../common/interface/payload.interface';
+import { ReplyQnaDto } from './dto/replyQna.dto';
 
 @ApiTags('문의(USER)')
 @Controller('users/qna')
@@ -108,6 +123,29 @@ export class AdminQnaController {
       message: '어드민 문의 내역 조회 성공',
       data: { totalPage, total, qna },
     };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_QNA.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_QNA.PATCH.API_PARAM1)
+  @ApiBody(ADMIN_QNA.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_QNA.PATCH.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_QNA.PATCH.API_BAD_REQUEST_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_QNA.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Patch(':qnaIdx')
+  async replyQna(
+    @Param('qnaIdx', ParseIntPipe) qnaIdx: number,
+    @Body() replyDto: ReplyQnaDto,
+    @CurrentUser() admin: UserPayload,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.qnaService.replyQna(qnaIdx, replyDto, admin, manager);
+
+    const response: ResponseInterface = { message: '어드민 문의 답변 등록 성공' };
 
     return response;
   }
