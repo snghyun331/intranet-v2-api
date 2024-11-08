@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -29,12 +30,15 @@ import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
-import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
+import { CurrentUser, CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
 import { EntityManager } from 'typeorm';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
 import { ResponseInterface } from '../../common/interface/response.interface';
+import { ActivityFilterDto } from './dto/query.dto';
+import { UserPayload } from '../../common/interface/payload.interface';
+import { ActivityResult } from './interface/result.interface';
 
 @ApiTags('활동비(USER)')
 @Controller('users/activities')
@@ -112,12 +116,16 @@ export class ActivityController {
   }
 
   @ApiOperation(USERS_ACTIVITIES.GET.API_OPERATION)
+  @ApiOkResponse(USERS_ACTIVITIES.GET.API_OK_RESPONSE)
+  @ApiBadRequestResponse(USERS_ACTIVITIES.GET.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
-  async getWelfare(): Promise<ResponseInterface> {
-    const response: ResponseInterface = { message: '복포 사용내역 조회 성공' };
+  async getWelfare(@Query() query: ActivityFilterDto, @CurrentUser() user: UserPayload): Promise<ResponseInterface> {
+    const activities: ActivityResult = await this.activityService.getActivity(query.year, query.month, user);
+
+    const response: ResponseInterface = { message: '활동비 사용내역 조회 성공', data: activities };
 
     return response;
   }

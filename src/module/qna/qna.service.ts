@@ -4,6 +4,9 @@ import { QnaRepository } from './repository/qna.repository';
 import { EntityManager } from 'typeorm';
 import { QnaEntity } from '../../entity/qna/qna.entity';
 import { QnaAdminResult, QnaInfo } from './interface/result.interface';
+import { UserPayload } from '../../common/interface/payload.interface';
+import { ReplyQnaDto } from './dto/replyQna.dto';
+import { YNEnum } from '../../common/constant/enum';
 
 @Injectable()
 export class QnaService {
@@ -52,6 +55,25 @@ export class QnaService {
         await this.qnaRepository.deleteMyQna(qnaIdx, manager);
       }),
     );
+
+    return;
+  }
+
+  async replyQna(
+    qnaIdx: number,
+    { replyText }: ReplyQnaDto,
+    admin: UserPayload,
+    manager: EntityManager,
+  ): Promise<void> {
+    const qnaInfo: QnaInfo = await this.qnaRepository.getQnaInfoByIdx(qnaIdx);
+    if (!qnaInfo) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+    if (qnaInfo.replySuccessYN === YNEnum.YES) {
+      throw new BadRequestException('이미 답변된 문의입니다.');
+    }
+
+    await this.qnaRepository.replyQna(qnaIdx, replyText, admin.userName, manager);
 
     return;
   }

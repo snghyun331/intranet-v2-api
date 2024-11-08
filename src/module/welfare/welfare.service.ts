@@ -28,6 +28,9 @@ export class WelfareService {
     if (newWelfareInfo.payeeIdxs.length > 0) {
       await Promise.all(
         newWelfareInfo.payeeIdxs.map(async (payeeIdx) => {
+          if (payeeIdx === userIdx) {
+            throw new BadRequestException('동반 결제자에 본인을 선택할 수 없습니다.');
+          }
           await this.welfareRepository.createPayee(welfareIdx, payeeIdx, newWelfareInfo, manager);
         }),
       );
@@ -146,6 +149,9 @@ export class WelfareService {
       if (payeeIdxToAdd.length > 0) {
         await Promise.all(
           payeeIdxToAdd.map(async (payeeIdx) => {
+            if (payeeIdx === userIdx) {
+              throw new BadRequestException('동반 결제자에 본인을 선택할 수 없습니다.');
+            }
             await this.welfareRepository.createPayee(welfareIdx, payeeIdx, updateWelfareInfo, manager);
           }),
         );
