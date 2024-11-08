@@ -169,6 +169,16 @@ export const USERS_WELFARES: SwaggerMethod = {
                 path: '/users/welfares',
               },
             },
+            c: {
+              summary: 'payee에 본인을 선택할 수 없음',
+              value: {
+                message: '동반 결제자에 본인을 선택할 수 없습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 8. 오후 2:27:18',
+                path: '/users/welfares',
+              },
+            },
           },
         },
       },
@@ -346,6 +356,16 @@ export const USERS_WELFARES: SwaggerMethod = {
                 statusCode: 400,
                 timeStamp: '2024. 10. 31. 오후 5:52:57',
                 path: '/users/welfares/1',
+              },
+            },
+            c: {
+              summary: 'payee에 본인을 선택할 수 없음',
+              value: {
+                message: '동반 결제자에 본인을 선택할 수 없습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 8. 오후 2:27:18',
+                path: '/users/welfares',
               },
             },
           },

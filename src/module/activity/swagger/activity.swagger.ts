@@ -298,7 +298,139 @@ export const USERS_ACTIVITIES: SwaggerMethod = {
   },
   GET: {
     API_OPERATION: {
-      summary: '',
+      summary: '활동비 사용내역 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: 'P&C팀 소속 (대표 포함)',
+              value: {
+                statusCode: 200,
+                message: '활동비 사용내역 조회 성공',
+                data: {
+                  activityStats: {
+                    year: '2024',
+                    halfYear: 'H2',
+                    activityBudget: 3833000,
+                    activityExpense: 0,
+                    activityBalance: 3833000,
+                    hqName: null,
+                    teamName: 'P&C',
+                  },
+                  activities: [
+                    {
+                      activityIdx: 10,
+                      userIdx: 9,
+                      userName: '윤이나',
+                      targetDay: '2024-10-11',
+                      content: '한강솥',
+                      amount: 30000,
+                      payerName: '윤이나',
+                      confirmYN: 'N',
+                    },
+                  ],
+                },
+              },
+              description:
+                'userName은 활동비 내역 작성자를 뜻합니다. 작성자는 해당 본부(팀)의 본부장 및 팀장만 등록 가능합니다.',
+            },
+            b: {
+              summary: 'HR 솔루션본부 소속',
+              value: {
+                statusCode: 200,
+                message: '활동비 사용내역 조회 성공',
+                data: {
+                  activityStats: {
+                    year: '2024',
+                    halfYear: 'H2',
+                    activityBudget: 3400000,
+                    activityExpense: 640000,
+                    activityBalance: 2760000,
+                    hqName: 'HR솔류션본부',
+                    teamName: null,
+                  },
+                  activities: [
+                    {
+                      activityIdx: 5,
+                      userIdx: 8,
+                      userName: '김현해',
+                      targetDay: '2024-10-29',
+                      content: '명륜진사갈비',
+                      amount: 500000,
+                      payerName: '김현근',
+                      confirmYN: 'N',
+                    },
+                    {
+                      activityIdx: 7,
+                      userIdx: 7,
+                      userName: '김현근',
+                      targetDay: '2024-10-11',
+                      content: '한강솥',
+                      amount: 30000,
+                      payerName: '김현근',
+                      confirmYN: 'N',
+                    },
+                  ],
+                },
+              },
+              description:
+                'userName은 활동비 내역 작성자를 뜻합니다. 작성자는 해당 본부(팀)의 본부장 및 팀장만 등록 가능합니다.',
+            },
+            c: {
+              summary: 'HR 컨설팅본부 소속',
+              value: {
+                statusCode: 200,
+                message: '활동비 사용내역 조회 성공',
+                data: {
+                  activityStats: {
+                    year: '2024',
+                    halfYear: 'H2',
+                    activityBudget: 3833000,
+                    activityExpense: 800000,
+                    activityBalance: 3033000,
+                    hqName: 'HR컨설팅본부',
+                    teamName: null,
+                  },
+                  activities: [
+                    {
+                      activityIdx: 8,
+                      userIdx: 4,
+                      userName: '박민수',
+                      targetDay: '2024-10-07',
+                      content: '메드포갈릭',
+                      amount: 400000,
+                      payerName: '박민수',
+                      confirmYN: 'N',
+                    },
+                  ],
+                },
+              },
+              description:
+                'userName은 활동비 내역 작성자를 뜻합니다. 작성자는 해당 본부(팀)의 본부장 및 팀장만 등록 가능합니다.',
+            },
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: 'query param에 연도와 월 중, 하나만 입력했을 때',
+              value: {
+                message: '연도와 월은 모두 입력하거나, 모두 입력하지 않아야 합니다',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 10. 18. 오후 1:18:19',
+                path: '/users/welfares?year=2024',
+              },
+            },
+          },
+        },
+      },
     },
   },
 };

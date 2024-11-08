@@ -1,19 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, EntityManager, InsertResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateActivityDto } from '../dto/createActivity.dto';
 import { ActivityEntity } from '../../../entity/activity/activity.entity';
-import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
+import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
-import { ActivityInfo } from '../interface/activity.interface';
+import { Activities, ActivityInfo, ActivityStats } from '../interface/activity.interface';
+import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
+import { TeamEntity } from '../../../entity/user/team.entity';
+import { UserPayload } from '../../../common/interface/payload.interface';
+import { HalfYearEnum } from '../../../common/constant/enum';
+import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
 
 @Injectable()
 export class ActivityRepository {
   constructor(
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(ActivityEntity) private readonly activityModel: Repository<ActivityEntity>,
+    @InjectRepository(ActivityStatsEntity) private readonly activityStatsModel: Repository<ActivityStatsEntity>,
   ) {}
 
   async getUserCountByIdx(userIdx: number): Promise<number> {
@@ -135,5 +141,98 @@ export class ActivityRepository {
       .from(ActivityEntity)
       .where('activityIdx = :activityIdx', { activityIdx })
       .execute();
+  }
+
+  async getMonthActivities(year: number, month: string[], user: UserPayload) {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonths(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+
+    const query: SelectQueryBuilder<ActivityEntity> = this.activityModel
+      .createQueryBuilder('activityEntity')
+      .select([
+        'activityEntity.activityIdx AS activityIdx',
+        'activityEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'activityEntity.targetDay AS targetDay',
+        'activityEntity.content AS content',
+        'activityEntity.amount AS amount',
+        'activityEntity.payerName AS payerName',
+        'activityEntity.confirmYN AS confirmYN',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityEntity.userIdx')
+      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .where('activityEntity.targetDay BETWEEN :startDate AND :endDate', { startDate, endDate });
+
+    if (user.hqName) {
+      query.andWhere('hqEntity.hqName = :hqName', { hqName: user.hqName });
+    } else if (user.teamName) {
+      query.andWhere('teamEntity.teamName = :teamName', { teamName: user.teamName });
+    }
+
+    query.orderBy('activityEntity.targetDay', 'DESC').addOrderBy('activityEntity.createdAt', 'DESC');
+
+    const result: Activities[] = await query.getRawMany();
+
+    return result;
+  }
+
+  async getAllActivities(user: UserPayload): Promise<Activities[]> {
+    const query: SelectQueryBuilder<ActivityEntity> = this.activityModel
+      .createQueryBuilder('activityEntity')
+      .select([
+        'activityEntity.activityIdx AS activityIdx',
+        'activityEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'activityEntity.targetDay AS targetDay',
+        'activityEntity.content AS content',
+        'activityEntity.amount AS amount',
+        'activityEntity.payerName AS payerName',
+        'activityEntity.confirmYN AS confirmYN',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityEntity.userIdx')
+      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx');
+
+    if (user.hqName) {
+      query.where('hqEntity.hqName = :hqName', { hqName: user.hqName });
+    } else if (user.teamName) {
+      query.where('teamEntity.teamName = :teamName', { teamName: user.teamName });
+    }
+
+    query.orderBy('activityEntity.targetDay', 'DESC').addOrderBy('activityEntity.createdAt', 'DESC');
+
+    const result: Activities[] = await query.getRawMany();
+
+    return result;
+  }
+
+  async getActivityStats(year: number, halfYear: HalfYearEnum, user: UserPayload): Promise<ActivityStats> {
+    const query: SelectQueryBuilder<ActivityStatsEntity> = this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .select([
+        'activityStatsEntity.year AS year',
+        'activityStatsEntity.halfYear AS halfYear',
+        'activityStatsEntity.activityBudget AS activityBudget',
+        'activityStatsEntity.activityExpense AS activityExpense',
+        'activityStatsEntity.activityBalance AS activityBalance',
+        'hqEntity.hqName AS hqName',
+        'teamEntity.teamName AS teamName',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
+      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .where('activityStatsEntity.year = :year', { year })
+      .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear });
+
+    if (user.hqName) {
+      query.andWhere('hqEntity.hqName = :hqName', { hqName: user.hqName });
+    } else if (user.teamName) {
+      query.andWhere('teamEntity.teamName = :teamName', { teamName: user.teamName });
+    }
+    const result: ActivityStats = await query.getRawOne();
+
+    return result;
   }
 }

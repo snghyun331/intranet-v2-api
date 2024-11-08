@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CreateQnaDto } from '../dto/createQna.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QnaEntity } from '../../../entity/qna/qna.entity';
-import { DeleteResult, EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
+import { DeleteResult, EntityManager, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { QnaAdminResult, QnaInfo } from '../interface/result.interface';
 import { QnaFilterDto } from '../dto/query.dto';
+import { YNEnum } from '../../../common/constant/enum';
 
 @Injectable()
 export class QnaRepository {
@@ -94,7 +95,11 @@ export class QnaRepository {
   async getQnaInfoByIdx(qnaIdx: number): Promise<QnaInfo> {
     const result: QnaInfo = await this.qnaModel
       .createQueryBuilder('qnaEntity')
-      .select(['qnaEntity.qnaIdx AS qnaIdx', 'qnaEntity.userIdx AS userIdx'])
+      .select([
+        'qnaEntity.qnaIdx AS qnaIdx',
+        'qnaEntity.userIdx AS userIdx',
+        'qnaEntity.replySuccessYN AS replySuccessYN',
+      ])
       .where('qnaEntity.qnaIdx = :qnaIdx', { qnaIdx })
       .getRawOne();
 
@@ -103,5 +108,14 @@ export class QnaRepository {
 
   async deleteMyQna(qnaIdx: number, manager: EntityManager): Promise<DeleteResult> {
     return await manager.createQueryBuilder().delete().from(QnaEntity).where('qnaIdx = :qnaIdx', { qnaIdx }).execute();
+  }
+
+  async replyQna(qnaIdx: number, replyText: string, replyAdmin: string, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(QnaEntity)
+      .set({ replyText, replySuccessYN: YNEnum.YES, replyAdmin })
+      .where('qnaIdx = :qnaIdx', { qnaIdx })
+      .execute();
   }
 }

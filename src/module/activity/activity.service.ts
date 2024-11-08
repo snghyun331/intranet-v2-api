@@ -4,7 +4,10 @@ import { EntityManager } from 'typeorm';
 import { ActivityRepository } from './repository/activity.repository';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
 import { ACTIVITY_APPROVERS } from '../../common/constant/constant';
-import { ActivityInfo } from './interface/activity.interface';
+import { Activities, ActivityInfo, ActivityStats } from './interface/activity.interface';
+import { UserPayload } from '../../common/interface/payload.interface';
+import { HalfYearEnum } from '../../common/constant/enum';
+import { ActivityResult } from './interface/result.interface';
 
 @Injectable()
 export class ActivityService {
@@ -118,5 +121,29 @@ export class ActivityService {
     return activityInfo.targetDay;
   }
 
-  async getActivity(year: string, month: string) {}
+  async getActivity(year: string, month: string[], user: UserPayload) {
+    let activityInfo: Activities[] = [];
+
+    if (year && month) {
+      const yearToNum: number = Number(year);
+      activityInfo = await this.activityRepository.getMonthActivities(yearToNum, month, user);
+    } else if (!year && !month) {
+      activityInfo = await this.activityRepository.getAllActivities(user);
+    } else {
+      throw new BadRequestException('연도와 월은 모두 입력하거나, 모두 입력하지 않아야 합니다');
+    }
+
+    const nowDate: Date = new Date();
+    const nowYear: number = nowDate.getFullYear();
+    const nowMonth: number = nowDate.getMonth() + 1;
+    const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
+    const activityStats: ActivityStats = await this.activityRepository.getActivityStats(nowYear, halfYear, user);
+
+    const result: ActivityResult = {
+      activityStats,
+      activities: activityInfo,
+    };
+
+    return result;
+  }
 }
