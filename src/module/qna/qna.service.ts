@@ -3,10 +3,11 @@ import { CreateQnaDto } from './dto/createQna.dto';
 import { QnaRepository } from './repository/qna.repository';
 import { EntityManager } from 'typeorm';
 import { QnaEntity } from '../../entity/qna/qna.entity';
-import { QnaAdminResult, QnaInfo } from './interface/result.interface';
+import { QnaAdminResult } from './interface/result.interface';
 import { UserPayload } from '../../common/interface/payload.interface';
 import { ReplyQnaDto } from './dto/replyQna.dto';
 import { YNEnum } from '../../common/constant/enum';
+import { QnaInfo } from './interface/qna.interface';
 
 @Injectable()
 export class QnaService {

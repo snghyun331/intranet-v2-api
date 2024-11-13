@@ -105,7 +105,7 @@ export class UserQnaController {
   }
 }
 
-@ApiTags('어드민')
+@ApiTags('문의(ADMIN)')
 @Controller('admin/qna')
 export class AdminQnaController {
   constructor(private readonly qnaService: QnaService) {}

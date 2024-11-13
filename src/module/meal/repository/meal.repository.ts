@@ -4,10 +4,13 @@ import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
 import { MealEntity } from '../../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
-import { DeleteResult, EntityManager, InsertResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
-import { DetailedMealData, MealStats } from '../interface/meal.interface';
+import { DetailedMealData, MealAdminInfo, MealStats } from '../interface/meal.interface';
+import { GradeEntity } from '../../../entity/user/grade.entity';
+import { MealAdminResult } from '../interface/result.interface';
+import { AdminMealSearchDto } from '../dto/query.dto';
 
 @Injectable()
 export class MealRepository {
@@ -40,7 +43,17 @@ export class MealRepository {
     return allNames;
   }
 
-  async getMealCalender(year: number, month: number, userIdx: number): Promise<MealEntity[]> {
+  async getUserCountByName(userName: string): Promise<number> {
+    const userCnt: number = await this.userModel
+      .createQueryBuilder('userEntity')
+      .where('userEntity.userName = :userName', { userName })
+      .andWhere('userEntity.userAvail IS NULL')
+      .getCount();
+
+    return userCnt;
+  }
+
+  async getMyMealCalender(year: number, month: number, userIdx: number): Promise<MealEntity[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -68,7 +81,7 @@ export class MealRepository {
     return result;
   }
 
-  async getMealStats(year: number, month: number, userIdx: number): Promise<MealStats> {
+  async getMyMealStats(year: number, month: number, userIdx: number): Promise<MealStats> {
     const result: MealStats = await this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([
@@ -88,7 +101,7 @@ export class MealRepository {
     return result;
   }
 
-  async createMeal(
+  async createMyMeal(
     userIdx: number,
     targetDay: string,
     newMealInfo: DetailedMealData,
@@ -125,7 +138,7 @@ export class MealRepository {
     return monthHolidays;
   }
 
-  async getTotalTimeoffDays(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
+  async getMyTotalTimeoffDays(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -145,7 +158,7 @@ export class MealRepository {
     return result.count;
   }
 
-  async updateTimeOffDaysInStats(
+  async updateMyTimeOffDaysInStats(
     timeoffDays: number,
     year: number,
     month: number,
@@ -162,7 +175,7 @@ export class MealRepository {
       .execute();
   }
 
-  async getTotalMealExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
+  async getMyTotalMealExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -180,7 +193,7 @@ export class MealRepository {
     return result.total || 0;
   }
 
-  async updateMealExpenseInStats(
+  async updateMyMealExpenseInStats(
     mealExpense: number,
     year: number,
     month: number,
@@ -197,7 +210,12 @@ export class MealRepository {
       .execute();
   }
 
-  async getTotalHolidayWorkdays(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
+  async getMyTotalHolidayWorkdays(
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -218,7 +236,7 @@ export class MealRepository {
     return result.count;
   }
 
-  async updateHolidayWorkdaysInStats(
+  async updateMyHolidayWorkdaysInStats(
     holidayWorkdays: number,
     year: number,
     month: number,
@@ -235,7 +253,7 @@ export class MealRepository {
       .execute();
   }
 
-  async deleteMeal(userIdx: number, targetDay: string, manager: EntityManager): Promise<DeleteResult> {
+  async deleteMyMeal(userIdx: number, targetDay: string, manager: EntityManager): Promise<DeleteResult> {
     return await manager
       .createQueryBuilder()
       .delete()
@@ -245,7 +263,7 @@ export class MealRepository {
       .execute();
   }
 
-  async updateMeal(mealIdx: number, updateMealInfo: DetailedMealData, manager: EntityManager): Promise<UpdateResult> {
+  async updateMyMeal(mealIdx: number, updateMealInfo: DetailedMealData, manager: EntityManager): Promise<UpdateResult> {
     return await manager
       .createQueryBuilder()
       .update(MealEntity)
@@ -254,7 +272,7 @@ export class MealRepository {
       .execute();
   }
 
-  async getTotalBreakfastExpense(
+  async getMyTotalBreakfastExpense(
     year: number,
     month: number,
     userIdx: number,
@@ -277,7 +295,7 @@ export class MealRepository {
     return result.total || 0;
   }
 
-  async updateBreakfastExpenseInStats(
+  async updateMyBreakfastExpenseInStats(
     breakfastExpense: number,
     year: number,
     month: number,
@@ -294,7 +312,7 @@ export class MealRepository {
       .execute();
   }
 
-  async getTotalDinnerExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
+  async getMyTotalDinnerExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -312,7 +330,7 @@ export class MealRepository {
     return result.total || 0;
   }
 
-  async updateDinnerExpenseInStats(
+  async updateMyDinnerExpenseInStats(
     dinnerExpense: number,
     year: number,
     month: number,
@@ -339,5 +357,46 @@ export class MealRepository {
       .getRawOne();
 
     return result;
+  }
+
+  async getMeal(pageNo: number, perPage: number, searchInfo: AdminMealSearchDto): Promise<MealAdminResult> {
+    const query: SelectQueryBuilder<MealEntity> = this.mealModel
+      .createQueryBuilder('mealEntity')
+      .select([
+        'mealEntity.mealIdx AS mealIdx',
+        'gradeEntity.gradeName AS gradeName',
+        'mealEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'mealEntity.place AS place',
+        'mealEntity.targetDay AS targetDay',
+        'mealEntity.mealType AS mealType',
+        'mealEntity.amount AS amount',
+        'mealEntity.payerName AS payerName',
+        'mealEntity.attendance AS attendance',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('mealEntity.targetDay BETWEEN :sDate AND :eDate', {
+        sDate: searchInfo.sDate,
+        eDate: searchInfo.eDate,
+      })
+      .andWhere('mealEntity.amount IS NOT NULL');
+
+    if (searchInfo.userName) {
+      query.andWhere('userEntity.userName = :userName', { userName: searchInfo.userName });
+    }
+
+    const total = await query.getCount();
+    const totalPage = Math.ceil(total / perPage);
+
+    query
+      .orderBy('mealEntity.targetDay', 'DESC')
+      .addOrderBy('userEntity.userName', 'ASC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
+
+    const result: MealAdminInfo[] = await query.getRawMany();
+
+    return { totalPage, total, meal: result };
   }
 }

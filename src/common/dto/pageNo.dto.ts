@@ -19,13 +19,13 @@ export class PageNoDto {
   @ApiProperty({
     name: 'perPage',
     type: Number,
-    description: '한 페이지당 보여 줄 목록 수 (기본 10개)',
-    example: 10,
+    description: '한 페이지당 보여 줄 목록 수 (기본 20개)',
+    example: 20,
     required: false,
   })
   @Type(() => Number)
-  // 입력 값이 1보다 작거나 10,000보다 크다면 10으로 강제로 변환, 아니라면 값 그대로 출력
-  @Transform(({ value }) => (value < 1 || value > 10000 ? 10 : value))
+  // 입력 값이 1보다 작거나 10,000보다 크다면 20으로 강제로 변환, 아니라면 값 그대로 출력
+  @Transform(({ value }) => (value < 1 || value > 10000 ? 20 : value))
   @IsNumber()
-  perPage = 10;
+  perPage = 20;
 }
