@@ -55,7 +55,7 @@ export const USERS_MEALS: SwaggerMethod = {
                   dinner: {
                     payerName: '',
                     place: '',
-                    amount: '',
+                    amount: null,
                   },
                 },
                 {
@@ -64,7 +64,7 @@ export const USERS_MEALS: SwaggerMethod = {
                   breakfast: {
                     payerName: '',
                     place: '',
-                    amount: '',
+                    amount: null,
                   },
                   lunch: {
                     payerName: '이승현',
@@ -75,7 +75,7 @@ export const USERS_MEALS: SwaggerMethod = {
                   dinner: {
                     payerName: '',
                     place: '',
-                    amount: '',
+                    amount: null,
                   },
                 },
               ],
@@ -293,6 +293,72 @@ export const USERS_MEALS: SwaggerMethod = {
                 statusCode: 400,
                 timeStamp: '2024. 9. 17. 오후 2:17:56',
                 path: '/users/meals/4',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_MEALS: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 식대내역 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '어드민 식대 내역 조회 성공',
+            data: {
+              totalPage: 1,
+              total: 2,
+              meal: [
+                {
+                  mealIdx: 34,
+                  gradeName: '위원',
+                  userIdx: 1,
+                  userName: '이승현',
+                  place: '김가네',
+                  targetDay: '2024-11-04',
+                  mealType: 'lunch',
+                  amount: 5000,
+                  payerName: '이승현',
+                  attendance: '근무',
+                },
+                {
+                  mealIdx: 47,
+                  gradeName: '위원',
+                  userIdx: 2,
+                  userName: '김현민',
+                  place: '김가네',
+                  targetDay: '2024-10-29',
+                  mealType: 'lunch',
+                  amount: 5000,
+                  payerName: '이승현',
+                  attendance: '근무',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 검색 유저명',
+              value: {
+                message: '검색 유저가 올바르지 않습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 13. 오전 11:02:36',
+                path: '/admin/meals?pageNo=1&perPage=10&sDate=2024-10-10&eDate=2024-11-20&userName=%EC%9D%B4%EC%8A%B9%EC%88%9C',
               },
             },
           },
