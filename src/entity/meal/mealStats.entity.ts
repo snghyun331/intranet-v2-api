@@ -43,6 +43,9 @@ export class MealStatsEntity extends CommonEntity {
   @Column({ name: 'dinner_expense', comment: '이번달 식대(석식) 사용 금액', default: 0, nullable: false })
   dinnerExpense: number;
 
+  @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
+  note: string;
+
   @ManyToOne(() => UserEntity, (user) => user.mealStatsRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

@@ -6,17 +6,21 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
+import { AttendanceEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
 import { DetailedMealData, MealAdminInfo, MealStats } from '../interface/meal.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { MealAdminResult } from '../interface/result.interface';
 import { AdminMealSearchDto } from '../dto/query.dto';
+import { CreateMealBudgetDto } from '../dto/createBudget.dto';
+import { NewMealStats } from '../../scheduler/interface/meal.interface';
+import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
 
 @Injectable()
 export class MealRepository {
   constructor(
     @InjectRepository(MealEntity) private readonly mealModel: Repository<MealEntity>,
     @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
+    @InjectRepository(MealBaseEntity) private readonly mealBaseModel: Repository<MealBaseEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(HolidayEntity) private readonly holidayModel: Repository<HolidayEntity>,
   ) {}
@@ -43,6 +47,19 @@ export class MealRepository {
     return allNames;
   }
 
+  async getAllUserIdxExceptCEO(): Promise<number[]> {
+    const result: { userIdx: number }[] = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userIdx AS userIdx'])
+      .where('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: GradeIdxEnum.CEO })
+      .getRawMany();
+
+    const userIdxList: number[] = result.map((r) => r.userIdx);
+
+    return userIdxList;
+  }
+
   async getUserCountByName(userName: string): Promise<number> {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
@@ -51,6 +68,29 @@ export class MealRepository {
       .getCount();
 
     return userCnt;
+  }
+
+  async getHolidayDates(year: number, month: number): Promise<string[]> {
+    // 해당 월의 첫 번째 날과 마지막 날을 구함
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result: HolidayEntity[] = await this.holidayModel
+      .createQueryBuilder('holidayEntity')
+      .select([
+        'holidayEntity.holidayIdx AS holidayIdx',
+        'holidayEntity.holidayDate AS holidayDate',
+        'holidayEntity.holidayName AS holidayName',
+      ])
+      .where('holidayEntity.holidayDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
+        firstDayOfMonthToString,
+        lastDayOfMonthToString,
+      })
+      .getRawMany();
+
+    const holidayDates: string[] = result.map((r) => r.holidayDate);
+
+    return holidayDates;
   }
 
   async getMyMealCalender(year: number, month: number, userIdx: number): Promise<MealEntity[]> {
@@ -398,5 +438,71 @@ export class MealRepository {
     const result: MealAdminInfo[] = await query.getRawMany();
 
     return { totalPage, total, meal: result };
+  }
+
+  async getMealStatsCount(year: string, month: string): Promise<number> {
+    const statsCnt: number = await this.mealStatsModel
+      .createQueryBuilder('mealStatsEntity')
+      .where('mealStatsEntity.year = :year', { year })
+      .andWhere('mealStatsEntity.month = :month', { month })
+      .getCount();
+
+    return statsCnt;
+  }
+
+  async createMealBudget(
+    mealBudgetInfo: CreateMealBudgetDto,
+    newMealStatsInfo: NewMealStats,
+    manager: EntityManager,
+  ): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(MealStatsEntity)
+      .values({ ...mealBudgetInfo, ...newMealStatsInfo })
+      .execute();
+  }
+
+  async updateMealBudget(
+    { year, month, mealBudget }: CreateMealBudgetDto,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ mealBudget })
+      .where('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
+  }
+
+  async getMealBaseInfo(year: string, month: string): Promise<{ baseAmount: number }> {
+    const result: { baseAmount: number } = await this.mealBaseModel
+      .createQueryBuilder('mealBaseEntity')
+      .select(['mealBaseEntity.baseAmount AS baseAmount'])
+      .where('mealBaseEntity.year = :year', { year })
+      .andWhere('mealBaseEntity.month = :month', { month })
+      .getRawOne();
+
+    return result;
+  }
+
+  async createMealBase(year: string, month: string, baseAmount: number, manager: EntityManager): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(MealBaseEntity)
+      .values({ year, month, baseAmount })
+      .execute();
+  }
+
+  async updateMealBase(year: string, month: string, baseAmount: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealBaseEntity)
+      .set({ baseAmount })
+      .where('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
   }
 }

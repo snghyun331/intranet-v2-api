@@ -12,7 +12,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_MEALS, USERS_MEALS } from './swagger/meal.swagger';
+import { ADMIN_MEALS, ADMIN_MEALS_BUDGET, USERS_MEALS } from './swagger/meal.swagger';
 import { CreateMealDto } from './dto/createMeal.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -26,6 +26,7 @@ import { ResponseInterface } from '../../common/interface/response.interface';
 import { MealAdminResult, MealCalenderResult } from './interface/result.interface';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { AdminPaginationDto } from './dto/query.dto';
+import { CreateMealBudgetDto } from './dto/createBudget.dto';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
@@ -115,6 +116,26 @@ export class AdminMealController {
     const response: ResponseInterface = {
       message: '어드민 식대 내역 조회 성공',
       data: { totalPage, total, meal },
+    };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_MEALS_BUDGET.POST.API_OPERATION)
+  @ApiBody(ADMIN_MEALS_BUDGET.POST.API_BODY)
+  @ApiCreatedResponse(ADMIN_MEALS_BUDGET.POST.API_CREATED_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Post('budget')
+  async createMealBudget(
+    @Body() mealBudgetInfo: CreateMealBudgetDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.mealService.createMealBudget(mealBudgetInfo, manager);
+
+    const response: ResponseInterface = {
+      message: '어드민 식대 설정 등록 및 수정 성공',
     };
 
     return response;

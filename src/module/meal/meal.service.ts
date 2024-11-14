@@ -7,6 +7,9 @@ import { BasicMealData, DetailedMealData, MealStats } from './interface/meal.int
 import { EntityManager } from 'typeorm';
 import { MealAdminResult, MealCalenderResult } from './interface/result.interface';
 import { AdminPaginationDto } from './dto/query.dto';
+import { CreateMealBudgetDto } from './dto/createBudget.dto';
+import { getTotalDaysInMonth } from '../../common/utils/utility';
+import { NewMealStats } from '../scheduler/interface/meal.interface';
 
 @Injectable()
 export class MealService {
@@ -282,5 +285,59 @@ export class MealService {
     const { totalPage, total, meal }: MealAdminResult = await this.mealRepository.getMeal(pageNo, perPage, searchInfo);
 
     return { totalPage, total, meal };
+  }
+
+  async createMealBudget(mealBudgetInfo: CreateMealBudgetDto, manager: EntityManager): Promise<void> {
+    /* 기본 식대 저장 */
+    const mealBaseInfo: { baseAmount: number } = await this.mealRepository.getMealBaseInfo(
+      mealBudgetInfo.year,
+      mealBudgetInfo.month,
+    );
+    if (!mealBaseInfo) {
+      // 기본 식대 정보가 없다면 create
+      await this.mealRepository.createMealBase(
+        mealBudgetInfo.year,
+        mealBudgetInfo.month,
+        mealBudgetInfo.baseAmount,
+        manager,
+      );
+    } else if (mealBaseInfo.baseAmount !== mealBudgetInfo.baseAmount) {
+      // 기본 식대 정보가 있고, 기존 정보랑 상이하다면 update
+      await this.mealRepository.updateMealBase(
+        mealBudgetInfo.year,
+        mealBudgetInfo.month,
+        mealBudgetInfo.baseAmount,
+        manager,
+      );
+    }
+
+    const mealStatsCnt: number = await this.mealRepository.getMealStatsCount(mealBudgetInfo.year, mealBudgetInfo.month);
+    if (mealStatsCnt >= 1) {
+      /* 이미 기록이 있으면 update */
+      await this.mealRepository.updateMealBudget(mealBudgetInfo, manager);
+    } else {
+      /* 기록이 없다면 create */
+      const yearToNum = Number(mealBudgetInfo.year);
+      const monthToNum = Number(mealBudgetInfo.month);
+      // holidays 불러오기
+      const holidayDates: string[] = await this.mealRepository.getHolidayDates(yearToNum, monthToNum);
+      // workdays 불러오기
+      const holidays: number = holidayDates.length;
+      const totalDays: number = getTotalDaysInMonth(yearToNum, monthToNum);
+      const workdays: number = totalDays - holidays;
+      // 식대 사용가능한 모든 유저의 IDX 불러오기
+      const userIdxList: number[] = await this.mealRepository.getAllUserIdxExceptCEO();
+      await Promise.all(
+        userIdxList.map(async (userIdx) => {
+          const newMealStatsInfo: NewMealStats = {
+            userIdx,
+            workdays,
+            holidays,
+            mealBalance: 0,
+          };
+          await this.mealRepository.createMealBudget(mealBudgetInfo, newMealStatsInfo, manager);
+        }),
+      );
+    }
   }
 }

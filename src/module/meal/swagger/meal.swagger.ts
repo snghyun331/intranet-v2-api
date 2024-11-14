@@ -1,4 +1,5 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
+import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
 
 export const USERS_MEALS: SwaggerMethod = {
@@ -361,6 +362,34 @@ export const ADMIN_MEALS: SwaggerMethod = {
                 path: '/admin/meals?pageNo=1&perPage=10&sDate=2024-10-10&eDate=2024-11-20&userName=%EC%9D%B4%EC%8A%B9%EC%88%9C',
               },
             },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 식대 설정 등록 및 수정 API',
+    },
+    API_BODY: {
+      type: CreateMealBudgetDto,
+      examples: {
+        a: {
+          summary: '기본금액 및 총금액 설정',
+          value: { baseAmount: 10000, mealBudget: 230000, year: '2024', month: '8' },
+          description: '월은 1, 2 ... 포맷으로 입력해주세요(02 X). mealBudget은 기본식대 X 업무일 수 금액입니다.',
+        },
+      },
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 201,
+            message: '어드민 식대 사용가능 금액 설정 성공',
           },
         },
       },
