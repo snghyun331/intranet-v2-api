@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import * as moment from 'moment';
 import { MealService } from './meal.service';
 import {
@@ -6,6 +18,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -27,6 +40,7 @@ import { MealAdminResult, MealBudgetAdminResult, MealCalenderResult } from './in
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { AdminMealPaginationDto, AdminPaginationDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
@@ -155,6 +169,26 @@ export class AdminMealController {
       message: `${month}월 어드민 식대 설정 리스트 조회 성공`,
       data: { totalPage, total, workdays, mealBudget },
     };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_MEALS_BUDGET.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_MEALS_BUDGET.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_MEALS_BUDGET.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_MEALS_BUDGET.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Patch('budget/:mealStatsIdx')
+  async updateMealStatsNote(
+    @Param('mealStatsIdx', ParseIntPipe) mealStatsIdx: number,
+    @Body() noteInfo: UpdateNoteDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.mealService.updateMealStatsNote(mealStatsIdx, noteInfo, manager);
+
+    const response: ResponseInterface = { message: '비고 수정 성공' };
 
     return response;
   }

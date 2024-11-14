@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { MealRepository } from './repository/meal.repository';
 import { CreateMealDto, MealInputDto } from './dto/createMeal.dto';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../common/constant/enum';
@@ -15,6 +15,7 @@ import { AdminMealPaginationDto, AdminPaginationDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { getTotalDaysInMonth } from '../../common/utils/utility';
 import { NewMealStats } from '../scheduler/interface/meal.interface';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @Injectable()
 export class MealService {
@@ -362,5 +363,15 @@ export class MealService {
     const workdays: number = totalDays - holidays;
 
     return { totalPage, total, workdays, mealBudget };
+  }
+
+  async updateMealStatsNote(mealStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
+    const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
+    if (mealStatsCnt < 1) {
+      throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+    }
+    await this.mealRepository.updateMealStatsNote(mealStatsIdx, noteInfo, manager);
+
+    return;
   }
 }

@@ -14,6 +14,7 @@ import { AdminMealPaginationDto, AdminMealSearchDto } from '../dto/query.dto';
 import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { NewMealStats } from '../../scheduler/interface/meal.interface';
 import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 @Injectable()
 export class MealRepository {
@@ -535,5 +536,27 @@ export class MealRepository {
     const result: MealBudgetAdminInfo[] = await query.getRawMany();
 
     return { totalPage, total, mealBudget: result };
+  }
+
+  async updateMealStatsNote(
+    mealStatsIdx: number,
+    { note }: UpdateNoteDto,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ note })
+      .where('mealStatsIdx = :mealStatsIdx', { mealStatsIdx })
+      .execute();
+  }
+
+  async getMealStatsCountByIdx(mealStatsIdx: number): Promise<number> {
+    const statsCnt: number = await this.mealStatsModel
+      .createQueryBuilder('mealStatsEntity')
+      .where('mealStatsEntity.mealStatsIdx = :mealStatsIdx', { mealStatsIdx })
+      .getCount();
+
+    return statsCnt;
   }
 }

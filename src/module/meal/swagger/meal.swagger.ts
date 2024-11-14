@@ -500,4 +500,43 @@ export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
       description: 'workdays: 월별 공식 업무일수',
     },
   },
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 식대 설정 비고 수정 API',
+    },
+    API_PARAM1: {
+      name: 'mealStatsIdx',
+      type: Number,
+      required: true,
+      description: '통계 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '비고 수정 성공',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 11. 14. 오후 3:36:23',
+                path: '/admin/meals/budget/4000',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 };
