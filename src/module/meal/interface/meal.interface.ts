@@ -32,3 +32,13 @@ export interface MealAdminInfo {
   payerName: string;
   attendance: AttendanceEnum;
 }
+
+export interface MealBudgetAdminInfo {
+  mealStatsIdx: number;
+  userIdx: number;
+  userName: string;
+  mealBudget: number;
+  note: string;
+  year: string;
+  month: string;
+}

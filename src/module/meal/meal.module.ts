@@ -7,9 +7,10 @@ import { MealEntity } from '../../entity/meal/meal.entity';
 import { MealStatsEntity } from '../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../entity/user/user.entity';
 import { HolidayEntity } from '../../entity/scheduler/holiday.entity';
+import { MealBaseEntity } from '../../entity/meal/mealBase.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MealEntity, MealStatsEntity, UserEntity, HolidayEntity])],
+  imports: [TypeOrmModule.forFeature([MealEntity, MealStatsEntity, MealBaseEntity, UserEntity, HolidayEntity])],
   providers: [MealService, MealRepository],
   controllers: [UserMealController, AdminMealController],
 })

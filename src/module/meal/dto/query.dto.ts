@@ -32,3 +32,17 @@ export class AdminMealSearchDto {
 }
 
 export class AdminPaginationDto extends IntersectionType(PageNoDto, AdminMealSearchDto) {}
+
+export class AdminMealBudgetFilterDto {
+  @ApiProperty({ type: String, description: '연도', example: '2024', required: true })
+  @IsNotEmpty({ message: '연도를 입력해주세요.' })
+  @IsString()
+  year: string;
+
+  @ApiProperty({ type: String, description: '월', example: '8', required: true })
+  @IsNotEmpty({ message: '월을 입력해주세요.' })
+  @IsString()
+  month: string;
+}
+
+export class AdminMealPaginationDto extends IntersectionType(PageNoDto, AdminMealBudgetFilterDto) {}

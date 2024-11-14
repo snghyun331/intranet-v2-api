@@ -32,6 +32,16 @@ export enum UserGradeEnum {
   INTERN = '인턴',
 }
 
+export enum GradeIdxEnum {
+  CEO = 1,
+  DIRECTOR = 2,
+  MANAGER = 3,
+  LEADER = 4,
+  SENIOR = 5,
+  ADVISOR = 6,
+  INTERN = 7,
+}
+
 export enum HalfYearEnum {
   H1 = 'H1',
   H2 = 'H2',
