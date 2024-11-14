@@ -23,9 +23,9 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { EntityManager } from 'typeorm';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { MealAdminResult, MealCalenderResult } from './interface/result.interface';
+import { MealAdminResult, MealBudgetAdminResult, MealCalenderResult } from './interface/result.interface';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
-import { AdminPaginationDto } from './dto/query.dto';
+import { AdminMealPaginationDto, AdminPaginationDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 
 @ApiTags('식대(USER)')
@@ -136,6 +136,24 @@ export class AdminMealController {
 
     const response: ResponseInterface = {
       message: '어드민 식대 설정 등록 및 수정 성공',
+    };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_MEALS_BUDGET.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_MEALS_BUDGET.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Get('budget')
+  async getMealBudget(@Query() paginationInfo: AdminMealPaginationDto): Promise<ResponseInterface> {
+    const { totalPage, total, workdays, mealBudget }: MealBudgetAdminResult =
+      await this.mealService.getMealBudget(paginationInfo);
+    const { month } = paginationInfo;
+
+    const response: ResponseInterface = {
+      message: `${month}월 어드민 식대 설정 리스트 조회 성공`,
+      data: { totalPage, total, workdays, mealBudget },
     };
 
     return response;

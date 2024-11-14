@@ -7,10 +7,10 @@ import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { AttendanceEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
-import { DetailedMealData, MealAdminInfo, MealStats } from '../interface/meal.interface';
+import { DetailedMealData, MealAdminInfo, MealBudgetAdminInfo, MealStats } from '../interface/meal.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
-import { MealAdminResult } from '../interface/result.interface';
-import { AdminMealSearchDto } from '../dto/query.dto';
+import { MealAdminResult, MealBudgetTotalPageInfo } from '../interface/result.interface';
+import { AdminMealPaginationDto, AdminMealSearchDto } from '../dto/query.dto';
 import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { NewMealStats } from '../../scheduler/interface/meal.interface';
 import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
@@ -488,6 +488,7 @@ export class MealRepository {
   }
 
   async createMealBase(year: string, month: string, baseAmount: number, manager: EntityManager): Promise<InsertResult> {
+    console.log(baseAmount);
     return await manager
       .createQueryBuilder()
       .insert()
@@ -504,5 +505,35 @@ export class MealRepository {
       .where('year = :year', { year })
       .andWhere('month = :month', { month })
       .execute();
+  }
+
+  async getAdminMealBudget({ year, month, perPage, pageNo }: AdminMealPaginationDto): Promise<MealBudgetTotalPageInfo> {
+    const query: SelectQueryBuilder<MealStatsEntity> = this.mealStatsModel
+      .createQueryBuilder('mealStatsEntity')
+      .select([
+        'mealStatsEntity.mealStatsIdx AS mealStatsIdx',
+        'mealStatsEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'mealStatsEntity.mealBudget AS mealBudget',
+        'mealStatsEntity.note AS note',
+        'mealStatsEntity.year AS year',
+        'mealStatsEntity.month AS month',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealStatsEntity.userIdx')
+      .where('mealStatsEntity.year = :year', { year })
+      .andWhere('mealStatsEntity.month = :month', { month });
+
+    const total = await query.getCount();
+    const totalPage = Math.ceil(total / perPage);
+
+    query
+      .orderBy('userEntity.gradeIdx', 'ASC')
+      .addOrderBy('userEntity.userName', 'ASC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
+
+    const result: MealBudgetAdminInfo[] = await query.getRawMany();
+
+    return { totalPage, total, mealBudget: result };
   }
 }

@@ -5,8 +5,13 @@ import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../common/constant/enum
 import { MealEntity } from '../../entity/meal/meal.entity';
 import { BasicMealData, DetailedMealData, MealStats } from './interface/meal.interface';
 import { EntityManager } from 'typeorm';
-import { MealAdminResult, MealCalenderResult } from './interface/result.interface';
-import { AdminPaginationDto } from './dto/query.dto';
+import {
+  MealAdminResult,
+  MealBudgetAdminResult,
+  MealBudgetTotalPageInfo,
+  MealCalenderResult,
+} from './interface/result.interface';
+import { AdminMealPaginationDto, AdminPaginationDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { getTotalDaysInMonth } from '../../common/utils/utility';
 import { NewMealStats } from '../scheduler/interface/meal.interface';
@@ -87,6 +92,12 @@ export class MealService {
 
     const year: number = Number(newMealInfo.targetDay.substring(0, 4));
     const month: number = Number(newMealInfo.targetDay.substring(5, 7));
+
+    // 아직 해당 월에 대한 meal_stats가 등록되지 않았다면 등록 불가 처리
+    const mealStats: MealStats = await this.mealRepository.getMyMealStats(year, month, userIdx);
+    if (!mealStats) {
+      throw new BadRequestException('어드민에서 아직 사용가능금액 등록을 하지 않아, 식대 저장이 불가합니다.');
+    }
 
     // 근무&휴일 (휴일근무)일 때 처리
     const monthHolidays: string[] = await this.mealRepository.getMonthHolidays(year, month);
@@ -310,13 +321,9 @@ export class MealService {
         manager,
       );
     }
-
     const mealStatsCnt: number = await this.mealRepository.getMealStatsCount(mealBudgetInfo.year, mealBudgetInfo.month);
-    if (mealStatsCnt >= 1) {
-      /* 이미 기록이 있으면 update */
-      await this.mealRepository.updateMealBudget(mealBudgetInfo, manager);
-    } else {
-      /* 기록이 없다면 create */
+    /* 기록이 없다면 통계 create (기록이 있다면 mealBudget은 트리거에 의해 자동 업데이트)*/
+    if (mealStatsCnt < 1) {
       const yearToNum = Number(mealBudgetInfo.year);
       const monthToNum = Number(mealBudgetInfo.month);
       // holidays 불러오기
@@ -339,5 +346,21 @@ export class MealService {
         }),
       );
     }
+  }
+
+  async getMealBudget(paginationInfo: AdminMealPaginationDto): Promise<MealBudgetAdminResult> {
+    const { totalPage, total, mealBudget }: MealBudgetTotalPageInfo =
+      await this.mealRepository.getAdminMealBudget(paginationInfo);
+
+    const yearToNum = Number(paginationInfo.year);
+    const monthToNum = Number(paginationInfo.month);
+    // holidays 불러오기
+    const holidayDates: string[] = await this.mealRepository.getHolidayDates(yearToNum, monthToNum);
+    // workdays 불러오기
+    const holidays: number = holidayDates.length;
+    const totalDays: number = getTotalDaysInMonth(yearToNum, monthToNum);
+    const workdays: number = totalDays - holidays;
+
+    return { totalPage, total, workdays, mealBudget };
   }
 }

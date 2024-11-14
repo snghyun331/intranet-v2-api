@@ -8,6 +8,6 @@ export class MealBaseEntity {
   @Column({ primary: true, name: 'month', comment: '월', type: String, nullable: false })
   month: string;
 
-  @Column({ name: 'baseAmount', comment: '기본 식대금액', type: Number, nullable: false })
+  @Column({ name: 'base_amount', comment: '기본 식대금액', type: Number, nullable: false })
   baseAmount: number;
 }
