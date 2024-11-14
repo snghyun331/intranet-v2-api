@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './repository/user.repository';
-import { CurrentUserInfoResult, UserIdxsResult } from './interface/result.interface';
+import { CurrentUserInfoResult, GradeIdxsResult, UserIdxsResult } from './interface/result.interface';
 
 @Injectable()
 export class UserService {
@@ -19,5 +19,11 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async getAllGradeIdxInfo(): Promise<GradeIdxsResult[]> {
+    const result: GradeIdxsResult[] = await this.userRepository.getAllGradeIdxInfo();
+
+    return result;
   }
 }

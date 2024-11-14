@@ -75,3 +75,51 @@ export const USERS_MY: SwaggerMethod = {
     },
   },
 };
+
+export const USERS_GRADES_IDX: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '모든 직급의 IDX 정보 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '모든 직급 IDX 조회 성공',
+            data: [
+              {
+                gradeIdx: 1,
+                gradeName: '대표',
+              },
+              {
+                gradeIdx: 2,
+                gradeName: '본부장',
+              },
+              {
+                gradeIdx: 3,
+                gradeName: '팀장',
+              },
+              {
+                gradeIdx: 4,
+                gradeName: '책임',
+              },
+              {
+                gradeIdx: 5,
+                gradeName: '선임',
+              },
+              {
+                gradeIdx: 6,
+                gradeName: '위원',
+              },
+              {
+                gradeIdx: 7,
+                gradeName: '인턴',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};

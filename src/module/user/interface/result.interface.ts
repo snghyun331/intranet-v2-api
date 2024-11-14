@@ -18,3 +18,8 @@ export interface CurrentUserInfoResult {
   gradeName: string;
   adminRole: YNEnum;
 }
+
+export interface GradeIdxsResult {
+  gradeIdx: number;
+  gradeName: string;
+}
