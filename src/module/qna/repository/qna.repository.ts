@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CreateQnaDto } from '../dto/createQna.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QnaEntity } from '../../../entity/qna/qna.entity';
-import { DeleteResult, EntityManager, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { UserEntity } from '../../../entity/user/user.entity';
-import { QnaAdminResult, QnaInfo } from '../interface/result.interface';
+import { QnaAdminResult } from '../interface/result.interface';
 import { QnaFilterDto } from '../dto/query.dto';
 import { YNEnum } from '../../../common/constant/enum';
+import { QnaInfo } from '../interface/qna.interface';
 
 @Injectable()
 export class QnaRepository {
@@ -25,7 +26,7 @@ export class QnaRepository {
     return userCnt;
   }
 
-  async createQna(userIdx: number, newQnaInfo: CreateQnaDto, manager: EntityManager) {
+  async createQna(userIdx: number, newQnaInfo: CreateQnaDto, manager: EntityManager): Promise<InsertResult> {
     return await manager
       .createQueryBuilder()
       .insert()

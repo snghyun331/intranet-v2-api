@@ -1,4 +1,5 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
+import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
 
 export const USERS_MEALS: SwaggerMethod = {
@@ -55,7 +56,7 @@ export const USERS_MEALS: SwaggerMethod = {
                   dinner: {
                     payerName: '',
                     place: '',
-                    amount: '',
+                    amount: null,
                   },
                 },
                 {
@@ -64,7 +65,7 @@ export const USERS_MEALS: SwaggerMethod = {
                   breakfast: {
                     payerName: '',
                     place: '',
-                    amount: '',
+                    amount: null,
                   },
                   lunch: {
                     payerName: '이승현',
@@ -75,7 +76,7 @@ export const USERS_MEALS: SwaggerMethod = {
                   dinner: {
                     payerName: '',
                     place: '',
-                    amount: '',
+                    amount: null,
                   },
                 },
               ],
@@ -118,7 +119,7 @@ export const USERS_MEALS: SwaggerMethod = {
             breakfast: {
               payerName: '',
               place: '',
-              amount: '',
+              amount: null,
             },
             lunch: {
               payerName: '이승현',
@@ -128,7 +129,7 @@ export const USERS_MEALS: SwaggerMethod = {
             dinner: {
               payerName: '',
               place: '',
-              amount: '',
+              amount: null,
             },
           },
         },
@@ -140,17 +141,17 @@ export const USERS_MEALS: SwaggerMethod = {
             breakfast: {
               payerName: '',
               place: '',
-              amount: '',
+              amount: null,
             },
             lunch: {
               payerName: '',
               place: '',
-              amount: '',
+              amount: null,
             },
             dinner: {
               payerName: '',
               place: '',
-              amount: '',
+              amount: null,
             },
           },
         },
@@ -162,17 +163,17 @@ export const USERS_MEALS: SwaggerMethod = {
             breakfast: {
               payerName: '',
               place: '',
-              amount: '',
+              amount: null,
             },
             lunch: {
               payerName: '',
               place: '',
-              amount: '',
+              amount: null,
             },
             dinner: {
               payerName: '',
               place: '',
-              amount: '',
+              amount: null,
             },
           },
         },
@@ -255,6 +256,16 @@ export const USERS_MEALS: SwaggerMethod = {
                 path: '/users/meals',
               },
             },
+            g: {
+              summary: '사용가능 금액 정보가 없을 경우',
+              value: {
+                message: '어드민에서 아직 사용가능금액 등록을 하지 않아, 식대 저장이 불가합니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 14. 오후 1:21:13',
+                path: '/users/meals',
+              },
+            },
           },
         },
       },
@@ -293,6 +304,234 @@ export const USERS_MEALS: SwaggerMethod = {
                 statusCode: 400,
                 timeStamp: '2024. 9. 17. 오후 2:17:56',
                 path: '/users/meals/4',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_MEALS: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 식대내역 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '어드민 식대 내역 조회 성공',
+            data: {
+              totalPage: 1,
+              total: 2,
+              meal: [
+                {
+                  mealIdx: 34,
+                  gradeName: '위원',
+                  userIdx: 1,
+                  userName: '이승현',
+                  place: '김가네',
+                  targetDay: '2024-11-04',
+                  mealType: 'lunch',
+                  amount: 5000,
+                  payerName: '이승현',
+                  attendance: '근무',
+                },
+                {
+                  mealIdx: 47,
+                  gradeName: '위원',
+                  userIdx: 2,
+                  userName: '김현민',
+                  place: '김가네',
+                  targetDay: '2024-10-29',
+                  mealType: 'lunch',
+                  amount: 5000,
+                  payerName: '이승현',
+                  attendance: '근무',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 검색 유저명',
+              value: {
+                message: '검색 유저가 올바르지 않습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 13. 오전 11:02:36',
+                path: '/admin/meals?pageNo=1&perPage=10&sDate=2024-10-10&eDate=2024-11-20&userName=%EC%9D%B4%EC%8A%B9%EC%88%9C',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 식대 설정 등록 및 수정 API',
+    },
+    API_BODY: {
+      type: CreateMealBudgetDto,
+      examples: {
+        a: {
+          summary: '기본금액 및 총금액 설정',
+          value: { baseAmount: 10000, mealBudget: 230000, year: '2024', month: '8' },
+          description: '월은 1, 2 ... 포맷으로 입력해주세요(02 X). mealBudget은 기본식대 X 업무일 수 금액입니다.',
+        },
+      },
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 201,
+            message: '어드민 식대 사용가능 금액 설정 성공',
+          },
+        },
+      },
+    },
+  },
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 식대 설정 리스트 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '6월 어드민 식대 설정 리스트 조회 성공',
+            data: {
+              totalPage: 1,
+              total: 8,
+              workdays: 21,
+              mealBudget: [
+                {
+                  mealStatsIdx: 121,
+                  userIdx: 7,
+                  userName: '김현근',
+                  mealBudget: 190000,
+                  note: null,
+                  year: '2024',
+                  month: '6',
+                },
+                {
+                  mealStatsIdx: 119,
+                  userIdx: 4,
+                  userName: '박민수',
+                  mealBudget: 190000,
+                  note: null,
+                  year: '2024',
+                  month: '6',
+                },
+                {
+                  mealStatsIdx: 122,
+                  userIdx: 8,
+                  userName: '김현해',
+                  mealBudget: 190000,
+                  note: null,
+                  year: '2024',
+                  month: '6',
+                },
+                {
+                  mealStatsIdx: 123,
+                  userIdx: 9,
+                  userName: '윤이나',
+                  mealBudget: 190000,
+                  note: null,
+                  year: '2024',
+                  month: '6',
+                },
+                {
+                  mealStatsIdx: 117,
+                  userIdx: 2,
+                  userName: '김현민',
+                  mealBudget: 190000,
+                  note: null,
+                  year: '2024',
+                  month: '6',
+                },
+                {
+                  mealStatsIdx: 120,
+                  userIdx: 6,
+                  userName: '안지훈',
+                  mealBudget: 190000,
+                  note: null,
+                  year: '2024',
+                  month: '6',
+                },
+                {
+                  mealStatsIdx: 118,
+                  userIdx: 3,
+                  userName: '윤용설',
+                  mealBudget: 190000,
+                  note: null,
+                  year: '2024',
+                  month: '6',
+                },
+                {
+                  mealStatsIdx: 116,
+                  userIdx: 1,
+                  userName: '이승현',
+                  mealBudget: 190000,
+                  note: null,
+                  year: '2024',
+                  month: '6',
+                },
+              ],
+            },
+          },
+        },
+      },
+      description: 'workdays: 월별 공식 업무일수',
+    },
+  },
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 식대 설정 비고 수정 API',
+    },
+    API_PARAM1: {
+      name: 'mealStatsIdx',
+      type: Number,
+      required: true,
+      description: '통계 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '비고 수정 성공',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 11. 14. 오후 3:36:23',
+                path: '/admin/meals/budget/4000',
               },
             },
           },

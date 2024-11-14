@@ -3,12 +3,11 @@ import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
-import { DEFAULT_LUNCH_RATE, DEFAULT_TOTAL_WELFARE, NUM_OF_ROWS, PAGE_NO } from '../../common/constant/constant';
-import { getDateFormYYYYMMDD, getTotalDaysInMonth, getWeekendDates } from '../../common/utils/utility';
+import { DEFAULT_TOTAL_WELFARE, NUM_OF_ROWS, PAGE_NO } from '../../common/constant/constant';
+import { getDateFormYYYYMMDD, getWeekendDates } from '../../common/utils/utility';
 import { AxiosHoliday } from './interface/axiosData.interface';
 import { SchedulerRepository } from './repository/scheduler.repository';
 import { HalfYearEnum } from '../../common/constant/enum';
-import { NewMealStats } from './interface/meal.interface';
 import { HolidayInfo } from './interface/holiday.interface';
 import { NewWelfareMonthStats, NewWelfareStats } from './interface/welfare.interface';
 
@@ -22,39 +21,39 @@ export class SchedulerService {
     public readonly configService: ConfigService,
   ) {}
 
-  // 다음 분기 식대 통계 업데이트
-  @Cron('1 0 25 6,12 *')
-  async updateMealStats(): Promise<void> {
-    this.logger.log('🚀 Start Updating Meal Stats Job !');
-    const date: Date = new Date();
-    const nowMonth: number = date.getMonth() + 1;
-    const initialNextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
-    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
-    for (const userIdx of userIdxList) {
-      let nextMonth: number = initialNextMonth;
-      for (let i = 0; i < 6; i++) {
-        const holidayDates: string[] = await this.schedulerRepository.getHolidayDates(year, nextMonth);
-        const holidays: number = holidayDates.length;
-        const totalDays: number = getTotalDaysInMonth(year, nextMonth);
-        const workdays: number = totalDays - holidays;
-        const mealBudget: number = DEFAULT_LUNCH_RATE * workdays;
-        const newMealStatsInfo: NewMealStats = {
-          userIdx,
-          year: year.toString(),
-          month: nextMonth.toString(),
-          workdays,
-          holidays,
-          mealBudget,
-          mealBalance: 0,
-        };
-        await this.schedulerRepository.updateMealStats(newMealStatsInfo);
-        nextMonth++;
-      }
-    }
+  // // 다음 분기 식대 통계 업데이트
+  // @Cron('1 0 25 6,12 *')
+  // async updateMealStats(): Promise<void> {
+  //   this.logger.log('🚀 Start Updating Meal Stats Job !');
+  //   const date: Date = new Date();
+  //   const nowMonth: number = date.getMonth() + 1;
+  //   const initialNextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
+  //   const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
+  //   const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
+  //   for (const userIdx of userIdxList) {
+  //     let nextMonth: number = initialNextMonth;
+  //     for (let i = 0; i < 6; i++) {
+  //       const holidayDates: string[] = await this.schedulerRepository.getHolidayDates(year, nextMonth);
+  //       const holidays: number = holidayDates.length;
+  //       const totalDays: number = getTotalDaysInMonth(year, nextMonth);
+  //       const workdays: number = totalDays - holidays;
+  //       const mealBudget: number = DEFAULT_LUNCH_RATE * workdays;
+  //       const newMealStatsInfo: NewMealStats = {
+  //         userIdx,
+  //         year: year.toString(),
+  //         month: nextMonth.toString(),
+  //         workdays,
+  //         holidays,
+  //         mealBudget,
+  //         mealBalance: 0,
+  //       };
+  //       await this.schedulerRepository.updateMealStats(newMealStatsInfo);
+  //       nextMonth++;
+  //     }
+  //   }
 
-    this.logger.log('🏁 Updating Meal Stats Job Completed !');
-  }
+  //   this.logger.log('🏁 Updating Meal Stats Job Completed !');
+  // }
 
   // 다음 분기 휴일 정보 수집 및 저장
   @Cron('0 0 25 6,12 *')

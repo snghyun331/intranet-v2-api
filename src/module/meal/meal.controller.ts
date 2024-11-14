@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import * as moment from 'moment';
 import { MealService } from './meal.service';
 import {
@@ -6,13 +18,14 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { USERS_MEALS } from './swagger/meal.swagger';
+import { ADMIN_MEALS, ADMIN_MEALS_BUDGET, USERS_MEALS } from './swagger/meal.swagger';
 import { CreateMealDto } from './dto/createMeal.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -23,11 +36,15 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { EntityManager } from 'typeorm';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { MealCalenderResult } from './interface/result.interface';
+import { MealAdminResult, MealBudgetAdminResult, MealCalenderResult } from './interface/result.interface';
+import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
+import { AdminMealPaginationDto, AdminPaginationDto } from './dto/query.dto';
+import { CreateMealBudgetDto } from './dto/createBudget.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
-export class MealController {
+export class UserMealController {
   constructor(private readonly mealService: MealService) {}
 
   @ApiOperation(USERS_MEALS.GET.API_OPERATION)
@@ -46,7 +63,7 @@ export class MealController {
   ): Promise<ResponseInterface> {
     const yearToNum: number = Number(year);
     const monthToNum: number = Number(month);
-    const meals: MealCalenderResult = await this.mealService.getMeal(yearToNum, monthToNum, userIdx);
+    const meals: MealCalenderResult = await this.mealService.getMyMeal(yearToNum, monthToNum, userIdx);
 
     const response: ResponseInterface = { message: '식대 사용내역 조회 성공', data: meals };
 
@@ -67,7 +84,7 @@ export class MealController {
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.mealService.createMeal(userIdx, newMealInfo, manager);
+    const targetDay: string = await this.mealService.createMyMeal(userIdx, newMealInfo, manager);
 
     const response: ResponseInterface = { message: '식대 사용내역 저장 성공', data: { targetDay } };
 
@@ -88,9 +105,90 @@ export class MealController {
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.mealService.deleteMeal(userIdx, targetDay, manager);
+    await this.mealService.deleteMyMeal(userIdx, targetDay, manager);
 
     const response: ResponseInterface = { message: '식대 사용내역 초기화 성공' };
+
+    return response;
+  }
+}
+
+@ApiTags('식대(ADMIN)')
+@Controller('admin/meals')
+export class AdminMealController {
+  constructor(private readonly mealService: MealService) {}
+
+  @ApiOperation(ADMIN_MEALS.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_MEALS.GET.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_MEALS.GET.API_BAD_REQUEST_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Get()
+  async getQna(@Query() paginationInfo: AdminPaginationDto): Promise<ResponseInterface> {
+    const { totalPage, total, meal }: MealAdminResult = await this.mealService.getMeal(paginationInfo);
+
+    const response: ResponseInterface = {
+      message: '어드민 식대 내역 조회 성공',
+      data: { totalPage, total, meal },
+    };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_MEALS_BUDGET.POST.API_OPERATION)
+  @ApiBody(ADMIN_MEALS_BUDGET.POST.API_BODY)
+  @ApiCreatedResponse(ADMIN_MEALS_BUDGET.POST.API_CREATED_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Post('budget')
+  async createMealBudget(
+    @Body() mealBudgetInfo: CreateMealBudgetDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.mealService.createMealBudget(mealBudgetInfo, manager);
+
+    const response: ResponseInterface = {
+      message: '어드민 식대 설정 등록 및 수정 성공',
+    };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_MEALS_BUDGET.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_MEALS_BUDGET.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Get('budget')
+  async getMealBudget(@Query() paginationInfo: AdminMealPaginationDto): Promise<ResponseInterface> {
+    const { totalPage, total, workdays, mealBudget }: MealBudgetAdminResult =
+      await this.mealService.getMealBudget(paginationInfo);
+    const { month } = paginationInfo;
+
+    const response: ResponseInterface = {
+      message: `${month}월 어드민 식대 설정 리스트 조회 성공`,
+      data: { totalPage, total, workdays, mealBudget },
+    };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_MEALS_BUDGET.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_MEALS_BUDGET.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_MEALS_BUDGET.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_MEALS_BUDGET.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Patch('budget/:mealStatsIdx')
+  async updateMealStatsNote(
+    @Param('mealStatsIdx', ParseIntPipe) mealStatsIdx: number,
+    @Body() noteInfo: UpdateNoteDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.mealService.updateMealStatsNote(mealStatsIdx, noteInfo, manager);
+
+    const response: ResponseInterface = { message: '비고 수정 성공' };
 
     return response;
   }
