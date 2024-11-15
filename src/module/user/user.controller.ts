@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -32,6 +32,7 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
 import { EntityManager } from 'typeorm';
 import { CreateUserDto } from './dto/createUser.dto';
+import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 
 @ApiTags('사용자(USER)')
 @Controller('users')
@@ -73,9 +74,29 @@ export class UserController {
   @UserRole(UserGradeEnum.INTERN)
   @Get('me')
   async getMyInfo(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
-    const user: CurrentUserInfoResult = await this.userService.getUserInfo(userIdx);
+    const user: CurrentUserInfoResult = await this.userService.getMyInfo(userIdx);
 
     const response: ResponseInterface = { message: '현재 로그인 되어있는 사용자 정보 조회 성공', data: user };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_MY.PUT.API_OPERATION)
+  @ApiBody(USERS_MY.PUT.API_BODY)
+  @ApiOkResponse(USERS_MY.PUT.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Put('me')
+  async updateMyInfo(
+    @CurrentUserIdx() userIdx: number,
+    @Body() updateInfo: UpdateMyInfoDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.userService.updateMyInfo(userIdx, updateInfo, manager);
+
+    const response: ResponseInterface = { message: '내 정보 수정 성공' };
 
     return response;
   }
