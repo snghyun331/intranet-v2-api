@@ -11,11 +11,12 @@ import {
   MealBudgetTotalPageInfo,
   MealCalenderResult,
 } from './interface/result.interface';
-import { AdminMealPaginationDto, AdminPaginationDto } from './dto/query.dto';
+import { AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { getTotalDaysInMonth } from '../../common/utils/utility';
 import { NewMealStats } from '../scheduler/interface/meal.interface';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
 
 @Injectable()
 export class MealService {
@@ -287,14 +288,14 @@ export class MealService {
     return Object.values(mealInput).some((value) => value !== '' && value !== null);
   }
 
-  async getMeal({ pageNo, perPage, ...searchInfo }: AdminPaginationDto): Promise<MealAdminResult> {
-    if (searchInfo.userName) {
-      const userCnt: number = await this.mealRepository.getUserCountByName(searchInfo.userName);
+  async getMeal({ pageNo, perPage }: PageNoDto, filterInfo: AdminMealFilterDto): Promise<MealAdminResult> {
+    if (filterInfo.userName) {
+      const userCnt: number = await this.mealRepository.getUserCountByName(filterInfo.userName);
       if (userCnt !== 1) {
         throw new BadRequestException('검색 유저가 올바르지 않습니다.');
       }
     }
-    const { totalPage, total, meal }: MealAdminResult = await this.mealRepository.getMeal(pageNo, perPage, searchInfo);
+    const { totalPage, total, meal }: MealAdminResult = await this.mealRepository.getMeal(pageNo, perPage, filterInfo);
 
     return { totalPage, total, meal };
   }
@@ -349,12 +350,13 @@ export class MealService {
     }
   }
 
-  async getMealBudget(paginationInfo: AdminMealPaginationDto): Promise<MealBudgetAdminResult> {
-    const { totalPage, total, mealBudget }: MealBudgetTotalPageInfo =
-      await this.mealRepository.getAdminMealBudget(paginationInfo);
-
-    const yearToNum = Number(paginationInfo.year);
-    const monthToNum = Number(paginationInfo.month);
+  async getMealBudget(pageNoInfo: PageNoDto, filterInfo: AdminMealBudgetFilterDto): Promise<MealBudgetAdminResult> {
+    const { totalPage, total, mealBudget }: MealBudgetTotalPageInfo = await this.mealRepository.getAdminMealBudget(
+      pageNoInfo,
+      filterInfo,
+    );
+    const yearToNum = Number(filterInfo.year);
+    const monthToNum = Number(filterInfo.month);
     // holidays 불러오기
     const holidayDates: string[] = await this.mealRepository.getHolidayDates(yearToNum, monthToNum);
     // workdays 불러오기

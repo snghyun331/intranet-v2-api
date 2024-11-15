@@ -1,6 +1,7 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 export const USERS_MEALS: SwaggerMethod = {
   GET: {
@@ -414,83 +415,91 @@ export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
         'application/json': {
           example: {
             statusCode: 200,
-            message: '6월 어드민 식대 설정 리스트 조회 성공',
+            message: '11월 어드민 식대 설정 리스트 조회 성공',
             data: {
               totalPage: 1,
               total: 8,
               workdays: 21,
               mealBudget: [
                 {
-                  mealStatsIdx: 121,
+                  mealStatsIdx: 177,
                   userIdx: 7,
                   userName: '김현근',
-                  mealBudget: 190000,
-                  note: null,
+                  gradeName: '본부장',
+                  mealBudget: 420000,
+                  note: 'null',
                   year: '2024',
-                  month: '6',
+                  month: '11',
                 },
                 {
-                  mealStatsIdx: 119,
+                  mealStatsIdx: 175,
                   userIdx: 4,
                   userName: '박민수',
-                  mealBudget: 190000,
+                  gradeName: '본부장',
+                  mealBudget: 420000,
                   note: null,
                   year: '2024',
-                  month: '6',
+                  month: '11',
                 },
                 {
-                  mealStatsIdx: 122,
+                  mealStatsIdx: 178,
                   userIdx: 8,
                   userName: '김현해',
-                  mealBudget: 190000,
+                  gradeName: '팀장',
+                  mealBudget: 420000,
                   note: null,
                   year: '2024',
-                  month: '6',
+                  month: '11',
                 },
                 {
-                  mealStatsIdx: 123,
+                  mealStatsIdx: 179,
                   userIdx: 9,
                   userName: '윤이나',
-                  mealBudget: 190000,
+                  gradeName: '팀장',
+                  mealBudget: 420000,
                   note: null,
                   year: '2024',
-                  month: '6',
+                  month: '11',
                 },
                 {
-                  mealStatsIdx: 117,
+                  mealStatsIdx: 173,
                   userIdx: 2,
                   userName: '김현민',
-                  mealBudget: 190000,
+                  gradeName: '위원',
+                  mealBudget: 420000,
                   note: null,
                   year: '2024',
-                  month: '6',
+                  month: '11',
                 },
                 {
-                  mealStatsIdx: 120,
+                  mealStatsIdx: 176,
                   userIdx: 6,
                   userName: '안지훈',
-                  mealBudget: 190000,
+                  gradeName: '위원',
+                  mealBudget: 420000,
                   note: null,
                   year: '2024',
-                  month: '6',
+                  month: '11',
                 },
                 {
-                  mealStatsIdx: 118,
+                  mealStatsIdx: 174,
                   userIdx: 3,
                   userName: '윤용설',
-                  mealBudget: 190000,
+                  gradeName: '위원',
+                  mealBudget: 420000,
                   note: null,
                   year: '2024',
-                  month: '6',
+                  month: '11',
                 },
                 {
-                  mealStatsIdx: 116,
+                  mealStatsIdx: 172,
                   userIdx: 1,
                   userName: '이승현',
-                  mealBudget: 190000,
+                  gradeName: '위원',
+                  mealBudget: 400000,
                   note: null,
                   year: '2024',
-                  month: '6',
+                  month: '11',
                 },
               ],
             },
@@ -509,6 +518,23 @@ export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
       type: Number,
       required: true,
       description: '통계 IDX',
+    },
+    API_BODY: {
+      type: UpdateNoteDto,
+      examples: {
+        a: {
+          summary: '비고 내용 X',
+          value: {
+            note: '11월 22일 퇴사예정',
+          },
+        },
+        b: {
+          summary: '비고 내용 X (삭제)',
+          value: {
+            note: null,
+          },
+        },
+      },
     },
     API_OK_RESPONSE: {
       content: {

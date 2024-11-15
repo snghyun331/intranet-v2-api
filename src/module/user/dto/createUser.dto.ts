@@ -1,0 +1,55 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { GenderEnum } from '../../../common/constant/enum';
+import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsString, Matches } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class CreateUserDto {
+  @ApiProperty({ type: String, description: '로그인 아이디', required: true })
+  @IsNotEmpty({ message: 'ID를 입력해주세요' })
+  @IsString()
+  id: string;
+
+  @ApiProperty({ type: String, description: '성명', required: true })
+  @IsNotEmpty({ message: '이름을 입력해주세요' })
+  @IsString()
+  userName: string;
+
+  @ApiProperty({ type: Number, description: '직급IDX', required: true })
+  @IsNotEmpty({ message: '직급을 선택해주세요' })
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  gradeIdx: number;
+
+  @ApiProperty({ type: String, description: '이메일', required: true })
+  @IsNotEmpty({ message: '이메일을 입력해주세요' })
+  @IsString()
+  userEmail: string;
+
+  @ApiProperty({ type: String, description: '전화번호', required: true })
+  @IsNotEmpty({ message: '연락처를 입력해주세요' })
+  @Matches(/^(\d{3})-(\d{4})-(\d{3,4})$/, {
+    message: '휴대전화번호는 000-0000-0000(000) 형식이어야 합니다.',
+  })
+  @IsString()
+  userCell: string;
+
+  @ApiProperty({ type: String, description: '집 주소', required: true })
+  @IsNotEmpty({ message: '주소를 입력해주세요' })
+  @IsString()
+  userAddress: string;
+
+  @ApiProperty({ type: String, description: '생년월일', required: true })
+  @IsNotEmpty({ message: '생년월일을 입력해주세요' })
+  @IsDateString()
+  userBirth: string;
+
+  @ApiProperty({ type: 'enum', enum: GenderEnum, description: '성별', required: true })
+  @IsNotEmpty({ message: '성별을 선택해주세요' })
+  @IsEnum(GenderEnum)
+  userGender: GenderEnum;
+
+  @ApiProperty({ type: String, description: '가입일', required: true })
+  @IsNotEmpty({ message: '입사일을 입력해주세요' })
+  @IsDateString()
+  joinDate: string;
+}
