@@ -7,7 +7,7 @@ import {
   UserIdxsResult,
   AllUserInfoResult,
 } from '../interface/result.interface';
-import { EntityManager, InsertResult, Repository, SelectQueryBuilder } from 'typeorm';
+import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
@@ -17,6 +17,7 @@ import { AdminUserFilterDto } from '../dto/query.dto';
 import { removeAllWhiteSpace } from '../../../common/utils/utility';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { SortbyEnum } from '../../../common/constant/enum';
+import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 
 @Injectable()
 export class UserRepository {
@@ -25,10 +26,20 @@ export class UserRepository {
     @InjectRepository(GradeEntity) private readonly gradeModel: Repository<GradeEntity>,
   ) {}
 
-  async getLoginIdCnt(loginId: string): Promise<number> {
+  async getLoginIdCount(loginId: string): Promise<number> {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
       .where('userEntity.id = :id', { id: loginId })
+      .getCount();
+
+    return userCnt;
+  }
+
+  async getUserCountByIdx(userIdx: number): Promise<number> {
+    const userCnt: number = await this.userModel
+      .createQueryBuilder('userEntity')
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail IS NULL')
       .getCount();
 
     return userCnt;
@@ -54,6 +65,7 @@ export class UserRepository {
         'userEntity.userCell AS userCell',
         'userEntity.userEmail AS userEmail',
         'userEntity.userBirth AS userBirth',
+        'userEntity.userAddress AS userAddress',
         'userEntity.joinDate AS joinDate',
         'hqEntity.hqName AS hqName',
         'teamEntity.teamName AS teamName',
@@ -82,6 +94,7 @@ export class UserRepository {
     const query: SelectQueryBuilder<UserEntity> = this.userModel
       .createQueryBuilder('userEntity')
       .select([
+        'userEntity.id AS id',
         'userEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
         'userEntity.userGender AS userGender',
@@ -171,6 +184,15 @@ export class UserRepository {
       .insert()
       .into(UserEntity)
       .values({ password, ...newUserInfo })
+      .execute();
+  }
+
+  async updateUserInfo(userIdx: number, updateInfo: UpdateMyInfoDto, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set(updateInfo)
+      .where('userIdx = :userIdx', { userIdx })
       .execute();
   }
 }
