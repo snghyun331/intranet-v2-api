@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './repository/user.repository';
-import { CurrentUserInfoResult, GradeIdxsResult, UserIdxsResult } from './interface/result.interface';
+import {
+  CurrentUserInfoResult,
+  GradeIdxsResult,
+  UserIdxsResult,
+  AllUserInfoResult,
+} from './interface/result.interface';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { AdminUserFilterDto } from './dto/query.dto';
 
 @Injectable()
 export class UserService {
@@ -25,5 +32,11 @@ export class UserService {
     const result: GradeIdxsResult[] = await this.userRepository.getAllGradeIdxInfo();
 
     return result;
+  }
+
+  async getAllUsersInfo(pageNoInfo: PageNoDto, filterInfo: AdminUserFilterDto): Promise<AllUserInfoResult> {
+    const user: AllUserInfoResult = await this.userRepository.getAllUsersInfo(pageNoInfo, filterInfo);
+
+    return user;
   }
 }

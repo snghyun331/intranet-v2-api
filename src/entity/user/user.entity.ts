@@ -40,6 +40,9 @@ export class UserEntity extends CommonEntity {
   @Column({ name: 'user_birth', comment: '생년월일', nullable: false })
   userBirth: string;
 
+  @Column({ name: 'user_address', comment: '집 주소', nullable: true })
+  userAddress: string;
+
   @Column({ name: 'join_date', comment: '입사일', nullable: false })
   joinDate: string;
 
@@ -61,6 +64,9 @@ export class UserEntity extends CommonEntity {
     nullable: false,
   })
   adminRole: YNEnum;
+
+  @Column({ name: 'comment', comment: '특이사항', type: 'text', nullable: true })
+  comment: string;
 
   @Column({ name: 'login_token', comment: '로그인 토큰', length: 1000, nullable: true })
   loginToken: string;

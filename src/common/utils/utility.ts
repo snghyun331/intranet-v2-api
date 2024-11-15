@@ -70,3 +70,11 @@ export const getTotalDaysInMonth = (year: number, month: number): number => {
 
   return totalDays;
 };
+
+// 검색어 양 끝 및 중간 공백 제거
+export const removeAllWhiteSpace = (searchWord: string) => {
+  const removeWhiteSpaceReg: RegExp = /(\s*)/g;
+  const filteredWords: string = searchWord.replace(removeWhiteSpaceReg, '');
+
+  return filteredWords;
+};

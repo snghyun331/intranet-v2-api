@@ -10,7 +10,7 @@ import { AttendanceEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../com
 import { DetailedMealData, MealAdminInfo, MealBudgetAdminInfo, MealStats } from '../interface/meal.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { MealAdminResult, MealBudgetTotalPageInfo } from '../interface/result.interface';
-import { AdminMealPaginationDto, AdminMealSearchDto } from '../dto/query.dto';
+import { AdminMealPaginationDto, AdminMealFilterDto } from '../dto/query.dto';
 import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { NewMealStats } from '../../scheduler/interface/meal.interface';
 import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
@@ -400,7 +400,7 @@ export class MealRepository {
     return result;
   }
 
-  async getMeal(pageNo: number, perPage: number, searchInfo: AdminMealSearchDto): Promise<MealAdminResult> {
+  async getMeal(pageNo: number, perPage: number, searchInfo: AdminMealFilterDto): Promise<MealAdminResult> {
     const query: SelectQueryBuilder<MealEntity> = this.mealModel
       .createQueryBuilder('mealEntity')
       .select([

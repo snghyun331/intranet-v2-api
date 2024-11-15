@@ -2,7 +2,7 @@ import { ApiProperty, IntersectionType } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 
-export class AdminMealSearchDto {
+export class AdminMealFilterDto {
   @ApiProperty({
     name: 'sDate',
     required: true,
@@ -31,7 +31,7 @@ export class AdminMealSearchDto {
   userName?: string;
 }
 
-export class AdminPaginationDto extends IntersectionType(PageNoDto, AdminMealSearchDto) {}
+export class AdminPaginationDto extends IntersectionType(PageNoDto, AdminMealFilterDto) {}
 
 export class AdminMealBudgetFilterDto {
   @ApiProperty({ type: String, description: '연도', example: '2024', required: true })
