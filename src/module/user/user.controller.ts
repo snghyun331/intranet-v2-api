@@ -1,16 +1,19 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { USERS_IDXS, USERS_MY } from './swagger/user.swagger';
+import { ADMIN_USERS, USERS_IDXS, USERS_MY } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { CurrentUserInfoResult, UserIdxsResult } from './interface/result.interface';
+import { AllUserInfoResult, CurrentUserInfoResult, UserIdxsResult } from './interface/result.interface';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
+import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { AdminUserFilterDto } from './dto/query.dto';
 
-@ApiTags('사용자')
+@ApiTags('사용자(USER)')
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -40,6 +43,31 @@ export class UserController {
     const user: CurrentUserInfoResult = await this.userService.getUserInfo(userIdx);
 
     const response: ResponseInterface = { message: '현재 로그인 되어있는 사용자 정보 조회 성공', data: user };
+
+    return response;
+  }
+}
+
+@ApiTags('사용자 관리(ADMIN)')
+@Controller('admin/users')
+export class AdminUserController {
+  constructor(private readonly userService: UserService) {}
+
+  @ApiOperation(ADMIN_USERS.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_USERS.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Get()
+  async getAllUsersInfo(
+    @Query() pageNoInfo: PageNoDto,
+    @Query() filterInfo: AdminUserFilterDto,
+  ): Promise<ResponseInterface> {
+    const { totalPage, total, users }: AllUserInfoResult = await this.userService.getAllUsersInfo(
+      pageNoInfo,
+      filterInfo,
+    );
+
+    const response: ResponseInterface = { message: '모든 직원 정보 조회 성공', data: { totalPage, total, users } };
 
     return response;
   }
