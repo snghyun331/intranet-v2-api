@@ -520,21 +520,19 @@ export class MealRepository {
         'mealStatsEntity.mealStatsIdx AS mealStatsIdx',
         'mealStatsEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
         'mealStatsEntity.mealBudget AS mealBudget',
         'mealStatsEntity.note AS note',
         'mealStatsEntity.year AS year',
         'mealStatsEntity.month AS month',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealStatsEntity.userIdx')
+      .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month });
 
     const total = await query.getCount();
     const totalPage = Math.ceil(total / perPage);
-
-    if (filterInfo.gradeIdx) {
-      query.andWhere('userEntity.gradeIdx  = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
-    }
 
     query
       .orderBy('userEntity.gradeIdx', 'ASC')
