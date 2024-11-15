@@ -291,6 +291,34 @@ export const ADMIN_USERS: SwaggerMethod = {
         },
       },
     },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: 'sortby와 orderby는 둘도 없는 단짝',
+              value: {
+                message: 'sortby와 orderby는 함께 제공되거나 둘 다 없어야 합니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 15. 오후 2:16:21',
+                path: '/admin/users?pageNo=1&perPage=20&sortby=userGrade',
+              },
+            },
+            b: {
+              summary: '지원하지 않는 정렬 기준',
+              value: {
+                message: '지원하지 않는 정렬 기준입니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 15. 오후 2:16:21',
+                path: '/admin/users?pageNo=1&perPage=20&sortby=userEmail',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   POST: {
     API_OPERATION: {

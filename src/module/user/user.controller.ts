@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
@@ -87,6 +88,7 @@ export class AdminUserController {
 
   @ApiOperation(ADMIN_USERS.GET.API_OPERATION)
   @ApiOkResponse(ADMIN_USERS.GET.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_USERS.GET.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, AdminRoleGuard)
   @Get()
