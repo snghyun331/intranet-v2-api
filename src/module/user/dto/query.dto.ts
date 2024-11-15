@@ -10,10 +10,10 @@ export class AdminUserFilterDto {
   @IsNumber()
   gradeIdx?: number;
 
-  @ApiProperty({ type: Date, description: '입사일', example: '2024-05-02', required: false })
+  @ApiProperty({ type: String, description: '입사일', example: '2024-05-02', required: false })
   @IsOptional()
   @IsDateString()
-  joinDate?: Date;
+  joinDate?: string;
 
   @ApiProperty({ type: 'enum', enum: GenderEnum, description: '성별', example: 'W', required: false })
   @IsOptional()

@@ -38,9 +38,10 @@ import { TransactionManager } from '../../common/decorator/transaction.decorator
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { MealAdminResult, MealBudgetAdminResult, MealCalenderResult } from './interface/result.interface';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
-import { AdminMealPaginationDto, AdminPaginationDto } from './dto/query.dto';
+import { AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
@@ -124,8 +125,8 @@ export class AdminMealController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, AdminRoleGuard)
   @Get()
-  async getQna(@Query() paginationInfo: AdminPaginationDto): Promise<ResponseInterface> {
-    const { totalPage, total, meal }: MealAdminResult = await this.mealService.getMeal(paginationInfo);
+  async getQna(@Query() pageNoInfo: PageNoDto, filterInfo: AdminMealFilterDto): Promise<ResponseInterface> {
+    const { totalPage, total, meal }: MealAdminResult = await this.mealService.getMeal(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = {
       message: '어드민 식대 내역 조회 성공',
@@ -160,10 +161,15 @@ export class AdminMealController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, AdminRoleGuard)
   @Get('budget')
-  async getMealBudget(@Query() paginationInfo: AdminMealPaginationDto): Promise<ResponseInterface> {
-    const { totalPage, total, workdays, mealBudget }: MealBudgetAdminResult =
-      await this.mealService.getMealBudget(paginationInfo);
-    const { month } = paginationInfo;
+  async getMealBudget(
+    @Query() pageNoInfo: PageNoDto,
+    filterInfo: AdminMealBudgetFilterDto,
+  ): Promise<ResponseInterface> {
+    const { totalPage, total, workdays, mealBudget }: MealBudgetAdminResult = await this.mealService.getMealBudget(
+      pageNoInfo,
+      filterInfo,
+    );
+    const { month } = filterInfo;
 
     const response: ResponseInterface = {
       message: `${month}월 어드민 식대 설정 리스트 조회 성공`,

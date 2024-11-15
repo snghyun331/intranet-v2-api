@@ -38,9 +38,10 @@ import { EntityManager } from 'typeorm';
 import { QnaEntity } from '../../entity/qna/qna.entity';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { QnaAdminResult } from './interface/result.interface';
-import { PaginationDto } from './dto/query.dto';
+import { QnaFilterDto } from './dto/query.dto';
 import { UserPayload } from '../../common/interface/payload.interface';
 import { ReplyQnaDto } from './dto/replyQna.dto';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
 
 @ApiTags('문의(USER)')
 @Controller('users/qna')
@@ -116,8 +117,8 @@ export class AdminQnaController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, AdminRoleGuard)
   @Get()
-  async getQna(@Query() paginationInfo: PaginationDto): Promise<ResponseInterface> {
-    const { totalPage, total, qna }: QnaAdminResult = await this.qnaService.getQna(paginationInfo);
+  async getQna(@Query() pageNoInfo: PageNoDto, @Query() filterInfo: QnaFilterDto): Promise<ResponseInterface> {
+    const { totalPage, total, qna }: QnaAdminResult = await this.qnaService.getQna(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = {
       message: '어드민 문의 내역 조회 성공',

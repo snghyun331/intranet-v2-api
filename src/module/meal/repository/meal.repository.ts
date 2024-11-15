@@ -10,11 +10,12 @@ import { AttendanceEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../com
 import { DetailedMealData, MealAdminInfo, MealBudgetAdminInfo, MealStats } from '../interface/meal.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { MealAdminResult, MealBudgetTotalPageInfo } from '../interface/result.interface';
-import { AdminMealPaginationDto, AdminMealFilterDto } from '../dto/query.dto';
+import { AdminMealFilterDto, AdminMealBudgetFilterDto } from '../dto/query.dto';
 import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { NewMealStats } from '../../scheduler/interface/meal.interface';
 import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
+import { PageNoDto } from '../../../common/dto/pageNo.dto';
 
 @Injectable()
 export class MealRepository {
@@ -508,7 +509,10 @@ export class MealRepository {
       .execute();
   }
 
-  async getAdminMealBudget({ year, month, perPage, pageNo }: AdminMealPaginationDto): Promise<MealBudgetTotalPageInfo> {
+  async getAdminMealBudget(
+    { perPage, pageNo }: PageNoDto,
+    { year, month }: AdminMealBudgetFilterDto,
+  ): Promise<MealBudgetTotalPageInfo> {
     const query: SelectQueryBuilder<MealStatsEntity> = this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([

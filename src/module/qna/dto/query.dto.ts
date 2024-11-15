@@ -1,5 +1,4 @@
-import { ApiProperty, IntersectionType } from '@nestjs/swagger';
-import { PageNoDto } from '../../../common/dto/pageNo.dto';
+import { ApiProperty } from '@nestjs/swagger';
 import { YNEnum } from '../../../common/constant/enum';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
@@ -14,5 +13,3 @@ export class QnaFilterDto {
   @IsString()
   userCell?: string;
 }
-
-export class PaginationDto extends IntersectionType(PageNoDto, QnaFilterDto) {}
