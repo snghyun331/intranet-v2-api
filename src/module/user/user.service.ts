@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './repository/user.repository';
 import {
   CurrentUserInfoResult,
@@ -46,5 +46,14 @@ export class UserService {
     await this.userRepository.createUser(newUserInfo, manager);
 
     return;
+  }
+
+  async checkIdIfAvailable(loginId: string): Promise<string> {
+    const result: number = await this.userRepository.getLoginIdCnt(loginId);
+    if (result >= 1) {
+      throw new ConflictException('중복된 ID입니다. 다른 ID를 입력해 주세요.');
+    }
+
+    return loginId;
   }
 }

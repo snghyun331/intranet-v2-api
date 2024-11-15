@@ -327,3 +327,48 @@ export const ADMIN_USERS: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_USERS_CHECK: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '직원 등록 아이디 중복확인 API',
+    },
+    API_PARAM1: {
+      name: 'loginId',
+      type: String,
+      required: true,
+      description: '등록할 로그인 아이디',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '아이디 중복확인 성공',
+            data: {
+              id: 'shlee12',
+            },
+          },
+        },
+      },
+    },
+    API_CONFLICT_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '중복 아이디를 입력',
+              value: {
+                message: '중복된 ID입니다. 다른 ID를 입력해 주세요.',
+                error: 'Conflict',
+                statusCode: 409,
+                timeStamp: '2024. 11. 15. 오전 11:20:58',
+                path: '/admin/users/check-login-id/shlee1',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};

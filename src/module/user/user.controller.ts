@@ -1,14 +1,16 @@
-import { Body, Controller, Get, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { USERS_GRADES_IDX, ADMIN_USERS, USERS_IDXS, USERS_MY } from './swagger/user.swagger';
+import { USERS_GRADES_IDX, ADMIN_USERS, USERS_IDXS, USERS_MY, ADMIN_USERS_CHECK } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
@@ -116,6 +118,21 @@ export class AdminUserController {
     await this.userService.createUser(newUserInfo, manager);
 
     const response: ResponseInterface = { message: '새로운 유저 등록 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_USERS_CHECK.GET.API_OPERATION)
+  @ApiParam(ADMIN_USERS_CHECK.GET.API_PARAM1)
+  @ApiOkResponse(ADMIN_USERS_CHECK.GET.API_OK_RESPONSE)
+  @ApiConflictResponse(ADMIN_USERS_CHECK.GET.API_CONFLICT_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Get('check-login-id/:loginId')
+  async checkLoginId(@Param('loginId') loginId: string): Promise<ResponseInterface> {
+    const id: string = await this.userService.checkIdIfAvailable(loginId);
+
+    const response: ResponseInterface = { message: '아이디 중복확인 성공', data: { id } };
 
     return response;
   }

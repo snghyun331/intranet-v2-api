@@ -24,6 +24,15 @@ export class UserRepository {
     @InjectRepository(GradeEntity) private readonly gradeModel: Repository<GradeEntity>,
   ) {}
 
+  async getLoginIdCnt(loginId: string): Promise<number> {
+    const userCnt: number = await this.userModel
+      .createQueryBuilder('userEntity')
+      .where('userEntity.id = :id', { id: loginId })
+      .getCount();
+
+    return userCnt;
+  }
+
   async getAllUserIdxInfo(): Promise<UserIdxsResult[]> {
     const result: UserIdxsResult[] = await this.userModel
       .createQueryBuilder('userEntity')
