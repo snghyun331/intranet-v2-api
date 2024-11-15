@@ -163,7 +163,7 @@ export class AdminMealController {
   @Get('budget')
   async getMealBudget(
     @Query() pageNoInfo: PageNoDto,
-    filterInfo: AdminMealBudgetFilterDto,
+    @Query() filterInfo: AdminMealBudgetFilterDto,
   ): Promise<ResponseInterface> {
     const { totalPage, total, workdays, mealBudget }: MealBudgetAdminResult = await this.mealService.getMealBudget(
       pageNoInfo,
@@ -181,6 +181,7 @@ export class AdminMealController {
 
   @ApiOperation(ADMIN_MEALS_BUDGET.PATCH.API_OPERATION)
   @ApiParam(ADMIN_MEALS_BUDGET.PATCH.API_PARAM1)
+  @ApiBody(ADMIN_MEALS_BUDGET.PATCH.API_BODY)
   @ApiOkResponse(ADMIN_MEALS_BUDGET.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_MEALS_BUDGET.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')

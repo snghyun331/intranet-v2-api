@@ -1,6 +1,7 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 export const USERS_MEALS: SwaggerMethod = {
   GET: {
@@ -509,6 +510,23 @@ export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
       type: Number,
       required: true,
       description: '통계 IDX',
+    },
+    API_BODY: {
+      type: UpdateNoteDto,
+      examples: {
+        a: {
+          summary: '비고 내용 X',
+          value: {
+            note: '11월 22일 퇴사예정',
+          },
+        },
+        b: {
+          summary: '비고 내용 X (삭제)',
+          value: {
+            note: null,
+          },
+        },
+      },
     },
     API_OK_RESPONSE: {
       content: {

@@ -511,8 +511,9 @@ export class MealRepository {
 
   async getAdminMealBudget(
     { perPage, pageNo }: PageNoDto,
-    { year, month }: AdminMealBudgetFilterDto,
+    filterInfo: AdminMealBudgetFilterDto,
   ): Promise<MealBudgetTotalPageInfo> {
+    const { year, month } = filterInfo;
     const query: SelectQueryBuilder<MealStatsEntity> = this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([
@@ -530,6 +531,10 @@ export class MealRepository {
 
     const total = await query.getCount();
     const totalPage = Math.ceil(total / perPage);
+
+    if (filterInfo.gradeIdx) {
+      query.andWhere('userEntity.gradeIdx  = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
+    }
 
     query
       .orderBy('userEntity.gradeIdx', 'ASC')

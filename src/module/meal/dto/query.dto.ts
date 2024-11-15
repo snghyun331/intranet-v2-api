@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class AdminMealFilterDto {
   @ApiProperty({
@@ -40,4 +41,10 @@ export class AdminMealBudgetFilterDto {
   @IsNotEmpty({ message: '월을 입력해주세요.' })
   @IsString()
   month: string;
+
+  @ApiProperty({ type: Number, description: '직급IDX', example: 2, required: false })
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  gradeIdx?: number;
 }

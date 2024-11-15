@@ -355,7 +355,6 @@ export class MealService {
       pageNoInfo,
       filterInfo,
     );
-
     const yearToNum = Number(filterInfo.year);
     const monthToNum = Number(filterInfo.month);
     // holidays 불러오기
