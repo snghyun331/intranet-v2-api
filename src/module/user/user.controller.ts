@@ -1,5 +1,13 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { USERS_GRADES_IDX, ADMIN_USERS, USERS_IDXS, USERS_MY } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { UserRole } from '../../common/decorator/userRole.decorator';
@@ -17,6 +25,10 @@ import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
+import { TransactionManager } from '../../common/decorator/transaction.decorator';
+import { EntityManager } from 'typeorm';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @ApiTags('사용자(USER)')
 @Controller('users')
@@ -86,6 +98,24 @@ export class AdminUserController {
     );
 
     const response: ResponseInterface = { message: '모든 직원 정보 조회 성공', data: { totalPage, total, users } };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_USERS.POST.API_OPERATION)
+  @ApiBody(ADMIN_USERS.POST.API_BODY)
+  @ApiCreatedResponse(ADMIN_USERS.POST.API_CREATED_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Post()
+  async createUser(
+    @Body() newUserInfo: CreateUserDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.userService.createUser(newUserInfo, manager);
+
+    const response: ResponseInterface = { message: '새로운 유저 등록 성공' };
 
     return response;
   }

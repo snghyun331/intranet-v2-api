@@ -1,4 +1,5 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
+import { CreateUserDto } from '../dto/createUser.dto';
 
 export const USERS_IDXS: SwaggerMethod = {
   GET: {
@@ -286,6 +287,40 @@ export const ADMIN_USERS: SwaggerMethod = {
                 },
               ],
             },
+          },
+        },
+      },
+    },
+  },
+  POST: {
+    API_OPERATION: {
+      summary: '직원 등록 API',
+    },
+    API_BODY: {
+      type: CreateUserDto,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            id: 'wony',
+            userName: '장원영',
+            gradeIdx: 7,
+            userEmail: 'wony@acghr.co.kr',
+            userCell: '010-0000-0000',
+            userAddress: '서울시 청담동',
+            userBirth: '2004-08-31',
+            userGender: 'W',
+            joinDate: '2024-11-15',
+          },
+        },
+      },
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 201,
+            message: '새로운 유저 등록 성공',
           },
         },
       },

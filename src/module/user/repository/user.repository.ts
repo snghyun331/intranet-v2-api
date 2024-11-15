@@ -7,7 +7,7 @@ import {
   UserIdxsResult,
   AllUserInfoResult,
 } from '../interface/result.interface';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { EntityManager, InsertResult, Repository, SelectQueryBuilder } from 'typeorm';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
@@ -15,6 +15,7 @@ import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AllUserInfo } from '../interface/user.interface';
 import { AdminUserFilterDto } from '../dto/query.dto';
 import { removeAllWhiteSpace } from '../../../common/utils/utility';
+import { CreateUserDto } from '../dto/createUser.dto';
 
 @Injectable()
 export class UserRepository {
@@ -117,5 +118,16 @@ export class UserRepository {
     const result: AllUserInfo[] = await query.getRawMany();
 
     return { totalPage, total, users: result };
+  }
+
+  async createUser(newUserInfo: CreateUserDto, manager: EntityManager): Promise<InsertResult> {
+    const password: string = newUserInfo.id + '2467';
+
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(UserEntity)
+      .values({ password, ...newUserInfo })
+      .execute();
   }
 }

@@ -8,6 +8,8 @@ import {
 } from './interface/result.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
+import { EntityManager } from 'typeorm';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @Injectable()
 export class UserService {
@@ -38,5 +40,11 @@ export class UserService {
     const user: AllUserInfoResult = await this.userRepository.getAllUsersInfo(pageNoInfo, filterInfo);
 
     return user;
+  }
+
+  async createUser(newUserInfo: CreateUserDto, manager: EntityManager): Promise<void> {
+    await this.userRepository.createUser(newUserInfo, manager);
+
+    return;
   }
 }
