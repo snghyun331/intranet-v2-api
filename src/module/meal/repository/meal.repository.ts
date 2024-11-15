@@ -10,11 +10,12 @@ import { AttendanceEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../com
 import { DetailedMealData, MealAdminInfo, MealBudgetAdminInfo, MealStats } from '../interface/meal.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { MealAdminResult, MealBudgetTotalPageInfo } from '../interface/result.interface';
-import { AdminMealPaginationDto, AdminMealSearchDto } from '../dto/query.dto';
+import { AdminMealFilterDto, AdminMealBudgetFilterDto } from '../dto/query.dto';
 import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { NewMealStats } from '../../scheduler/interface/meal.interface';
 import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
+import { PageNoDto } from '../../../common/dto/pageNo.dto';
 
 @Injectable()
 export class MealRepository {
@@ -400,7 +401,7 @@ export class MealRepository {
     return result;
   }
 
-  async getMeal(pageNo: number, perPage: number, searchInfo: AdminMealSearchDto): Promise<MealAdminResult> {
+  async getMeal(pageNo: number, perPage: number, searchInfo: AdminMealFilterDto): Promise<MealAdminResult> {
     const query: SelectQueryBuilder<MealEntity> = this.mealModel
       .createQueryBuilder('mealEntity')
       .select([
@@ -508,19 +509,25 @@ export class MealRepository {
       .execute();
   }
 
-  async getAdminMealBudget({ year, month, perPage, pageNo }: AdminMealPaginationDto): Promise<MealBudgetTotalPageInfo> {
+  async getAdminMealBudget(
+    { perPage, pageNo }: PageNoDto,
+    filterInfo: AdminMealBudgetFilterDto,
+  ): Promise<MealBudgetTotalPageInfo> {
+    const { year, month } = filterInfo;
     const query: SelectQueryBuilder<MealStatsEntity> = this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([
         'mealStatsEntity.mealStatsIdx AS mealStatsIdx',
         'mealStatsEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
         'mealStatsEntity.mealBudget AS mealBudget',
         'mealStatsEntity.note AS note',
         'mealStatsEntity.year AS year',
         'mealStatsEntity.month AS month',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealStatsEntity.userIdx')
+      .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month });
 

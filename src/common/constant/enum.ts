@@ -58,3 +58,15 @@ export enum QnaCategoryEnum {
   BUG = 'bug',
   PROPOSAL = 'proposal',
 }
+
+export enum OrderbyEnum {
+  ASC = 'asc',
+  DESC = 'desc',
+}
+
+export enum SortbyEnum {
+  GRADE = 'userGrade',
+  BIRTH = 'userBirth',
+  JOIN = 'joinDate',
+  TEAM = 'teamName',
+}

@@ -8,6 +8,8 @@ import { UserPayload } from '../../common/interface/payload.interface';
 import { ReplyQnaDto } from './dto/replyQna.dto';
 import { YNEnum } from '../../common/constant/enum';
 import { QnaInfo } from './interface/qna.interface';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { QnaFilterDto } from './dto/query.dto';
 
 @Injectable()
 export class QnaService {
@@ -35,7 +37,7 @@ export class QnaService {
     return userQnaInfo;
   }
 
-  async getQna({ pageNo, perPage, ...filterInfo }) {
+  async getQna({ pageNo, perPage }: PageNoDto, filterInfo: QnaFilterDto) {
     const { totalPage, total, qna }: QnaAdminResult = await this.qnaRepository.getQna(pageNo, perPage, filterInfo);
 
     return { totalPage, total, qna };
