@@ -14,6 +14,7 @@ export interface CurrentUserInfoResult {
   userCell: string;
   userEmail: string;
   userBirth: string;
+  userAddress: string;
   joinDate: string;
   hqName: string;
   teamName: string;

@@ -10,6 +10,7 @@ import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
 import { EntityManager } from 'typeorm';
 import { CreateUserDto } from './dto/createUser.dto';
+import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 
 @Injectable()
 export class UserService {
@@ -21,7 +22,7 @@ export class UserService {
     return result;
   }
 
-  async getUserInfo(userIdx: number): Promise<CurrentUserInfoResult> {
+  async getMyInfo(userIdx: number): Promise<CurrentUserInfoResult> {
     const user: CurrentUserInfoResult = await this.userRepository.getUserInfo(userIdx);
     if (!user) {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
@@ -53,11 +54,22 @@ export class UserService {
   }
 
   async checkIdIfAvailable(loginId: string): Promise<string> {
-    const result: number = await this.userRepository.getLoginIdCnt(loginId);
+    const result: number = await this.userRepository.getLoginIdCount(loginId);
     if (result >= 1) {
       throw new ConflictException('중복된 ID입니다. 다른 ID를 입력해 주세요.');
     }
 
     return loginId;
+  }
+
+  async updateMyInfo(userIdx: number, updateInfo: UpdateMyInfoDto, manager: EntityManager): Promise<void> {
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
+    await this.userRepository.updateUserInfo(userIdx, updateInfo, manager);
+
+    return;
   }
 }

@@ -1,5 +1,6 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateUserDto } from '../dto/createUser.dto';
+import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 
 export const USERS_IDXS: SwaggerMethod = {
   GET: {
@@ -70,6 +71,33 @@ export const USERS_MY: SwaggerMethod = {
             statusCode: 404,
             timeStamp: '2024. 10. 23. 오후 2:38:32',
             path: '/users/me',
+          },
+        },
+      },
+    },
+  },
+  PUT: {
+    API_OPERATION: {
+      summary: '로그인한 사용자 기본정보 수정 API',
+    },
+    API_BODY: {
+      type: UpdateMyInfoDto,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            userAddress: '경기도 고양시',
+            userCell: '010-4194-5712',
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '내 기본정보 수정 성공',
           },
         },
       },
