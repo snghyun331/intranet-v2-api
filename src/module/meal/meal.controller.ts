@@ -25,7 +25,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_MEALS, ADMIN_MEALS_BUDGET, USERS_MEALS } from './swagger/meal.swagger';
+import { ADMIN_MEALS, ADMIN_MEALS_BALANCES, ADMIN_MEALS_BUDGET, USERS_MEALS } from './swagger/meal.swagger';
 import { CreateMealDto } from './dto/createMeal.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -38,10 +38,11 @@ import { TransactionManager } from '../../common/decorator/transaction.decorator
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { MealAdminResult, MealBudgetAdminResult, MealCalenderResult } from './interface/result.interface';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
-import { AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
+import { AdminMealBalanceFilterDto, AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { MealStatsAdminInfo } from './interface/meal.interface';
 
 @ApiTags('식대(USER)')
 @Controller('users/meals')
@@ -125,7 +126,7 @@ export class AdminMealController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, AdminRoleGuard)
   @Get()
-  async getQna(@Query() pageNoInfo: PageNoDto, filterInfo: AdminMealFilterDto): Promise<ResponseInterface> {
+  async getMeal(@Query() pageNoInfo: PageNoDto, @Query() filterInfo: AdminMealFilterDto): Promise<ResponseInterface> {
     const { totalPage, total, meal }: MealAdminResult = await this.mealService.getMeal(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = {
@@ -196,6 +197,41 @@ export class AdminMealController {
     await this.mealService.updateMealStatsNote(mealStatsIdx, noteInfo, manager);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_MEALS_BALANCES.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_MEALS_BALANCES.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Get('balances')
+  async getMealBalance(@Query() filterInfo: AdminMealBalanceFilterDto): Promise<ResponseInterface> {
+    const mealStats: MealStatsAdminInfo[] = await this.mealService.getUserMealStats(filterInfo);
+
+    const response: ResponseInterface = {
+      message: `어드민 ${filterInfo.month}월 식대 정산 조회 성공`,
+      data: { ...filterInfo, mealStats },
+    };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_MEALS_BALANCES.PATCH.API_OPERATION)
+  @ApiBody(ADMIN_MEALS_BALANCES.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_MEALS_BALANCES.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_MEALS_BALANCES.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Patch('balances')
+  async updateSettlementStatus(
+    @Body('mealStatsIdxList') mealStatsIdxList: number[],
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.mealService.updateSettlementStatus(mealStatsIdxList, manager);
+
+    const response: ResponseInterface = { message: '어드민 식대 정산완료 업데이트 성공' };
 
     return response;
   }

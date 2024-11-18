@@ -566,3 +566,127 @@ export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_MEALS_BALANCES: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 식대 정산완료 업데이트 API',
+    },
+    API_BODY: {
+      type: Array,
+      description: '삭제할 통계내역IDX 배열',
+      examples: {
+        a: {
+          summary: '통계내역IDX 개별삭제',
+          value: { mealStatsIdx: [1] },
+        },
+        b: {
+          summary: '통계내역IDX 복수삭제',
+          value: { mealStatsIdx: [1, 2, 3] },
+        },
+      },
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '어드민 식대 정산완료 업데이트 성공',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 11. 14. 오후 3:36:23',
+                path: '/admin/meals/budget/4000',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 식대 정산 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '어드민 11월 식대 정산 조회 성공',
+            data: {
+              year: '2024',
+              month: '11',
+              mealStats: [
+                {
+                  mealStatsIdx: 172,
+                  userIdx: 1,
+                  userName: '이승현',
+                  gradeName: '위원',
+                  mealBudget: 400000,
+                  mealExpense: 0,
+                  mealBalance: 400000,
+                  breakfastExpense: 0,
+                  dinnerExpense: 0,
+                  note: null,
+                  clearStatus: 'not_yet',
+                },
+                {
+                  mealStatsIdx: 173,
+                  userIdx: 2,
+                  userName: '김현민',
+                  gradeName: '위원',
+                  mealBudget: 420000,
+                  mealExpense: 0,
+                  mealBalance: 420000,
+                  breakfastExpense: 0,
+                  dinnerExpense: 0,
+                  note: null,
+                  clearStatus: 'not_yet',
+                },
+                {
+                  mealStatsIdx: 174,
+                  userIdx: 3,
+                  userName: '윤용설',
+                  gradeName: '위원',
+                  mealBudget: 420000,
+                  mealExpense: 0,
+                  mealBalance: 420000,
+                  breakfastExpense: 0,
+                  dinnerExpense: 0,
+                  note: null,
+                  clearStatus: 'not_yet',
+                },
+                {
+                  mealStatsIdx: 175,
+                  userIdx: 4,
+                  userName: '박민수',
+                  gradeName: '본부장',
+                  mealBudget: 420000,
+                  mealExpense: 0,
+                  mealBalance: 420000,
+                  breakfastExpense: 0,
+                  dinnerExpense: 0,
+                  note: null,
+                  clearStatus: 'not_yet',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};

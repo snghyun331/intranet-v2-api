@@ -6,8 +6,14 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import { AttendanceEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
-import { DetailedMealData, MealAdminInfo, MealBudgetAdminInfo, MealStats } from '../interface/meal.interface';
+import { AttendanceEnum, ClearStatusEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
+import {
+  DetailedMealData,
+  MealAdminInfo,
+  MealBudgetAdminInfo,
+  MealStats,
+  MealStatsAdminInfo,
+} from '../interface/meal.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { MealAdminResult, MealBudgetTotalPageInfo } from '../interface/result.interface';
 import { AdminMealFilterDto, AdminMealBudgetFilterDto } from '../dto/query.dto';
@@ -565,5 +571,38 @@ export class MealRepository {
       .getCount();
 
     return statsCnt;
+  }
+
+  async getUserMealStats(year: string, month: string): Promise<MealStatsAdminInfo[]> {
+    const result: MealStatsAdminInfo[] = await this.mealStatsModel
+      .createQueryBuilder('mealStatsEntity')
+      .select([
+        'mealStatsEntity.mealStatsIdx AS mealStatsIdx',
+        'mealStatsEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'mealStatsEntity.mealBudget AS mealBudget',
+        'mealStatsEntity.mealExpense AS mealExpense',
+        'mealStatsEntity.mealBalance AS mealBalance',
+        'mealStatsEntity.breakfastExpense AS breakfastExpense',
+        'mealStatsEntity.dinnerExpense AS dinnerExpense',
+        'mealStatsEntity.note AS note',
+        'mealStatsEntity.clearStatus AS clearStatus',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealStatsEntity.userIdx')
+      .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('mealStatsEntity.year = :year', { year })
+      .andWhere('mealStatsEntity.month = :month', { month })
+      .getRawMany();
+
+    return result;
+  }
+
+  async updateSettlementStatus(mealStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.COMPLETE })
+      .execute();
   }
 }
