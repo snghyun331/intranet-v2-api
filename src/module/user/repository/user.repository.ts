@@ -117,16 +117,18 @@ export class UserRepository {
     if (filterInfo.gradeIdx) {
       query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
     }
-
-    if (filterInfo.joinDate) {
-      query.andWhere('userEntity.joinDate = :joinDate', { joinDate: filterInfo.joinDate });
-    }
     if (filterInfo.userGender) {
       query.andWhere('userEntity.userGender = :userGender', { userGender: filterInfo.userGender });
     }
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
       query.andWhere('userEntity.userName = :userName', { userName });
+    }
+    if (filterInfo.joinSDate && filterInfo.joinEDate) {
+      query.andWhere('userEntity.joinDate BETWEEN :joinSDate AND :joinEDate', {
+        joinSDate: filterInfo.joinSDate,
+        joinEDate: filterInfo.joinEDate,
+      });
     }
 
     const total = await query.getCount();
@@ -144,12 +146,6 @@ export class UserRepository {
         query
           .orderBy('userEntity.userBirth', filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC')
           .addOrderBy('userEntity.joinDate', 'DESC')
-          .addOrderBy('userEntity.createdAt', 'DESC')
-          .limit(perPage)
-          .offset((pageNo - 1) * perPage);
-      } else if (filterInfo.sortby === SortbyEnum.JOIN) {
-        query
-          .orderBy('userEntity.joinDate', filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC')
           .addOrderBy('userEntity.createdAt', 'DESC')
           .limit(perPage)
           .offset((pageNo - 1) * perPage);

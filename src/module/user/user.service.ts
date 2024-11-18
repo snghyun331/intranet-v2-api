@@ -41,6 +41,12 @@ export class UserService {
     if ((filterInfo.sortby && !filterInfo.orderby) || (!filterInfo.sortby && filterInfo.orderby)) {
       throw new BadRequestException('sortby와 orderby는 함께 제공되거나 둘 다 없어야 합니다.');
     }
+    if ((filterInfo.joinSDate && !filterInfo.joinEDate) || (!filterInfo.joinSDate && filterInfo.joinEDate)) {
+      throw new BadRequestException('joinSDate와 joinEDate는 함께 제공되거나 둘 다 없어야 합니다.');
+    }
+    if (filterInfo.joinSDate > filterInfo.joinEDate) {
+      throw new BadRequestException('joinSDate는 joinEDate보다 클 수 없습니다.');
+    }
 
     const user: AllUserInfoResult = await this.userRepository.getAllUsersInfo(pageNoInfo, filterInfo);
 
