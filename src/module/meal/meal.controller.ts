@@ -216,4 +216,23 @@ export class AdminMealController {
 
     return response;
   }
+
+  @ApiOperation(ADMIN_MEALS_BALANCES.PATCH.API_OPERATION)
+  @ApiBody(ADMIN_MEALS_BALANCES.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_MEALS_BALANCES.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_MEALS_BALANCES.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Patch('balances')
+  async updateSettlementStatus(
+    @Body('mealStatsIdxList') mealStatsIdxList: number[],
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.mealService.updateSettlementStatus(mealStatsIdxList, manager);
+
+    const response: ResponseInterface = { message: '어드민 식대 정산완료 업데이트 성공' };
+
+    return response;
+  }
 }

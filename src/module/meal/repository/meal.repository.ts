@@ -6,7 +6,7 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import { AttendanceEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
+import { AttendanceEnum, ClearStatusEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
 import {
   DetailedMealData,
   MealAdminInfo,
@@ -596,5 +596,13 @@ export class MealRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async updateSettlementStatus(mealStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.COMPLETE })
+      .execute();
   }
 }
