@@ -598,11 +598,21 @@ export class MealRepository {
     return result;
   }
 
-  async updateSettlementStatus(mealStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+  async updateClearStatusComplete(mealStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
     return await manager
       .createQueryBuilder()
       .update(MealStatsEntity)
       .set({ clearStatus: ClearStatusEnum.COMPLETE })
+      .where('mealStatsIdx = :mealStatsIdx', { mealStatsIdx })
+      .execute();
+  }
+
+  async updateClearStatusNotYet(mealStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.NOT_YET })
+      .where('mealStatsIdx = :mealStatsIdx', { mealStatsIdx })
       .execute();
   }
 }

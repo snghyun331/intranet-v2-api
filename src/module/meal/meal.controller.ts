@@ -25,7 +25,13 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_MEALS, ADMIN_MEALS_BALANCES, ADMIN_MEALS_BUDGET, USERS_MEALS } from './swagger/meal.swagger';
+import {
+  ADMIN_MEALS,
+  ADMIN_MEALS_BALANCES,
+  ADMIN_MEALS_BALANCES_CANCEL,
+  ADMIN_MEALS_BUDGET,
+  USERS_MEALS,
+} from './swagger/meal.swagger';
 import { CreateMealDto } from './dto/createMeal.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -225,13 +231,32 @@ export class AdminMealController {
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, AdminRoleGuard)
   @Patch('balances')
-  async updateSettlementStatus(
+  async updateClearStatusComplete(
     @Body('mealStatsIdxList') mealStatsIdxList: number[],
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.mealService.updateSettlementStatus(mealStatsIdxList, manager);
+    await this.mealService.updateClearStatusComplete(mealStatsIdxList, manager);
 
-    const response: ResponseInterface = { message: '어드민 식대 정산완료 업데이트 성공' };
+    const response: ResponseInterface = { message: '어드민 식대 정산완료 처리 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_MEALS_BALANCES_CANCEL.PATCH.API_OPERATION)
+  @ApiBody(ADMIN_MEALS_BALANCES_CANCEL.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_MEALS_BALANCES_CANCEL.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_MEALS_BALANCES_CANCEL.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Patch('balances/cancel')
+  async updateClearStatusNotYet(
+    @Body('mealStatsIdxList') mealStatsIdxList: number[],
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.mealService.updateClearStatusNotYet(mealStatsIdxList, manager);
+
+    const response: ResponseInterface = { message: '어드민 식대 정산완료 취소 처리 성공' };
 
     return response;
   }
