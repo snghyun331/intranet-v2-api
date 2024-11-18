@@ -149,6 +149,12 @@ export class UserRepository {
           .addOrderBy('userEntity.createdAt', 'DESC')
           .limit(perPage)
           .offset((pageNo - 1) * perPage);
+      } else if (filterInfo.sortby === SortbyEnum.JOIN) {
+        query
+          .orderBy('userEntity.joinDate', filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC')
+          .addOrderBy('userEntity.createdAt', 'DESC')
+          .limit(perPage)
+          .offset((pageNo - 1) * perPage);
       } else if (filterInfo.sortby === SortbyEnum.TEAM) {
         query
           .orderBy('teamEntity.teamName', filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC')
