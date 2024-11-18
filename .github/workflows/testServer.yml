@@ -34,5 +34,6 @@ jobs:
             echo "AXIOS_MAX_REDIRECTS=${{ secrets.AXIOS_MAX_REDIRECTS }}" >> .env
             echo "HOLIDAY_API_URL=${{ secrets.HOLIDAY_API_URL }}" >> .env            
             echo "HOLIDAY_API_KEY=${{ secrets.HOLIDAY_API_KEY }}" >> .env            
+            echo "AUTH_KEY_AES=${{ secrets.AUTH_KEY_AES }}" >> .env            
             echo "############# RUN SCRIPT #############"
             sh script.sh

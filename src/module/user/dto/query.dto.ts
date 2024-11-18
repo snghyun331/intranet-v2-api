@@ -25,6 +25,28 @@ export class AdminUserFilterDto {
   @IsString()
   userName?: string;
 
+  @ApiProperty({
+    name: 'joinSDate',
+    required: false,
+    type: String,
+    description: '입사일 검색 시작일자',
+    example: '2024-11-01',
+  })
+  @IsOptional()
+  @IsDateString()
+  joinSDate?: string;
+
+  @ApiProperty({
+    name: 'joinEDate',
+    required: false,
+    type: String,
+    description: '입사일 검색 종료일자',
+    example: '2024-11-20',
+  })
+  @IsOptional()
+  @IsDateString()
+  joinEDate?: string;
+
   @ApiProperty({ type: 'enum', enum: SortbyEnum, description: '정렬 기준', required: false })
   @IsOptional()
   @IsEnum(SortbyEnum)
