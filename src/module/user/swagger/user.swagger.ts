@@ -105,6 +105,52 @@ export const USERS_MY: SwaggerMethod = {
   },
 };
 
+export const USERS_MY_PW: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '내 비밀번호 변경 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '내 비밀번호 변경 성공',
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '기존 비밀번호X',
+              value: {
+                message: '기존 비밀번호가 올바르지 않습니다',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 18. 오전 10:51:17',
+                path: '/users/me/password',
+              },
+            },
+            b: {
+              summary: '비밀번호 != 비밀번호 확인',
+              value: {
+                message: '비밀번호가 같지 않습니다',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 18. 오전 10:52:27',
+                path: '/users/me/password',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const USERS_GRADES_IDX: SwaggerMethod = {
   GET: {
     API_OPERATION: {

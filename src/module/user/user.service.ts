@@ -11,6 +11,8 @@ import { AdminUserFilterDto } from './dto/query.dto';
 import { EntityManager } from 'typeorm';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
+import { UpdateMyPwDto } from './dto/updateMyPw.dto';
+import { decryptPassword, encryptPassword } from '../../common/utils/utility';
 
 @Injectable()
 export class UserService {
@@ -75,6 +77,29 @@ export class UserService {
     }
 
     await this.userRepository.updateUserInfo(userIdx, updateInfo, manager);
+
+    return;
+  }
+
+  async updateMyPassword(userIdx: number, updateInfo: UpdateMyPwDto, manager: EntityManager): Promise<void> {
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
+    /* 기존 비밀번호가 맞는지 체크 */
+    const encryptedPrePW: string = await this.userRepository.getUserPassword(userIdx);
+    const decryptedPrePW: string = decryptPassword(encryptedPrePW);
+    if (updateInfo.prePassword !== decryptedPrePW) {
+      throw new BadRequestException('기존 비밀번호가 올바르지 않습니다');
+    }
+    /* 새 비밀번호와 새 비밀번호 확인 비교 */
+    if (updateInfo.newPassword !== updateInfo.confirmPassword) {
+      throw new BadRequestException('비밀번호가 같지 않습니다');
+    }
+    /* 새 비밀번호 암호화 및 저장*/
+    const encryptedNewPW: string = encryptPassword(updateInfo.newPassword);
+    await this.userRepository.updateUserPassword(userIdx, encryptedNewPW, manager);
 
     return;
   }

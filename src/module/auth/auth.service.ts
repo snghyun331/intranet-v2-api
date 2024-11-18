@@ -4,6 +4,7 @@ import { AuthRepository } from './repository/auth.repository';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserResult } from './interface/result.interface';
 import { User } from './interface/user.interface';
+import { decryptPassword } from '../../common/utils/utility';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,8 @@ export class AuthService {
 
   async userLogin(userLoginInfo: LoginUserDto): Promise<LoginUserResult> {
     const user: User = await this.authRepository.getUserPersonal(userLoginInfo.id);
-    if (user && userLoginInfo.password === user.password) {
+    const decryptedUserPW: string = decryptPassword(user.password);
+    if (user && userLoginInfo.password === decryptedUserPW) {
       const { id, password, ...payload } = user;
       const accessToken: string = this.jwtService.sign(payload);
 

@@ -1,5 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment';
+import { AES, enc } from 'crypto-js';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (dateString: string): string => {
@@ -77,4 +79,26 @@ export const removeAllWhiteSpace = (searchWord: string) => {
   const filteredWords: string = searchWord.replace(removeWhiteSpaceReg, '');
 
   return filteredWords;
+};
+
+// pw 암호화
+export const encryptPassword = (originalText: string): string => {
+  const authKey: string = new ConfigService().get<string>('AUTH_KEY_AES');
+  const encryptedText: string = AES.encrypt(originalText, authKey).toString();
+
+  return encryptedText;
+};
+
+// pw 복호화
+export const decryptPassword = (encryptedValue: string): string => {
+  try {
+    const authKey: string = new ConfigService().get<string>('AUTH_KEY_AES');
+    const bytes = AES.decrypt(encryptedValue, authKey);
+    const decryptedText: string = bytes.toString(enc.Utf8);
+
+    return decryptedText;
+  } catch (err) {
+    console.error(err);
+    throw new BadRequestException('잘못된 비밀번호 입니다.');
+  }
 };

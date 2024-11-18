@@ -14,7 +14,7 @@ import { GradeEntity } from '../../../entity/user/grade.entity';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AllUserInfo } from '../interface/user.interface';
 import { AdminUserFilterDto } from '../dto/query.dto';
-import { removeAllWhiteSpace } from '../../../common/utils/utility';
+import { encryptPassword, removeAllWhiteSpace } from '../../../common/utils/utility';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { SortbyEnum } from '../../../common/constant/enum';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
@@ -174,12 +174,13 @@ export class UserRepository {
 
   async createUser(newUserInfo: CreateUserDto, manager: EntityManager): Promise<InsertResult> {
     const password: string = newUserInfo.id + '2467';
+    const encryptedNewPW: string = encryptPassword(password);
 
     return await manager
       .createQueryBuilder()
       .insert()
       .into(UserEntity)
-      .values({ password, ...newUserInfo })
+      .values({ password: encryptedNewPW, ...newUserInfo })
       .execute();
   }
 
@@ -188,6 +189,27 @@ export class UserRepository {
       .createQueryBuilder()
       .update(UserEntity)
       .set(updateInfo)
+      .where('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async getUserPassword(userIdx: number): Promise<string> {
+    const result: { password: string } = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.password AS password'])
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .getRawOne();
+
+    const { password } = result;
+
+    return password;
+  }
+
+  async updateUserPassword(userIdx: number, password: string, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set({ password })
       .where('userIdx = :userIdx', { userIdx })
       .execute();
   }
