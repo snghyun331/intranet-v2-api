@@ -3,7 +3,7 @@ import { MealRepository } from './repository/meal.repository';
 import { CreateMealDto, MealInputDto } from './dto/createMeal.dto';
 import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../common/constant/enum';
 import { MealEntity } from '../../entity/meal/meal.entity';
-import { BasicMealData, DetailedMealData, MealStats } from './interface/meal.interface';
+import { BasicMealData, DetailedMealData, MealStats, MealStatsAdminInfo } from './interface/meal.interface';
 import { EntityManager } from 'typeorm';
 import {
   MealAdminResult,
@@ -11,7 +11,7 @@ import {
   MealBudgetTotalPageInfo,
   MealCalenderResult,
 } from './interface/result.interface';
-import { AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
+import { AdminMealBalanceFilterDto, AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { getTotalDaysInMonth } from '../../common/utils/utility';
 import { NewMealStats } from '../scheduler/interface/meal.interface';
@@ -375,5 +375,11 @@ export class MealService {
     await this.mealRepository.updateMealStatsNote(mealStatsIdx, noteInfo, manager);
 
     return;
+  }
+
+  async getUserMealStats({ year, month }: AdminMealBalanceFilterDto): Promise<MealStatsAdminInfo[]> {
+    const result: MealStatsAdminInfo[] = await this.mealRepository.getUserMealStats(year, month);
+
+    return result;
   }
 }

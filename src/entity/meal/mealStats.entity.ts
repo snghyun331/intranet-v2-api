@@ -1,6 +1,7 @@
 import { CommonEntity } from '../../common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
+import { ClearStatusEnum } from '../../common/constant/enum';
 
 @Entity({ name: 'meal_stats', comment: '식대 통계 tb' })
 export class MealStatsEntity extends CommonEntity {
@@ -45,6 +46,9 @@ export class MealStatsEntity extends CommonEntity {
 
   @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
   note: string;
+
+  @Column({ name: 'clearStatus', comment: '정산여부', type: String, default: ClearStatusEnum.NOT_YET, nullable: false })
+  clearStatus: string;
 
   @ManyToOne(() => UserEntity, (user) => user.mealStatsRelation, {
     onDelete: 'CASCADE',

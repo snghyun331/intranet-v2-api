@@ -15,6 +15,9 @@ export class AuthService {
 
   async userLogin(userLoginInfo: LoginUserDto): Promise<LoginUserResult> {
     const user: User = await this.authRepository.getUserPersonal(userLoginInfo.id);
+    if (!user) {
+      throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
+    }
     const decryptedUserPW: string = decryptPassword(user.password);
     if (user && userLoginInfo.password === decryptedUserPW) {
       const { id, password, ...payload } = user;

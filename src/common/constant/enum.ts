@@ -53,6 +53,11 @@ export enum ConfirmEnum {
   YES = 'Y',
 }
 
+export enum ClearStatusEnum {
+  NOT_YET = 'not_yet',
+  COMPLETE = 'complete',
+}
+
 export enum QnaCategoryEnum {
   QUESTION = 'question',
   BUG = 'bug',
