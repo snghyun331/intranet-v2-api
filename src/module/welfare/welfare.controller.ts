@@ -39,7 +39,7 @@ import { ResponseInterface } from '../../common/interface/response.interface';
 import { WelfareResult } from './interface/result.interface';
 import { WelfareFilterDto } from './dto/query.dto';
 
-@ApiTags('복지포인트(USER)')
+@ApiTags('사용자')
 @Controller('users/welfares')
 export class WelfareController {
   constructor(private readonly welfareService: WelfareService) {}

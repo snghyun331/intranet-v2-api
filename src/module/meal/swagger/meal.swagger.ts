@@ -570,7 +570,7 @@ export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
 export const ADMIN_MEALS_BALANCES: SwaggerMethod = {
   PATCH: {
     API_OPERATION: {
-      summary: '어드민 식대 정산완료 업데이트 API',
+      summary: '어드민 식대 정산 완료 처리 API',
     },
     API_BODY: {
       type: Array,

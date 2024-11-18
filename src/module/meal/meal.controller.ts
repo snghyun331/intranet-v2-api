@@ -44,7 +44,7 @@ import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { MealStatsAdminInfo } from './interface/meal.interface';
 
-@ApiTags('식대(USER)')
+@ApiTags('사용자')
 @Controller('users/meals')
 export class UserMealController {
   constructor(private readonly mealService: MealService) {}
@@ -115,7 +115,7 @@ export class UserMealController {
   }
 }
 
-@ApiTags('식대(ADMIN)')
+@ApiTags('어드민')
 @Controller('admin/meals')
 export class AdminMealController {
   constructor(private readonly mealService: MealService) {}
