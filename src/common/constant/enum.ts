@@ -67,6 +67,5 @@ export enum OrderbyEnum {
 export enum SortbyEnum {
   GRADE = 'userGrade',
   BIRTH = 'userBirth',
-  JOIN = 'joinDate',
   TEAM = 'teamName',
 }

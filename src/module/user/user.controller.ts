@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -11,7 +11,14 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { USERS_GRADES_IDX, ADMIN_USERS, USERS_IDXS, USERS_MY, ADMIN_USERS_CHECK } from './swagger/user.swagger';
+import {
+  USERS_GRADES_IDX,
+  ADMIN_USERS,
+  USERS_IDXS,
+  USERS_MY,
+  ADMIN_USERS_CHECK,
+  USERS_MY_PW,
+} from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { UserRole } from '../../common/decorator/userRole.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
@@ -33,6 +40,7 @@ import { TransactionManager } from '../../common/decorator/transaction.decorator
 import { EntityManager } from 'typeorm';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
+import { UpdateMyPwDto } from './dto/updateMyPw.dto';
 
 @ApiTags('사용자(USER)')
 @Controller('users')
@@ -96,7 +104,27 @@ export class UserController {
   ): Promise<ResponseInterface> {
     await this.userService.updateMyInfo(userIdx, updateInfo, manager);
 
-    const response: ResponseInterface = { message: '내 정보 수정 성공' };
+    const response: ResponseInterface = { message: '내 기본 정보 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_MY_PW.PATCH.API_OPERATION)
+  @ApiOkResponse(USERS_MY_PW.PATCH.API_OK_RESPONSE)
+  @ApiBadRequestResponse(USERS_MY_PW.PATCH.API_BAD_REQUEST_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Patch('me/password')
+  async updateMyPw(
+    @CurrentUserIdx() userIdx: number,
+    @Body() updateInfo: UpdateMyPwDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.userService.updateMyPassword(userIdx, updateInfo, manager);
+
+    const response: ResponseInterface = { message: '내 비밀번호 변경 성공' };
 
     return response;
   }
