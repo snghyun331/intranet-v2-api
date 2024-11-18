@@ -40,7 +40,7 @@ import { ActivityFilterDto } from './dto/query.dto';
 import { UserPayload } from '../../common/interface/payload.interface';
 import { ActivityResult } from './interface/result.interface';
 
-@ApiTags('활동비(USER)')
+@ApiTags('사용자')
 @Controller('users/activities')
 export class ActivityController {
   constructor(private readonly activityService: ActivityService) {}

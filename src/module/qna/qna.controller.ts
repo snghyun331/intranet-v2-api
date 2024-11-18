@@ -43,7 +43,7 @@ import { UserPayload } from '../../common/interface/payload.interface';
 import { ReplyQnaDto } from './dto/replyQna.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 
-@ApiTags('문의(USER)')
+@ApiTags('사용자')
 @Controller('users/qna')
 export class UserQnaController {
   constructor(private readonly qnaService: QnaService) {}
@@ -106,7 +106,7 @@ export class UserQnaController {
   }
 }
 
-@ApiTags('문의(ADMIN)')
+@ApiTags('어드민')
 @Controller('admin/qna')
 export class AdminQnaController {
   constructor(private readonly qnaService: QnaService) {}
