@@ -42,7 +42,7 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdateMyPwDto } from './dto/updateMyPw.dto';
 
-@ApiTags('사용자(USER)')
+@ApiTags('사용자')
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -130,7 +130,7 @@ export class UserController {
   }
 }
 
-@ApiTags('사용자 관리(ADMIN)')
+@ApiTags('어드민')
 @Controller('admin/users')
 export class AdminUserController {
   constructor(private readonly userService: UserService) {}

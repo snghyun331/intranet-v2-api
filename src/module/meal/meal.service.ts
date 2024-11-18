@@ -383,14 +383,26 @@ export class MealService {
     return result;
   }
 
-  async updateSettlementStatus(mealStatsIdxList: number[], manager: EntityManager): Promise<void> {
+  async updateClearStatusComplete(mealStatsIdxList: number[], manager: EntityManager): Promise<void> {
     await Promise.all(
       mealStatsIdxList.map(async (mealStatsIdx) => {
         const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
         if (mealStatsCnt < 1) {
           throw new NotFoundException('존재하지 않는 통계 내역입니다.');
         }
-        await this.mealRepository.updateSettlementStatus(mealStatsIdx, manager);
+        await this.mealRepository.updateClearStatusComplete(mealStatsIdx, manager);
+      }),
+    );
+  }
+
+  async updateClearStatusNotYet(mealStatsIdxList: number[], manager: EntityManager): Promise<void> {
+    await Promise.all(
+      mealStatsIdxList.map(async (mealStatsIdx) => {
+        const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
+        if (mealStatsCnt < 1) {
+          throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+        }
+        await this.mealRepository.updateClearStatusNotYet(mealStatsIdx, manager);
       }),
     );
   }
