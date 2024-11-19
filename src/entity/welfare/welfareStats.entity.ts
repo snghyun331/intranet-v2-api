@@ -26,6 +26,9 @@ export class WelfareStatsEntity extends CommonEntity {
   @Column({ name: 'welfare_balance', comment: '복지포인트 잔액', nullable: true })
   welfareBalance: number;
 
+  @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
+  note: string;
+
   @ManyToOne(() => UserEntity, (user) => user.welfareStatsRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

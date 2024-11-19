@@ -395,6 +395,103 @@ export const USERS_WELFARES: SwaggerMethod = {
 };
 
 export const ADMIN_WELFARES_BUDGET: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 복포 설정 리스트 조회',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '어드민 복포 설정 리스트 조회 성공',
+            data: [
+              {
+                welfareStatsIdx: 76,
+                userIdx: 7,
+                userName: '김현근',
+                gradeName: '본부장',
+                welfareBudget: 300000,
+                note: null,
+              },
+              {
+                welfareStatsIdx: 74,
+                userIdx: 4,
+                userName: '박민수',
+                gradeName: '본부장',
+                welfareBudget: 300000,
+                note: null,
+              },
+              {
+                welfareStatsIdx: 77,
+                userIdx: 8,
+                userName: '김현해',
+                gradeName: '팀장',
+                welfareBudget: 300000,
+                note: null,
+              },
+              {
+                welfareStatsIdx: 78,
+                userIdx: 9,
+                userName: '윤이나',
+                gradeName: '팀장',
+                welfareBudget: 300000,
+                note: null,
+              },
+              {
+                welfareStatsIdx: 72,
+                userIdx: 2,
+                userName: '김현민',
+                gradeName: '위원',
+                welfareBudget: 300000,
+                note: null,
+              },
+              {
+                welfareStatsIdx: 75,
+                userIdx: 6,
+                userName: '안지훈',
+                gradeName: '위원',
+                welfareBudget: 300000,
+                note: null,
+              },
+              {
+                welfareStatsIdx: 73,
+                userIdx: 3,
+                userName: '윤용설',
+                gradeName: '위원',
+                welfareBudget: 300000,
+                note: null,
+              },
+              {
+                welfareStatsIdx: 71,
+                userIdx: 1,
+                userName: '이승현',
+                gradeName: '위원',
+                welfareBudget: 190000,
+                note: null,
+              },
+              {
+                welfareStatsIdx: 79,
+                userIdx: 10,
+                userName: '장원영',
+                gradeName: '인턴',
+                welfareBudget: 300000,
+                note: null,
+              },
+              {
+                welfareStatsIdx: 80,
+                userIdx: 11,
+                userName: '장원영1',
+                gradeName: '인턴',
+                welfareBudget: 300000,
+                note: null,
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
   PATCH: {
     API_OPERATION: {
       summary: '어드민 복포 설정 금액 개별 수정',
