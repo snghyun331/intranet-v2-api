@@ -3,13 +3,11 @@ import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
-import { DEFAULT_TOTAL_WELFARE, NUM_OF_ROWS, PAGE_NO } from '../../common/constant/constant';
+import { NUM_OF_ROWS, PAGE_NO } from '../../common/constant/constant';
 import { getDateFormYYYYMMDD, getWeekendDates } from '../../common/utils/utility';
 import { AxiosHoliday } from './interface/axiosData.interface';
 import { SchedulerRepository } from './repository/scheduler.repository';
-import { HalfYearEnum } from '../../common/constant/enum';
 import { HolidayInfo } from './interface/holiday.interface';
-import { NewWelfareMonthStats, NewWelfareStats } from './interface/welfare.interface';
 
 @Injectable()
 export class SchedulerService {
@@ -20,40 +18,6 @@ export class SchedulerService {
     private readonly schedulerRepository: SchedulerRepository,
     public readonly configService: ConfigService,
   ) {}
-
-  // // 다음 분기 식대 통계 업데이트
-  // @Cron('1 0 25 6,12 *')
-  // async updateMealStats(): Promise<void> {
-  //   this.logger.log('🚀 Start Updating Meal Stats Job !');
-  //   const date: Date = new Date();
-  //   const nowMonth: number = date.getMonth() + 1;
-  //   const initialNextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
-  //   const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-  //   const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
-  //   for (const userIdx of userIdxList) {
-  //     let nextMonth: number = initialNextMonth;
-  //     for (let i = 0; i < 6; i++) {
-  //       const holidayDates: string[] = await this.schedulerRepository.getHolidayDates(year, nextMonth);
-  //       const holidays: number = holidayDates.length;
-  //       const totalDays: number = getTotalDaysInMonth(year, nextMonth);
-  //       const workdays: number = totalDays - holidays;
-  //       const mealBudget: number = DEFAULT_LUNCH_RATE * workdays;
-  //       const newMealStatsInfo: NewMealStats = {
-  //         userIdx,
-  //         year: year.toString(),
-  //         month: nextMonth.toString(),
-  //         workdays,
-  //         holidays,
-  //         mealBudget,
-  //         mealBalance: 0,
-  //       };
-  //       await this.schedulerRepository.updateMealStats(newMealStatsInfo);
-  //       nextMonth++;
-  //     }
-  //   }
-
-  //   this.logger.log('🏁 Updating Meal Stats Job Completed !');
-  // }
 
   // 다음 분기 휴일 정보 수집 및 저장
   @Cron('0 0 25 6,12 *')
@@ -151,58 +115,5 @@ export class SchedulerService {
     );
 
     return weekendInfoList;
-  }
-
-  // 다음 분기 복포 통계 업데이트
-  @Cron('3 0 25 6,12 *')
-  async updateWelfareStats(): Promise<void> {
-    this.logger.log('🚀 Start Updating Welfare Stats Job !');
-    const date: Date = new Date();
-    const nowMonth: number = date.getMonth() + 1;
-    const nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
-    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const halfYear: HalfYearEnum = nextMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
-
-    const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
-
-    await Promise.all(
-      userIdxList.map(async (userIdx) => {
-        const newWelfareStatsInfo: NewWelfareStats = {
-          userIdx,
-          year: year.toString(),
-          halfYear,
-          welfareBudget: DEFAULT_TOTAL_WELFARE,
-        };
-        await this.schedulerRepository.updateWelfareStats(newWelfareStatsInfo);
-      }),
-    );
-
-    this.logger.log('🏁 Updating Welfare Stats Job Completed !');
-  }
-
-  // 다음 분기 월 복포 사용금액 통계 업데이트
-  @Cron('2 0 25 6,12 *')
-  async updateWelfareMonthStats(): Promise<void> {
-    this.logger.log('🚀 Start Updating Welfare Month Stats Job !');
-    const date: Date = new Date();
-    const nowMonth: number = date.getMonth() + 1;
-    const initialNextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
-    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
-    const userIdxList: number[] = await this.schedulerRepository.getAllUserIdx();
-    for (const userIdx of userIdxList) {
-      let nextMonth: number = initialNextMonth;
-      for (let i = 0; i < 6; i++) {
-        const newWelfareMonthStatsInfo: NewWelfareMonthStats = {
-          userIdx,
-          year: year.toString(),
-          month: nextMonth.toString(),
-          welfareMonthExpense: 0,
-        };
-        await this.schedulerRepository.updateWelfareMonthStats(newWelfareMonthStatsInfo);
-        nextMonth++;
-      }
-    }
-
-    this.logger.log('🏁 Updating Welfare Month Stats Job Completed !');
   }
 }

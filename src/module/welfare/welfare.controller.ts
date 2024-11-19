@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -25,7 +26,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { USERS_WELFARES } from './swagger/welfare.swagger';
+import { ADMIN_WELFARES_BUDGET, USERS_WELFARES } from './swagger/welfare.swagger';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
@@ -38,10 +39,13 @@ import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { WelfareResult } from './interface/result.interface';
 import { WelfareFilterDto } from './dto/query.dto';
+import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
+import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
+import { UpdateBudgetDto } from './dto/updateBudget.dto';
 
 @ApiTags('사용자')
 @Controller('users/welfares')
-export class WelfareController {
+export class UserWelfareController {
   constructor(private readonly welfareService: WelfareService) {}
 
   @ApiOperation(USERS_WELFARES.GET.API_OPERATION)
@@ -122,6 +126,50 @@ export class WelfareController {
     const targetDay: string = await this.welfareService.deleteWelfare(userIdx, welfareIdx, manager);
 
     const response: ResponseInterface = { message: '복지포인트 사용내역 초기화 성공', data: { targetDay } };
+
+    return response;
+  }
+}
+
+@ApiTags('어드민')
+@Controller('admin/welfares')
+export class AdminWelfareController {
+  constructor(private readonly welfareService: WelfareService) {}
+
+  @ApiOperation(ADMIN_WELFARES_BUDGET.POST.API_OPERATION)
+  @ApiBody(ADMIN_WELFARES_BUDGET.POST.API_BODY)
+  @ApiCreatedResponse(ADMIN_WELFARES_BUDGET.POST.API_CREATED_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Post('budget')
+  async createWelfareBudget(
+    @Body() welfareBudgetInfo: CreateWelfareBudgetDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.welfareService.createWelfareBudget(welfareBudgetInfo, manager);
+
+    const response: ResponseInterface = { message: '어드민 복지포인트 설정 일괄 등록 및 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_WELFARES_BUDGET.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_WELFARES_BUDGET.PATCH.API_PARAM1)
+  @ApiBody(ADMIN_WELFARES_BUDGET.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_WELFARES_BUDGET.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Patch('budget/:welfareStatsIdx')
+  async updateWelfareBudget(
+    @Param('welfareStatsIdx', ParseIntPipe) welfareStatsIdx: number,
+    @Body() { welfareBudget }: UpdateBudgetDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.welfareService.updateWelfareBudget(welfareStatsIdx, welfareBudget, manager);
+
+    const response: ResponseInterface = { message: '어드민 복지포인트 총 사용가능 금액 개별 수정 성공' };
 
     return response;
   }

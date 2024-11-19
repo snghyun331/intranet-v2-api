@@ -4,8 +4,15 @@ import { WelfareRepository } from './repository/welfare.repository';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { EntityManager } from 'typeorm';
 import { HalfYearEnum, YNEnum } from '../../common/constant/enum';
-import { WelfareInfo, Welfares, WelfareStats } from './interface/welfare.interface';
+import {
+  NewWelfareMonthStats,
+  NewWelfareStats,
+  WelfareInfo,
+  Welfares,
+  WelfareStats,
+} from './interface/welfare.interface';
 import { WelfareResult } from './interface/result.interface';
+import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 
 @Injectable()
 export class WelfareService {
@@ -198,5 +205,80 @@ export class WelfareService {
     };
 
     return result;
+  }
+
+  async createWelfareBudget(welfareBudgetInfo: CreateWelfareBudgetDto, manager: EntityManager) {
+    const date: Date = new Date();
+    const year: number = date.getFullYear();
+    const yearToString: string = year.toString();
+    const halfYear: HalfYearEnum = welfareBudgetInfo.period;
+    const welfareBudget: number = welfareBudgetInfo.welfareBudget;
+    const userIdxList: number[] = await this.welfareRepository.getAllUserIdxExceptCEO();
+    const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCount(welfareBudgetInfo, year);
+
+    /** 기록이 없다면 통계 create (기록이 있다면 통계 업데이트) **/
+    if (welfareStatsCnt < 1) {
+      /* 월별 통계 create */
+      // 상반기일 경우
+      if (welfareBudgetInfo.period === HalfYearEnum.H1) {
+        for (let i = 1; i < 7; i++) {
+          for (const userIdx of userIdxList) {
+            const newWelfareMonthStatsInfo: NewWelfareMonthStats = {
+              userIdx,
+              year: yearToString,
+              month: i.toString(),
+              welfareMonthExpense: 0,
+            };
+            await this.welfareRepository.createWelfareMonthStats(newWelfareMonthStatsInfo, manager);
+          }
+        }
+      } else {
+        // 하반기일 경우
+        for (let i = 7; i < 13; i++) {
+          for (const userIdx of userIdxList) {
+            const newWelfareMonthStatsInfo: NewWelfareMonthStats = {
+              userIdx,
+              year: yearToString,
+              month: i.toString(),
+              welfareMonthExpense: 0,
+            };
+            await this.welfareRepository.createWelfareMonthStats(newWelfareMonthStatsInfo, manager);
+          }
+        }
+      }
+      /* 반기별 통계 create */
+      await Promise.all(
+        userIdxList.map(async (userIdx) => {
+          const newWelfareStatsInfo: NewWelfareStats = {
+            userIdx,
+            year: yearToString,
+            halfYear,
+            welfareBudget,
+          };
+          await this.welfareRepository.createWelfareStats(newWelfareStatsInfo, manager);
+        }),
+      );
+    } else {
+      // update
+      const newWelfareStatsInfo: NewWelfareStats = {
+        year: yearToString,
+        halfYear,
+        welfareBudget,
+      };
+      await this.welfareRepository.updateWelfareStats(newWelfareStatsInfo, manager);
+    }
+
+    return;
+  }
+
+  async updateWelfareBudget(welfareStatsIdx: number, welfareBudget: number, manager: EntityManager): Promise<void> {
+    const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCountByIdx(welfareStatsIdx);
+    if (welfareStatsCnt < 1) {
+      throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+    }
+    console.log(welfareStatsCnt);
+    await this.welfareRepository.updateWelfareBudget(welfareStatsIdx, welfareBudget, manager);
+
+    return;
   }
 }
