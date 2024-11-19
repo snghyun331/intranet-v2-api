@@ -267,5 +267,18 @@ export class WelfareService {
       };
       await this.welfareRepository.updateWelfareStats(newWelfareStatsInfo, manager);
     }
+
+    return;
+  }
+
+  async updateWelfareBudget(welfareStatsIdx: number, welfareBudget: number, manager: EntityManager): Promise<void> {
+    const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCountByIdx(welfareStatsIdx);
+    if (welfareStatsCnt < 1) {
+      throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+    }
+    console.log(welfareStatsCnt);
+    await this.welfareRepository.updateWelfareBudget(welfareStatsIdx, welfareBudget, manager);
+
+    return;
   }
 }

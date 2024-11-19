@@ -385,4 +385,26 @@ export class WelfareRepository {
       .values({ ...newMonthStatsInfo })
       .execute();
   }
+
+  async updateWelfareBudget(
+    welfareStatsIdx: number,
+    welfareBudget: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(WelfareStatsEntity)
+      .set({ welfareBudget })
+      .where('welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
+      .execute();
+  }
+
+  async getWelfareStatsCountByIdx(welfareStatsIdx: number): Promise<number> {
+    const statsCnt: number = await this.welfareStatsModel
+      .createQueryBuilder('welfareStatsEntity')
+      .where('welfareStatsEntity.welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
+      .getCount();
+
+    return statsCnt;
+  }
 }

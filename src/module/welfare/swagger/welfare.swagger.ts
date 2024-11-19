@@ -395,6 +395,40 @@ export const USERS_WELFARES: SwaggerMethod = {
 };
 
 export const ADMIN_WELFARES_BUDGET: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 복포 설정 금액 개별 수정',
+    },
+    API_PARAM1: {
+      name: 'welfareStatsIdx',
+      description: '복포통계IDX',
+      type: Number,
+      required: true,
+    },
+    API_BODY: {
+      type: Number,
+      description: '수정할 총 사용가능금액',
+      required: true,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            welfareBudget: 230000,
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '어드민 복지포인트 총 사용가능 금액 개별 수정 성공',
+          },
+        },
+      },
+    },
+  },
   POST: {
     API_OPERATION: {
       summary: '어드민 복포 설정 일괄 등록 및 수정 API',
