@@ -6,7 +6,7 @@ import { HalfYearEnum } from '../../common/constant/enum';
 @Entity({ name: 'welfare_stats', comment: '복포 통계 tb' })
 export class WelfareStatsEntity extends CommonEntity {
   @PrimaryGeneratedColumn({ name: 'welfare_stats_idx', comment: '복포 통계 IDX' })
-  welfareStasIdx: number;
+  welfareStatsIdx: number;
 
   @Column({ name: 'user_idx', comment: '사용자 IDX', nullable: false })
   userIdx: number;
