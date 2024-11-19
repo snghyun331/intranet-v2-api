@@ -18,6 +18,8 @@ import {
   WelfareStats,
 } from '../interface/welfare.interface';
 import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
+import { GradeEntity } from '../../../entity/user/grade.entity';
+import { WelfareBudgetAdminResult } from '../interface/result.interface';
 
 @Injectable()
 export class WelfareRepository {
@@ -406,5 +408,27 @@ export class WelfareRepository {
       .getCount();
 
     return statsCnt;
+  }
+
+  async getAdminWelfareBudget(year: string, halfYear: HalfYearEnum): Promise<WelfareBudgetAdminResult[]> {
+    const result: WelfareBudgetAdminResult[] = await this.welfareStatsModel
+      .createQueryBuilder('welfareStatsEntity')
+      .select([
+        'welfareStatsEntity.welfareStatsIdx AS welfareStatsIdx',
+        'welfareStatsEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'welfareStatsEntity.welfareBudget AS welfareBudget',
+        'welfareStatsEntity.note AS note',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareStatsEntity.userIdx')
+      .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('welfareStatsEntity.year = :year', { year })
+      .andWhere('welfareStatsEntity.halfYear = :halfYear', { halfYear })
+      .orderBy('userEntity.gradeIdx', 'ASC')
+      .addOrderBy('userEntity.userName', 'ASC')
+      .getRawMany();
+
+    return result;
   }
 }
