@@ -1,4 +1,5 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
+import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
 import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 
@@ -386,6 +387,43 @@ export const USERS_WELFARES: SwaggerMethod = {
                 path: '/users/welfares/60',
               },
             },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_WELFARES_BUDGET: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 복포 설정 일괄 등록 및 수정 API',
+    },
+    API_BODY: {
+      type: CreateWelfareBudgetDto,
+      examples: {
+        a: {
+          summary: '상반기',
+          value: {
+            period: 'H1',
+            welfareBudget: 210000,
+          },
+        },
+        b: {
+          summary: '하반기',
+          value: {
+            period: 'H2',
+            welfareBudget: 200000,
+          },
+        },
+      },
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 201,
+            message: '어드민 복지포인트 설정 일괄 등록 및 수정 성공',
           },
         },
       },

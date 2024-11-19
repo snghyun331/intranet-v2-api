@@ -8,8 +8,16 @@ import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
-import { HalfYearEnum, YNEnum } from '../../../common/constant/enum';
-import { UserInfo, WelfareInfo, Welfares, WelfareStats } from '../interface/welfare.interface';
+import { GradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
+import {
+  NewWelfareMonthStats,
+  NewWelfareStats,
+  UserInfo,
+  WelfareInfo,
+  Welfares,
+  WelfareStats,
+} from '../interface/welfare.interface';
+import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
 
 @Injectable()
 export class WelfareRepository {
@@ -319,5 +327,62 @@ export class WelfareRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async getWelfareStatsCount({ period }: CreateWelfareBudgetDto, year: number): Promise<number> {
+    const statsCnt: number = await this.welfareStatsModel
+      .createQueryBuilder('welfareStatsEntity')
+      .where('welfareStatsEntity.year = :year', { year })
+      .andWhere('welfareStatsEntity.halfYear = :halfYear', { halfYear: period })
+      .getCount();
+
+    return statsCnt;
+  }
+
+  async getAllUserIdxExceptCEO(): Promise<number[]> {
+    const result: { userIdx: number }[] = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userIdx AS userIdx'])
+      .where('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: GradeIdxEnum.CEO })
+      .getRawMany();
+
+    const userIdxList: number[] = result.map((r) => r.userIdx);
+
+    return userIdxList;
+  }
+
+  async createWelfareStats(newStatsInfo: NewWelfareStats, manager: EntityManager): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(WelfareStatsEntity)
+      .values({ ...newStatsInfo })
+      .execute();
+  }
+
+  async updateWelfareStats(
+    { welfareBudget, year, halfYear }: NewWelfareStats,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(WelfareStatsEntity)
+      .set({ welfareBudget })
+      .where('year = :year', { year })
+      .andWhere('halfYear = :halfYear', { halfYear })
+      .execute();
+  }
+
+  async createWelfareMonthStats(
+    newMonthStatsInfo: NewWelfareMonthStats,
+    manager: EntityManager,
+  ): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(WelfareMonthlyStatsEntity)
+      .values({ ...newMonthStatsInfo })
+      .execute();
   }
 }
