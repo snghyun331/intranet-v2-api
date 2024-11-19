@@ -11,8 +11,9 @@ import {
   Welfares,
   WelfareStats,
 } from './interface/welfare.interface';
-import { WelfareResult } from './interface/result.interface';
+import { WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
+import { AdminWelfareBudgetFilterDto } from './dto/query.dto';
 
 @Injectable()
 export class WelfareService {
@@ -276,9 +277,30 @@ export class WelfareService {
     if (welfareStatsCnt < 1) {
       throw new NotFoundException('존재하지 않는 통계 내역입니다.');
     }
-    console.log(welfareStatsCnt);
     await this.welfareRepository.updateWelfareBudget(welfareStatsIdx, welfareBudget, manager);
 
     return;
+  }
+
+  async getWelfareBudget(filterInfo: AdminWelfareBudgetFilterDto): Promise<WelfareBudgetAdminResult[]> {
+    const date: Date = new Date();
+    const year: number = date.getFullYear();
+    const yearToString: string = year.toString();
+
+    let halfYear: HalfYearEnum;
+    if (!filterInfo.halfYear) {
+      const nowMonth: number = date.getMonth() + 1;
+      console.log(nowMonth);
+      halfYear = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
+    } else {
+      halfYear = filterInfo.halfYear;
+    }
+
+    const result: WelfareBudgetAdminResult[] = await this.welfareRepository.getAdminWelfareBudget(
+      yearToString,
+      halfYear,
+    );
+
+    return result;
   }
 }

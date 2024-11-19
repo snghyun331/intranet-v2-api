@@ -37,8 +37,8 @@ import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { WelfareResult } from './interface/result.interface';
-import { WelfareFilterDto } from './dto/query.dto';
+import { WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
+import { AdminWelfareBudgetFilterDto, WelfareFilterDto } from './dto/query.dto';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
@@ -170,6 +170,19 @@ export class AdminWelfareController {
     await this.welfareService.updateWelfareBudget(welfareStatsIdx, welfareBudget, manager);
 
     const response: ResponseInterface = { message: '어드민 복지포인트 총 사용가능 금액 개별 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_WELFARES_BUDGET.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_WELFARES_BUDGET.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Get('budget')
+  async getWelfareBudget(@Query() filterInfo: AdminWelfareBudgetFilterDto): Promise<ResponseInterface> {
+    const welfareBudget: WelfareBudgetAdminResult[] = await this.welfareService.getWelfareBudget(filterInfo);
+
+    const response: ResponseInterface = { message: '어드민 복포 설정 리스트 조회 성공', data: welfareBudget };
 
     return response;
   }
