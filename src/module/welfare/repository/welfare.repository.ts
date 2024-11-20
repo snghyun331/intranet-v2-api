@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../../../entity/user/user.entity';
-import { DeleteResult, EntityManager, InsertResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { WelfareEntity } from '../../../entity/welfare/welfare.entity';
 import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../common/utils/utility';
@@ -13,14 +13,16 @@ import {
   NewWelfareMonthStats,
   NewWelfareStats,
   UserInfo,
+  WelfareAdminInfo,
   WelfareInfo,
   Welfares,
   WelfareStats,
 } from '../interface/welfare.interface';
 import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
-import { WelfareBudgetAdminResult } from '../interface/result.interface';
+import { WelfareAdminResult, WelfareBudgetAdminResult } from '../interface/result.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
+import { AdminWelfareFilterDto } from '../dto/query.dto';
 
 @Injectable()
 export class WelfareRepository {
@@ -35,6 +37,16 @@ export class WelfareRepository {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
       .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail IS NULL')
+      .getCount();
+
+    return userCnt;
+  }
+
+  async getUserCountByName(userName: string): Promise<number> {
+    const userCnt: number = await this.userModel
+      .createQueryBuilder('userEntity')
+      .where('userEntity.userName = :userName', { userName })
       .andWhere('userEntity.userAvail IS NULL')
       .getCount();
 
@@ -186,7 +198,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getMonthWelfares(year: number, month: string[], userIdx: number): Promise<Welfares[]> {
+  async getUserMonthWelfares(year: number, month: string[], userIdx: number): Promise<Welfares[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonths(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -233,7 +245,7 @@ export class WelfareRepository {
     return transformedResult;
   }
 
-  async getAllWelfares(userIdx: number): Promise<Welfares[]> {
+  async getAllUserWelfares(userIdx: number): Promise<Welfares[]> {
     const result: WelfareEntity[] = await this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
@@ -444,5 +456,50 @@ export class WelfareRepository {
       .set({ note })
       .where('welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
       .execute();
+  }
+
+  async getWelfare(pageNo: number, perPage: number, filterInfo: AdminWelfareFilterDto): Promise<WelfareAdminResult> {
+    const query: SelectQueryBuilder<WelfareEntity> = this.welfareModel
+      .createQueryBuilder('welfareEntity')
+      .select([
+        'welfareEntity.welfareIdx AS welfareIdx',
+        'welfareEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'welfareEntity.targetDay AS targetDay',
+        'welfareEntity.content AS content',
+        'welfareEntity.amount AS amount',
+        'welfareEntity.payerName AS payerName',
+        'welfareEntity.confirmYN AS confirmYN',
+        'welfareEntity.confirmDate AS confirmDate',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('welfareEntity.targetDay BETWEEN :sDate AND :eDate', {
+        sDate: filterInfo.sDate,
+        eDate: filterInfo.eDate,
+      });
+
+    if (filterInfo.userName) {
+      query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
+    }
+    if (filterInfo.gradeIdx) {
+      query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
+    }
+    if (filterInfo.confirmYN) {
+      query.andWhere('welfareEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
+    }
+
+    const total: number = await query.getCount();
+    const totalPage: number = Math.ceil(total / perPage);
+
+    query
+      .orderBy('welfareEntity.targetDay', 'DESC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
+
+    const result: WelfareAdminInfo[] = await query.getRawMany();
+
+    return { totalPage, total, welfare: result };
   }
 }

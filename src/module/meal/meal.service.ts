@@ -289,12 +289,6 @@ export class MealService {
   }
 
   async getMeal({ pageNo, perPage }: PageNoDto, filterInfo: AdminMealFilterDto): Promise<MealAdminResult> {
-    if (filterInfo.userName) {
-      const userCnt: number = await this.mealRepository.getUserCountByName(filterInfo.userName);
-      if (userCnt !== 1) {
-        throw new BadRequestException('검색 유저가 올바르지 않습니다.');
-      }
-    }
     const { totalPage, total, meal }: MealAdminResult = await this.mealRepository.getMeal(pageNo, perPage, filterInfo);
 
     return { totalPage, total, meal };
