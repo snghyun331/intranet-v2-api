@@ -20,6 +20,7 @@ import {
 import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { WelfareBudgetAdminResult } from '../interface/result.interface';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 @Injectable()
 export class WelfareRepository {
@@ -430,5 +431,18 @@ export class WelfareRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async updateWelfareStatsNote(
+    welfareStatsIdx: number,
+    { note }: UpdateNoteDto,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(WelfareStatsEntity)
+      .set({ note })
+      .where('welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
+      .execute();
   }
 }
