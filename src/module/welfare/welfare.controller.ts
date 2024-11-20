@@ -148,6 +148,25 @@ export class UserWelfareController {
 export class AdminWelfareController {
   constructor(private readonly welfareService: WelfareService) {}
 
+  @ApiOperation(ADMIN_WELFARES.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_WELFARES.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Get()
+  async getWelfare(
+    @Query() pageNoInfo: PageNoDto,
+    @Query() filterInfo: AdminWelfareFilterDto,
+  ): Promise<ResponseInterface> {
+    const { totalPage, total, welfare }: WelfareAdminResult = await this.welfareService.getWelfare(
+      pageNoInfo,
+      filterInfo,
+    );
+
+    const response: ResponseInterface = { message: '어드민 복포 내역 조회 성공', data: { totalPage, total, welfare } };
+
+    return response;
+  }
+
   @ApiOperation(ADMIN_WELFARES_BUDGET.POST.API_OPERATION)
   @ApiBody(ADMIN_WELFARES_BUDGET.POST.API_BODY)
   @ApiCreatedResponse(ADMIN_WELFARES_BUDGET.POST.API_CREATED_RESPONSE)
@@ -215,25 +234,6 @@ export class AdminWelfareController {
     await this.welfareService.updateWelfareStatsNote(welfareStatsIdx, noteInfo, manager);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
-
-    return response;
-  }
-
-  @ApiOperation(ADMIN_WELFARES.GET.API_OPERATION)
-  @ApiOkResponse(ADMIN_WELFARES.GET.API_OK_RESPONSE)
-  @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, AdminRoleGuard)
-  @Get()
-  async getWelfare(
-    @Query() pageNoInfo: PageNoDto,
-    @Query() filterInfo: AdminWelfareFilterDto,
-  ): Promise<ResponseInterface> {
-    const { totalPage, total, welfare }: WelfareAdminResult = await this.welfareService.getWelfare(
-      pageNoInfo,
-      filterInfo,
-    );
-
-    const response: ResponseInterface = { message: '어드민 복포 내역 조회 성공', data: { totalPage, total, welfare } };
 
     return response;
   }
