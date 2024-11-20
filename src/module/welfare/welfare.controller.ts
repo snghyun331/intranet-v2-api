@@ -26,7 +26,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_WELFARES_BUDGET, USERS_WELFARES } from './swagger/welfare.swagger';
+import { ADMIN_WELFARES_BUDGET, ADMIN_WELFARES_BUDGET_NOTE, USERS_WELFARES } from './swagger/welfare.swagger';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
@@ -42,6 +42,7 @@ import { AdminWelfareBudgetFilterDto, WelfareFilterDto } from './dto/query.dto';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('사용자')
 @Controller('users/welfares')
@@ -183,6 +184,26 @@ export class AdminWelfareController {
     const welfareBudget: WelfareBudgetAdminResult[] = await this.welfareService.getWelfareBudget(filterInfo);
 
     const response: ResponseInterface = { message: '어드민 복포 설정 리스트 조회 성공', data: welfareBudget };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_WELFARES_BUDGET_NOTE.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_WELFARES_BUDGET_NOTE.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_WELFARES_BUDGET_NOTE.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_WELFARES_BUDGET_NOTE.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Patch('budget/:welfareStatsIdx/note')
+  async updateWelfareStatsNote(
+    @Param('welfareStatsIdx', ParseIntPipe) welfareStatsIdx: number,
+    @Body() noteInfo: UpdateNoteDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.welfareService.updateWelfareStatsNote(welfareStatsIdx, noteInfo, manager);
+
+    const response: ResponseInterface = { message: '비고 수정 성공' };
 
     return response;
   }
