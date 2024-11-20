@@ -79,6 +79,9 @@ export class QnaRepository {
     if (filterInfo.userCell) {
       query.andWhere('userEntity.userCell LIKE :userCell', { userCell: `${filterInfo.userCell}%` });
     }
+    if (filterInfo.userName) {
+      query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
+    }
 
     const total = await query.getCount();
     const totalPage = Math.ceil(total / perPage);
