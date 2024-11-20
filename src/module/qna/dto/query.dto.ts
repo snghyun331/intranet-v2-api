@@ -12,4 +12,9 @@ export class QnaFilterDto {
   @IsOptional()
   @IsString()
   userCell?: string;
+
+  @ApiProperty({ type: String, description: '문의자 성명', example: '이승현', required: false })
+  @IsOptional()
+  @IsString()
+  userName?: string;
 }
