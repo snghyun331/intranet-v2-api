@@ -14,6 +14,7 @@ import {
 import { WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 import { AdminWelfareBudgetFilterDto } from './dto/query.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @Injectable()
 export class WelfareService {
@@ -302,5 +303,19 @@ export class WelfareService {
     );
 
     return result;
+  }
+
+  async updateWelfareStatsNote(
+    welfareStatsIdx: number,
+    noteInfo: UpdateNoteDto,
+    manager: EntityManager,
+  ): Promise<void> {
+    const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCountByIdx(welfareStatsIdx);
+    if (welfareStatsCnt < 1) {
+      throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+    }
+    await this.welfareRepository.updateWelfareStatsNote(welfareStatsIdx, noteInfo, manager);
+
+    return;
   }
 }
