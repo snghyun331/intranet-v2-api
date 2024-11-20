@@ -11,16 +11,17 @@ import {
   Welfares,
   WelfareStats,
 } from './interface/welfare.interface';
-import { WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
+import { WelfareAdminResult, WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
-import { AdminWelfareBudgetFilterDto } from './dto/query.dto';
+import { AdminWelfareBudgetFilterDto, AdminWelfareFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
 
 @Injectable()
 export class WelfareService {
   constructor(private readonly welfareRepository: WelfareRepository) {}
 
-  async createWelfare(userIdx: number, newWelfareInfo: CreateWelfareDto, manager: EntityManager): Promise<string> {
+  async createMyWelfare(userIdx: number, newWelfareInfo: CreateWelfareDto, manager: EntityManager): Promise<string> {
     const currentUserInfo: { userName: string } = await this.welfareRepository.getUserNameByIdx(userIdx);
     if (!currentUserInfo) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -57,7 +58,7 @@ export class WelfareService {
     return newWelfareInfo.targetDay;
   }
 
-  async deleteWelfare(userIdx: number, welfareIdx: number, manager: EntityManager): Promise<string> {
+  async deleteMyWelfare(userIdx: number, welfareIdx: number, manager: EntityManager): Promise<string> {
     const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -107,7 +108,7 @@ export class WelfareService {
     return welfareInfo.targetDay;
   }
 
-  async updateWelfare(
+  async updateMyWelfare(
     userIdx: number,
     welfareIdx: number,
     updateWelfareInfo: UpdateWelfareDto,
@@ -179,7 +180,7 @@ export class WelfareService {
     return updateWelfareInfo.targetDay;
   }
 
-  async getWelfare(year: string, month: string[], userIdx: number): Promise<WelfareResult> {
+  async getMyWelfare(year: string, month: string[], userIdx: number): Promise<WelfareResult> {
     const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -189,9 +190,9 @@ export class WelfareService {
 
     if (year && month) {
       const yearToNum: number = Number(year);
-      welfareInfo = await this.welfareRepository.getMonthWelfares(yearToNum, month, userIdx);
+      welfareInfo = await this.welfareRepository.getUserMonthWelfares(yearToNum, month, userIdx);
     } else if (!year && !month) {
-      welfareInfo = await this.welfareRepository.getAllWelfares(userIdx);
+      welfareInfo = await this.welfareRepository.getAllUserWelfares(userIdx);
     } else {
       throw new BadRequestException('연도와 월은 모두 입력하거나, 모두 입력하지 않아야 합니다');
     }
@@ -317,5 +318,15 @@ export class WelfareService {
     await this.welfareRepository.updateWelfareStatsNote(welfareStatsIdx, noteInfo, manager);
 
     return;
+  }
+
+  async getWelfare({ pageNo, perPage }: PageNoDto, filterInfo: AdminWelfareFilterDto): Promise<WelfareAdminResult> {
+    const { totalPage, total, welfare }: WelfareAdminResult = await this.welfareRepository.getWelfare(
+      pageNo,
+      perPage,
+      filterInfo,
+    );
+
+    return { totalPage, total, welfare };
   }
 }

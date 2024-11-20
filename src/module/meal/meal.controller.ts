@@ -128,7 +128,6 @@ export class AdminMealController {
 
   @ApiOperation(ADMIN_MEALS.GET.API_OPERATION)
   @ApiOkResponse(ADMIN_MEALS.GET.API_OK_RESPONSE)
-  @ApiBadRequestResponse(ADMIN_MEALS.GET.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, AdminRoleGuard)
   @Get()

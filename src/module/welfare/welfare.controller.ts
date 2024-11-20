@@ -26,7 +26,12 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_WELFARES_BUDGET, ADMIN_WELFARES_BUDGET_NOTE, USERS_WELFARES } from './swagger/welfare.swagger';
+import {
+  ADMIN_WELFARES,
+  ADMIN_WELFARES_BUDGET,
+  ADMIN_WELFARES_BUDGET_NOTE,
+  USERS_WELFARES,
+} from './swagger/welfare.swagger';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
@@ -37,12 +42,13 @@ import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
-import { AdminWelfareBudgetFilterDto, WelfareFilterDto } from './dto/query.dto';
+import { WelfareAdminResult, WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
+import { AdminWelfareBudgetFilterDto, AdminWelfareFilterDto, WelfareFilterDto } from './dto/query.dto';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
 
 @ApiTags('사용자')
 @Controller('users/welfares')
@@ -56,7 +62,7 @@ export class UserWelfareController {
   @UserRole(UserGradeEnum.INTERN)
   @Get()
   async getWelfare(@Query() query: WelfareFilterDto, @CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
-    const welfares: WelfareResult = await this.welfareService.getWelfare(query.year, query.month, userIdx);
+    const welfares: WelfareResult = await this.welfareService.getMyWelfare(query.year, query.month, userIdx);
 
     const response: ResponseInterface = { message: '복포 사용내역 조회 성공', data: welfares };
 
@@ -77,7 +83,7 @@ export class UserWelfareController {
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.welfareService.createWelfare(userIdx, welfareInfo, manager);
+    const targetDay: string = await this.welfareService.createMyWelfare(userIdx, welfareInfo, manager);
 
     const response: ResponseInterface = { message: '복지포인트 사용내역 저장 성공', data: { targetDay } };
 
@@ -101,7 +107,12 @@ export class UserWelfareController {
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.welfareService.updateWelfare(userIdx, welfareIdx, updateWelfareInfo, manager);
+    const targetDay: string = await this.welfareService.updateMyWelfare(
+      userIdx,
+      welfareIdx,
+      updateWelfareInfo,
+      manager,
+    );
 
     const response: ResponseInterface = { message: '복지포인트 사용내역 수정 성공', data: { targetDay } };
 
@@ -124,7 +135,7 @@ export class UserWelfareController {
     @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.welfareService.deleteWelfare(userIdx, welfareIdx, manager);
+    const targetDay: string = await this.welfareService.deleteMyWelfare(userIdx, welfareIdx, manager);
 
     const response: ResponseInterface = { message: '복지포인트 사용내역 초기화 성공', data: { targetDay } };
 
@@ -204,6 +215,25 @@ export class AdminWelfareController {
     await this.welfareService.updateWelfareStatsNote(welfareStatsIdx, noteInfo, manager);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_WELFARES.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_WELFARES.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @Get()
+  async getWelfare(
+    @Query() pageNoInfo: PageNoDto,
+    @Query() filterInfo: AdminWelfareFilterDto,
+  ): Promise<ResponseInterface> {
+    const { totalPage, total, welfare }: WelfareAdminResult = await this.welfareService.getWelfare(
+      pageNoInfo,
+      filterInfo,
+    );
+
+    const response: ResponseInterface = { message: '어드민 복포 내역 조회 성공', data: { totalPage, total, welfare } };
 
     return response;
   }
