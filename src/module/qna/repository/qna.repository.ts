@@ -82,6 +82,9 @@ export class QnaRepository {
     if (filterInfo.userName) {
       query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
     }
+    if (filterInfo.gradeIdx) {
+      query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
+    }
 
     const total = await query.getCount();
     const totalPage = Math.ceil(total / perPage);
