@@ -1,4 +1,4 @@
-import { ConfirmEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, HalfYearEnum, UserGradeEnum, YNEnum } from '../../../common/constant/enum';
 
 export interface WelfareInfo {
   welfareIdx: number;
@@ -41,4 +41,17 @@ export interface NewWelfareMonthStats {
   year: string;
   month: string;
   welfareMonthExpense: number;
+}
+
+export class WelfareAdminInfo {
+  welfareIdx: number;
+  userIdx: number;
+  userName: string;
+  gradeName: UserGradeEnum;
+  targetDay: string;
+  content: string;
+  amount: number;
+  payerName: string;
+  confirmYN: ConfirmEnum;
+  confirmDate: string;
 }

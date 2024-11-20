@@ -359,24 +359,6 @@ export const ADMIN_MEALS: SwaggerMethod = {
         },
       },
     },
-    API_BAD_REQUEST_RESPONSE: {
-      content: {
-        'application/json': {
-          examples: {
-            a: {
-              summary: '존재하지 않는 검색 유저명',
-              value: {
-                message: '검색 유저가 올바르지 않습니다.',
-                error: 'Bad Request',
-                statusCode: 400,
-                timeStamp: '2024. 11. 13. 오전 11:02:36',
-                path: '/admin/meals?pageNo=1&perPage=10&sDate=2024-10-10&eDate=2024-11-20&userName=%EC%9D%B4%EC%8A%B9%EC%88%9C',
-              },
-            },
-          },
-        },
-      },
-    },
   },
 };
 
@@ -570,7 +552,7 @@ export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
 export const ADMIN_MEALS_BALANCES: SwaggerMethod = {
   PATCH: {
     API_OPERATION: {
-      summary: '어드민 식대 정산 완료 처리 API',
+      summary: '어드민 식대 정산완료 처리 API',
     },
     API_BODY: {
       type: Array,
@@ -694,7 +676,7 @@ export const ADMIN_MEALS_BALANCES: SwaggerMethod = {
 export const ADMIN_MEALS_BALANCES_CANCEL: SwaggerMethod = {
   PATCH: {
     API_OPERATION: {
-      summary: '어드민 식대 정산 완료 처리 API',
+      summary: '어드민 식대 정산완료 취소 처리 API',
     },
     API_BODY: {
       type: Array,

@@ -394,6 +394,78 @@ export const USERS_WELFARES: SwaggerMethod = {
   },
 };
 
+export const ADMIN_WELFARES: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 복포 내역 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '어드민 복포 내역 조회 성공',
+            data: {
+              totalPage: 1,
+              total: 4,
+              welfare: [
+                {
+                  welfareIdx: 55,
+                  userIdx: 1,
+                  userName: '이승현',
+                  gradeName: '위원',
+                  targetDay: '2024-11-11',
+                  content: '마린커피',
+                  amount: 2500,
+                  payerName: '이승현',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+                {
+                  welfareIdx: 52,
+                  userIdx: 1,
+                  userName: '이승현',
+                  gradeName: '위원',
+                  targetDay: '2024-11-05',
+                  content: '마린커피',
+                  amount: 2500,
+                  payerName: '이승현',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+                {
+                  welfareIdx: 53,
+                  userIdx: 2,
+                  userName: '김현민',
+                  gradeName: '위원',
+                  targetDay: '2024-11-05',
+                  content: '마린커피',
+                  amount: null,
+                  payerName: '이승현',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+                {
+                  welfareIdx: 54,
+                  userIdx: 3,
+                  userName: '윤용설',
+                  gradeName: '위원',
+                  targetDay: '2024-11-05',
+                  content: '마린커피',
+                  amount: null,
+                  payerName: '이승현',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const ADMIN_WELFARES_BUDGET: SwaggerMethod = {
   GET: {
     API_OPERATION: {
