@@ -25,10 +25,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ADMIN_QNA, USERS_QNA } from './swagger/qna.swagger';
-import { UserGradeEnum } from '../../common/constant/enum';
+import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRole } from '../../common/decorator/userRole.decorator';
+import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
 import { CurrentUser, CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { QnaService } from './qna.service';
 import { CreateQnaDto } from './dto/createQna.dto';
@@ -42,6 +42,7 @@ import { QnaFilterDto } from './dto/query.dto';
 import { UserPayload } from '../../common/interface/payload.interface';
 import { ReplyQnaDto } from './dto/replyQna.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 
 @ApiTags('사용자')
 @Controller('users/qna')
@@ -115,7 +116,8 @@ export class AdminQnaController {
   @ApiOkResponse(ADMIN_QNA.GET.API_OK_RESPONSE)
   @ApiForbiddenResponse(ADMIN_QNA.GET.API_FORBIDDEN_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get()
   async getQna(@Query() pageNoInfo: PageNoDto, @Query() filterInfo: QnaFilterDto): Promise<ResponseInterface> {
     const { totalPage, total, qna }: QnaAdminResult = await this.qnaService.getQna(pageNoInfo, filterInfo);
@@ -136,7 +138,8 @@ export class AdminQnaController {
   @ApiNotFoundResponse(ADMIN_QNA.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseInterceptors(TransactionInterceptor)
-  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch(':qnaIdx')
   async replyQna(
     @Param('qnaIdx', ParseIntPipe) qnaIdx: number,

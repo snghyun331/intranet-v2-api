@@ -1,4 +1,4 @@
-import { LoginUserDto } from '../dto/loginUser.dto';
+import { LoginDto } from '../dto/login.dto';
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 
 export const LOGIN: SwaggerMethod = {
@@ -7,7 +7,7 @@ export const LOGIN: SwaggerMethod = {
       summary: '로그인 API',
     },
     API_BODY: {
-      type: LoginUserDto,
+      type: LoginDto,
       examples: {
         a: {
           summary: '이승현',
@@ -129,5 +129,43 @@ export const LOGOUT: SwaggerMethod = {
       },
       description: '토큰 만료 시에도 로그아웃 가능',
     },
+  },
+};
+
+export const LOGIN_ADMIN: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 로그인 API',
+    },
+    API_BODY: {
+      type: LoginDto,
+      examples: {
+        a: {
+          summary: '이승현',
+          value: {
+            id: 'shlee1',
+            password: 'shlee12467',
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '로그인 성공',
+            data: {
+              accessToken: 'eyJhbGciOiJIUz...........',
+              adminIdx: 1,
+              adminName: '이승현',
+              adminEmail: 'shlee1@acghr.co.kr',
+              adminGradeName: '상위 관리자',
+            },
+          },
+        },
+      },
+    },
+    API_UNAUTHORIZED_RESPONSE: {},
   },
 };

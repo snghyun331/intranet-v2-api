@@ -20,8 +20,8 @@ import {
   USERS_MY_PW,
 } from './swagger/user.swagger';
 import { UserService } from './user.service';
-import { UserRole } from '../../common/decorator/userRole.decorator';
-import { UserGradeEnum } from '../../common/constant/enum';
+import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { ResponseInterface } from '../../common/interface/response.interface';
@@ -41,6 +41,7 @@ import { EntityManager } from 'typeorm';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdateMyPwDto } from './dto/updateMyPw.dto';
+import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -64,7 +65,8 @@ export class UserController {
   @ApiOperation(USERS_GRADES_IDX.GET.API_OPERATION)
   @ApiOkResponse(USERS_GRADES_IDX.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('gradeIds')
   async getAllGradeIdxs(): Promise<ResponseInterface> {
     const gradeIdxInfo: GradeIdxsResult[] = await this.userService.getAllGradeIdxInfo();
@@ -139,7 +141,8 @@ export class AdminUserController {
   @ApiOkResponse(ADMIN_USERS.GET.API_OK_RESPONSE)
   @ApiBadRequestResponse(ADMIN_USERS.GET.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get()
   async getAllUsersInfo(
     @Query() pageNoInfo: PageNoDto,
@@ -160,7 +163,8 @@ export class AdminUserController {
   @ApiCreatedResponse(ADMIN_USERS.POST.API_CREATED_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseInterceptors(TransactionInterceptor)
-  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Post()
   async createUser(
     @Body() newUserInfo: CreateUserDto,
@@ -178,7 +182,8 @@ export class AdminUserController {
   @ApiOkResponse(ADMIN_USERS_CHECK.GET.API_OK_RESPONSE)
   @ApiConflictResponse(ADMIN_USERS_CHECK.GET.API_CONFLICT_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, AdminRoleGuard)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('check-login-id/:loginId')
   async checkLoginId(@Param('loginId') loginId: string): Promise<ResponseInterface> {
     const id: string = await this.userService.checkIdIfAvailable(loginId);

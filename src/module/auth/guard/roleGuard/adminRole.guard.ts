@@ -1,18 +1,25 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { YNEnum } from '../../../../common/constant/enum';
+import { AdminGradeEnum } from '../../../../common/constant/enum';
+import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class AdminRoleGuard implements CanActivate {
-  constructor() {}
+  constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-    const { adminRole } = context.switchToHttp().getRequest().user;
+    const requireRole = this.reflector.get<AdminGradeEnum>('roles', context.getHandler());
+    const { adminGradeName } = context.switchToHttp().getRequest().user;
+    const adminGradeList: AdminGradeEnum[] = Object.values(AdminGradeEnum);
 
-    if (adminRole !== YNEnum.YES) {
-      throw new ForbiddenException('어드민 접근 권한이 없습니다.');
+    const [loginAdminRole, permissionLevel] = [
+      adminGradeList.indexOf(adminGradeName),
+      adminGradeList.indexOf(requireRole),
+    ];
+    if (loginAdminRole > permissionLevel) {
+      throw new ForbiddenException('권한이 없습니다.');
     }
 
-    return true;
+    return loginAdminRole <= permissionLevel;
   }
 }

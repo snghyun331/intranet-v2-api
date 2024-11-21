@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { LoginUserDto } from './dto/loginUser.dto';
+import { LoginDto } from './dto/login.dto';
 import { AuthRepository } from './repository/auth.repository';
 import { JwtService } from '@nestjs/jwt';
-import { LoginUserResult } from './interface/result.interface';
+import { LoginAdminResult, LoginUserResult } from './interface/result.interface';
 import { User } from './interface/user.interface';
 import { decryptPassword } from '../../common/utils/utility';
+import { Admin } from './interface/admin.interface';
 
 @Injectable()
 export class AuthService {
@@ -13,17 +14,17 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async userLogin(userLoginInfo: LoginUserDto): Promise<LoginUserResult> {
-    const user: User = await this.authRepository.getUserPersonal(userLoginInfo.id);
+  async userLogin(loginInfo: LoginDto): Promise<LoginUserResult> {
+    const user: User = await this.authRepository.getUserPersonal(loginInfo.id);
     if (!user) {
       throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
     }
     const decryptedUserPW: string = decryptPassword(user.password);
-    if (user && userLoginInfo.password === decryptedUserPW) {
+    if (user && loginInfo.password === decryptedUserPW) {
       const { id, password, ...payload } = user;
       const accessToken: string = this.jwtService.sign(payload);
 
-      await this.authRepository.updateUserToken(id, accessToken);
+      await this.authRepository.updateAdminToken(id, accessToken);
 
       return { accessToken, ...payload };
     } else {
@@ -40,5 +41,23 @@ export class AuthService {
     await this.authRepository.deleteUserToken(userIdx);
 
     return;
+  }
+
+  async adminLogin(adminLoginInfo: LoginDto): Promise<LoginAdminResult> {
+    const admin: Admin = await this.authRepository.getAdminPersonal(adminLoginInfo.id);
+    if (!admin) {
+      throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
+    }
+    const decryptedUserPW: string = decryptPassword(admin.password);
+    if (admin && adminLoginInfo.password === decryptedUserPW) {
+      const { id, password, ...payload } = admin;
+      const accessToken: string = this.jwtService.sign(payload);
+
+      await this.authRepository.updateUserToken(id, accessToken);
+
+      return { accessToken, ...payload };
+    } else {
+      throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
+    }
   }
 }

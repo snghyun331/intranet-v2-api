@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { YNEnum } from '../../../common/constant/enum';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class QnaFilterDto {
   @ApiProperty({ type: 'enum', enum: YNEnum, description: '답변완료 여부', example: 'N', required: false })
@@ -17,9 +17,4 @@ export class QnaFilterDto {
   @IsOptional()
   @IsString()
   userName?: string;
-
-  @ApiProperty({ type: Number, description: '문의자 직급IDX', required: false })
-  @IsOptional()
-  @IsNumber()
-  gradeIdx?: number;
 }
