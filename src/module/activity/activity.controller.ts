@@ -28,7 +28,7 @@ import { USERS_ACTIVITIES } from './swagger/activity.swagger';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
-import { UserRole } from '../../common/decorator/userRole.decorator';
+import { UserRole } from '../../common/decorator/role.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUser, CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';

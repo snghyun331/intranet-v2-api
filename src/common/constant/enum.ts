@@ -75,3 +75,8 @@ export enum SortbyEnum {
   JOIN = 'joinDate',
   TEAM = 'teamName',
 }
+
+export enum AdminGradeEnum {
+  HIGH_ADMIN = '상위 관리자',
+  NORMAL_ADMIN = '일반 관리자',
+}

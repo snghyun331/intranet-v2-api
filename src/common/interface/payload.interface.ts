@@ -1,4 +1,4 @@
-import { GenderEnum, YNEnum } from '../constant/enum';
+import { AdminGradeEnum, GenderEnum, YNEnum } from '../constant/enum';
 
 export interface UserPayload {
   userIdx: number;
@@ -10,4 +10,11 @@ export interface UserPayload {
   teamName: string;
   gradeName: string;
   adminRole: YNEnum;
+}
+
+export interface AdminPayload {
+  adminIdx: number;
+  adminName: string;
+  adminEmail: string;
+  adminGradeName: AdminGradeEnum;
 }

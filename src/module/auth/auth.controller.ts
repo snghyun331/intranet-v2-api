@@ -1,11 +1,11 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { LOGIN, LOGOUT } from './swagger/auth.swagger';
-import { LoginUserDto } from './dto/loginUser.dto';
+import { LOGIN, LOGIN_ADMIN, LOGOUT } from './swagger/auth.swagger';
+import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
-import { LoginUserResult } from './interface/result.interface';
+import { LoginAdminResult, LoginUserResult } from './interface/result.interface';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { UserRole } from '../../common/decorator/userRole.decorator';
+import { UserRole } from '../../common/decorator/role.decorator';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from './guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from './guard/roleGuard/userRole.guard';
@@ -22,8 +22,8 @@ export class AuthController {
   @ApiUnauthorizedResponse(LOGIN.POST.API_UNAUTHORIZED_RESPONSE)
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async userLogin(@Body() userLoginInfo: LoginUserDto): Promise<ResponseInterface> {
-    const user: LoginUserResult = await this.authService.userLogin(userLoginInfo);
+  async userLogin(@Body() loginInfo: LoginDto): Promise<ResponseInterface> {
+    const user: LoginUserResult = await this.authService.userLogin(loginInfo);
 
     const response: ResponseInterface = { message: '로그인 성공', data: user };
 
@@ -41,6 +41,20 @@ export class AuthController {
     await this.authService.userLogout(userIdx);
 
     const response: ResponseInterface = { message: '로그아웃 성공', data: { userIdx } };
+
+    return response;
+  }
+
+  @ApiOperation(LOGIN_ADMIN.POST.API_OPERATION)
+  @ApiBody(LOGIN_ADMIN.POST.API_BODY)
+  @ApiOkResponse(LOGIN_ADMIN.POST.API_OK_RESPONSE)
+  @ApiUnauthorizedResponse(LOGIN_ADMIN.POST.API_UNAUTHORIZED_RESPONSE)
+  @HttpCode(HttpStatus.OK)
+  @Post('login/admin')
+  async adminLogin(@Body() loginInfo: LoginDto): Promise<ResponseInterface> {
+    const admin: LoginAdminResult = await this.authService.adminLogin(loginInfo);
+
+    const response: ResponseInterface = { message: '로그인 성공', data: admin };
 
     return response;
   }
