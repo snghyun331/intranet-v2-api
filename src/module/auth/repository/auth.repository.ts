@@ -6,10 +6,16 @@ import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { User } from '../interface/user.interface';
+import { AdminEntity } from '../../../entity/admin/admin.entity';
+import { AdminGradeEntity } from '../../../entity/admin/grade.entity';
+import { Admin } from '../interface/admin.interface';
 
 @Injectable()
 export class AuthRepository {
-  constructor(@InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>) {}
+  constructor(
+    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
+    @InjectRepository(AdminEntity) private readonly adminModel: Repository<AdminEntity>,
+  ) {}
 
   async getUserPersonal(id: string): Promise<User> {
     const result: User = await this.userModel
@@ -63,5 +69,33 @@ export class AuthRepository {
       .getCount();
 
     return userCnt;
+  }
+
+  async getAdminPersonal(id: string): Promise<Admin> {
+    const result: Admin = await this.adminModel
+      .createQueryBuilder('adminEntity')
+      .select([
+        'adminEntity.adminIdx AS adminIdx',
+        'adminEntity.id AS id',
+        'adminEntity.password AS password',
+        'adminEntity.adminName AS adminName',
+        'adminEntity.adminEmail AS adminEmail',
+        'adminGradeEntity.adminGradeName AS adminGradeName',
+      ])
+      .innerJoin(AdminGradeEntity, 'adminGradeEntity', 'adminGradeEntity.adminGradeIdx = adminEntity.adminGradeIdx')
+      .where('adminEntity.id = :id', { id })
+      .andWhere('adminEntity.adminAvail IS NULL')
+      .getRawOne();
+
+    return result;
+  }
+
+  async updateAdminToken(id: string, loginToken: string): Promise<UpdateResult> {
+    return await this.adminModel
+      .createQueryBuilder()
+      .update(AdminEntity)
+      .set({ loginToken })
+      .where('id = :id', { id })
+      .execute();
   }
 }

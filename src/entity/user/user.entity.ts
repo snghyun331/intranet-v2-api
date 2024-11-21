@@ -46,13 +46,13 @@ export class UserEntity extends CommonEntity {
   @Column({ name: 'join_date', comment: '입사일', nullable: false })
   joinDate: string;
 
-  @Column({ name: 'hq_idx', comment: '본부IDX', nullable: true })
+  @Column({ name: 'hq_idx', type: 'tinyint', comment: '본부IDX', nullable: true })
   hqIdx: number;
 
-  @Column({ name: 'team_idx', comment: '팀IDX', nullable: true })
+  @Column({ name: 'team_idx', type: 'tinyint', comment: '팀IDX', nullable: true })
   teamIdx: number;
 
-  @Column({ name: 'grade_idx', comment: '직급IDX', nullable: true })
+  @Column({ name: 'grade_idx', type: 'tinyint', comment: '직급IDX', nullable: true })
   gradeIdx: number;
 
   @Column({

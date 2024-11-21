@@ -8,6 +8,7 @@ import { QnaAdminResult } from '../interface/result.interface';
 import { QnaFilterDto } from '../dto/query.dto';
 import { YNEnum } from '../../../common/constant/enum';
 import { QnaInfo } from '../interface/qna.interface';
+import { GradeEntity } from '../../../entity/user/grade.entity';
 
 @Injectable()
 export class QnaRepository {
@@ -63,6 +64,7 @@ export class QnaRepository {
         'qnaEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
         'userEntity.userCell AS userCell',
+        'gradeEntity.gradeName AS gradeName',
         'qnaEntity.category AS category',
         'qnaEntity.text AS text',
         'qnaEntity.replySuccessYN AS replySuccessYN',
@@ -71,6 +73,7 @@ export class QnaRepository {
         'qnaEntity.createdAt AS createdAt',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = qnaEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('userEntity.userAvail IS NULL');
 
     if (filterInfo.replySuccessYN) {
@@ -81,9 +84,6 @@ export class QnaRepository {
     }
     if (filterInfo.userName) {
       query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
-    }
-    if (filterInfo.gradeIdx) {
-      query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
     }
 
     const total = await query.getCount();
