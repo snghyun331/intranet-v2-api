@@ -18,6 +18,8 @@ import {
   USERS_MY,
   ADMIN_USERS_CHECK,
   USERS_MY_PW,
+  USERS_HQ_IDX,
+  USERS_TEAM_IDX,
 } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
@@ -30,6 +32,8 @@ import {
   GradeIdxsResult,
   UserIdxsResult,
   AllUserInfoResult,
+  HqIdxsResult,
+  TeamIdxsResult,
 } from './interface/result.interface';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
@@ -72,6 +76,34 @@ export class UserController {
     const gradeIdxInfo: GradeIdxsResult[] = await this.userService.getAllGradeIdxInfo();
 
     const response: ResponseInterface = { message: '모든 직급 IDX 조회 성공', data: gradeIdxInfo };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_HQ_IDX.GET.API_OPERATION)
+  @ApiOkResponse(USERS_HQ_IDX.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('hqIds')
+  async getAllHqIdxs(): Promise<ResponseInterface> {
+    const hqIdxInfo: HqIdxsResult[] = await this.userService.getAllHqIdxInfo();
+
+    const response: ResponseInterface = { message: '모든 본부 IDX 조회 성공', data: hqIdxInfo };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_TEAM_IDX.GET.API_OPERATION)
+  @ApiOkResponse(USERS_TEAM_IDX.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('teamIds')
+  async getAllTeamIdxs(): Promise<ResponseInterface> {
+    const teamIdxInfo: TeamIdxsResult[] = await this.userService.getAllTeamIdxInfo();
+
+    const response: ResponseInterface = { message: '모든 팀 IDX 조회 성공', data: teamIdxInfo };
 
     return response;
   }
