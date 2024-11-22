@@ -7,4 +7,7 @@ export interface Admin {
   adminName: string;
   adminEmail: string;
   adminGradeName: AdminGradeEnum;
+  hqName: string;
+  teamName: string;
+  gradeName: string;
 }

@@ -435,7 +435,7 @@ export class WelfareRepository {
         'welfareStatsEntity.note AS note',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareStatsEntity.userIdx')
-      .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('welfareStatsEntity.year = :year', { year })
       .andWhere('welfareStatsEntity.halfYear = :halfYear', { halfYear })
       .orderBy('userEntity.gradeIdx', 'ASC')

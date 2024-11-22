@@ -15,6 +15,7 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdateMyPwDto } from './dto/updateMyPw.dto';
 import { decryptPassword, encryptPassword } from '../../common/utils/utility';
+import { YNEnum } from '../../common/constant/enum';
 
 @Injectable()
 export class UserService {
@@ -57,7 +58,18 @@ export class UserService {
     return user;
   }
 
-  async createUser(newUserInfo: CreateUserDto, manager: EntityManager): Promise<void> {
+  async createUser(userInfo: CreateUserDto, manager: EntityManager): Promise<void> {
+    const { adminGradeIdx, ...newUserInfo } = userInfo;
+
+    /* 어드민 여부 = Y일 경우, 어드민 등록 */
+    if (userInfo.adminRole === YNEnum.YES) {
+      if (!adminGradeIdx) {
+        throw new BadRequestException('어드민 등급을 선택해주세요');
+      }
+      await this.userRepository.createAdmin(userInfo, manager);
+    }
+
+    /* 유저 등록 */
     await this.userRepository.createUser(newUserInfo, manager);
 
     return;

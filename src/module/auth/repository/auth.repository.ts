@@ -81,8 +81,14 @@ export class AuthRepository {
         'adminEntity.adminName AS adminName',
         'adminEntity.adminEmail AS adminEmail',
         'adminGradeEntity.adminGradeName AS adminGradeName',
+        'hqEntity.hqName AS hqName',
+        'teamEntity.teamName AS teamName',
+        'gradeEntity.gradeName AS gradeName',
       ])
       .innerJoin(AdminGradeEntity, 'adminGradeEntity', 'adminGradeEntity.adminGradeIdx = adminEntity.adminGradeIdx')
+      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = adminEntity.hqIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = adminEntity.teamIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = adminEntity.gradeIdx')
       .where('adminEntity.id = :id', { id })
       .andWhere('adminEntity.adminAvail IS NULL')
       .getRawOne();
