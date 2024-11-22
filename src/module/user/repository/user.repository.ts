@@ -6,6 +6,8 @@ import {
   GradeIdxsResult,
   UserIdxsResult,
   AllUserInfoResult,
+  HqIdxsResult,
+  TeamIdxsResult,
 } from '../interface/result.interface';
 import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
@@ -24,6 +26,8 @@ export class UserRepository {
   constructor(
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(GradeEntity) private readonly gradeModel: Repository<GradeEntity>,
+    @InjectRepository(HeadquarterEntity) private readonly hqModel: Repository<HeadquarterEntity>,
+    @InjectRepository(TeamEntity) private readonly teamModel: Repository<TeamEntity>,
   ) {}
 
   async getLoginIdCount(loginId: string): Promise<number> {
@@ -218,5 +222,23 @@ export class UserRepository {
       .set({ password })
       .where('userIdx = :userIdx', { userIdx })
       .execute();
+  }
+
+  async getAllHqIdxInfo(): Promise<HqIdxsResult[]> {
+    const result: HqIdxsResult[] = await this.hqModel
+      .createQueryBuilder('hqEntity')
+      .select(['hqEntity.hqIdx AS hqIdx', 'hqEntity.hqName AS hqName'])
+      .getRawMany();
+
+    return result;
+  }
+
+  async getAllTeamIdxInfo(): Promise<TeamIdxsResult[]> {
+    const result: TeamIdxsResult[] = await this.teamModel
+      .createQueryBuilder('teamEntity')
+      .select(['teamEntity.teamIdx AS teamIdx', 'teamEntity.teamName AS teamName'])
+      .getRawMany();
+
+    return result;
   }
 }

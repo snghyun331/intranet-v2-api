@@ -5,6 +5,8 @@ import {
   GradeIdxsResult,
   UserIdxsResult,
   AllUserInfoResult,
+  HqIdxsResult,
+  TeamIdxsResult,
 } from './interface/result.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
@@ -102,5 +104,17 @@ export class UserService {
     await this.userRepository.updateUserPassword(userIdx, encryptedNewPW, manager);
 
     return;
+  }
+
+  async getAllHqIdxInfo(): Promise<HqIdxsResult[]> {
+    const result: HqIdxsResult[] = await this.userRepository.getAllHqIdxInfo();
+
+    return result;
+  }
+
+  async getAllTeamIdxInfo(): Promise<TeamIdxsResult[]> {
+    const result: TeamIdxsResult[] = await this.userRepository.getAllTeamIdxInfo();
+
+    return result;
   }
 }

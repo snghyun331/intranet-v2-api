@@ -474,3 +474,83 @@ export const ADMIN_USERS_CHECK: SwaggerMethod = {
     },
   },
 };
+
+export const USERS_HQ_IDX: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '모든 본부의 IDX 정보 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '모든 본부 IDX 조회 성공',
+            data: [
+              {
+                hqIdx: 1,
+                hqName: 'HR솔류션본부',
+              },
+              {
+                hqIdx: 2,
+                hqName: 'HR컨설팅본부',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
+export const USERS_TEAM_IDX: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '모든 팀의 IDX 정보 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '모든 팀 IDX 조회 성공',
+            data: [
+              {
+                teamIdx: 1,
+                teamName: '경영진',
+              },
+              {
+                teamIdx: 2,
+                teamName: 'P&C',
+              },
+              {
+                teamIdx: 3,
+                teamName: 'Assessment1',
+              },
+              {
+                teamIdx: 4,
+                teamName: 'Assessment2',
+              },
+              {
+                teamIdx: 5,
+                teamName: 'Assessment3',
+              },
+              {
+                teamIdx: 6,
+                teamName: 'Consulting',
+              },
+              {
+                teamIdx: 7,
+                teamName: 'HR 운영',
+              },
+              {
+                teamIdx: 8,
+                teamName: 'HR Tech',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
