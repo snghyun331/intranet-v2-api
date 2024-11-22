@@ -30,3 +30,13 @@ export interface GradeIdxsResult {
 export interface AllUserInfoResult extends TotalPageInfo {
   users: AllUserInfo[];
 }
+
+export interface HqIdxsResult {
+  hqIdx: number;
+  hqName: string;
+}
+
+export interface TeamIdxsResult {
+  teamIdx: number;
+  teamName: string;
+}
