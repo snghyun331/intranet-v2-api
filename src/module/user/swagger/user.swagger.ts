@@ -402,7 +402,7 @@ export const ADMIN_USERS: SwaggerMethod = {
       type: CreateUserDto,
       examples: {
         a: {
-          summary: '예시',
+          summary: '어드민X',
           value: {
             id: 'wony',
             userName: '장원영',
@@ -413,6 +413,23 @@ export const ADMIN_USERS: SwaggerMethod = {
             userBirth: '2004-08-31',
             userGender: 'W',
             joinDate: '2024-11-15',
+            adminRole: 'N',
+          },
+        },
+        b: {
+          summary: '어드민0',
+          value: {
+            id: 'wony',
+            userName: '장원영',
+            gradeIdx: 7,
+            userEmail: 'wony@acghr.co.kr',
+            userCell: '010-0000-0000',
+            userAddress: '서울시 청담동',
+            userBirth: '2004-08-31',
+            userGender: 'W',
+            joinDate: '2024-11-15',
+            adminRole: 'Y',
+            adminGradeIdx: 2,
           },
         },
       },

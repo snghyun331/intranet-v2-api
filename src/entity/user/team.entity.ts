@@ -1,5 +1,6 @@
 import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from './user.entity';
+import { AdminEntity } from '../admin/admin.entity';
 
 @Entity({ name: 'team', comment: '팀명 tb' })
 export class TeamEntity {
@@ -14,4 +15,7 @@ export class TeamEntity {
 
   @OneToMany(() => UserEntity, (user) => user.teamIdxRelation)
   userRelation: UserEntity[];
+
+  @OneToMany(() => AdminEntity, (admin) => admin.teamIdxRelation)
+  adminRelation: AdminEntity[];
 }

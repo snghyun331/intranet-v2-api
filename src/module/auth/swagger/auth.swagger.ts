@@ -156,11 +156,15 @@ export const LOGIN_ADMIN: SwaggerMethod = {
             statusCode: 200,
             message: '로그인 성공',
             data: {
-              accessToken: 'eyJhbGciOiJIUz...........',
+              accessToken:
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbklkeCI6MSwiYWRtaW5OYW1lIjoi7J207Iq57ZiEIiwiYWRtaW5FbWFpbCI6InNobGVlMUBhY2doci5jby5rciIsImFkbWluR3JhZGVOYW1lIjoi7IOB7JyEIOq0gOumrOyekCIsImhxTmFtZSI6bnVsbCwidGVhbU5hbWUiOm51bGwsImdyYWRlTmFtZSI6bnVsbCwiaWF0IjoxNzMyMjUxNjMyLCJleHAiOjE3MzI0MjQ0MzJ9.tPlaukX41t1NJxVMqVbb_x1u-iDRqfTG-OGYBIlnn6Y',
               adminIdx: 1,
               adminName: '이승현',
               adminEmail: 'shlee1@acghr.co.kr',
               adminGradeName: '상위 관리자',
+              hqName: null,
+              teamName: null,
+              gradeName: null,
             },
           },
         },

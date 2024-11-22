@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GenderEnum } from '../../../common/constant/enum';
-import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsString, Matches } from 'class-validator';
+import { GenderEnum, YNEnum } from '../../../common/constant/enum';
+import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
@@ -52,4 +52,14 @@ export class CreateUserDto {
   @IsNotEmpty({ message: '입사일을 입력해주세요' })
   @IsDateString()
   joinDate: string;
+
+  @ApiProperty({ type: 'enum', enum: YNEnum, description: '어드민 권한 여부', required: true })
+  @IsNotEmpty({ message: '어드민 여부를 선택해주세요' })
+  @IsEnum(YNEnum)
+  adminRole: YNEnum;
+
+  @ApiProperty({ type: Number, description: '어드민 등급 IDX', required: false })
+  @IsOptional()
+  @IsNumber()
+  adminGradeIdx?: number;
 }

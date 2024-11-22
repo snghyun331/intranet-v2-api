@@ -20,6 +20,7 @@ import { encryptPassword, removeAllWhiteSpace } from '../../../common/utils/util
 import { CreateUserDto } from '../dto/createUser.dto';
 import { SortbyEnum } from '../../../common/constant/enum';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
+import { AdminEntity } from '../../../entity/admin/admin.entity';
 
 @Injectable()
 export class UserRepository {
@@ -183,14 +184,13 @@ export class UserRepository {
   }
 
   async createUser(newUserInfo: CreateUserDto, manager: EntityManager): Promise<InsertResult> {
-    const password: string = newUserInfo.id + '2467';
-    const encryptedNewPW: string = encryptPassword(password);
+    const password: string = encryptPassword(newUserInfo.id + '2467');
 
     return await manager
       .createQueryBuilder()
       .insert()
       .into(UserEntity)
-      .values({ password: encryptedNewPW, ...newUserInfo })
+      .values({ password, ...newUserInfo })
       .execute();
   }
 
@@ -240,5 +240,18 @@ export class UserRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async createAdmin(newAdminInfo: CreateUserDto, manager: EntityManager): Promise<InsertResult> {
+    const password: string = encryptPassword(newAdminInfo.id + '2467');
+    const adminName: string = newAdminInfo.userName;
+    const adminEmail: string = newAdminInfo.userEmail;
+
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(AdminEntity)
+      .values({ password, adminName, adminEmail, ...newAdminInfo })
+      .execute();
   }
 }

@@ -533,7 +533,7 @@ export class MealRepository {
         'mealStatsEntity.month AS month',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealStatsEntity.userIdx')
-      .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month });
 
@@ -590,7 +590,7 @@ export class MealRepository {
         'mealStatsEntity.clearStatus AS clearStatus',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealStatsEntity.userIdx')
-      .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
       .getRawMany();

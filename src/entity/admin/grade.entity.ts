@@ -9,6 +9,6 @@ export class AdminGradeEntity {
   @Column({ name: 'admin_grade_name', comment: '직급명', nullable: false })
   adminGradeName: string;
 
-  @OneToMany(() => AdminEntity, (admin) => admin.gradeIdxRelation)
+  @OneToMany(() => AdminEntity, (admin) => admin.adminGradeIdxRelation)
   adminRelation: AdminEntity[];
 }
