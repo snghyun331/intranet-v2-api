@@ -4,11 +4,15 @@ import { AdminGradeEntity } from './grade.entity';
 import { HeadquarterEntity } from '../user/headquarter.entity';
 import { TeamEntity } from '../user/team.entity';
 import { GradeEntity } from '../user/grade.entity';
+import { UserEntity } from '../user/user.entity';
 
 @Entity({ name: 'admin', comment: '어드민 tb' })
 export class AdminEntity extends CommonEntity {
   @PrimaryGeneratedColumn({ name: 'admin_idx', comment: '어드민 IDX' })
   adminIdx: number;
+
+  @Column({ name: 'user_idx', comment: '유저 IDX', nullable: false })
+  userIdx: number;
 
   @Column({ name: 'id', comment: '아이디', nullable: false })
   id: string;
@@ -67,4 +71,11 @@ export class AdminEntity extends CommonEntity {
   })
   @JoinColumn({ name: 'grade_idx', referencedColumnName: 'gradeIdx' })
   gradeIdxRelation: GradeEntity;
+
+  @ManyToOne(() => UserEntity, (user) => user.adminRelation, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn({ name: 'user_idx', referencedColumnName: 'userIdx' })
+  userIdxRelation: UserEntity;
 }

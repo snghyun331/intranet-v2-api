@@ -16,6 +16,7 @@ import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdateMyPwDto } from './dto/updateMyPw.dto';
 import { decryptPassword, encryptPassword } from '../../common/utils/utility';
 import { YNEnum } from '../../common/constant/enum';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -61,16 +62,16 @@ export class UserService {
   async createUser(userInfo: CreateUserDto, manager: EntityManager): Promise<void> {
     const { adminGradeIdx, ...newUserInfo } = userInfo;
 
+    /* 유저 등록 */
+    const userIdx: number = await this.userRepository.createUser(newUserInfo, manager);
+
     /* 어드민 여부 = Y일 경우, 어드민 등록 */
     if (userInfo.adminRole === YNEnum.YES) {
       if (!adminGradeIdx) {
         throw new BadRequestException('어드민 등급을 선택해주세요');
       }
-      await this.userRepository.createAdmin(userInfo, manager);
+      await this.userRepository.createAdmin(userIdx, userInfo, manager);
     }
-
-    /* 유저 등록 */
-    await this.userRepository.createUser(newUserInfo, manager);
 
     return;
   }
@@ -90,7 +91,7 @@ export class UserService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    await this.userRepository.updateUserInfo(userIdx, updateInfo, manager);
+    await this.userRepository.updateMyInfo(userIdx, updateInfo, manager);
 
     return;
   }
@@ -128,5 +129,19 @@ export class UserService {
     const result: TeamIdxsResult[] = await this.userRepository.getAllTeamIdxInfo();
 
     return result;
+  }
+
+  async updateUser(userIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<void> {
+    await this.userRepository.updateUserInfo(userIdx, updateInfo, manager);
+
+    if (updateInfo.adminRole === YNEnum.NO && updateInfo.adminGradeIdx) {
+      throw new BadRequestException('어드민이 아닌 유저는 어드민 등급을 설정할 수 없습니다.');
+    }
+    if (updateInfo.adminRole === YNEnum.YES && !updateInfo.adminGradeIdx) {
+      throw new BadRequestException('어드민인 유저는 어드민 등급을 설정해야합니다.');
+    }
+    if (updateInfo.adminGradeIdx) {
+      await this.userRepository.updateAdminInfo(userIdx, updateInfo, manager);
+    }
   }
 }

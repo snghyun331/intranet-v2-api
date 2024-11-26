@@ -1,6 +1,7 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
+import { UpdateUserDto } from '../dto/updateUser.dto';
 
 export const USERS_IDXS: SwaggerMethod = {
   GET: {
@@ -200,6 +201,95 @@ export const USERS_GRADES_IDX: SwaggerMethod = {
 };
 
 export const ADMIN_USERS: SwaggerMethod = {
+  PUT: {
+    API_OPERATION: {
+      summary: '직원 수정 API',
+    },
+    API_PARAM1: {
+      name: 'userIdx',
+      type: Number,
+      description: '유저(직원)IDX',
+      required: true,
+    },
+    API_BODY: {
+      type: UpdateUserDto,
+      examples: {
+        a: {
+          summary: '어드민O',
+          value: {
+            id: 'shlee1',
+            userName: '이승현',
+            gradeIdx: 1,
+            userEmail: 'shlee1@acghr.co.kr',
+            userCell: '010-4194-5718',
+            userAddress: '경기도 고양시 덕양구',
+            userBirth: '2000-03-31',
+            userGender: 'W',
+            joinDate: '2024-03-04',
+            adminRole: 'Y',
+            adminGradeIdx: 1,
+            hqIdx: 1,
+            teamIdx: 8,
+          },
+        },
+        b: {
+          summary: '어드민X',
+          value: {
+            id: 'shlee1',
+            userName: '이승현',
+            gradeIdx: 1,
+            userEmail: 'shlee1@acghr.co.kr',
+            userCell: '010-4194-5718',
+            userAddress: '경기도 고양시 덕양구',
+            userBirth: '2000-03-31',
+            userGender: 'W',
+            joinDate: '2024-03-04',
+            adminRole: 'N',
+            hqIdx: 1,
+            teamIdx: 8,
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '유저 정보 수정 성공',
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '어드민은 반드시 어드민 등급 설정',
+              value: {
+                message: '어드민인 유저는 어드민 등급을 설정해야합니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 25. 오후 3:08:11',
+                path: '/admin/users/1',
+              },
+            },
+            b: {
+              summary: '어드민이 아니면 어드민 등급 설정X',
+              value: {
+                message: '어드민이 아닌 유저는 어드민 등급을 설정할 수 없습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 25. 오후 3:09:47',
+                path: '/admin/users/1',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   GET: {
     API_OPERATION: {
       summary: '어드민 모든 직원 정보 조회 API',
