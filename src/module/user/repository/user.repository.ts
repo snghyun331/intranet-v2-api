@@ -21,6 +21,7 @@ import { CreateUserDto } from '../dto/createUser.dto';
 import { SortbyEnum } from '../../../common/constant/enum';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 import { AdminEntity } from '../../../entity/admin/admin.entity';
+import { UpdateUserDto } from '../dto/updateUser.dto';
 
 @Injectable()
 export class UserRepository {
@@ -183,18 +184,20 @@ export class UserRepository {
     return { totalPage, total, users: result };
   }
 
-  async createUser(newUserInfo: CreateUserDto, manager: EntityManager): Promise<InsertResult> {
+  async createUser(newUserInfo: CreateUserDto, manager: EntityManager): Promise<number> {
     const password: string = encryptPassword(newUserInfo.id + '2467');
 
-    return await manager
+    const result: InsertResult = await manager
       .createQueryBuilder()
       .insert()
       .into(UserEntity)
       .values({ password, ...newUserInfo })
       .execute();
+
+    return result.identifiers[0].userIdx;
   }
 
-  async updateUserInfo(userIdx: number, updateInfo: UpdateMyInfoDto, manager: EntityManager): Promise<UpdateResult> {
+  async updateMyInfo(userIdx: number, updateInfo: UpdateMyInfoDto, manager: EntityManager): Promise<UpdateResult> {
     return await manager
       .createQueryBuilder()
       .update(UserEntity)
@@ -242,7 +245,7 @@ export class UserRepository {
     return result;
   }
 
-  async createAdmin(newAdminInfo: CreateUserDto, manager: EntityManager): Promise<InsertResult> {
+  async createAdmin(userIdx: number, newAdminInfo: CreateUserDto, manager: EntityManager): Promise<InsertResult> {
     const password: string = encryptPassword(newAdminInfo.id + '2467');
     const adminName: string = newAdminInfo.userName;
     const adminEmail: string = newAdminInfo.userEmail;
@@ -251,7 +254,29 @@ export class UserRepository {
       .createQueryBuilder()
       .insert()
       .into(AdminEntity)
-      .values({ password, adminName, adminEmail, ...newAdminInfo })
+      .values({ userIdx, password, adminName, adminEmail, ...newAdminInfo })
+      .execute();
+  }
+
+  async updateUserInfo(userIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
+    const { adminGradeIdx, ...userInfo } = updateInfo;
+
+    return await manager
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set(userInfo)
+      .where('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async updateAdminInfo(userIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
+    const { id, userName, gradeIdx, hqIdx, teamIdx, userEmail, adminGradeIdx } = updateInfo;
+
+    return await manager
+      .createQueryBuilder()
+      .update(AdminEntity)
+      .set({ id, adminName: userName, gradeIdx, hqIdx, teamIdx, adminEmail: userEmail, adminGradeIdx })
+      .where('userIdx = :userIdx', { userIdx })
       .execute();
   }
 }
