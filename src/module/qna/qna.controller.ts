@@ -24,12 +24,12 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_QNA, USERS_QNA } from './swagger/qna.swagger';
+import { ADMIN_QNA, ADMIN_QNA_REPLY, USERS_QNA } from './swagger/qna.swagger';
 import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
-import { CurrentUser, CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
+import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { QnaService } from './qna.service';
 import { CreateQnaDto } from './dto/createQna.dto';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -39,10 +39,11 @@ import { QnaEntity } from '../../entity/qna/qna.entity';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { QnaAdminResult } from './interface/result.interface';
 import { QnaFilterDto } from './dto/query.dto';
-import { UserPayload } from '../../common/interface/payload.interface';
+import { AdminPayload } from '../../common/interface/payload.interface';
 import { ReplyQnaDto } from './dto/replyQna.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { CurrentAdmin } from '../../common/decorator/currentAdmin.decorator';
 
 @ApiTags('사용자')
 @Controller('users/qna')
@@ -144,12 +145,36 @@ export class AdminQnaController {
   async replyQna(
     @Param('qnaIdx', ParseIntPipe) qnaIdx: number,
     @Body() replyDto: ReplyQnaDto,
-    @CurrentUser() admin: UserPayload,
+    @CurrentAdmin() admin: AdminPayload,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
     await this.qnaService.replyQna(qnaIdx, replyDto, admin, manager);
 
     const response: ResponseInterface = { message: '어드민 문의 답변 등록 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_QNA_REPLY.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_QNA_REPLY.PATCH.API_PARAM1)
+  @ApiBody(ADMIN_QNA_REPLY.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_QNA_REPLY.PATCH.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_QNA_REPLY.PATCH.API_BAD_REQUEST_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_QNA_REPLY.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch(':qnaIdx/reply')
+  async updateReply(
+    @Param('qnaIdx', ParseIntPipe) qnaIdx: number,
+    @Body() replyDto: ReplyQnaDto,
+    @CurrentAdmin() admin: AdminPayload,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.qnaService.updateReply(qnaIdx, replyDto, admin, manager);
+
+    const response: ResponseInterface = { message: '어드민 문의 답변 수정 성공' };
 
     return response;
   }

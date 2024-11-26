@@ -4,7 +4,7 @@ import { QnaRepository } from './repository/qna.repository';
 import { EntityManager } from 'typeorm';
 import { QnaEntity } from '../../entity/qna/qna.entity';
 import { QnaAdminResult } from './interface/result.interface';
-import { UserPayload } from '../../common/interface/payload.interface';
+import { AdminPayload } from '../../common/interface/payload.interface';
 import { ReplyQnaDto } from './dto/replyQna.dto';
 import { YNEnum } from '../../common/constant/enum';
 import { QnaInfo } from './interface/qna.interface';
@@ -65,7 +65,7 @@ export class QnaService {
   async replyQna(
     qnaIdx: number,
     { replyText }: ReplyQnaDto,
-    admin: UserPayload,
+    admin: AdminPayload,
     manager: EntityManager,
   ): Promise<void> {
     const qnaInfo: QnaInfo = await this.qnaRepository.getQnaInfoByIdx(qnaIdx);
@@ -73,11 +73,29 @@ export class QnaService {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
     if (qnaInfo.replySuccessYN === YNEnum.YES) {
-      throw new BadRequestException('이미 답변된 문의입니다.');
+      throw new BadRequestException('이미 답변하였습니다.');
     }
 
-    await this.qnaRepository.replyQna(qnaIdx, replyText, admin.userName, manager);
+    await this.qnaRepository.replyQna(qnaIdx, replyText, admin.adminName, manager);
 
     return;
+  }
+
+  async updateReply(
+    qnaIdx: number,
+    { replyText }: ReplyQnaDto,
+    admin: AdminPayload,
+    manager: EntityManager,
+  ): Promise<void> {
+    console.log(admin);
+    const qnaInfo: QnaInfo = await this.qnaRepository.getQnaInfoByIdx(qnaIdx);
+    if (!qnaInfo) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+    if (qnaInfo.replySuccessYN === YNEnum.NO) {
+      throw new BadRequestException('아직 답변이 없습니다.');
+    }
+
+    await this.qnaRepository.updateReply(qnaIdx, replyText, admin.adminName, manager);
   }
 }
