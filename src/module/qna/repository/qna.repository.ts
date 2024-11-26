@@ -125,4 +125,18 @@ export class QnaRepository {
       .where('qnaIdx = :qnaIdx', { qnaIdx })
       .execute();
   }
+
+  async updateReply(
+    qnaIdx: number,
+    replyText: string,
+    replyAdmin: string,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(QnaEntity)
+      .set({ replyText, replyAdmin })
+      .where('qnaIdx = :qnaIdx', { qnaIdx })
+      .execute();
+  }
 }

@@ -323,3 +323,74 @@ export const ADMIN_QNA: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_QNA_REPLY: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 문의 답변 수정 API',
+    },
+    API_PARAM1: {
+      name: 'qnaIdx',
+      type: Number,
+      description: '문의IDX',
+      required: true,
+    },
+    API_BODY: {
+      type: ReplyQnaDto,
+      examples: {
+        a: {
+          summary: '답변 수정',
+          value: {
+            replyText: '답변수정입니다~',
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '어드민 문의 답변 수정 성공',
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '아직 답변 없는 문의',
+              value: {
+                message: '아직 답변이 없습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 11. 8. 오전 10:35:32',
+                path: '/admin/qna/19/reply',
+              },
+            },
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않은 문의',
+              value: {
+                message: '해당 내역은 존재하지 않거나 삭제되었습니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 11. 8. 오전 10:36:36',
+                path: '/admin/qna/20/reply',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
