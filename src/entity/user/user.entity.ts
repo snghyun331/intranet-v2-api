@@ -13,6 +13,7 @@ import { ActivityMonthlyStatsEntity } from '../activity/activityMonthlyStats.ent
 import { ActivityStatsEntity } from '../activity/activityStats.entity';
 import { ActivityEntity } from '../activity/activity.entity';
 import { QnaEntity } from '../qna/qna.entity';
+import { AdminEntity } from '../admin/admin.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -121,4 +122,7 @@ export class UserEntity extends CommonEntity {
 
   @OneToMany(() => QnaEntity, (qna) => qna.userIdxRelation)
   qnaRelation: QnaEntity[];
+
+  @OneToMany(() => AdminEntity, (admin) => admin.userIdxRelation)
+  adminRelation: AdminEntity[];
 }

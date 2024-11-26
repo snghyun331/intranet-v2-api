@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -46,6 +58,7 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdateMyPwDto } from './dto/updateMyPw.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -221,6 +234,28 @@ export class AdminUserController {
     const id: string = await this.userService.checkIdIfAvailable(loginId);
 
     const response: ResponseInterface = { message: '아이디 중복확인 성공', data: { id } };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_USERS.PUT.API_OPERATION)
+  @ApiParam(ADMIN_USERS.PUT.API_PARAM1)
+  @ApiBody(ADMIN_USERS.PUT.API_BODY)
+  @ApiOkResponse(ADMIN_USERS.PUT.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_USERS.PUT.API_BAD_REQUEST_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Put(':userIdx')
+  async updateUser(
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+    @Body() updateInfo: UpdateUserDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.userService.updateUser(userIdx, updateInfo, manager);
+
+    const response: ResponseInterface = { message: '유저 정보 수정 성공' };
 
     return response;
   }
