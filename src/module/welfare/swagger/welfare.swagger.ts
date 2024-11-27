@@ -1,6 +1,7 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
 import { CreateWelfareDto } from '../dto/createWelfare.dto';
+import { UpdateConfirmDto } from '../dto/updateConfirm.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 
 export const USERS_WELFARES: SwaggerMethod = {
@@ -459,6 +460,53 @@ export const ADMIN_WELFARES: SwaggerMethod = {
                 },
               ],
             },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_WELFARES_CONFIRM: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 복포 내역 확인 API',
+    },
+    API_PARAM1: {
+      name: 'welfareIdx',
+      type: Number,
+      required: true,
+      description: '복포IDX',
+    },
+    API_BODY: {
+      type: UpdateConfirmDto,
+      examples: {
+        a: {
+          summary: '확인 전',
+          value: {
+            confirmYN: 'N',
+          },
+        },
+        b: {
+          summary: '확인완료',
+          value: {
+            confirmYN: 'Y',
+          },
+        },
+        c: {
+          summary: '반려',
+          value: {
+            confirmYN: 'H',
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'Success',
           },
         },
       },
