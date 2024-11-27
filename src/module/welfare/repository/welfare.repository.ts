@@ -8,7 +8,7 @@ import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
-import { GradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, GradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
 import {
   NewWelfareMonthStats,
   NewWelfareStats,
@@ -501,5 +501,24 @@ export class WelfareRepository {
     const result: WelfareAdminInfo[] = await query.getRawMany();
 
     return { totalPage, total, welfare: result };
+  }
+
+  async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
+    if (confirmYN === ConfirmEnum.YES) {
+      const confirmDate: Date = new Date();
+      await manager
+        .createQueryBuilder()
+        .update(WelfareEntity)
+        .set({ confirmYN, confirmDate })
+        .where('welfareIdx = :welfareIdx', { welfareIdx })
+        .execute();
+    } else {
+      await manager
+        .createQueryBuilder()
+        .update(WelfareEntity)
+        .set({ confirmYN, confirmDate: null })
+        .where('welfareIdx = :welfareIdx', { welfareIdx })
+        .execute();
+    }
   }
 }
