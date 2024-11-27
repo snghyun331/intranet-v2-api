@@ -30,6 +30,7 @@ import {
   ADMIN_WELFARES,
   ADMIN_WELFARES_BUDGET,
   ADMIN_WELFARES_BUDGET_NOTE,
+  ADMIN_WELFARES_CONFIRM,
   USERS_WELFARES,
 } from './swagger/welfare.swagger';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
@@ -50,6 +51,7 @@ import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { UpdateConfirmDto } from './dto/updateConfirm.dto';
 
 @ApiTags('사용자')
 @Controller('users/welfares')
@@ -165,6 +167,27 @@ export class AdminWelfareController {
     );
 
     const response: ResponseInterface = { message: '어드민 복포 내역 조회 성공', data: { totalPage, total, welfare } };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_WELFARES_CONFIRM.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_WELFARES_CONFIRM.PATCH.API_PARAM1)
+  @ApiBody(ADMIN_WELFARES_CONFIRM.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_WELFARES_CONFIRM.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch(':welfareIdx/confirm')
+  async updateConfirmWelfare(
+    @Param('welfareIdx', ParseIntPipe) welfareIdx: number,
+    @Body() { confirmYN }: UpdateConfirmDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.welfareService.updateConfirmWelfare(welfareIdx, confirmYN, manager);
+
+    const response: ResponseInterface = { message: 'Success' };
 
     return response;
   }

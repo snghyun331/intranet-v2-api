@@ -3,7 +3,7 @@ import { CreateWelfareDto } from './dto/createWelfare.dto';
 import { WelfareRepository } from './repository/welfare.repository';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { EntityManager } from 'typeorm';
-import { HalfYearEnum, YNEnum } from '../../common/constant/enum';
+import { ConfirmEnum, HalfYearEnum, YNEnum } from '../../common/constant/enum';
 import {
   NewWelfareMonthStats,
   NewWelfareStats,
@@ -328,5 +328,15 @@ export class WelfareService {
     );
 
     return { totalPage, total, welfare };
+  }
+
+  async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
+    const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
+    if (!welfareInfo) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+    await this.welfareRepository.updateConfirmWelfare(welfareIdx, confirmYN, manager);
+
+    return;
   }
 }
