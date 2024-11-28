@@ -206,6 +206,7 @@ export class AdminUserController {
   @ApiOperation(ADMIN_USERS.POST.API_OPERATION)
   @ApiBody(ADMIN_USERS.POST.API_BODY)
   @ApiCreatedResponse(ADMIN_USERS.POST.API_CREATED_RESPONSE)
+  @ApiConflictResponse(ADMIN_USERS.POST.API_CONFLICT_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)

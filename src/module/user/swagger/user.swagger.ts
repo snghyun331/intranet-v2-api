@@ -534,6 +534,24 @@ export const ADMIN_USERS: SwaggerMethod = {
         },
       },
     },
+    API_CONFLICT_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '이미 가입된 유저',
+              value: {
+                message: '이미 가입된 유저입니다.(아이디 중복)',
+                error: 'Conflict',
+                statusCode: 409,
+                timeStamp: '2024. 11. 15. 오전 11:20:58',
+                path: '/admin/users/1',
+              },
+            },
+          },
+        },
+      },
+    },
   },
 };
 
