@@ -60,6 +60,11 @@ export class UserService {
   }
 
   async createUser(userInfo: CreateUserDto, manager: EntityManager): Promise<void> {
+    const result: number = await this.userRepository.getLoginIdCount(userInfo.id);
+    if (result >= 1) {
+      throw new ConflictException('이미 가입된 유저입니다.(아이디 중복)');
+    }
+
     const { adminGradeIdx, ...newUserInfo } = userInfo;
 
     /* 유저 등록 */
