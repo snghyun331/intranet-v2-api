@@ -284,9 +284,29 @@ export class AdminWelfareController {
     const welfareStats: WelfareStatsAdminInfo[] = await this.welfareService.getUserWelfareStats(filterInfo);
 
     const response: ResponseInterface = {
-      message: '정산 조회 성공',
+      message: 'success',
       data: { ...filterInfo, welfareStats },
     };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_WELFARES_BALANCES.PATCH.API_OPERATION)
+  @ApiBody(ADMIN_WELFARES_BALANCES.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_WELFARES_BALANCES.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_WELFARES_BALANCES.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch('balances')
+  async updateClearStatusComplete(
+    @Body('welfareStatsIdxList') welfareStatsIdxList: number[],
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.welfareService.updateClearStatusComplete(welfareStatsIdxList, manager);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

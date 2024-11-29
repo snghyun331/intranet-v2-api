@@ -346,4 +346,16 @@ export class WelfareService {
 
     return result;
   }
+
+  async updateClearStatusComplete(welfareStatsIdxList: number[], manager: EntityManager): Promise<void> {
+    await Promise.all(
+      welfareStatsIdxList.map(async (welfareStatsIdx) => {
+        const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCountByIdx(welfareStatsIdx);
+        if (welfareStatsCnt < 1) {
+          throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+        }
+        await this.welfareRepository.updateClearStatusComplete(welfareStatsIdx, manager);
+      }),
+    );
+  }
 }
