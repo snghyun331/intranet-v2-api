@@ -10,10 +10,11 @@ import {
   WelfareInfo,
   Welfares,
   WelfareStats,
+  WelfareStatsAdminInfo,
 } from './interface/welfare.interface';
 import { WelfareAdminResult, WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
-import { AdminWelfareBudgetFilterDto, AdminWelfareFilterDto } from './dto/query.dto';
+import { AdminWelfareBalanceFilterDto, AdminWelfareBudgetFilterDto, AdminWelfareFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 
@@ -338,5 +339,11 @@ export class WelfareService {
     await this.welfareRepository.updateConfirmWelfare(welfareIdx, confirmYN, manager);
 
     return;
+  }
+
+  async getUserWelfareStats({ year, halfYear }: AdminWelfareBalanceFilterDto): Promise<WelfareStatsAdminInfo[]> {
+    const result: WelfareStatsAdminInfo[] = await this.welfareRepository.getUserWelfareStats(year, halfYear);
+
+    return result;
   }
 }

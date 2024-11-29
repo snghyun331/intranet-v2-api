@@ -593,6 +593,7 @@ export class MealRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
+      .orderBy('userEntity.gradeIdx', 'ASC')
       .getRawMany();
 
     return result;
