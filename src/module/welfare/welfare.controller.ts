@@ -28,6 +28,7 @@ import {
 } from '@nestjs/swagger';
 import {
   ADMIN_WELFARES,
+  ADMIN_WELFARES_BALANCES,
   ADMIN_WELFARES_BUDGET,
   ADMIN_WELFARES_BUDGET_NOTE,
   ADMIN_WELFARES_CONFIRM,
@@ -44,7 +45,12 @@ import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { WelfareAdminResult, WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
-import { AdminWelfareBudgetFilterDto, AdminWelfareFilterDto, WelfareFilterDto } from './dto/query.dto';
+import {
+  AdminWelfareBalanceFilterDto,
+  AdminWelfareBudgetFilterDto,
+  AdminWelfareFilterDto,
+  WelfareFilterDto,
+} from './dto/query.dto';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
@@ -52,6 +58,7 @@ import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { UpdateConfirmDto } from './dto/updateConfirm.dto';
+import { WelfareStatsAdminInfo } from './interface/welfare.interface';
 
 @ApiTags('사용자')
 @Controller('users/welfares')
@@ -263,6 +270,23 @@ export class AdminWelfareController {
     await this.welfareService.updateWelfareStatsNote(welfareStatsIdx, noteInfo, manager);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_WELFARES_BALANCES.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_WELFARES_BALANCES.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('balances')
+  async getWelfareBalance(@Query() filterInfo: AdminWelfareBalanceFilterDto): Promise<ResponseInterface> {
+    const welfareStats: WelfareStatsAdminInfo[] = await this.welfareService.getUserWelfareStats(filterInfo);
+
+    const response: ResponseInterface = {
+      message: '정산 조회 성공',
+      data: { ...filterInfo, welfareStats },
+    };
 
     return response;
   }

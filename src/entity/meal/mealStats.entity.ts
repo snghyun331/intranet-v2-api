@@ -47,7 +47,13 @@ export class MealStatsEntity extends CommonEntity {
   @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
   note: string;
 
-  @Column({ name: 'clearStatus', comment: '정산여부', type: String, default: ClearStatusEnum.NOT_YET, nullable: false })
+  @Column({
+    name: 'clear_status',
+    comment: '정산여부',
+    type: String,
+    default: ClearStatusEnum.NOT_YET,
+    nullable: false,
+  })
   clearStatus: string;
 
   @ManyToOne(() => UserEntity, (user) => user.mealStatsRelation, {
