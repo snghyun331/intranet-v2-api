@@ -1,4 +1,11 @@
-import { AttendanceEnum, ClearStatusEnum, MealTypeEnum, UserGradeEnum, YNEnum } from '../../../common/constant/enum';
+import {
+  AttendanceEnum,
+  ClearStatusEnum,
+  HalfYearEnum,
+  MealTypeEnum,
+  UserGradeEnum,
+  YNEnum,
+} from '../../../common/constant/enum';
 
 export interface BasicMealData {
   payerName: string;
@@ -46,6 +53,8 @@ export interface MealBudgetAdminInfo {
 
 export interface MealStatsAdminInfo {
   mealStatsIdx: number;
+  year: string;
+  halfYear: HalfYearEnum;
   userIdx: number;
   userName: string;
   gradeName: UserGradeEnum;
