@@ -29,6 +29,7 @@ import {
 import {
   ADMIN_WELFARES,
   ADMIN_WELFARES_BALANCES,
+  ADMIN_WELFARES_BALANCES_CANCEL,
   ADMIN_WELFARES_BUDGET,
   ADMIN_WELFARES_BUDGET_NOTE,
   ADMIN_WELFARES_CONFIRM,
@@ -305,6 +306,26 @@ export class AdminWelfareController {
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
     await this.welfareService.updateClearStatusComplete(welfareStatsIdxList, manager);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_WELFARES_BALANCES_CANCEL.PATCH.API_OPERATION)
+  @ApiBody(ADMIN_WELFARES_BALANCES_CANCEL.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_WELFARES_BALANCES_CANCEL.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_WELFARES_BALANCES_CANCEL.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch('balances/cancel')
+  async updateClearStatusNotYet(
+    @Body('welfareStatsIdxList') welfareStatsIdxList: number[],
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.welfareService.updateClearStatusNotYet(welfareStatsIdxList, manager);
 
     const response: ResponseInterface = { message: 'success' };
 

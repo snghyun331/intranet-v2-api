@@ -562,4 +562,13 @@ export class WelfareRepository {
       .where('welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
       .execute();
   }
+
+  async updateClearStatusNotYet(welfareStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(WelfareStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.NOT_YET })
+      .where('welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
+      .execute();
+  }
 }
