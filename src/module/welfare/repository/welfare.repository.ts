@@ -8,7 +8,7 @@ import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
-import { ConfirmEnum, GradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum, ConfirmEnum, GradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
 import {
   NewWelfareMonthStats,
   NewWelfareStats,
@@ -552,5 +552,23 @@ export class WelfareRepository {
     const result: WelfareStatsAdminInfo[] = await query.getRawMany();
 
     return result;
+  }
+
+  async updateClearStatusComplete(welfareStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(WelfareStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.COMPLETE })
+      .where('welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
+      .execute();
+  }
+
+  async updateClearStatusNotYet(welfareStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(WelfareStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.NOT_YET })
+      .where('welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
+      .execute();
   }
 }
