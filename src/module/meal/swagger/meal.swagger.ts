@@ -590,7 +590,7 @@ export const ADMIN_MEALS_BALANCES: SwaggerMethod = {
                 error: 'Not Found',
                 statusCode: 404,
                 timeStamp: '2024. 11. 14. 오후 3:36:23',
-                path: '/admin/meals/budget/4000',
+                path: '/admin/meals/balances',
               },
             },
           },
