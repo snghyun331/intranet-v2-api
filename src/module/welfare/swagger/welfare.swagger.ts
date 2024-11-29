@@ -484,18 +484,21 @@ export const ADMIN_WELFARES_CONFIRM: SwaggerMethod = {
         a: {
           summary: '확인 전',
           value: {
+            welfareIdxList: [1],
             confirmYN: 'N',
           },
         },
         b: {
           summary: '확인완료',
           value: {
+            welfareIdxList: [1, 2],
             confirmYN: 'Y',
           },
         },
         c: {
           summary: '반려',
           value: {
+            welfareIdxList: [1, 2],
             confirmYN: 'H',
           },
         },

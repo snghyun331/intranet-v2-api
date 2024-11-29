@@ -331,12 +331,16 @@ export class WelfareService {
     return { totalPage, total, welfare };
   }
 
-  async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
-    const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
-    if (!welfareInfo) {
-      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
-    }
-    await this.welfareRepository.updateConfirmWelfare(welfareIdx, confirmYN, manager);
+  async updateConfirmWelfare(welfareIdxList: number[], confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
+    await Promise.all(
+      welfareIdxList.map(async (welfareIdx) => {
+        const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
+        if (!welfareInfo) {
+          throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+        }
+        await this.welfareRepository.updateConfirmWelfare(welfareIdx, confirmYN, manager);
+      }),
+    );
 
     return;
   }

@@ -180,20 +180,18 @@ export class AdminWelfareController {
   }
 
   @ApiOperation(ADMIN_WELFARES_CONFIRM.PATCH.API_OPERATION)
-  @ApiParam(ADMIN_WELFARES_CONFIRM.PATCH.API_PARAM1)
   @ApiBody(ADMIN_WELFARES_CONFIRM.PATCH.API_BODY)
   @ApiOkResponse(ADMIN_WELFARES_CONFIRM.PATCH.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Patch(':welfareIdx/confirm')
+  @Patch('confirm')
   async updateConfirmWelfare(
-    @Param('welfareIdx', ParseIntPipe) welfareIdx: number,
-    @Body() { confirmYN }: UpdateConfirmDto,
+    @Body() { welfareIdxList, confirmYN }: UpdateConfirmDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.welfareService.updateConfirmWelfare(welfareIdx, confirmYN, manager);
+    await this.welfareService.updateConfirmWelfare(welfareIdxList, confirmYN, manager);
 
     const response: ResponseInterface = { message: 'Success' };
 
