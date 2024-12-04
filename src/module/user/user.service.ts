@@ -137,6 +137,11 @@ export class UserService {
   }
 
   async updateUser(userIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<void> {
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
     await this.userRepository.updateUserInfo(userIdx, updateInfo, manager);
 
     if (updateInfo.adminRole === YNEnum.NO && updateInfo.adminGradeIdx) {
@@ -148,5 +153,20 @@ export class UserService {
     if (updateInfo.adminGradeIdx) {
       await this.userRepository.updateAdminInfo(userIdx, updateInfo, manager);
     }
+  }
+
+  async deleteUser(userIdx: number, manager: EntityManager): Promise<void> {
+    const result = await this.userRepository.getUserAdminYN(userIdx);
+    if (!result) {
+      throw new BadRequestException('이미 비활성된 유저이거나 올바른 유저가 아닙니다.');
+    }
+    // 유저 비활성화
+    await this.userRepository.deleteUser(userIdx, manager);
+    // 어드민 비활성화
+    if (result.adminRole === YNEnum.YES) {
+      await this.userRepository.deleteAdmin(userIdx, manager);
+    }
+
+    return;
   }
 }
