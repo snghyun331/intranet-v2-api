@@ -14,12 +14,15 @@ import { UserModule } from './user/user.module';
 import { ActivityModule } from './activity/activity.module';
 import { QnaModule } from './qna/qna.module';
 import { AdminModule } from './admin/admin.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { REDIS_CONFIG } from '../config/redis.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     WinstonModule.forRoot(WINSTON_CONFIG),
     TypeOrmModule.forRootAsync(DATABASE_CONFIG),
+    RedisModule.forRootAsync(REDIS_CONFIG),
     SchedulerModule,
     AuthModule,
     MealModule,
