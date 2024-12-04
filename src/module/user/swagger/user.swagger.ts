@@ -201,6 +201,45 @@ export const USERS_GRADES_IDX: SwaggerMethod = {
 };
 
 export const ADMIN_USERS: SwaggerMethod = {
+  DELETE: {
+    API_OPERATION: {
+      summary: '직원 삭제(비활성화) API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'userIdx',
+      required: true,
+      description: '유저IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '이미 비활성 or 올바른 유저X',
+              value: {
+                message: '이미 비활성된 유저이거나 올바른 유저가 아닙니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 12. 4. 오전 10:26:09',
+                path: '/admin/users/100',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   PUT: {
     API_OPERATION: {
       summary: '직원 수정 API',

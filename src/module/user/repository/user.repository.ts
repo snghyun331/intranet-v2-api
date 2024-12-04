@@ -9,7 +9,7 @@ import {
   HqIdxsResult,
   TeamIdxsResult,
 } from '../interface/result.interface';
-import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
@@ -276,6 +276,34 @@ export class UserRepository {
       .createQueryBuilder()
       .update(AdminEntity)
       .set({ id, adminName: userName, gradeIdx, hqIdx, teamIdx, adminEmail: userEmail, adminGradeIdx })
+      .where('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async deleteUser(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
+    return await manager
+      .createQueryBuilder()
+      .softDelete()
+      .from(UserEntity)
+      .where('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async getUserAdminYN(userIdx: number) {
+    const result = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.adminRole AS adminRole'])
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async deleteAdmin(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
+    return await manager
+      .createQueryBuilder()
+      .softDelete()
+      .from(AdminEntity)
       .where('userIdx = :userIdx', { userIdx })
       .execute();
   }

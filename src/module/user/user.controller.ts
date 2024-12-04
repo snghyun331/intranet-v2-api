@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -257,6 +258,25 @@ export class AdminUserController {
     await this.userService.updateUser(userIdx, updateInfo, manager);
 
     const response: ResponseInterface = { message: '유저 정보 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_USERS.DELETE.API_OPERATION)
+  @ApiParam(ADMIN_USERS.DELETE.API_PARAM1)
+  @ApiOkResponse(ADMIN_USERS.DELETE.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Delete(':userIdx')
+  async deleteUser(
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.userService.deleteUser(userIdx, manager);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }
