@@ -35,5 +35,7 @@ jobs:
             echo "HOLIDAY_API_URL=${{ secrets.HOLIDAY_API_URL }}" >> .env            
             echo "HOLIDAY_API_KEY=${{ secrets.HOLIDAY_API_KEY }}" >> .env            
             echo "AUTH_KEY_AES=${{ secrets.AUTH_KEY_AES }}" >> .env            
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env            
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env            
             echo "############# RUN SCRIPT #############"
             sh script.sh

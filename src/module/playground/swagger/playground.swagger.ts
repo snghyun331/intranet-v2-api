@@ -19,7 +19,14 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
     API_CREATED_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          example: {
+            statusCode: 201,
+            message: 'success',
+            data: {
+              userName: '이승현',
+              group: 4,
+            },
+          },
         },
       },
     },
@@ -32,6 +39,21 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
               value: {},
             },
           },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 점심조 설정 API',
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {},
         },
       },
     },
