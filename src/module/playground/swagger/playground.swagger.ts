@@ -46,6 +46,51 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
 };
 
 export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 점심조 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '설정 직후',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  groups: {
+                    '1': [],
+                    '2': [],
+                    '3': [],
+                    '4': [],
+                    '5': [],
+                  },
+                },
+              },
+            },
+            b: {
+              summary: '일부',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  groups: {
+                    '1': ['김현민'],
+                    '2': [],
+                    '3': [],
+                    '4': ['이승현'],
+                    '5': [],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   POST: {
     API_OPERATION: {
       summary: '어드민 점심조 설정 API',

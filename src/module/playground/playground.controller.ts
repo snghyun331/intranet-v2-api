@@ -5,6 +5,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
@@ -55,6 +56,20 @@ export class AdminPlaygroundController {
     await this.playgroundService.setLunchGroup(lunchGroupInfo);
 
     const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_PLAYGROUND_LUNCH_GROUP.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_PLAYGROUND_LUNCH_GROUP.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('lunch-group')
+  async getLunchGroup(): Promise<ResponseInterface> {
+    const data: any = await this.playgroundService.getLunchGroup();
+
+    const response: ResponseInterface = { message: 'success', data };
 
     return response;
   }
