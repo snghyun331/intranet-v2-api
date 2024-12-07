@@ -486,7 +486,6 @@ export class MealRepository {
   }
 
   async createMealBase(year: string, month: string, baseAmount: number, manager: EntityManager): Promise<InsertResult> {
-    console.log(baseAmount);
     return await manager
       .createQueryBuilder()
       .insert()

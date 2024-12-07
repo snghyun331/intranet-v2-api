@@ -18,6 +18,8 @@ import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { CreateLunchGroupDto } from './dto/createLunchGroup.dto';
+import { CurrentUser } from '../../common/decorator/currentUser.decorator';
+import { UserPayload } from '../../common/interface/payload.interface';
 
 @ApiTags('사용자')
 @Controller('users/playground')
@@ -32,7 +34,10 @@ export class UserPlaygroundController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post('lunch-group')
-  async pickLunchGroup(@Body('userName') userName: string): Promise<ResponseInterface> {
+  async pickLunchGroup(
+    // @CurrentUser() {userName}: UserPayload,
+    @Body('userName') userName: string,
+  ): Promise<ResponseInterface> {
     const group: number = await this.playgroundService.pickLunchGroup(userName);
 
     const response: ResponseInterface = { message: 'success', data: { userName, group } };

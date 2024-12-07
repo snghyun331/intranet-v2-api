@@ -87,7 +87,6 @@ export class QnaService {
     admin: AdminPayload,
     manager: EntityManager,
   ): Promise<void> {
-    console.log(admin);
     const qnaInfo: QnaInfo = await this.qnaRepository.getQnaInfoByIdx(qnaIdx);
     if (!qnaInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
