@@ -53,7 +53,7 @@ export class PlaygroundService {
     return groupToAssign;
   }
 
-  async setLunchGroup({ total, perGroup, sDate, eDate }: CreateLunchGroupDto): Promise<void> {
+  async setLunchGroup({ total, perGroup, sDate, eDate, notice }: CreateLunchGroupDto): Promise<void> {
     // 아직 기존 key가 존재하면 예외처리
     const lunchGroupInfo = await this.redis.hgetall('lunch-group');
     if (Object.keys(lunchGroupInfo).length !== 0) {
@@ -78,6 +78,8 @@ export class PlaygroundService {
       sDate,
       'eDate',
       eDate,
+      'notice',
+      notice,
     );
     await this.redis.expire('lunch-group', ttlSeconds);
 
@@ -89,7 +91,7 @@ export class PlaygroundService {
     return;
   }
 
-  async getLunchGroup(): Promise<any> {
+  async getLunchGroupForAdmin(): Promise<any> {
     const lunchGroupInfo = await this.redis.hgetall('lunch-group');
     if (Object.keys(lunchGroupInfo).length === 0) {
       return [];
@@ -111,5 +113,34 @@ export class PlaygroundService {
     }
 
     return { sDate, eDate, groups };
+  }
+
+  async getLunchGroupForUser(userName: string): Promise<any> {
+    const lunchGroupInfo = await this.redis.hgetall('lunch-group');
+    if (Object.keys(lunchGroupInfo).length === 0) {
+      return [];
+    }
+    const maxGroup: number = Number(lunchGroupInfo.maxGroup);
+    const keys: string[] = await this.redis.keys('lunch-group:*');
+
+    const { sDate, eDate, notice } = lunchGroupInfo;
+
+    let groupToAssign: string | null;
+    const groups = {};
+
+    for (let i = 1; i <= maxGroup; i++) {
+      groups[i.toString()] = [];
+    }
+    for (const key of keys) {
+      const groupNo: string = key.replace('lunch-group:', '');
+      const users = await this.redis.smembers(key);
+      const filterdUsers: string[] = users.filter((user: string) => user !== '');
+      if (filterdUsers.includes(userName)) {
+        groupToAssign = groupNo;
+      }
+      groups[groupNo] = filterdUsers;
+    }
+
+    return { sDate, eDate, notice, groups, groupToAssign };
   }
 }

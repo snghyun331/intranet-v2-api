@@ -1,6 +1,20 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 
 export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 점심조 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {},
+          },
+        },
+      },
+    },
+  },
   POST: {
     API_OPERATION: {
       summary: '점심조 뽑기 API',

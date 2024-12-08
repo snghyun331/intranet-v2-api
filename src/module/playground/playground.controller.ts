@@ -35,12 +35,26 @@ export class UserPlaygroundController {
   @UserRole(UserGradeEnum.INTERN)
   @Post('lunch-group')
   async pickLunchGroup(
-    // @CurrentUser() {userName}: UserPayload,
-    @Body('userName') userName: string,
+    @CurrentUser() { userName }: UserPayload,
+    // @Body('userName') userName: string,
   ): Promise<ResponseInterface> {
     const group: number = await this.playgroundService.pickLunchGroup(userName);
 
     const response: ResponseInterface = { message: 'success', data: { userName, group } };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_PLAYGROUND_LUNCH_GROUP.GET.API_OPERATION)
+  @ApiOkResponse(USERS_PLAYGROUND_LUNCH_GROUP.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('lunch-group')
+  async getLunchGroupForUser(@CurrentUser() { userName }: UserPayload): Promise<ResponseInterface> {
+    const data: any = await this.playgroundService.getLunchGroupForUser(userName);
+
+    const response: ResponseInterface = { message: 'success', data };
 
     return response;
   }
@@ -71,8 +85,8 @@ export class AdminPlaygroundController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('lunch-group')
-  async getLunchGroup(): Promise<ResponseInterface> {
-    const data: any = await this.playgroundService.getLunchGroup();
+  async getLunchGroupForAdmin(): Promise<ResponseInterface> {
+    const data: any = await this.playgroundService.getLunchGroupForAdmin();
 
     const response: ResponseInterface = { message: 'success', data };
 

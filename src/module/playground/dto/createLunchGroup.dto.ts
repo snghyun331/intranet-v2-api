@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateLunchGroupDto {
   @ApiProperty({ required: true, type: Number, description: '총 인원', example: 40 })
@@ -33,4 +33,9 @@ export class CreateLunchGroupDto {
   @IsNotEmpty({ message: '종료날짜를 선택해주세요' })
   @IsDateString()
   eDate: string;
+
+  @ApiProperty({ name: 'notice', type: String, description: '기타 공지사항', required: false })
+  @IsOptional()
+  @IsString()
+  notice: string;
 }
