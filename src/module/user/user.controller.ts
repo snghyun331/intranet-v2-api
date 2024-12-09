@@ -265,6 +265,7 @@ export class AdminUserController {
   @ApiOperation(ADMIN_USERS.DELETE.API_OPERATION)
   @ApiParam(ADMIN_USERS.DELETE.API_PARAM1)
   @ApiOkResponse(ADMIN_USERS.DELETE.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_USERS.DELETE.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)

@@ -293,7 +293,6 @@ export class WelfareService {
     let halfYear: HalfYearEnum;
     if (!filterInfo.halfYear) {
       const nowMonth: number = date.getMonth() + 1;
-      console.log(nowMonth);
       halfYear = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
     } else {
       halfYear = filterInfo.halfYear;
