@@ -109,16 +109,21 @@ export class UserRepository {
         'userEntity.userEmail AS userEmail',
         'userEntity.userBirth AS userBirth',
         'userEntity.joinDate AS joinDate',
+        'userEntity.hqIdx AS hqIdx',
+        'userEntity.teamIdx AS teamIdx',
+        'userEntity.gradeIdx AS gradeIdx',
         'hqEntity.hqName AS hqName',
         'teamEntity.teamName AS teamName',
         'gradeEntity.gradeName AS gradeName',
         'userEntity.adminRole AS adminRole',
+        'adminEntity.adminGradeIdx AS adminGradeIdx',
         'userEntity.comment AS comment',
         'userEntity.userAvail AS userAvail',
       ])
       .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx');
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(AdminEntity, 'adminEntity', 'adminEntity.userIdx = userEntity.userIdx');
 
     if (filterInfo.gradeIdx) {
       query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });

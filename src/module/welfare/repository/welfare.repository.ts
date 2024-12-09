@@ -44,16 +44,6 @@ export class WelfareRepository {
     return userCnt;
   }
 
-  async getUserCountByName(userName: string): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userName = :userName', { userName })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
-
   async getUserNameByIdx(userIdx: number): Promise<{ userName: string }> {
     const result: { userName: string } = await this.userModel
       .createQueryBuilder('userEntity')

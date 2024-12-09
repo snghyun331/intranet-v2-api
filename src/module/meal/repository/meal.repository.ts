@@ -68,16 +68,6 @@ export class MealRepository {
     return userIdxList;
   }
 
-  async getUserCountByName(userName: string): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userName = :userName', { userName })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
-
   async getHolidayDates(year: number, month: number): Promise<string[]> {
     // 해당 월의 첫 번째 날과 마지막 날을 구함
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
@@ -496,7 +486,6 @@ export class MealRepository {
   }
 
   async createMealBase(year: string, month: string, baseAmount: number, manager: EntityManager): Promise<InsertResult> {
-    console.log(baseAmount);
     return await manager
       .createQueryBuilder()
       .insert()
