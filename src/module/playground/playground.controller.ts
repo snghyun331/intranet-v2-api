@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
 import { PlaygroundService } from './playground.service';
 import {
   ApiBadRequestResponse,
@@ -85,6 +85,20 @@ export class AdminPlaygroundController {
     const data: any = await this.playgroundService.getLunchGroupForAdmin();
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_PLAYGROUND_LUNCH_GROUP.DELETE.API_OPERATION)
+  @ApiOkResponse(ADMIN_PLAYGROUND_LUNCH_GROUP.DELETE.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Delete('lunch-group')
+  async deleteLunchGroup(): Promise<ResponseInterface> {
+    await this.playgroundService.deleteLunchGroup();
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

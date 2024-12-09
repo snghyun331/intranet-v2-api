@@ -143,4 +143,11 @@ export class PlaygroundService {
 
     return { sDate, eDate, notice, groups, groupToAssign };
   }
+
+  async deleteLunchGroup(): Promise<void> {
+    await this.redis.del('lunch-group');
+    await this.redis.del('lunch-group:*');
+
+    return;
+  }
 }
