@@ -3,7 +3,6 @@ import { PlaygroundService } from './playground.service';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
-  ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
@@ -27,17 +26,13 @@ export class UserPlaygroundController {
   constructor(private readonly playgroundService: PlaygroundService) {}
 
   @ApiOperation(USERS_PLAYGROUND_LUNCH_GROUP.POST.API_OPERATION)
-  @ApiBody(USERS_PLAYGROUND_LUNCH_GROUP.POST.API_BODY)
   @ApiCreatedResponse(USERS_PLAYGROUND_LUNCH_GROUP.POST.API_CREATED_RESPONSE)
   @ApiBadRequestResponse(USERS_PLAYGROUND_LUNCH_GROUP.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post('lunch-group')
-  async pickLunchGroup(
-    @CurrentUser() { userName }: UserPayload,
-    // @Body('userName') userName: string,
-  ): Promise<ResponseInterface> {
+  async pickLunchGroup(@CurrentUser() { userName }: UserPayload): Promise<ResponseInterface> {
     const group: number = await this.playgroundService.pickLunchGroup(userName);
 
     const response: ResponseInterface = { message: 'success', data: { userName, group } };
@@ -67,6 +62,7 @@ export class AdminPlaygroundController {
 
   @ApiOperation(ADMIN_PLAYGROUND_LUNCH_GROUP.POST.API_OPERATION)
   @ApiCreatedResponse(ADMIN_PLAYGROUND_LUNCH_GROUP.POST.API_CREATED_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_PLAYGROUND_LUNCH_GROUP.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)

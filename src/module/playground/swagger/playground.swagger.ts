@@ -9,7 +9,42 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
       content: {
         'application/json': {
           examples: {
-            a: {},
+            a: {
+              summary: '설정 직후',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  sDate: '2024-12-09',
+                  eDate: '2024-12-10',
+                  notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
+                  groups: {
+                    '1': [],
+                    '2': [],
+                    '3': [],
+                  },
+                  groupToAssign: null,
+                },
+              },
+            },
+            b: {
+              summary: '뽑기 후',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  sDate: '2024-12-09',
+                  eDate: '2024-12-10',
+                  notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
+                  groups: {
+                    '1': [],
+                    '2': [],
+                    '3': ['이승현'],
+                  },
+                  groupToAssign: '3',
+                },
+              },
+            },
           },
         },
       },
@@ -18,17 +53,6 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
   POST: {
     API_OPERATION: {
       summary: '점심조 뽑기 API',
-    },
-    API_BODY: {
-      type: String,
-      examples: {
-        a: {
-          summary: '예시',
-          value: {
-            userName: '이승현',
-          },
-        },
-      },
     },
     API_CREATED_RESPONSE: {
       content: {
@@ -49,8 +73,24 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
         'application/json': {
           examples: {
             a: {
-              summary: '올바르지 않은 유저이름',
-              value: {},
+              summary: '이미 조에 배정',
+              value: {
+                message: '이미 조에 배정되었습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 12. 9. 오전 9:47:08',
+                path: '/users/playground/lunch-group',
+              },
+            },
+            b: {
+              summary: '아직 설정 전',
+              value: {
+                message: '지금은 뽑기 가능 시간이 아닙니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 12. 9. 오전 9:48:33',
+                path: '/users/playground/lunch-group',
+              },
             },
           },
         },
@@ -74,30 +114,38 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 statusCode: 200,
                 message: 'success',
                 data: {
+                  sDate: '2024-12-09',
+                  eDate: '2024-12-10',
                   groups: {
                     '1': [],
                     '2': [],
                     '3': [],
-                    '4': [],
-                    '5': [],
                   },
                 },
               },
             },
             b: {
-              summary: '일부',
+              summary: '뽑기 후',
               value: {
                 statusCode: 200,
                 message: 'success',
                 data: {
+                  sDate: '2024-12-09',
+                  eDate: '2024-12-10',
                   groups: {
-                    '1': ['김현민'],
-                    '2': [],
-                    '3': [],
-                    '4': ['이승현'],
-                    '5': [],
+                    '1': ['김정현'],
+                    '2': ['이혜빈'],
+                    '3': ['이승현', '김현민'],
                   },
                 },
+              },
+            },
+            c: {
+              summary: '아직 설정X',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: [],
               },
             },
           },
@@ -112,7 +160,28 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
     API_CREATED_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          example: {
+            statusCode: 201,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '점심조 만료 전에 또 생성',
+              value: {
+                message: '점심조 만료 시간이 지나지 않아 새로 생성할 수 없습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 12. 9. 오전 9:43:11',
+                path: '/admin/playground/lunch-group',
+              },
+            },
+          },
         },
       },
     },

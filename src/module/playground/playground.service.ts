@@ -125,7 +125,7 @@ export class PlaygroundService {
 
     const { sDate, eDate, notice } = lunchGroupInfo;
 
-    let groupToAssign: string | null;
+    let groupToAssign: string | null = null;
     const groups = {};
 
     for (let i = 1; i <= maxGroup; i++) {
