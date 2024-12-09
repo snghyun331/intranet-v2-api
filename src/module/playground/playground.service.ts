@@ -54,11 +54,11 @@ export class PlaygroundService {
   }
 
   async setLunchGroup({ total, perGroup, sDate, eDate, notice }: CreateLunchGroupDto): Promise<void> {
-    // 아직 기존 key가 존재하면 예외처리
-    const lunchGroupInfo = await this.redis.hgetall('lunch-group');
-    if (Object.keys(lunchGroupInfo).length !== 0) {
-      throw new BadRequestException('점심조 만료 시간이 지나지 않아 새로 생성할 수 없습니다.');
-    }
+    // // 아직 기존 key가 존재하면 예외처리
+    // const lunchGroupInfo = await this.redis.hgetall('lunch-group');
+    // if (Object.keys(lunchGroupInfo).length !== 0) {
+    //   throw new BadRequestException('점심조 만료 시간이 지나지 않아 새로 생성할 수 없습니다.');
+    // }
 
     const kstEDate: Date = new Date(`${eDate}T23:59:59+09:00`);
     const ttlSeconds: number = Math.floor((kstEDate.getTime() - Date.now()) / 1000);
@@ -99,7 +99,7 @@ export class PlaygroundService {
     const maxGroup: number = Number(lunchGroupInfo.maxGroup);
     const keys: string[] = await this.redis.keys('lunch-group:*');
 
-    const { sDate, eDate } = lunchGroupInfo;
+    const { sDate, eDate, total, perGroup, notice } = lunchGroupInfo;
 
     const groups = {};
     for (let i = 1; i <= maxGroup; i++) {
@@ -112,7 +112,7 @@ export class PlaygroundService {
       groups[groupNo] = filterdUsers;
     }
 
-    return { sDate, eDate, groups };
+    return { sDate, eDate, total, perGroup, notice, groups };
   }
 
   async getLunchGroupForUser(userName: string): Promise<any> {
