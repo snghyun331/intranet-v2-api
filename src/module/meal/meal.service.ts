@@ -17,6 +17,7 @@ import { getTotalDaysInMonth } from '../../common/utils/utility';
 import { NewMealStats } from '../scheduler/interface/meal.interface';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '../../common/constant/constant';
 
 @Injectable()
 export class MealService {
@@ -243,9 +244,25 @@ export class MealService {
     );
     await this.mealRepository.updateMyBreakfastExpenseInStats(breakfastExpense, year, month, userIdx, manager);
 
-    // dinnerExpense(조식 사용금액) 업데이트
+    // 조식 초과금 업데이트
+    const { total: totalB, cnt: cntB }: { total: number; cnt: number } =
+      await this.mealRepository.getMyBreakfastOverpay(year, month, userIdx, manager);
+    const breakfastOverpay: number = cntB * DEFAULT_BREAKFAST_RATE - totalB;
+    await this.mealRepository.updateMyBreakfastOverpayInStats(breakfastOverpay, year, month, userIdx, manager);
+
+    // dinnerExpense(석식 사용금액) 업데이트
     const dinnerExpense: number = await this.mealRepository.getMyTotalDinnerExpense(year, month, userIdx, manager);
     await this.mealRepository.updateMyDinnerExpenseInStats(dinnerExpense, year, month, userIdx, manager);
+
+    // 석식 초과금 업데이트
+    const { total: totalD, cnt: cntD }: { total: number; cnt: number } = await this.mealRepository.getMyDinnerOverpay(
+      year,
+      month,
+      userIdx,
+      manager,
+    );
+    const dinnerOverpay: number = cntD * DEFAULT_DINNER_RATE - totalD;
+    await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx, manager);
 
     return newMealInfo.targetDay;
   }
@@ -264,12 +281,15 @@ export class MealService {
     // timeoffDays(반)연차/휴무일수) 업데이트
     const timeoffDays: number = await this.mealRepository.getMyTotalTimeoffDays(year, month, userIdx, manager);
     await this.mealRepository.updateMyTimeOffDaysInStats(timeoffDays, year, month, userIdx, manager);
+
     // holidayWorkdays(휴일근무일 수) 업데이트
     const holidayWorkdays: number = await this.mealRepository.getMyTotalHolidayWorkdays(year, month, userIdx, manager);
     await this.mealRepository.updateMyHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx, manager);
+
     // mealExpense(중식 사용금액) 업데이트
     const mealExpense: number = await this.mealRepository.getMyTotalMealExpense(year, month, userIdx, manager);
     await this.mealRepository.updateMyMealExpenseInStats(mealExpense, year, month, userIdx, manager);
+
     // breakExpense(조식 사용금액) 업데이트
     const breakfastExpense: number = await this.mealRepository.getMyTotalBreakfastExpense(
       year,
@@ -278,9 +298,26 @@ export class MealService {
       manager,
     );
     await this.mealRepository.updateMyBreakfastExpenseInStats(breakfastExpense, year, month, userIdx, manager);
+
+    // 조식 초과금 업데이트
+    const { total: totalB, cnt: cntB }: { total: number; cnt: number } =
+      await this.mealRepository.getMyBreakfastOverpay(year, month, userIdx, manager);
+    const breakfastOverpay: number = cntB * DEFAULT_BREAKFAST_RATE - totalB;
+    await this.mealRepository.updateMyBreakfastOverpayInStats(breakfastOverpay, year, month, userIdx, manager);
+
     // dinnerExpense(조식 사용금액) 업데이트
     const dinnerExpense: number = await this.mealRepository.getMyTotalDinnerExpense(year, month, userIdx, manager);
     await this.mealRepository.updateMyDinnerExpenseInStats(dinnerExpense, year, month, userIdx, manager);
+
+    // 석식 초과금 업데이트
+    const { total: totalD, cnt: cntD }: { total: number; cnt: number } = await this.mealRepository.getMyDinnerOverpay(
+      year,
+      month,
+      userIdx,
+      manager,
+    );
+    const dinnerOverpay: number = cntD * DEFAULT_DINNER_RATE - totalD;
+    await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx, manager);
   }
 
   /* 필드 중 하나라도 값이 있으면 true 반환 */
