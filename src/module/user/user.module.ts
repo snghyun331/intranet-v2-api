@@ -7,9 +7,10 @@ import { UserRepository } from './repository/user.repository';
 import { GradeEntity } from '../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../entity/user/team.entity';
+import { AdminEntity } from '../../entity/admin/admin.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, GradeEntity, HeadquarterEntity, TeamEntity])],
+  imports: [TypeOrmModule.forFeature([UserEntity, GradeEntity, HeadquarterEntity, TeamEntity, AdminEntity])],
   providers: [UserService, UserRepository],
   controllers: [UserController, AdminUserController],
 })
