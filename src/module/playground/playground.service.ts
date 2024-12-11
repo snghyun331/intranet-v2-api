@@ -146,7 +146,10 @@ export class PlaygroundService {
 
   async deleteLunchGroup(): Promise<void> {
     await this.redis.del('lunch-group');
-    await this.redis.del('lunch-group:*');
+    const keys = await this.redis.keys('lunch-group:*');
+    if (keys.length > 0) {
+      await this.redis.del(...keys);
+    }
 
     return;
   }

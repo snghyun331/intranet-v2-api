@@ -44,6 +44,15 @@ export class MealStatsEntity extends CommonEntity {
   @Column({ name: 'dinner_expense', comment: '이번달 식대(석식) 사용 금액', default: 0, nullable: false })
   dinnerExpense: number;
 
+  @Column({ name: 'breakfast_overpay', comment: '이번달 조식 초과금액', default: 0, nullable: false })
+  breakfastOverpay: number;
+
+  @Column({ name: 'dinner_overpay', comment: '이번달 석식 초과금액', default: 0, nullable: false })
+  dinnerOverpay: number;
+
+  @Column({ name: 'total_overpay', comment: '이번달 조중석식 총 정산금', default: 0, nullable: false })
+  totalOverpay: number;
+
   @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
   note: string;
 

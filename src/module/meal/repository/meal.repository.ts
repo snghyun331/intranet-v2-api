@@ -22,6 +22,7 @@ import { NewMealStats } from '../../scheduler/interface/meal.interface';
 import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
+import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '../../../common/constant/constant';
 
 @Injectable()
 export class MealRepository {
@@ -575,6 +576,10 @@ export class MealRepository {
         'mealStatsEntity.mealBalance AS mealBalance',
         'mealStatsEntity.breakfastExpense AS breakfastExpense',
         'mealStatsEntity.dinnerExpense AS dinnerExpense',
+        'mealStatsEntity.breakfastOverpay AS breakfastOverpay',
+        'mealStatsEntity.dinnerOverpay AS dinnerOverpay',
+        'CASE WHEN mealStatsEntity.mealExpense < 0 THEN mealStatsEntity.mealExpense ELSE 0 END AS mealOverpay',
+        'mealStatsEntity.totalOverpay AS totalOverpay',
         'mealStatsEntity.note AS note',
         'mealStatsEntity.clearStatus AS clearStatus',
       ])
@@ -604,5 +609,121 @@ export class MealRepository {
       .set({ clearStatus: ClearStatusEnum.NOT_YET })
       .where('mealStatsIdx = :mealStatsIdx', { mealStatsIdx })
       .execute();
+  }
+
+  async getMyBreakfastOverpay(
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<{ total: number; cnt: number }> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result: { total: number; cnt: number } = await manager
+      .createQueryBuilder(MealEntity, 'mealEntity')
+      .select(['COALESCE(SUM(mealEntity.amount), 0) AS total', 'COUNT(*) as cnt']) // null일 경우 0으로
+      .where('mealEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .andWhere('mealEntity.mealType = :mealType', { mealType: MealTypeEnum.BREAKFAST })
+      .andWhere('mealEntity.amount > :baseAmount', { baseAmount: DEFAULT_BREAKFAST_RATE })
+      .getRawOne();
+
+    return result;
+  }
+
+  async updateMyBreakfastOverpayInStats(
+    breakfastOverpay: number,
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ breakfastOverpay })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
+  }
+
+  async getMyDinnerOverpay(
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<{ total: number; cnt: number }> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result: { total: number; cnt: number } = await manager
+      .createQueryBuilder(MealEntity, 'mealEntity')
+      .select(['COALESCE(SUM(mealEntity.amount), 0) AS total', 'COUNT(*) as cnt']) // null일 경우 0으로
+      .where('mealEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .andWhere('mealEntity.mealType = :mealType', { mealType: MealTypeEnum.DINNER })
+      .andWhere('mealEntity.amount > :baseAmount', { baseAmount: DEFAULT_DINNER_RATE })
+      .getRawOne();
+
+    return result;
+  }
+
+  async updateMyDinnerOverpayInStats(
+    dinnerOverpay: number,
+    year: number,
+    month: number,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ dinnerOverpay })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
+  }
+
+  async getMealStatsInfoByIdx(mealStatsIdx: number) {
+    const result = await this.mealStatsModel
+      .createQueryBuilder('mealStatsEntity')
+      .select(['mealStatsEntity.userIdx AS userIdx', 'mealStatsEntity.year AS year', 'mealStatsEntity.month AS month'])
+      .where('mealStatsEntity.mealStatsIdx = :mealStatsIdx', { mealStatsIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async getMealDetail(year: number, month: number, userIdx: number): Promise<MealEntity[]> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result: MealEntity[] = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .select([
+        'mealEntity.targetDay AS targetDay',
+        'mealEntity.mealType AS mealType',
+        'mealEntity.place AS place',
+        'mealEntity.amount AS amount',
+        'mealEntity.payerName AS payerName',
+      ])
+      .where('mealEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .orderBy('mealEntity.targetDay', 'ASC')
+      .getRawMany();
+
+    return result;
   }
 }

@@ -17,6 +17,7 @@ import { AdminModule } from './admin/admin.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { REDIS_CONFIG } from '../config/redis.config';
 import { PlaygroundModule } from './playground/playground.module';
+import { DownloadModule } from './download/download.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { PlaygroundModule } from './playground/playground.module';
     ActivityModule,
     QnaModule,
     PlaygroundModule,
+    DownloadModule,
     UserModule,
     AdminModule,
     HealthModule,
