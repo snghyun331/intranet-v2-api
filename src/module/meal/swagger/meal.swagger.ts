@@ -622,6 +622,7 @@ export const ADMIN_MEALS_BALANCES: SwaggerMethod = {
                   mealBalance: 400000,
                   breakfastExpense: 0,
                   dinnerExpense: 0,
+                  totalOverpay: 0,
                   note: null,
                   clearStatus: 'not_yet',
                 },
@@ -635,6 +636,7 @@ export const ADMIN_MEALS_BALANCES: SwaggerMethod = {
                   mealBalance: 420000,
                   breakfastExpense: 0,
                   dinnerExpense: 0,
+                  totalOverpay: 0,
                   note: null,
                   clearStatus: 'not_yet',
                 },
@@ -648,6 +650,7 @@ export const ADMIN_MEALS_BALANCES: SwaggerMethod = {
                   mealBalance: 420000,
                   breakfastExpense: 0,
                   dinnerExpense: 0,
+                  totalOverpay: 0,
                   note: null,
                   clearStatus: 'not_yet',
                 },
@@ -661,6 +664,7 @@ export const ADMIN_MEALS_BALANCES: SwaggerMethod = {
                   mealBalance: 420000,
                   breakfastExpense: 0,
                   dinnerExpense: 0,
+                  totalOverpay: 0,
                   note: null,
                   clearStatus: 'not_yet',
                 },
@@ -723,3 +727,23 @@ export const ADMIN_MEALS_BALANCES_CANCEL: SwaggerMethod = {
     },
   },
 };
+
+// export const ADMIN_MEALS_BALANCES_DETAIL: SwaggerMethod = {
+//   GET: {
+//     API_OPERATION: {
+//       summary: '어드민 식대 정산 상세조회 API',
+//     },
+//     API_PARAM1: {
+//       name: 'mealStatsIdx',
+//       type: Number,
+//       required: true,
+//     },
+//     API_OK_RESPONSE: {
+//       content: {
+//         'application/json': {
+//           example: {},
+//         },
+//       },
+//     },
+//   },
+// };

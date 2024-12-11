@@ -29,6 +29,7 @@ import {
   ADMIN_MEALS,
   ADMIN_MEALS_BALANCES,
   ADMIN_MEALS_BALANCES_CANCEL,
+  // ADMIN_MEALS_BALANCES_DETAIL,
   ADMIN_MEALS_BUDGET,
   USERS_MEALS,
 } from './swagger/meal.swagger';
@@ -267,4 +268,15 @@ export class AdminMealController {
 
     return response;
   }
+
+  // @ApiOperation(ADMIN_MEALS_BALANCES_DETAIL.GET.API_OPERATION)
+  // @ApiParam(ADMIN_MEALS_BALANCES_DETAIL.GET.API_PARAM1)
+  // @ApiParam(ADMIN_MEALS_BALANCES_DETAIL.GET.API_PARAM1)
+  // @Get('balances/:mealStatsIdx')
+  // async getMealBalanaceDetail(@Param('mealStatsIdx') mealStatsIdx: number): Promise<ResponseInterface> {
+  //   await this.mealService.getMealBalanceDetail(mealStatsIdx)
+  //   const response: ResponseInterface = { message: 'success' };
+
+  //   return response;
+  // }
 }

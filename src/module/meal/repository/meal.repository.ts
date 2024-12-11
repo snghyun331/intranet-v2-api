@@ -576,6 +576,7 @@ export class MealRepository {
         'mealStatsEntity.mealBalance AS mealBalance',
         'mealStatsEntity.breakfastExpense AS breakfastExpense',
         'mealStatsEntity.dinnerExpense AS dinnerExpense',
+        'mealStatsEntity.totalOverpay AS totalOverpay',
         'mealStatsEntity.note AS note',
         'mealStatsEntity.clearStatus AS clearStatus',
       ])

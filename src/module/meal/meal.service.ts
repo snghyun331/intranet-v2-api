@@ -437,4 +437,10 @@ export class MealService {
       }),
     );
   }
+
+  // async getMealBalanceDetail(mealStatsIdx: number) {
+  //   const result = await this.mealRepository.getMealStatsDetail(mealStatsIdx)
+
+  //   return result
+  // }
 }
