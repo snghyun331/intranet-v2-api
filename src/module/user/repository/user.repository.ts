@@ -30,6 +30,7 @@ export class UserRepository {
     @InjectRepository(GradeEntity) private readonly gradeModel: Repository<GradeEntity>,
     @InjectRepository(HeadquarterEntity) private readonly hqModel: Repository<HeadquarterEntity>,
     @InjectRepository(TeamEntity) private readonly teamModel: Repository<TeamEntity>,
+    @InjectRepository(AdminEntity) private readonly adminModel: Repository<AdminEntity>,
   ) {}
 
   async getLoginIdCount(loginId: string): Promise<number> {
@@ -250,16 +251,20 @@ export class UserRepository {
     return result;
   }
 
-  async createAdmin(userIdx: number, newAdminInfo: CreateUserDto, manager: EntityManager): Promise<InsertResult> {
-    const password: string = encryptPassword(newAdminInfo.id + '2467');
-    const adminName: string = newAdminInfo.userName;
-    const adminEmail: string = newAdminInfo.userEmail;
+  async createAdmin(
+    userIdx: number,
+    adminInfo: CreateUserDto | UpdateUserDto,
+    manager: EntityManager,
+  ): Promise<InsertResult> {
+    const password: string = encryptPassword(adminInfo.id + '2467');
+    const adminName: string = adminInfo.userName;
+    const adminEmail: string = adminInfo.userEmail;
 
     return await manager
       .createQueryBuilder()
       .insert()
       .into(AdminEntity)
-      .values({ userIdx, password, adminName, adminEmail, ...newAdminInfo })
+      .values({ userIdx, password, adminName, adminEmail, ...adminInfo })
       .execute();
   }
 
@@ -285,6 +290,15 @@ export class UserRepository {
       .execute();
   }
 
+  async getAdminCountByUserIdx(userIdx: number): Promise<number> {
+    const adminCnt: number = await this.adminModel
+      .createQueryBuilder('adminEntity')
+      .where('adminEntity.userIdx = :userIdx', { userIdx })
+      .getCount();
+
+    return adminCnt;
+  }
+
   async deleteUser(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
     return await manager
       .createQueryBuilder()
@@ -307,7 +321,7 @@ export class UserRepository {
   async deleteAdmin(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
     return await manager
       .createQueryBuilder()
-      .softDelete()
+      .delete()
       .from(AdminEntity)
       .where('userIdx = :userIdx', { userIdx })
       .execute();

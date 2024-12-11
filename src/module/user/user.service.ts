@@ -142,6 +142,7 @@ export class UserService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
+    /* 유저 정보 수정 */
     await this.userRepository.updateUserInfo(userIdx, updateInfo, manager);
 
     if (updateInfo.adminRole === YNEnum.NO && updateInfo.adminGradeIdx) {
@@ -150,8 +151,26 @@ export class UserService {
     if (updateInfo.adminRole === YNEnum.YES && !updateInfo.adminGradeIdx) {
       throw new BadRequestException('어드민인 유저는 어드민 등급을 설정해야합니다.');
     }
-    if (updateInfo.adminGradeIdx) {
-      await this.userRepository.updateAdminInfo(userIdx, updateInfo, manager);
+
+    /* 어드민 정보 수정 */
+    if (updateInfo.adminRole === YNEnum.YES) {
+      // 어드민일 경우
+      const adminCnt: number = await this.userRepository.getAdminCountByUserIdx(userIdx);
+      if (adminCnt === 1) {
+        await this.userRepository.updateAdminInfo(userIdx, updateInfo, manager);
+      } else if (adminCnt === 0) {
+        await this.userRepository.createAdmin(userIdx, updateInfo, manager);
+      } else {
+        throw new BadRequestException('DB 정합성 오류 발생: 개발자에게 문의해주세요');
+      }
+    } else {
+      // 어드민이 아닐 경우
+      const adminCnt: number = await this.userRepository.getAdminCountByUserIdx(userIdx);
+      if (adminCnt === 1) {
+        await this.userRepository.deleteAdmin(userIdx, manager);
+      } else if (adminCnt >= 2) {
+        throw new BadRequestException('DB 정합성 오류 발생: 개발자에게 문의해주세요');
+      }
     }
   }
 
