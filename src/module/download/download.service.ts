@@ -5,7 +5,6 @@ import * as fs from 'fs';
 import { mealExcelAdminTemplate, mealExcelAdminDecorate } from './template/mealExcel.template';
 import { DownloadRepository } from './repository/download.repository';
 import { DownloadMealBalanceDto, DownloadMealDto } from './dto/downloadMeal.dto';
-import { MealStatsAdminInfo } from '../meal/interface/meal.interface';
 import { mealStatsExcelAdminDecorate, mealStatsExcelAdminTemplate } from './template/mealBalanceExcel.template';
 
 @Injectable()
@@ -73,7 +72,7 @@ export class DownloadService {
     }
 
     /* 식대 내역 시트 */
-    const mealStatsList: MealStatsAdminInfo[] = await this.downloadRepository.getMealStatsList(year, month);
+    const mealStatsList = await this.downloadRepository.getMealStatsList(year, month);
     const xlsxData = mealStatsExcelAdminTemplate(mealStatsList);
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.aoa_to_sheet(xlsxData);

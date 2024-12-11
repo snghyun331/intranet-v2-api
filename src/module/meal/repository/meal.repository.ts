@@ -576,6 +576,10 @@ export class MealRepository {
         'mealStatsEntity.mealBalance AS mealBalance',
         'mealStatsEntity.breakfastExpense AS breakfastExpense',
         'mealStatsEntity.dinnerExpense AS dinnerExpense',
+        'mealStatsEntity.breakfastOverpay AS breakfastOverpay',
+        'mealStatsEntity.dinnerOverpay AS dinnerOverpay',
+        'CASE WHEN mealStatsEntity.mealExpense < 0 THEN mealStatsEntity.mealExpense ELSE 0 END AS mealOverpay',
+        'mealStatsEntity.totalOverpay AS totalOverpay',
         'mealStatsEntity.note AS note',
         'mealStatsEntity.clearStatus AS clearStatus',
       ])
@@ -687,5 +691,39 @@ export class MealRepository {
       .andWhere('year = :year', { year })
       .andWhere('month = :month', { month })
       .execute();
+  }
+
+  async getMealStatsInfoByIdx(mealStatsIdx: number) {
+    const result = await this.mealStatsModel
+      .createQueryBuilder('mealStatsEntity')
+      .select(['mealStatsEntity.userIdx AS userIdx', 'mealStatsEntity.year AS year', 'mealStatsEntity.month AS month'])
+      .where('mealStatsEntity.mealStatsIdx = :mealStatsIdx', { mealStatsIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async getMealDetail(year: number, month: number, userIdx: number): Promise<MealEntity[]> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result: MealEntity[] = await this.mealModel
+      .createQueryBuilder('mealEntity')
+      .select([
+        'mealEntity.targetDay AS targetDay',
+        'mealEntity.mealType AS mealType',
+        'mealEntity.place AS place',
+        'mealEntity.amount AS amount',
+        'mealEntity.payerName AS payerName',
+      ])
+      .where('mealEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .orderBy('mealEntity.targetDay', 'ASC')
+      .getRawMany();
+
+    return result;
   }
 }

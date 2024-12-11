@@ -247,7 +247,7 @@ export class MealService {
     // 조식 초과금 업데이트
     const { total: totalB, cnt: cntB }: { total: number; cnt: number } =
       await this.mealRepository.getMyBreakfastOverpay(year, month, userIdx, manager);
-    const breakfastOverpay: number = cntB * DEFAULT_BREAKFAST_RATE - totalB;
+    const breakfastOverpay: number = totalB - cntB * DEFAULT_BREAKFAST_RATE;
     await this.mealRepository.updateMyBreakfastOverpayInStats(breakfastOverpay, year, month, userIdx, manager);
 
     // dinnerExpense(석식 사용금액) 업데이트
@@ -261,7 +261,7 @@ export class MealService {
       userIdx,
       manager,
     );
-    const dinnerOverpay: number = cntD * DEFAULT_DINNER_RATE - totalD;
+    const dinnerOverpay: number = totalD - cntD * DEFAULT_DINNER_RATE;
     await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx, manager);
 
     return newMealInfo.targetDay;
@@ -302,7 +302,7 @@ export class MealService {
     // 조식 초과금 업데이트
     const { total: totalB, cnt: cntB }: { total: number; cnt: number } =
       await this.mealRepository.getMyBreakfastOverpay(year, month, userIdx, manager);
-    const breakfastOverpay: number = cntB * DEFAULT_BREAKFAST_RATE - totalB;
+    const breakfastOverpay: number = totalB - cntB * DEFAULT_BREAKFAST_RATE;
     await this.mealRepository.updateMyBreakfastOverpayInStats(breakfastOverpay, year, month, userIdx, manager);
 
     // dinnerExpense(조식 사용금액) 업데이트
@@ -316,7 +316,7 @@ export class MealService {
       userIdx,
       manager,
     );
-    const dinnerOverpay: number = cntD * DEFAULT_DINNER_RATE - totalD;
+    const dinnerOverpay: number = totalD - cntD * DEFAULT_DINNER_RATE;
     await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx, manager);
   }
 
@@ -436,5 +436,19 @@ export class MealService {
         await this.mealRepository.updateClearStatusNotYet(mealStatsIdx, manager);
       }),
     );
+  }
+
+  async getMealBalanceDetail(mealStatsIdx: number): Promise<MealEntity[]> {
+    const mealStatsInfo = await this.mealRepository.getMealStatsInfoByIdx(mealStatsIdx);
+    if (!mealStatsInfo) {
+      throw new BadRequestException('해당 IDX에 대한 정보가 존재하지 않습니다.');
+    }
+    const { userIdx, year, month } = mealStatsInfo;
+    const yearToNum: number = Number(year);
+    const monthToNum: number = Number(month);
+
+    const mealDetailInfo: MealEntity[] = await this.mealRepository.getMealDetail(yearToNum, monthToNum, userIdx);
+
+    return mealDetailInfo;
   }
 }
