@@ -438,9 +438,17 @@ export class MealService {
     );
   }
 
-  // async getMealBalanceDetail(mealStatsIdx: number) {
-  //   const result = await this.mealRepository.getMealStatsDetail(mealStatsIdx)
+  async getMealBalanceDetail(mealStatsIdx: number): Promise<MealEntity[]> {
+    const mealStatsInfo = await this.mealRepository.getMealStatsInfoByIdx(mealStatsIdx);
+    if (!mealStatsInfo) {
+      throw new BadRequestException('해당 IDX에 대한 정보가 존재하지 않습니다.');
+    }
+    const { userIdx, year, month } = mealStatsInfo;
+    const yearToNum: number = Number(year);
+    const monthToNum: number = Number(month);
 
-  //   return result
-  // }
+    const mealDetailInfo: MealEntity[] = await this.mealRepository.getMealDetail(yearToNum, monthToNum, userIdx);
+
+    return mealDetailInfo;
+  }
 }

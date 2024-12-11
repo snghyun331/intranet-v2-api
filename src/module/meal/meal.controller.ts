@@ -29,7 +29,7 @@ import {
   ADMIN_MEALS,
   ADMIN_MEALS_BALANCES,
   ADMIN_MEALS_BALANCES_CANCEL,
-  // ADMIN_MEALS_BALANCES_DETAIL,
+  ADMIN_MEALS_BALANCES_DETAIL,
   ADMIN_MEALS_BUDGET,
   USERS_MEALS,
 } from './swagger/meal.swagger';
@@ -51,6 +51,7 @@ import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { MealStatsAdminInfo } from './interface/meal.interface';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { MealEntity } from '../../entity/meal/meal.entity';
 
 @ApiTags('사용자')
 @Controller('users/meals')
@@ -269,14 +270,18 @@ export class AdminMealController {
     return response;
   }
 
-  // @ApiOperation(ADMIN_MEALS_BALANCES_DETAIL.GET.API_OPERATION)
-  // @ApiParam(ADMIN_MEALS_BALANCES_DETAIL.GET.API_PARAM1)
-  // @ApiParam(ADMIN_MEALS_BALANCES_DETAIL.GET.API_PARAM1)
-  // @Get('balances/:mealStatsIdx')
-  // async getMealBalanaceDetail(@Param('mealStatsIdx') mealStatsIdx: number): Promise<ResponseInterface> {
-  //   await this.mealService.getMealBalanceDetail(mealStatsIdx)
-  //   const response: ResponseInterface = { message: 'success' };
+  @ApiOperation(ADMIN_MEALS_BALANCES_DETAIL.GET.API_OPERATION)
+  @ApiParam(ADMIN_MEALS_BALANCES_DETAIL.GET.API_PARAM1)
+  @ApiOkResponse(ADMIN_MEALS_BALANCES_DETAIL.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('balances/:mealStatsIdx')
+  async getMealBalanaceDetail(@Param('mealStatsIdx') mealStatsIdx: number): Promise<ResponseInterface> {
+    const data: MealEntity[] = await this.mealService.getMealBalanceDetail(mealStatsIdx);
 
-  //   return response;
-  // }
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
 }
