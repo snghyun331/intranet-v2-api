@@ -564,7 +564,7 @@ export class MealRepository {
   }
 
   async getUserMealStats(year: string, month: string): Promise<MealStatsAdminInfo[]> {
-    const result: MealStatsAdminInfo[] = await this.mealStatsModel
+    const results = await this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([
         'mealStatsEntity.mealStatsIdx AS mealStatsIdx',
@@ -578,7 +578,7 @@ export class MealRepository {
         'mealStatsEntity.dinnerExpense AS dinnerExpense',
         'mealStatsEntity.breakfastOverpay AS breakfastOverpay',
         'mealStatsEntity.dinnerOverpay AS dinnerOverpay',
-        'CASE WHEN mealStatsEntity.mealExpense < 0 THEN mealStatsEntity.mealExpense ELSE 0 END AS mealOverpay',
+        'CASE WHEN mealStatsEntity.mealBalance < 0 THEN mealStatsEntity.mealBalance ELSE 0 END AS mealOverpay',
         'mealStatsEntity.totalOverpay AS totalOverpay',
         'mealStatsEntity.note AS note',
         'mealStatsEntity.clearStatus AS clearStatus',
@@ -590,7 +590,12 @@ export class MealRepository {
       .orderBy('userEntity.gradeIdx', 'ASC')
       .getRawMany();
 
-    return result;
+    const transformedResult: MealStatsAdminInfo[] = results.map((result) => ({
+      ...result,
+      mealOverpay: Number(result.mealOverpay),
+    }));
+
+    return transformedResult;
   }
 
   async updateClearStatusComplete(mealStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {

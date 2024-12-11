@@ -63,6 +63,10 @@ export interface MealStatsAdminInfo {
   mealBalance: number;
   breakfastExpense: number;
   dinnerExpense: number;
+  breakfastOverpay: number;
+  mealOverpay: number;
+  dinnerOverpay: number;
+  totalOverpay: number;
   note: string;
   clearStatus: ClearStatusEnum;
 }
