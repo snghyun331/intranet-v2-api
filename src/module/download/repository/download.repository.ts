@@ -6,7 +6,6 @@ import { MealEntity } from '../../../entity/meal/meal.entity';
 import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
-import { MealStatsAdminInfo } from '../../meal/interface/meal.interface';
 
 @Injectable()
 export class DownloadRepository {
@@ -44,7 +43,7 @@ export class DownloadRepository {
     return result;
   }
 
-  async getMealStatsList(year: string, month: string): Promise<MealStatsAdminInfo[]> {
+  async getMealStatsList(year: string, month: string) {
     const result = await this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([
@@ -57,6 +56,7 @@ export class DownloadRepository {
         'mealStatsEntity.dinnerExpense AS dinnerExpense',
         'mealStatsEntity.breakfastOverpay AS breakfastOverpay',
         'mealStatsEntity.dinnerOverpay AS dinnerOverpay',
+        'mealStatsEntity.totalOverpay AS totalOverpay',
         'mealStatsEntity.note AS note',
         'mealStatsEntity.clearStatus AS clearStatus',
       ])

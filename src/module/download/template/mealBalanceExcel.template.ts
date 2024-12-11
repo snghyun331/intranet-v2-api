@@ -141,11 +141,7 @@ export const mealStatsExcelAdminTemplate = (mealStatsList) => {
         s: content_text_style,
       },
       {
-        v: Math.abs(
-          (mealStats.mealExpense < 0 ? mealStats.mealExpense : 0) +
-            (mealStats.breakfastOverpay < 0 ? mealStats.breakfastOverpay : 0) +
-            (mealStats.dinnerOverpay < 0 ? mealStats.dinnerOverpay : 0),
-        ),
+        v: `${mealStats.totalOverpay === null ? '-' : mealStats.totalOverpay}`,
         t: 's',
         s: content_text_style,
       },
