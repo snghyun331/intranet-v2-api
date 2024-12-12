@@ -6,6 +6,8 @@ import { DownloadService } from './download.service';
 import { DOWNLOAD_MEALS, DOWNLOAD_MEALS_BALANCES } from './swagger/download.swagger';
 import { DownloadMealBalanceDto, DownloadMealDto } from './dto/downloadMeal.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { AdminRole } from '../../common/decorator/role.decorator';
+import { AdminGradeEnum } from '../../common/constant/enum';
 
 @Controller('download')
 export class DownloadController {
@@ -17,6 +19,7 @@ export class DownloadController {
   @ApiBody(DOWNLOAD_MEALS.POST.API_BODY)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Post('admin/meals')
   async downloadMealExcel(@Body() downloadInfo: DownloadMealDto): Promise<ResponseInterface> {
     await this.downloadService.downloadMealExcel(downloadInfo);
@@ -32,6 +35,7 @@ export class DownloadController {
   @ApiCreatedResponse(DOWNLOAD_MEALS_BALANCES.POST.API_CREATED_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Post('admin/meals/balances')
   async downloadMealStatsExcel(@Body() downloadInfo: DownloadMealBalanceDto): Promise<ResponseInterface> {
     const path: string = await this.downloadService.downloadMealBalanceExcel(downloadInfo);
