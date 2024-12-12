@@ -279,24 +279,26 @@ export class UserRepository {
       .execute();
   }
 
-  async updateAdminInfo(userIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
+  async updateAdmin(adminIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
     const { id, userName, gradeIdx, hqIdx, teamIdx, userEmail, adminGradeIdx } = updateInfo;
 
     return await manager
       .createQueryBuilder()
       .update(AdminEntity)
       .set({ id, adminName: userName, gradeIdx, hqIdx, teamIdx, adminEmail: userEmail, adminGradeIdx })
-      .where('userIdx = :userIdx', { userIdx })
+      .where('adminIdx = :adminIdx', { adminIdx })
       .execute();
   }
 
-  async getAdminCountByUserIdx(userIdx: number): Promise<number> {
-    const adminCnt: number = await this.adminModel
+  async getAdminInfoByUserIdx(userIdx: number) {
+    const result = await this.adminModel
       .createQueryBuilder('adminEntity')
+      .withDeleted()
+      .select(['adminEntity.adminIdx AS adminIdx', 'adminEntity.adminAvail AS adminAvail'])
       .where('adminEntity.userIdx = :userIdx', { userIdx })
-      .getCount();
+      .getRawOne();
 
-    return adminCnt;
+    return result;
   }
 
   async deleteUser(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
@@ -321,9 +323,29 @@ export class UserRepository {
   async deleteAdmin(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
     return await manager
       .createQueryBuilder()
-      .delete()
+      .softDelete()
       .from(AdminEntity)
       .where('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async restoreUpdateAdmin(adminIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
+    const { id, userName, gradeIdx, hqIdx, teamIdx, userEmail, adminGradeIdx } = updateInfo;
+
+    return await manager
+      .createQueryBuilder()
+      .update(AdminEntity)
+      .set({
+        adminAvail: null,
+        id,
+        adminName: userName,
+        gradeIdx,
+        hqIdx,
+        teamIdx,
+        adminEmail: userEmail,
+        adminGradeIdx,
+      })
+      .where('adminIdx = adminIdx', { adminIdx })
       .execute();
   }
 }

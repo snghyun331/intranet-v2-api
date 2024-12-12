@@ -47,7 +47,7 @@ export const DOWNLOAD_MEALS_BALANCES: SwaggerMethod = {
             statusCode: 201,
             message: 'success',
             data: {
-              path: 'localhost:4011/resource/download/meal/ACG_식대정산_Template_2024년_11월.xlsx',
+              path: 'https://test-acg-playground.insahr.co.kr/resource/download/meal/ACG_식대정산_Template_2024년_11월.xlsx',
             },
           },
         },
