@@ -37,5 +37,6 @@ jobs:
             echo "AUTH_KEY_AES=${{ secrets.AUTH_KEY_AES }}" >> .env            
             echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env            
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env            
+            echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .env            
             echo "############# RUN SCRIPT #############"
             sh script.sh
