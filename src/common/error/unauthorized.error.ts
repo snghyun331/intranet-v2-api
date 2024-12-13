@@ -11,7 +11,7 @@ export const UNAUTHORIZED: any = {
     KOR: '토큰 값이 잘못되었습니다.',
     ENG: 'Token is invalid.',
   },
-  UNKNOWN: {
-    KOR: '알 수 없는 이유로 토큰을 사용할 수 없습니다.',
+  TOKEN_MIS_MATCH: {
+    KOR: '해당 서비스와 부합하지 않는 토큰입니다.',
   },
 };
