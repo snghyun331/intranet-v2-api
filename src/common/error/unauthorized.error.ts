@@ -1,6 +1,6 @@
 export const UNAUTHORIZED: any = {
   TOKEN_EXPIRED: {
-    KOR: '토큰이 만료되었습니다.',
+    KOR: '로그인이 만료되었습니다.',
     ENG: 'Token has expired',
   },
   NO_TOKEN: {
@@ -9,9 +9,10 @@ export const UNAUTHORIZED: any = {
   },
   TOKEN_INVALID: {
     KOR: '토큰 값이 잘못되었습니다.',
-    ENG: 'Token is invalid.',
+    ENG: 'Invalid token for this service',
   },
   TOKEN_MIS_MATCH: {
-    KOR: '해당 서비스와 부합하지 않는 토큰입니다.',
+    KOR: '해당 서비스에 부합하지 않는 토큰입니다.',
+    ENG: 'Invalid token for this service',
   },
 };
