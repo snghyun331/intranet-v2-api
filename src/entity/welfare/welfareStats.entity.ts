@@ -26,6 +26,9 @@ export class WelfareStatsEntity extends CommonEntity {
   @Column({ name: 'welfare_balance', comment: '복지포인트 잔액', nullable: true })
   welfareBalance: number;
 
+  @Column({ name: 'total_overpay', comment: '정산금', default: 0, nullable: false })
+  totalOverpay: number;
+
   @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
   note: string;
 

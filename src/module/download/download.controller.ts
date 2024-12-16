@@ -3,11 +3,12 @@ import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiExcludeEndpoint, ApiOper
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { DownloadService } from './download.service';
-import { DOWNLOAD_MEALS, DOWNLOAD_MEALS_BALANCES } from './swagger/download.swagger';
+import { DOWNLOAD_MEALS, DOWNLOAD_MEALS_BALANCES, DOWNLOAD_WELFARES_BALANCES } from './swagger/download.swagger';
 import { DownloadMealBalanceDto, DownloadMealDto } from './dto/downloadMeal.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { AdminRole } from '../../common/decorator/role.decorator';
 import { AdminGradeEnum } from '../../common/constant/enum';
+import { DownloadWelfareBalanceDto } from './dto/downloadWelfare.dto';
 
 @Controller('download')
 export class DownloadController {
@@ -39,6 +40,22 @@ export class DownloadController {
   @Post('admin/meals/balances')
   async downloadMealStatsExcel(@Body() downloadInfo: DownloadMealBalanceDto): Promise<ResponseInterface> {
     const path: string = await this.downloadService.downloadMealBalanceExcel(downloadInfo);
+
+    const response: ResponseInterface = { message: 'success', data: { path } };
+
+    return response;
+  }
+
+  @ApiTags('다운로드')
+  @ApiOperation(DOWNLOAD_WELFARES_BALANCES.POST.API_OPERATION)
+  @ApiBody(DOWNLOAD_WELFARES_BALANCES.POST.API_BODY)
+  @ApiCreatedResponse(DOWNLOAD_WELFARES_BALANCES.POST.API_CREATED_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Post('admin/welfares/balances')
+  async downloadWelfareStatsExcel(@Body() downloadInfo: DownloadWelfareBalanceDto): Promise<ResponseInterface> {
+    const path: string = await this.downloadService.downloadWelfareBalanceExcel(downloadInfo);
 
     const response: ResponseInterface = { message: 'success', data: { path } };
 

@@ -1,5 +1,6 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { DownloadMealDto } from '../dto/downloadMeal.dto';
+import { DownloadWelfareBalanceDto } from '../dto/downloadWelfare.dto';
 
 export const DOWNLOAD_MEALS: SwaggerMethod = {
   POST: {
@@ -48,6 +49,38 @@ export const DOWNLOAD_MEALS_BALANCES: SwaggerMethod = {
             message: 'success',
             data: {
               path: 'https://test-acg-playground.insahr.co.kr/resource/download/meal/ACG_식대정산_Template_2024년_11월.xlsx',
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const DOWNLOAD_WELFARES_BALANCES: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 복포 정산 파일 다운로드 API',
+    },
+    API_BODY: {
+      type: DownloadWelfareBalanceDto,
+      description: '복포 정산 다운로드 정보',
+      examples: {
+        a: {
+          summary: '예시',
+          value: { year: '2024', halfYear: 'H2' },
+        },
+      },
+      required: true,
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 201,
+            message: 'success',
+            data: {
+              path: 'https://test-acg-playground.insahr.co.kr/resource/download/welfare/ACG_복포정산_Template_2024년_하반기.xlsx',
             },
           },
         },
