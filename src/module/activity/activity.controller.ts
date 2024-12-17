@@ -24,25 +24,28 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ActivityService } from './activity.service';
-import { USERS_ACTIVITIES } from './swagger/activity.swagger';
+import { ADMIN_ACTIVITIES, USERS_ACTIVITIES } from './swagger/activity.swagger';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
-import { UserRole } from '../../common/decorator/role.decorator';
-import { UserGradeEnum } from '../../common/constant/enum';
+import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUser, CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { TransactionManager } from '../../common/decorator/transaction.decorator';
 import { EntityManager } from 'typeorm';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { ActivityFilterDto } from './dto/query.dto';
+import { ActivityFilterDto, AdminActivityFilterDto } from './dto/query.dto';
 import { UserPayload } from '../../common/interface/payload.interface';
 import { ActivityResult } from './interface/result.interface';
+import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
 
 @ApiTags('사용자')
 @Controller('users/activities')
-export class ActivityController {
+export class UserActivityController {
   constructor(private readonly activityService: ActivityService) {}
 
   @ApiOperation(USERS_ACTIVITIES.POST.API_OPERATION)
@@ -126,6 +129,28 @@ export class ActivityController {
     const activities: ActivityResult = await this.activityService.getActivity(query.year, query.month, user);
 
     const response: ResponseInterface = { message: '활동비 사용내역 조회 성공', data: activities };
+
+    return response;
+  }
+}
+
+@ApiTags('어드민')
+@Controller('admin/activities')
+export class AdminActivityController {
+  constructor(private readonly activityService: ActivityService) {}
+
+  @ApiOperation(ADMIN_ACTIVITIES.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_ACTIVITIES.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get()
+  async getActivity(
+    @Query() pageNoInfo: PageNoDto,
+    @Query() filterInfo: AdminActivityFilterDto,
+  ): Promise<ResponseInterface> {
+    const { totalPage, total, activity } = await this.activityService.getAdminActivity(pageNoInfo, filterInfo);
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

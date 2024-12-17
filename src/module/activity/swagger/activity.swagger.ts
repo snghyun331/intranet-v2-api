@@ -434,3 +434,18 @@ export const USERS_ACTIVITIES: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_ACTIVITIES: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 활동비 내역 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {},
+        },
+      },
+    },
+  },
+};

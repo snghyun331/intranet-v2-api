@@ -8,6 +8,8 @@ import { Activities, ActivityInfo, ActivityStats } from './interface/activity.in
 import { UserPayload } from '../../common/interface/payload.interface';
 import { HalfYearEnum } from '../../common/constant/enum';
 import { ActivityResult } from './interface/result.interface';
+import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { AdminActivityFilterDto } from './dto/query.dto';
 
 @Injectable()
 export class ActivityService {
@@ -146,4 +148,6 @@ export class ActivityService {
 
     return result;
   }
+
+  async getAdminActivity({ pageNo, perPage }: PageNoDto, filterInfo: AdminActivityFilterDto) {}
 }
