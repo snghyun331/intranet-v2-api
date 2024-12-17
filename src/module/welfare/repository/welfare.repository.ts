@@ -10,6 +10,7 @@ import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
 import { ClearStatusEnum, ConfirmEnum, GradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
 import {
+  AdminWelfares,
   NewWelfareMonthStats,
   NewWelfareStats,
   PayeeWelfareInfo,
@@ -461,6 +462,8 @@ export class WelfareRepository {
         'welfareEntity.content AS content',
         'welfareEntity.amount AS amount',
         'welfareEntity.payerName AS payerName',
+        'welfareEntity.selfWrittenYN AS selfWrittenYN',
+        'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
         'welfareEntity.confirmYN AS confirmYN',
         'welfareEntity.confirmDate AS confirmDate',
       ])
@@ -489,9 +492,32 @@ export class WelfareRepository {
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
-    const result: WelfareAdminInfo[] = await query.getRawMany();
+    const result: AdminWelfares[] = await query.getRawMany();
 
-    return { totalPage, total, welfare: result };
+    // 데이터를 변환하여 payeeList를 추가
+    const transformedResult: WelfareAdminInfo[] = await Promise.all(
+      result.map(async (welfare) => {
+        const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
+        const payeeList: PayeeWelfareInfo[] = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
+
+        return {
+          welfareIdx: welfare.welfareIdx,
+          userIdx: welfare.userIdx,
+          userName: welfare.userName,
+          gradeName: welfare.gradeName,
+          targetDay: welfare.targetDay,
+          content: welfare.content,
+          amount: welfare.amount,
+          payerName: welfare.payerName,
+          payerWelfareIdx: welfare.payerWelfareIdx,
+          confirmYN: welfare.confirmYN,
+          confirmDate: welfare.confirmDate,
+          payeeList: payeeList.length > 0 ? payeeList : [],
+        };
+      }),
+    );
+
+    return { totalPage, total, welfare: transformedResult };
   }
 
   async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
