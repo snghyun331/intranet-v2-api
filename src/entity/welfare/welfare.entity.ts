@@ -49,10 +49,10 @@ export class WelfareEntity extends CommonEntity {
   @JoinColumn({ name: 'user_idx', referencedColumnName: 'userIdx' })
   userIdxRelation: UserEntity;
 
-  @ManyToOne(() => WelfareEntity, (welfare) => welfare.payerWelfareRelation, {
+  @ManyToOne(() => WelfareEntity, (welfare) => welfare.payeeWelfareRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'payer_welfare_idx', referencedColumnName: 'welfareIdx' })
-  payerWelfareRelation: WelfareEntity;
+  payeeWelfareRelation: WelfareEntity;
 }

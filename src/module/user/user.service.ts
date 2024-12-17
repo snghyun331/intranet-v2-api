@@ -154,22 +154,22 @@ export class UserService {
 
     /* 어드민 정보 수정 */
     if (updateInfo.adminRole === YNEnum.YES) {
-      // 어드민일 경우
-      const adminCnt: number = await this.userRepository.getAdminCountByUserIdx(userIdx);
-      if (adminCnt === 1) {
-        await this.userRepository.updateAdminInfo(userIdx, updateInfo, manager);
-      } else if (adminCnt === 0) {
-        await this.userRepository.createAdmin(userIdx, updateInfo, manager);
+      const adminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
+      // 활성 상태인 어드민일 경우
+      if (adminInfo && adminInfo.adminAvail === null) {
+        await this.userRepository.updateAdmin(adminInfo.adminIdx, updateInfo, manager);
+      } else if (adminInfo && adminInfo.adminAvail !== null) {
+        // 비활성 상태인 어드민일 경우
+        await this.userRepository.restoreUpdateAdmin(adminInfo.adminIdx, updateInfo, manager);
       } else {
-        throw new BadRequestException('DB 정합성 오류 발생: 개발자에게 문의해주세요');
+        // 어드민이 처음일 경우
+        await this.userRepository.createAdmin(userIdx, updateInfo, manager);
       }
     } else {
-      // 어드민이 아닐 경우
-      const adminCnt: number = await this.userRepository.getAdminCountByUserIdx(userIdx);
-      if (adminCnt === 1) {
+      const adminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
+      // 어드민 O → 어드민 X로 변경할 경우
+      if (adminInfo && adminInfo.adminAvail === null) {
         await this.userRepository.deleteAdmin(userIdx, manager);
-      } else if (adminCnt >= 2) {
-        throw new BadRequestException('DB 정합성 오류 발생: 개발자에게 문의해주세요');
       }
     }
   }

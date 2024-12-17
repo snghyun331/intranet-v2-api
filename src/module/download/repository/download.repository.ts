@@ -6,6 +6,8 @@ import { MealEntity } from '../../../entity/meal/meal.entity';
 import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
+import { HalfYearEnum } from '../../../common/constant/enum';
+import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
 
 @Injectable()
 export class DownloadRepository {
@@ -13,6 +15,7 @@ export class DownloadRepository {
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(MealEntity) private readonly mealModel: Repository<MealEntity>,
     @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
+    @InjectRepository(WelfareStatsEntity) private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
   ) {}
 
   async getUserNameByIdx(userIdx: number): Promise<{ userName: string }> {
@@ -64,6 +67,29 @@ export class DownloadRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
+      .orderBy('userEntity.gradeIdx', 'ASC')
+      .getRawMany();
+
+    return result;
+  }
+
+  async getWelfareStatsList(year: string, halfYear: HalfYearEnum) {
+    const result = await this.welfareStatsModel
+      .createQueryBuilder('welfareStatsEntity')
+      .select([
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'welfareStatsEntity.welfareBudget AS welfareBudget',
+        'welfareStatsEntity.welfareExpense AS welfareExpense',
+        'welfareStatsEntity.welfareBalance AS welfareBalance',
+        'welfareStatsEntity.totalOverpay AS totalOverpay',
+        'welfareStatsEntity.note AS note',
+        'welfareStatsEntity.clearStatus AS clearStatus',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareStatsEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('welfareStatsEntity.year = :year', { year })
+      .andWhere('welfareStatsEntity.halfYear = :halfYear', { halfYear })
       .orderBy('userEntity.gradeIdx', 'ASC')
       .getRawMany();
 

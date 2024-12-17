@@ -29,7 +29,7 @@ export class AdminAuthGuard extends AuthGuard('admin') {
       if (err instanceof JsonWebTokenError || err instanceof SyntaxError) {
         throw new UnauthorizedException(`${UNAUTHORIZED.TOKEN_INVALID.KOR} (${err.message})`);
       }
-      throw new UnauthorizedException(UNAUTHORIZED.UNKNOWN.KOR);
+      throw new UnauthorizedException(UNAUTHORIZED.TOKEN_MIS_MATCH.KOR);
     }
     return super.handleRequest(err, user, info, context, status);
   }
