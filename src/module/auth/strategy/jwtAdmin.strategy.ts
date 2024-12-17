@@ -17,6 +17,10 @@ export class JwtAdminStrategy extends PassportStrategy(Strategy, 'admin') {
       const adminToken: string = req.headers['authorization']?.slice(7);
       const secretKey: string = this.configService.get<string>('JWT_SECRET_KEY');
       const payload: AdminPayload = jwt.verify(adminToken, secretKey) as AdminPayload;
+      const { adminIdx } = payload;
+      if (!adminIdx) {
+        throw new Error();
+      }
 
       return payload;
     } catch (err) {

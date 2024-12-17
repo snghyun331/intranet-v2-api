@@ -6,6 +6,12 @@ import { mealExcelAdminTemplate, mealExcelAdminDecorate } from './template/mealE
 import { DownloadRepository } from './repository/download.repository';
 import { DownloadMealBalanceDto, DownloadMealDto } from './dto/downloadMeal.dto';
 import { mealStatsExcelAdminDecorate, mealStatsExcelAdminTemplate } from './template/mealBalanceExcel.template';
+import { DownloadWelfareBalanceDto } from './dto/downloadWelfare.dto';
+import { HalfYearEnum } from '../../common/constant/enum';
+import {
+  welfareStatsExcelAdminDecorate,
+  welfareStatsExcelAdminTemplate,
+} from './template/welfareBalanceExcel.template';
 
 @Injectable()
 export class DownloadService {
@@ -81,6 +87,39 @@ export class DownloadService {
     workbook.Props = {
       Title: 'ACG 식대정산 파일',
       Subject: `${year}년_${month}월_식대정산 파일`,
+    };
+
+    await XLSX.writeFile(workbook, `${filePath}/${fileName}`);
+
+    return downloadPath;
+  }
+
+  async downloadWelfareBalanceExcel({ year, halfYear }: DownloadWelfareBalanceDto): Promise<string> {
+    const host = this.configService.get<string>('SERVER_URL');
+    const filePath = 'resource/download/welfare';
+    const halfYearName = halfYear === HalfYearEnum.H1 ? '상반기' : '하반기';
+    const fileName = `ACG_복포정산_Template_${year}년_${halfYearName}.xlsx`;
+    const downloadPath: string = `${host}/${filePath}/${fileName}`;
+
+    /* 디렉토리 관리 */
+    if (!fs.existsSync(filePath)) {
+      // filePath 폴더가 존재하지 않을 시, 생성합니다.
+      fs.mkdirSync(filePath, { recursive: true });
+    } else if (fs.existsSync(`${filePath}/${fileName}`)) {
+      // filePath 폴더에 fileName이 존재하면 기존 파일은 삭제합니다.
+      fs.rmSync(`${filePath}/${fileName}`, { recursive: true });
+    }
+
+    /* 식대 내역 시트 */
+    const welfareStatsList = await this.downloadRepository.getWelfareStatsList(year, halfYear);
+    const xlsxData = welfareStatsExcelAdminTemplate(welfareStatsList);
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(xlsxData);
+    welfareStatsExcelAdminDecorate(worksheet);
+    XLSX.utils.book_append_sheet(workbook, worksheet, '정산내역');
+    workbook.Props = {
+      Title: 'ACG 복포정산 파일',
+      Subject: `${year}년_${halfYearName}_복포정산 파일`,
     };
 
     await XLSX.writeFile(workbook, `${filePath}/${fileName}`);

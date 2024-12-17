@@ -12,12 +12,13 @@ export interface Welfares extends WelfareInfo {
   payerName: string;
   selfWrittenYN: YNEnum;
   confirmYN: ConfirmEnum;
-  payeeList: UserInfo[];
+  payeeList: PayeeWelfareInfo[];
 }
 
-export interface UserInfo {
+export interface PayeeWelfareInfo {
   userIdx: number;
   userName: string;
+  amount: number;
 }
 
 export interface WelfareStats {
@@ -43,7 +44,7 @@ export interface NewWelfareMonthStats {
   welfareMonthExpense: number;
 }
 
-export class WelfareAdminInfo {
+export interface AdminWelfares {
   welfareIdx: number;
   userIdx: number;
   userName: string;
@@ -52,8 +53,25 @@ export class WelfareAdminInfo {
   content: string;
   amount: number;
   payerName: string;
+  selfWrittenYN: YNEnum;
+  payerWelfareIdx: number;
   confirmYN: ConfirmEnum;
   confirmDate: string;
+}
+
+export interface WelfareAdminInfo {
+  welfareIdx: number;
+  userIdx: number;
+  userName: string;
+  gradeName: UserGradeEnum;
+  targetDay: string;
+  content: string;
+  amount: number;
+  payerName: string;
+  payerWelfareIdx: number;
+  confirmYN: ConfirmEnum;
+  confirmDate: string;
+  payeeList: PayeeWelfareInfo[];
 }
 
 export interface WelfareStatsAdminInfo {
