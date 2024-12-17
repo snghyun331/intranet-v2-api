@@ -12,12 +12,13 @@ export interface Welfares extends WelfareInfo {
   payerName: string;
   selfWrittenYN: YNEnum;
   confirmYN: ConfirmEnum;
-  payeeList: UserInfo[];
+  payeeList: PayeeWelfareInfo[];
 }
 
-export interface UserInfo {
+export interface PayeeWelfareInfo {
   userIdx: number;
   userName: string;
+  amount: number;
 }
 
 export interface WelfareStats {

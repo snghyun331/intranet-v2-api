@@ -12,7 +12,7 @@ import { ClearStatusEnum, ConfirmEnum, GradeIdxEnum, HalfYearEnum, YNEnum } from
 import {
   NewWelfareMonthStats,
   NewWelfareStats,
-  UserInfo,
+  PayeeWelfareInfo,
   WelfareAdminInfo,
   WelfareInfo,
   Welfares,
@@ -217,7 +217,7 @@ export class WelfareRepository {
     const transformedResult: Welfares[] = await Promise.all(
       result.map(async (welfare) => {
         const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
-        const payeeList: UserInfo[] = await this.getUserInfoFromPayerWelfareIdx(welfareIdx);
+        const payeeList: PayeeWelfareInfo[] = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
 
         return {
           welfareIdx: welfare.welfareIdx,
@@ -259,7 +259,7 @@ export class WelfareRepository {
     const transformedResult: Welfares[] = await Promise.all(
       result.map(async (welfare) => {
         const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
-        const payeeList: UserInfo[] = await this.getUserInfoFromPayerWelfareIdx(welfareIdx);
+        const payeeList: PayeeWelfareInfo[] = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
 
         return {
           welfareIdx: welfare.welfareIdx,
@@ -324,10 +324,10 @@ export class WelfareRepository {
       .execute();
   }
 
-  private async getUserInfoFromPayerWelfareIdx(welfareIdx: number): Promise<UserInfo[]> {
-    const result: UserInfo[] = await this.welfareModel
+  private async getPayeeWelfareFromPayerWelfareIdx(welfareIdx: number): Promise<PayeeWelfareInfo[]> {
+    const result: PayeeWelfareInfo[] = await this.welfareModel
       .createQueryBuilder('welfareEntity')
-      .select(['welfareEntity.userIdx AS userIdx', 'userEntity.userName AS userName'])
+      .select(['welfareEntity.userIdx AS userIdx', 'userEntity.userName AS userName', 'welfareEntity.amount AS amount'])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
       .where('welfareEntity.payerWelfareIdx = :welfareIdx', { welfareIdx })
       .getRawMany();
