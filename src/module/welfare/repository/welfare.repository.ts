@@ -526,6 +526,7 @@ export class WelfareRepository {
         'welfareStatsEntity.welfareBudget AS welfareBudget',
         'welfareStatsEntity.welfareExpense AS welfareExpense',
         'welfareStatsEntity.welfareBalance AS welfareBalance',
+        'welfareStatsEntity.totalOverpay AS totalOverpay',
         'welfareStatsEntity.note AS note',
         'welfareStatsEntity.clearStatus AS clearStatus',
       ])
