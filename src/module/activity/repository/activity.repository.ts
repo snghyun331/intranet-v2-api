@@ -7,12 +7,14 @@ import { ActivityEntity } from '../../../entity/activity/activity.entity';
 import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
-import { Activities, ActivityInfo, ActivityStats } from '../interface/activity.interface';
+import { Activities, ActivityInfo, ActivityStats, AdminActivity } from '../interface/activity.interface';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { UserPayload } from '../../../common/interface/payload.interface';
 import { HalfYearEnum } from '../../../common/constant/enum';
 import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
+import { AdminActivityFilterDto } from '../dto/query.dto';
+import { GradeEntity } from '../../../entity/user/grade.entity';
 
 @Injectable()
 export class ActivityRepository {
@@ -234,5 +236,50 @@ export class ActivityRepository {
     const result: ActivityStats = await query.getRawOne();
 
     return result;
+  }
+
+  async getActivity(pageNo: number, perPage: number, filterInfo: AdminActivityFilterDto) {
+    const query: SelectQueryBuilder<ActivityEntity> = this.activityModel
+      .createQueryBuilder('activityEntity')
+      .select([
+        'activityEntity.activityIdx AS activityIdx',
+        'activityEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'activityEntity.targetDay AS targetDay',
+        'activityEntity.content AS content',
+        'activityEntity.amount AS amount',
+        'activityEntity.payerName AS payerName',
+        'activityEntity.confirmYN AS confirmYN',
+        'activityEntity.confirmDate AS confirmDate',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('activityEntity.targetDay BETWEEN :sDate AND :eDate', {
+        sDate: filterInfo.sDate,
+        eDate: filterInfo.eDate,
+      });
+
+    if (filterInfo.userName) {
+      query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
+    }
+    if (filterInfo.gradeIdx) {
+      query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
+    }
+    if (filterInfo.confirmYN) {
+      query.andWhere('activityEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
+    }
+
+    const total: number = await query.getCount();
+    const totalPage: number = Math.ceil(total / perPage);
+
+    query
+      .orderBy('activityEntity.targetDay', 'DESC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
+
+    const result: AdminActivity[] = await query.getRawMany();
+
+    return { totalPage, total, activity: result };
   }
 }

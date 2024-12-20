@@ -443,7 +443,52 @@ export const ADMIN_ACTIVITIES: SwaggerMethod = {
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              totalPage: 1,
+              total: 3,
+              activity: [
+                {
+                  activityIdx: 6,
+                  userIdx: 7,
+                  userName: '김현근',
+                  gradeName: '본부장',
+                  targetDay: '2024-11-11',
+                  content: '빼빼로',
+                  amount: 110000,
+                  payerName: '김현근',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+                {
+                  activityIdx: 9,
+                  userIdx: 4,
+                  userName: '이승현',
+                  gradeName: '본부장',
+                  targetDay: '2024-11-11',
+                  content: '빼빼로',
+                  amount: 400000,
+                  payerName: '박민수',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+                {
+                  activityIdx: 11,
+                  userIdx: 9,
+                  userName: '윤이나',
+                  gradeName: '팀장',
+                  targetDay: '2024-11-11',
+                  content: '한강솥',
+                  amount: 30000,
+                  payerName: '윤이나',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+              ],
+            },
+          },
         },
       },
     },

@@ -150,7 +150,8 @@ export class AdminActivityController {
     @Query() filterInfo: AdminActivityFilterDto,
   ): Promise<ResponseInterface> {
     const { totalPage, total, activity } = await this.activityService.getAdminActivity(pageNoInfo, filterInfo);
-    const response: ResponseInterface = { message: 'success' };
+
+    const response: ResponseInterface = { message: 'success', data: { totalPage, total, activity } };
 
     return response;
   }

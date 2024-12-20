@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ConfirmEnum } from '../../../common/constant/enum';
 
 export class ActivityFilterDto {
@@ -38,10 +38,15 @@ export class AdminActivityFilterDto {
   @IsDateString()
   eDate: string;
 
-  @ApiProperty({ name: 'userName', description: '검색 이름', example: '김현근', type: String, required: false })
+  @ApiProperty({ name: 'userName', description: '검색 이름', type: String, required: false })
   @IsOptional()
   @IsString()
   userName?: string;
+
+  @ApiProperty({ type: Number, description: '직급IDX', required: false })
+  @IsOptional()
+  @IsNumber()
+  gradeIdx?: number;
 
   @ApiProperty({ type: 'enum', enum: ConfirmEnum, description: '확정 여부', required: false })
   @IsOptional()

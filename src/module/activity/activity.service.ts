@@ -149,5 +149,9 @@ export class ActivityService {
     return result;
   }
 
-  async getAdminActivity({ pageNo, perPage }: PageNoDto, filterInfo: AdminActivityFilterDto) {}
+  async getAdminActivity({ pageNo, perPage }: PageNoDto, filterInfo: AdminActivityFilterDto) {
+    const { totalPage, total, activity } = await this.activityRepository.getActivity(pageNo, perPage, filterInfo);
+
+    return { totalPage, total, activity };
+  }
 }
