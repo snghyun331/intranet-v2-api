@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { ConfirmEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
 
 export class ActivityFilterDto {
   @ApiProperty({ name: 'year', description: '검색 연도', type: String, required: false })
@@ -52,4 +52,11 @@ export class AdminActivityFilterDto {
   @IsOptional()
   @IsEnum(ConfirmEnum)
   confirmYN: ConfirmEnum;
+}
+
+export class AdminActivityBudgetFilterDto {
+  @ApiProperty({ type: 'enum', enum: HalfYearEnum, description: '상하반기 구분 (default: 현재 시점)', required: false })
+  @IsOptional()
+  @IsEnum(HalfYearEnum)
+  halfYear: HalfYearEnum;
 }

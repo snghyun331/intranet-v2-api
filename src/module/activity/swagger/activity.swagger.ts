@@ -497,6 +497,44 @@ export const ADMIN_ACTIVITIES: SwaggerMethod = {
 };
 
 export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 활동비 설정 리스트 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '데이터 O',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: [
+                  {
+                    activityStatsIdx: 5,
+                    userIdx: 1,
+                    userName: '이승현',
+                    gradeName: '대표',
+                    activityBudget: 200000,
+                    note: null,
+                  },
+                ],
+              },
+            },
+            b: {
+              summary: '데이터 X',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: [],
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   POST: {
     API_OPERATION: {
       summary: '어드민 활동비 초기 설정 API',

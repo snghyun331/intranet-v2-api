@@ -13,9 +13,9 @@ import {
 } from './interface/activity.interface';
 import { UserPayload } from '../../common/interface/payload.interface';
 import { HalfYearEnum } from '../../common/constant/enum';
-import { ActivityResult } from './interface/result.interface';
+import { ActivityBudgetAdminResult, ActivityResult } from './interface/result.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { AdminActivityFilterDto } from './dto/query.dto';
+import { AdminActivityBudgetFilterDto, AdminActivityFilterDto } from './dto/query.dto';
 import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 
 @Injectable()
@@ -210,5 +210,26 @@ export class ActivityService {
     }
 
     return;
+  }
+
+  async getActivityBudget(filterInfo: AdminActivityBudgetFilterDto): Promise<ActivityBudgetAdminResult[]> {
+    const date: Date = new Date();
+    const year: number = date.getFullYear();
+    const yearToString: string = year.toString();
+
+    let halfYear: HalfYearEnum;
+    if (!filterInfo.halfYear) {
+      const nowMonth: number = date.getMonth() + 1;
+      halfYear = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
+    } else {
+      halfYear = filterInfo.halfYear;
+    }
+
+    const result: ActivityBudgetAdminResult[] = await this.activityRepository.getAdminActivityBudget(
+      yearToString,
+      halfYear,
+    );
+
+    return result;
   }
 }

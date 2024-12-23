@@ -23,6 +23,7 @@ import { ActivityStatsEntity } from '../../../entity/activity/activityStats.enti
 import { AdminActivityFilterDto } from '../dto/query.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
+import { ActivityBudgetAdminResult } from '../interface/result.interface';
 
 @Injectable()
 export class ActivityRepository {
@@ -318,5 +319,27 @@ export class ActivityRepository {
       .into(ActivityStatsEntity)
       .values({ ...statsInfo })
       .execute();
+  }
+
+  async getAdminActivityBudget(year: string, halfYear: HalfYearEnum): Promise<ActivityBudgetAdminResult[]> {
+    const result: ActivityBudgetAdminResult[] = await this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .select([
+        'activityStatsEntity.activityStatsIdx AS activityStatsIdx',
+        'activityStatsEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'activityStatsEntity.activityBudget AS activityBudget',
+        'activityStatsEntity.note AS note',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('activityStatsEntity.year = :year', { year })
+      .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear })
+      .orderBy('userEntity.gradeIdx', 'ASC')
+      .addOrderBy('userEntity.userName', 'ASC')
+      .getRawMany();
+
+    return result;
   }
 }

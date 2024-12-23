@@ -37,9 +37,9 @@ import { EntityManager } from 'typeorm';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { ActivityFilterDto, AdminActivityFilterDto } from './dto/query.dto';
+import { ActivityFilterDto, AdminActivityBudgetFilterDto, AdminActivityFilterDto } from './dto/query.dto';
 import { UserPayload } from '../../common/interface/payload.interface';
-import { ActivityResult } from './interface/result.interface';
+import { ActivityBudgetAdminResult, ActivityResult } from './interface/result.interface';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
@@ -174,6 +174,20 @@ export class AdminActivityController {
     await this.activityService.createActivityBudget(activityBudgetInfo, manager);
 
     const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_ACTIVITIES_BUDGET.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_ACTIVITIES_BUDGET.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('budget')
+  async getActivityeBudget(@Query() filterInfo: AdminActivityBudgetFilterDto): Promise<ResponseInterface> {
+    const activityBudget: ActivityBudgetAdminResult[] = await this.activityService.getActivityBudget(filterInfo);
+
+    const response: ResponseInterface = { message: 'success', data: activityBudget };
 
     return response;
   }
