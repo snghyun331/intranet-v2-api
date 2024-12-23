@@ -9,7 +9,7 @@ export class CreateWelfareBudgetDto {
   period: HalfYearEnum;
 
   @ApiProperty({ type: Number, description: '인원별 총 금액', required: true })
-  @IsNotEmpty({ message: '인원별 총 금액을 입력해주세요.' })
+  @IsNotEmpty({ message: '인원별 총 금액을 입력d해주세요.' })
   @IsNumber()
   welfareBudget: number;
 }

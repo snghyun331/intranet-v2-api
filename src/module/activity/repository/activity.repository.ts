@@ -7,7 +7,14 @@ import { ActivityEntity } from '../../../entity/activity/activity.entity';
 import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
-import { Activities, ActivityInfo, ActivityStats, AdminActivity } from '../interface/activity.interface';
+import {
+  Activities,
+  ActivityInfo,
+  ActivityStats,
+  AdminActivity,
+  NewActivityMonthStats,
+  NewActivityStats,
+} from '../interface/activity.interface';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { UserPayload } from '../../../common/interface/payload.interface';
@@ -15,6 +22,7 @@ import { HalfYearEnum } from '../../../common/constant/enum';
 import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
 import { AdminActivityFilterDto } from '../dto/query.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
+import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
 
 @Injectable()
 export class ActivityRepository {
@@ -281,5 +289,34 @@ export class ActivityRepository {
     const result: AdminActivity[] = await query.getRawMany();
 
     return { totalPage, total, activity: result };
+  }
+
+  async getActivityStatsCount({ period, userIdx }: CreateActivityBudgetDto, year: string) {
+    const statsCnt: number = await this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .where('activityStatsEntity.year = :year', { year })
+      .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear: period })
+      .andWhere('activityStatsEntity.userIdx = :userIdx', { userIdx })
+      .getCount();
+
+    return statsCnt;
+  }
+
+  async createActivityMonthStats(monthStatsInfo: NewActivityMonthStats, manager: EntityManager): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(ActivityMonthlyStatsEntity)
+      .values({ ...monthStatsInfo })
+      .execute();
+  }
+
+  async createActivityStats(statsInfo: NewActivityStats, manager: EntityManager): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(ActivityStatsEntity)
+      .values({ ...statsInfo })
+      .execute();
   }
 }

@@ -15,6 +15,7 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -24,7 +25,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ActivityService } from './activity.service';
-import { ADMIN_ACTIVITIES, USERS_ACTIVITIES } from './swagger/activity.swagger';
+import { ADMIN_ACTIVITIES, ADMIN_ACTIVITIES_BUDGET, USERS_ACTIVITIES } from './swagger/activity.swagger';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -42,6 +43,7 @@ import { ActivityResult } from './interface/result.interface';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 
 @ApiTags('사용자')
 @Controller('users/activities')
@@ -152,6 +154,26 @@ export class AdminActivityController {
     const { totalPage, total, activity } = await this.activityService.getAdminActivity(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data: { totalPage, total, activity } };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_ACTIVITIES_BUDGET.POST.API_OPERATION)
+  @ApiBody(ADMIN_ACTIVITIES_BUDGET.POST.API_BODY)
+  @ApiCreatedResponse(ADMIN_ACTIVITIES_BUDGET.POST.API_CREATED_RESPONSE)
+  @ApiConflictResponse(ADMIN_ACTIVITIES_BUDGET.POST.API_CONFLICT_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Post('budget')
+  async createActivityBudget(
+    @Body() activityBudgetInfo: CreateActivityBudgetDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.activityService.createActivityBudget(activityBudgetInfo, manager);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

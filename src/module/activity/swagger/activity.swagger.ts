@@ -1,5 +1,6 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateActivityDto } from '../dto/createActivity.dto';
+import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
 
 export const USERS_ACTIVITIES: SwaggerMethod = {
@@ -487,6 +488,56 @@ export const ADMIN_ACTIVITIES: SwaggerMethod = {
                   confirmDate: null,
                 },
               ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 활동비 초기 설정 API',
+    },
+    API_BODY: {
+      type: CreateActivityBudgetDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            period: 'H1',
+            userIdx: 1,
+            activityBudget: 200000,
+          },
+        },
+      },
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 201,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_CONFLICT_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '이미 등록한 경우',
+              value: {
+                message: '이미 새로 등록하였습니다.',
+                error: 'Conflict',
+                statusCode: 409,
+                timeStamp: '2024. 12. 23. 오전 9:42:16',
+                path: '/admin/activities/budget',
+              },
             },
           },
         },

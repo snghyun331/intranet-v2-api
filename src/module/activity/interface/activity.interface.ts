@@ -36,3 +36,17 @@ export interface AdminActivity {
   confirmYN: ConfirmEnum;
   confirmDate: string;
 }
+
+export interface NewActivityMonthStats {
+  userIdx: number;
+  year: string;
+  month: string;
+  activityMonthExpense: number;
+}
+
+export interface NewActivityStats {
+  userIdx: number;
+  year: string;
+  halfYear: HalfYearEnum;
+  activityBudget: number;
+}

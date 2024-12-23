@@ -336,7 +336,7 @@ export class WelfareRepository {
     return result;
   }
 
-  async getWelfareStatsCount({ period }: CreateWelfareBudgetDto, year: number): Promise<number> {
+  async getWelfareStatsCount({ period }: CreateWelfareBudgetDto, year: string): Promise<number> {
     const statsCnt: number = await this.welfareStatsModel
       .createQueryBuilder('welfareStatsEntity')
       .where('welfareStatsEntity.year = :year', { year })
