@@ -24,6 +24,7 @@ import { AdminActivityFilterDto } from '../dto/query.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
 import { ActivityBudgetAdminResult } from '../interface/result.interface';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 @Injectable()
 export class ActivityRepository {
@@ -361,6 +362,19 @@ export class ActivityRepository {
       .createQueryBuilder()
       .update(ActivityStatsEntity)
       .set({ activityBudget })
+      .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .execute();
+  }
+
+  async updateActivityStatsNote(
+    activityStatsIdx: number,
+    { note }: UpdateNoteDto,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ActivityStatsEntity)
+      .set({ note })
       .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
       .execute();
   }

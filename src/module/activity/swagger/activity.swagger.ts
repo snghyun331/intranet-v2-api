@@ -3,6 +3,7 @@ import { CreateActivityDto } from '../dto/createActivity.dto';
 import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
 import { UpdateBudgetDto } from '../dto/updateBudget.dto';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 export const USERS_ACTIVITIES: SwaggerMethod = {
   POST: {
@@ -530,6 +531,24 @@ export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
         },
       },
     },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재X',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 12. 23. 오후 5:16:51',
+                path: '/admin/activities/budget/9',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   GET: {
     API_OPERATION: {
@@ -609,6 +628,66 @@ export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
                 statusCode: 409,
                 timeStamp: '2024. 12. 23. 오전 9:42:16',
                 path: '/admin/activities/budget',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_ACTIVITIES_BUDGET_NOTE: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 비고 수정 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'activityStatsIdx',
+      required: true,
+      description: '활동비 통계IDX',
+    },
+    API_BODY: {
+      type: UpdateNoteDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '비고 내용 O',
+          value: {
+            note: '노트노트',
+          },
+        },
+        b: {
+          summary: '비고 내용 초기화',
+          value: {
+            note: null,
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '비고 수정 성공',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재X',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 12. 23. 오후 5:29:34',
+                path: '/admin/activities/budget/10/note',
               },
             },
           },

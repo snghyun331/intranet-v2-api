@@ -26,7 +26,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ActivityService } from './activity.service';
-import { ADMIN_ACTIVITIES, ADMIN_ACTIVITIES_BUDGET, USERS_ACTIVITIES } from './swagger/activity.swagger';
+import {
+  ADMIN_ACTIVITIES,
+  ADMIN_ACTIVITIES_BUDGET,
+  ADMIN_ACTIVITIES_BUDGET_NOTE,
+  USERS_ACTIVITIES,
+} from './swagger/activity.swagger';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -46,6 +51,7 @@ import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('사용자')
 @Controller('users/activities')
@@ -211,6 +217,28 @@ export class AdminActivityController {
     await this.activityService.updateActivityBudget(activityStatsIdx, activityBudget, manager);
 
     const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_ACTIVITIES_BUDGET_NOTE.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_ACTIVITIES_BUDGET_NOTE.PATCH.API_PARAM1)
+  @ApiBody(ADMIN_ACTIVITIES_BUDGET_NOTE.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_ACTIVITIES_BUDGET_NOTE.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_ACTIVITIES_BUDGET_NOTE.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch('budget/:activityStatsIdx/note')
+  async updateActivityStatsNote(
+    @Param('activityStatsIdx', ParseIntPipe) activityStatsIdx: number,
+    @Body() noteInfo: UpdateNoteDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.activityService.updateActivityStatsNote(activityStatsIdx, noteInfo, manager);
+
+    const response: ResponseInterface = { message: '비고 수정 성공' };
 
     return response;
   }
