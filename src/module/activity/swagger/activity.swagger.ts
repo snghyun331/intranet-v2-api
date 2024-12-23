@@ -2,6 +2,7 @@ import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateActivityDto } from '../dto/createActivity.dto';
 import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
+import { UpdateBudgetDto } from '../dto/updateBudget.dto';
 
 export const USERS_ACTIVITIES: SwaggerMethod = {
   POST: {
@@ -497,6 +498,39 @@ export const ADMIN_ACTIVITIES: SwaggerMethod = {
 };
 
 export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 사용가능 금액 개별 수정 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'activityStatsIdx',
+      required: true,
+      description: '활동비 통계IDX',
+    },
+    API_BODY: {
+      type: UpdateBudgetDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            activityBudget: 200000,
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
   GET: {
     API_OPERATION: {
       summary: '어드민 활동비 설정 리스트 조회 API',

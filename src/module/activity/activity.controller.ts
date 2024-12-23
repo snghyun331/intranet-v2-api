@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -44,6 +45,7 @@ import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { CreateActivityBudgetDto } from './dto/createBudget.dto';
+import { UpdateBudgetDto } from './dto/updateBudget.dto';
 
 @ApiTags('사용자')
 @Controller('users/activities')
@@ -188,6 +190,27 @@ export class AdminActivityController {
     const activityBudget: ActivityBudgetAdminResult[] = await this.activityService.getActivityBudget(filterInfo);
 
     const response: ResponseInterface = { message: 'success', data: activityBudget };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_ACTIVITIES_BUDGET.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_ACTIVITIES_BUDGET.PATCH.API_PARAM1)
+  @ApiBody(ADMIN_ACTIVITIES_BUDGET.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_ACTIVITIES_BUDGET.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch('budget/:activityStatsIdx')
+  async updateActivityBudget(
+    @Param('activityStatsIdx', ParseIntPipe) activityStatsIdx: number,
+    @Body() { activityBudget }: UpdateBudgetDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.activityService.updateActivityBudget(activityStatsIdx, activityBudget, manager);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

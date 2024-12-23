@@ -342,4 +342,26 @@ export class ActivityRepository {
 
     return result;
   }
+
+  async getActivityStatsCountByIdx(activityStatsIdx: number): Promise<number> {
+    const statsCnt: number = await this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .where('activityStatsEntity.activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .getCount();
+
+    return statsCnt;
+  }
+
+  async updateActivityBudget(
+    activityStatsIdx: number,
+    activityBudget: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ActivityStatsEntity)
+      .set({ activityBudget })
+      .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .execute();
+  }
 }
