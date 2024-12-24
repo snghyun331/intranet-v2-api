@@ -32,7 +32,7 @@ export enum UserGradeEnum {
   INTERN = '인턴',
 }
 
-export enum GradeIdxEnum {
+export enum UserGradeIdxEnum {
   CEO = 1,
   DIRECTOR = 2,
   MANAGER = 3,

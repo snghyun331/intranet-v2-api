@@ -8,7 +8,7 @@ import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
-import { ClearStatusEnum, ConfirmEnum, GradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum, ConfirmEnum, UserGradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
 import {
   AdminWelfares,
   NewWelfareMonthStats,
@@ -336,7 +336,7 @@ export class WelfareRepository {
     return result;
   }
 
-  async getWelfareStatsCount({ period }: CreateWelfareBudgetDto, year: number): Promise<number> {
+  async getWelfareStatsCount({ period }: CreateWelfareBudgetDto, year: string): Promise<number> {
     const statsCnt: number = await this.welfareStatsModel
       .createQueryBuilder('welfareStatsEntity')
       .where('welfareStatsEntity.year = :year', { year })
@@ -351,7 +351,7 @@ export class WelfareRepository {
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx'])
       .where('userEntity.userAvail IS NULL')
-      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: GradeIdxEnum.CEO })
+      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: UserGradeIdxEnum.CEO })
       .getRawMany();
 
     const userIdxList: number[] = result.map((r) => r.userIdx);
