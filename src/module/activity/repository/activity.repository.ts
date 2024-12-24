@@ -7,12 +7,25 @@ import { ActivityEntity } from '../../../entity/activity/activity.entity';
 import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
-import { Activities, ActivityInfo, ActivityStats } from '../interface/activity.interface';
+import {
+  Activities,
+  ActivityInfo,
+  ActivityStats,
+  ActivityStatsAdminInfo,
+  AdminActivity,
+  NewActivityMonthStats,
+  NewActivityStats,
+} from '../interface/activity.interface';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { UserPayload } from '../../../common/interface/payload.interface';
-import { HalfYearEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum, ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
 import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
+import { AdminActivityFilterDto } from '../dto/query.dto';
+import { GradeEntity } from '../../../entity/user/grade.entity';
+import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
+import { ActivityBudgetAdminResult } from '../interface/result.interface';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 @Injectable()
 export class ActivityRepository {
@@ -234,5 +247,205 @@ export class ActivityRepository {
     const result: ActivityStats = await query.getRawOne();
 
     return result;
+  }
+
+  async getActivity(pageNo: number, perPage: number, filterInfo: AdminActivityFilterDto) {
+    const query: SelectQueryBuilder<ActivityEntity> = this.activityModel
+      .createQueryBuilder('activityEntity')
+      .select([
+        'activityEntity.activityIdx AS activityIdx',
+        'activityEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'activityEntity.targetDay AS targetDay',
+        'activityEntity.content AS content',
+        'activityEntity.amount AS amount',
+        'activityEntity.payerName AS payerName',
+        'activityEntity.confirmYN AS confirmYN',
+        'activityEntity.confirmDate AS confirmDate',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('activityEntity.targetDay BETWEEN :sDate AND :eDate', {
+        sDate: filterInfo.sDate,
+        eDate: filterInfo.eDate,
+      });
+
+    if (filterInfo.userName) {
+      query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
+    }
+    if (filterInfo.gradeIdx) {
+      query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
+    }
+    if (filterInfo.confirmYN) {
+      query.andWhere('activityEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
+    }
+
+    const total: number = await query.getCount();
+    const totalPage: number = Math.ceil(total / perPage);
+
+    query
+      .orderBy('activityEntity.targetDay', 'DESC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
+
+    const result: AdminActivity[] = await query.getRawMany();
+
+    return { totalPage, total, activity: result };
+  }
+
+  async getActivityStatsCount({ period, userIdx }: CreateActivityBudgetDto, year: string) {
+    const statsCnt: number = await this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .where('activityStatsEntity.year = :year', { year })
+      .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear: period })
+      .andWhere('activityStatsEntity.userIdx = :userIdx', { userIdx })
+      .getCount();
+
+    return statsCnt;
+  }
+
+  async createActivityMonthStats(monthStatsInfo: NewActivityMonthStats, manager: EntityManager): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(ActivityMonthlyStatsEntity)
+      .values({ ...monthStatsInfo })
+      .execute();
+  }
+
+  async createActivityStats(statsInfo: NewActivityStats, manager: EntityManager): Promise<InsertResult> {
+    return await manager
+      .createQueryBuilder()
+      .insert()
+      .into(ActivityStatsEntity)
+      .values({ ...statsInfo })
+      .execute();
+  }
+
+  async getAdminActivityBudget(year: string, halfYear: HalfYearEnum): Promise<ActivityBudgetAdminResult[]> {
+    const result: ActivityBudgetAdminResult[] = await this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .select([
+        'activityStatsEntity.activityStatsIdx AS activityStatsIdx',
+        'activityStatsEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'activityStatsEntity.activityBudget AS activityBudget',
+        'activityStatsEntity.note AS note',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('activityStatsEntity.year = :year', { year })
+      .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear })
+      .orderBy('userEntity.gradeIdx', 'ASC')
+      .addOrderBy('userEntity.userName', 'ASC')
+      .getRawMany();
+
+    return result;
+  }
+
+  async getActivityStatsCountByIdx(activityStatsIdx: number): Promise<number> {
+    const statsCnt: number = await this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .where('activityStatsEntity.activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .getCount();
+
+    return statsCnt;
+  }
+
+  async updateActivityBudget(
+    activityStatsIdx: number,
+    activityBudget: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ActivityStatsEntity)
+      .set({ activityBudget })
+      .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .execute();
+  }
+
+  async updateActivityStatsNote(
+    activityStatsIdx: number,
+    { note }: UpdateNoteDto,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ActivityStatsEntity)
+      .set({ note })
+      .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .execute();
+  }
+
+  async updateConfirmActivity(activityIdx: number, confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
+    if (confirmYN === ConfirmEnum.YES) {
+      const confirmDate: Date = new Date();
+      await manager
+        .createQueryBuilder()
+        .update(ActivityEntity)
+        .set({ confirmYN, confirmDate })
+        .where('activityIdx = :activityIdx', { activityIdx })
+        .execute();
+    } else {
+      await manager
+        .createQueryBuilder()
+        .update(ActivityEntity)
+        .set({ confirmYN, confirmDate: null })
+        .where('activityIdx = :activityIdx', { activityIdx })
+        .execute();
+    }
+  }
+
+  async getUserActivityStats(year: string, halfYear?: HalfYearEnum): Promise<ActivityStatsAdminInfo[]> {
+    const query: SelectQueryBuilder<ActivityStatsEntity> = this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .select([
+        'activityStatsEntity.activityStatsIdx AS activityStatsIdx',
+        'activityStatsEntity.year AS year',
+        'activityStatsEntity.halfYear AS halfYear',
+        'activityStatsEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'activityStatsEntity.activityBudget AS activityBudget',
+        'activityStatsEntity.activityExpense AS activityExpense',
+        'activityStatsEntity.activityBalance AS activityBalance',
+        'activityStatsEntity.totalOverpay AS totalOverpay',
+        'activityStatsEntity.note AS note',
+        'activityStatsEntity.clearStatus AS clearStatus',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('activityStatsEntity.year = :year', { year });
+
+    if (halfYear) {
+      query.andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear });
+    }
+
+    query.orderBy('userEntity.gradeIdx', 'ASC').addOrderBy('activityStatsEntity.halfYear', 'ASC');
+
+    const result: ActivityStatsAdminInfo[] = await query.getRawMany();
+
+    return result;
+  }
+
+  async updateClearStatusComplete(activityStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ActivityStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.COMPLETE })
+      .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .execute();
+  }
+
+  async updateClearStatusNotYet(activityStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ActivityStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.NOT_YET })
+      .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .execute();
   }
 }

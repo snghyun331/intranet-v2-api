@@ -1,6 +1,10 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateActivityDto } from '../dto/createActivity.dto';
+import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
+import { UpdateBudgetDto } from '../dto/updateBudget.dto';
+import { UpdateConfirmDto } from '../dto/updateConfirm.dto';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 export const USERS_ACTIVITIES: SwaggerMethod = {
   POST: {
@@ -425,7 +429,452 @@ export const USERS_ACTIVITIES: SwaggerMethod = {
                 error: 'Bad Request',
                 statusCode: 400,
                 timeStamp: '2024. 10. 18. 오후 1:18:19',
-                path: '/users/welfares?year=2024',
+                path: '/users/activities?year=2024',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_ACTIVITIES: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 활동비 내역 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              totalPage: 1,
+              total: 3,
+              activity: [
+                {
+                  activityIdx: 6,
+                  userIdx: 7,
+                  userName: '김현근',
+                  gradeName: '본부장',
+                  targetDay: '2024-11-11',
+                  content: '빼빼로',
+                  amount: 110000,
+                  payerName: '김현근',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+                {
+                  activityIdx: 9,
+                  userIdx: 4,
+                  userName: '이승현',
+                  gradeName: '본부장',
+                  targetDay: '2024-11-11',
+                  content: '빼빼로',
+                  amount: 400000,
+                  payerName: '박민수',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+                {
+                  activityIdx: 11,
+                  userIdx: 9,
+                  userName: '윤이나',
+                  gradeName: '팀장',
+                  targetDay: '2024-11-11',
+                  content: '한강솥',
+                  amount: 30000,
+                  payerName: '윤이나',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 사용가능 금액 개별 수정 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'activityStatsIdx',
+      required: true,
+      description: '활동비 통계IDX',
+    },
+    API_BODY: {
+      type: UpdateBudgetDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            activityBudget: 200000,
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재X',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 12. 23. 오후 5:16:51',
+                path: '/admin/activities/budget/9',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 활동비 설정 리스트 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '데이터 O',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: [
+                  {
+                    activityStatsIdx: 5,
+                    userIdx: 1,
+                    userName: '이승현',
+                    gradeName: '대표',
+                    activityBudget: 200000,
+                    note: null,
+                  },
+                ],
+              },
+            },
+            b: {
+              summary: '데이터 X',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: [],
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 활동비 초기 설정 API',
+    },
+    API_BODY: {
+      type: CreateActivityBudgetDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            period: 'H1',
+            userIdx: 1,
+            activityBudget: 200000,
+          },
+        },
+      },
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 201,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_CONFLICT_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '이미 등록한 경우',
+              value: {
+                message: '이미 새로 등록하였습니다.',
+                error: 'Conflict',
+                statusCode: 409,
+                timeStamp: '2024. 12. 23. 오전 9:42:16',
+                path: '/admin/activities/budget',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_ACTIVITIES_BUDGET_NOTE: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 비고 수정 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'activityStatsIdx',
+      required: true,
+      description: '활동비 통계IDX',
+    },
+    API_BODY: {
+      type: UpdateNoteDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '비고 내용 O',
+          value: {
+            note: '노트노트',
+          },
+        },
+        b: {
+          summary: '비고 내용 초기화',
+          value: {
+            note: null,
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '비고 수정 성공',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재X',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 12. 23. 오후 5:29:34',
+                path: '/admin/activities/budget/10/note',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_ACTIVITIES_CONFIRM: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 내역 확인 API',
+    },
+    API_PARAM1: {
+      name: 'activityIdx',
+      type: Number,
+      required: true,
+      description: '활동비IDX',
+    },
+    API_BODY: {
+      type: UpdateConfirmDto,
+      examples: {
+        a: {
+          summary: '확인 전',
+          value: {
+            activityIdxList: [1],
+            confirmYN: 'N',
+          },
+        },
+        b: {
+          summary: '확인완료',
+          value: {
+            activityIdxList: [1, 2],
+            confirmYN: 'Y',
+          },
+        },
+        c: {
+          summary: '반려',
+          value: {
+            activityIdxList: [1, 2],
+            confirmYN: 'H',
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_ACTIVITIES_BALANCES: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 정산완료 처리 API',
+    },
+    API_BODY: {
+      type: Array,
+      description: '완료처리할 통계내역IDX 배열',
+      examples: {
+        a: {
+          summary: '통계내역IDX 개별 완료처리',
+          value: { activityStatsIdxList: [1] },
+        },
+        b: {
+          summary: '통계내역IDX 복수 완료처리',
+          value: { activityStatsIdxList: [1, 2, 3] },
+        },
+      },
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 11. 14. 오후 3:36:23',
+                path: '/admin/activities/balances',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 활동비 정산 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              year: '2024',
+              activityStats: [
+                {
+                  activityStatsIdx: 5,
+                  year: '2024',
+                  halfYear: 'H1',
+                  userIdx: 1,
+                  userName: '이승현',
+                  gradeName: '본부장',
+                  activityBudget: 60000,
+                  activityExpense: 100000,
+                  activityBalance: -40000,
+                  totalOverpay: 40000,
+                  note: null,
+                  clearStatus: 'not_yet',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_ACTIVITIES_BALANCES_CANCEL: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 정산완료 취소 처리 API',
+    },
+    API_BODY: {
+      type: Array,
+      description: '삭제할 통계내역IDX 배열',
+      examples: {
+        a: {
+          summary: '통계내역IDX 개별삭제',
+          value: { activityStatsIdxList: [1] },
+        },
+        b: {
+          summary: '통계내역IDX 복수삭제',
+          value: { activityStatsIdxList: [1, 2, 3] },
+        },
+      },
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 11. 14. 오후 3:36:23',
+                path: '/admin/activitiess/balances/cancel',
               },
             },
           },

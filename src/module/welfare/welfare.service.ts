@@ -218,7 +218,7 @@ export class WelfareService {
     const halfYear: HalfYearEnum = welfareBudgetInfo.period;
     const welfareBudget: number = welfareBudgetInfo.welfareBudget;
     const userIdxList: number[] = await this.welfareRepository.getAllUserIdxExceptCEO();
-    const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCount(welfareBudgetInfo, year);
+    const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCount(welfareBudgetInfo, yearToString);
 
     /** 기록이 없다면 통계 create (기록이 있다면 통계 업데이트) **/
     if (welfareStatsCnt < 1) {

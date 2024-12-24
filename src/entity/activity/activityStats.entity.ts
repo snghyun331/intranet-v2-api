@@ -1,12 +1,12 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '../../common/entity/common.entity';
 import { UserEntity } from '../user/user.entity';
-import { HalfYearEnum } from '../../common/constant/enum';
+import { ClearStatusEnum, HalfYearEnum } from '../../common/constant/enum';
 
 @Entity({ name: 'activity_stats', comment: '활동비 통계 tb' })
 export class ActivityStatsEntity extends CommonEntity {
   @PrimaryGeneratedColumn({ name: 'activity_stats_idx', comment: '활동비 통계 IDX' })
-  activityStasIdx: number;
+  activityStatsIdx: number;
 
   @Column({ name: 'user_idx', comment: '사용자 IDX', nullable: false })
   userIdx: number;
@@ -25,6 +25,21 @@ export class ActivityStatsEntity extends CommonEntity {
 
   @Column({ name: 'activity_balance', comment: '활동비 잔액', nullable: true })
   activityBalance: number;
+
+  @Column({ name: 'total_overpay', comment: '정산금', default: 0, nullable: false })
+  totalOverpay: number;
+
+  @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
+  note: string;
+
+  @Column({
+    name: 'clear_status',
+    comment: '정산여부',
+    type: String,
+    default: ClearStatusEnum.NOT_YET,
+    nullable: false,
+  })
+  clearStatus: string;
 
   @ManyToOne(() => UserEntity, (user) => user.activityStatsRelation, {
     onDelete: 'CASCADE',

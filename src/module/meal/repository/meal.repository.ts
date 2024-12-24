@@ -6,7 +6,7 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import { AttendanceEnum, ClearStatusEnum, GradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
+import { AttendanceEnum, ClearStatusEnum, UserGradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
 import {
   DetailedMealData,
   MealAdminInfo,
@@ -61,7 +61,7 @@ export class MealRepository {
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx'])
       .where('userEntity.userAvail IS NULL')
-      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: GradeIdxEnum.CEO })
+      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: UserGradeIdxEnum.CEO })
       .getRawMany();
 
     const userIdxList: number[] = result.map((r) => r.userIdx);
