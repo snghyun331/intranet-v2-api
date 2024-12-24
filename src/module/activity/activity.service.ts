@@ -8,6 +8,7 @@ import {
   Activities,
   ActivityInfo,
   ActivityStats,
+  ActivityStatsAdminInfo,
   NewActivityMonthStats,
   NewActivityStats,
 } from './interface/activity.interface';
@@ -15,7 +16,7 @@ import { UserPayload } from '../../common/interface/payload.interface';
 import { ConfirmEnum, HalfYearEnum } from '../../common/constant/enum';
 import { ActivityBudgetAdminResult, ActivityResult } from './interface/result.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { AdminActivityBudgetFilterDto, AdminActivityFilterDto } from './dto/query.dto';
+import { AdminActivityBalanceFilterDto, AdminActivityBudgetFilterDto, AdminActivityFilterDto } from './dto/query.dto';
 import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 
@@ -274,5 +275,11 @@ export class ActivityService {
     );
 
     return;
+  }
+
+  async getUserActivityStats({ year, halfYear }: AdminActivityBalanceFilterDto): Promise<ActivityStatsAdminInfo[]> {
+    const result: ActivityStatsAdminInfo[] = await this.activityRepository.getUserActivityStats(year, halfYear);
+
+    return result;
   }
 }

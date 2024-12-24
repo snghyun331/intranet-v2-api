@@ -28,6 +28,7 @@ import {
 import { ActivityService } from './activity.service';
 import {
   ADMIN_ACTIVITIES,
+  ADMIN_ACTIVITIES_BALANCES,
   ADMIN_ACTIVITIES_BUDGET,
   ADMIN_ACTIVITIES_BUDGET_NOTE,
   ADMIN_ACTIVITIES_CONFIRM,
@@ -44,7 +45,12 @@ import { EntityManager } from 'typeorm';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { ActivityFilterDto, AdminActivityBudgetFilterDto, AdminActivityFilterDto } from './dto/query.dto';
+import {
+  ActivityFilterDto,
+  AdminActivityBalanceFilterDto,
+  AdminActivityBudgetFilterDto,
+  AdminActivityFilterDto,
+} from './dto/query.dto';
 import { UserPayload } from '../../common/interface/payload.interface';
 import { ActivityBudgetAdminResult, ActivityResult } from './interface/result.interface';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
@@ -54,6 +60,7 @@ import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { UpdateConfirmDto } from './dto/updateConfirm.dto';
+import { ActivityStatsAdminInfo } from './interface/activity.interface';
 
 @ApiTags('사용자')
 @Controller('users/activities')
@@ -260,6 +267,23 @@ export class AdminActivityController {
     await this.activityService.updateConfirmActivity(activityIdxList, confirmYN, manager);
 
     const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_ACTIVITIES_BALANCES.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_ACTIVITIES_BALANCES.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('balances')
+  async getActivityBalance(@Query() filterInfo: AdminActivityBalanceFilterDto): Promise<ResponseInterface> {
+    const activityStats: ActivityStatsAdminInfo[] = await this.activityService.getUserActivityStats(filterInfo);
+
+    const response: ResponseInterface = {
+      message: 'success',
+      data: { ...filterInfo, activityStats },
+    };
 
     return response;
   }

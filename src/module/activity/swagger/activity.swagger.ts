@@ -747,3 +747,88 @@ export const ADMIN_ACTIVITIES_CONFIRM: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_ACTIVITIES_BALANCES: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 정산완료 처리 API',
+    },
+    API_BODY: {
+      type: Array,
+      description: '완료처리할 통계내역IDX 배열',
+      examples: {
+        a: {
+          summary: '통계내역IDX 개별 완료처리',
+          value: { activityStatsIdxList: [1] },
+        },
+        b: {
+          summary: '통계내역IDX 복수 완료처리',
+          value: { activityStatsIdxList: [1, 2, 3] },
+        },
+      },
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 11. 14. 오후 3:36:23',
+                path: '/admin/activities/balances',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 활동비 정산 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              year: '2024',
+              activityStats: [
+                {
+                  activityStatsIdx: 5,
+                  year: '2024',
+                  halfYear: 'H1',
+                  userIdx: 1,
+                  userName: '이승현',
+                  gradeName: '본부장',
+                  activityBudget: 60000,
+                  activityExpense: 100000,
+                  activityBalance: -40000,
+                  totalOverpay: 40000,
+                  note: null,
+                  clearStatus: 'not_yet',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};

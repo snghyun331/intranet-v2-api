@@ -11,6 +11,7 @@ import {
   Activities,
   ActivityInfo,
   ActivityStats,
+  ActivityStatsAdminInfo,
   AdminActivity,
   NewActivityMonthStats,
   NewActivityStats,
@@ -396,5 +397,37 @@ export class ActivityRepository {
         .where('activityIdx = :activityIdx', { activityIdx })
         .execute();
     }
+  }
+
+  async getUserActivityStats(year: string, halfYear?: HalfYearEnum): Promise<ActivityStatsAdminInfo[]> {
+    const query: SelectQueryBuilder<ActivityStatsEntity> = this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .select([
+        'activityStatsEntity.activityStatsIdx AS activityStatsIdx',
+        'activityStatsEntity.year AS year',
+        'activityStatsEntity.halfYear AS halfYear',
+        'activityStatsEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'activityStatsEntity.activityBudget AS activityBudget',
+        'activityStatsEntity.activityExpense AS activityExpense',
+        'activityStatsEntity.activityBalance AS activityBalance',
+        'activityStatsEntity.totalOverpay AS totalOverpay',
+        'activityStatsEntity.note AS note',
+        'activityStatsEntity.clearStatus AS clearStatus',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('activityStatsEntity.year = :year', { year });
+
+    if (halfYear) {
+      query.andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear });
+    }
+
+    query.orderBy('userEntity.gradeIdx', 'ASC').addOrderBy('activityStatsEntity.halfYear', 'ASC');
+
+    const result: ActivityStatsAdminInfo[] = await query.getRawMany();
+
+    return result;
   }
 }

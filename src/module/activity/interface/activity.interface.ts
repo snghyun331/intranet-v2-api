@@ -1,4 +1,4 @@
-import { ConfirmEnum, HalfYearEnum, UserGradeEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum, ConfirmEnum, HalfYearEnum, UserGradeEnum } from '../../../common/constant/enum';
 
 export interface ActivityInfo {
   activityIdx: number;
@@ -49,4 +49,16 @@ export interface NewActivityStats {
   year: string;
   halfYear: HalfYearEnum;
   activityBudget: number;
+}
+
+export interface ActivityStatsAdminInfo {
+  activityStatsIdx: number;
+  userIdx: number;
+  userName: string;
+  gradeName: UserGradeEnum;
+  activityBudget: number;
+  activityExpense: number;
+  activityBalance: number;
+  note: string;
+  clearStatus: ClearStatusEnum;
 }
