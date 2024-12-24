@@ -18,7 +18,7 @@ import {
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { UserPayload } from '../../../common/interface/payload.interface';
-import { HalfYearEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
 import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
 import { AdminActivityFilterDto } from '../dto/query.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
@@ -377,5 +377,24 @@ export class ActivityRepository {
       .set({ note })
       .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
       .execute();
+  }
+
+  async updateConfirmActivity(activityIdx: number, confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
+    if (confirmYN === ConfirmEnum.YES) {
+      const confirmDate: Date = new Date();
+      await manager
+        .createQueryBuilder()
+        .update(ActivityEntity)
+        .set({ confirmYN, confirmDate })
+        .where('activityIdx = :activityIdx', { activityIdx })
+        .execute();
+    } else {
+      await manager
+        .createQueryBuilder()
+        .update(ActivityEntity)
+        .set({ confirmYN, confirmDate: null })
+        .where('activityIdx = :activityIdx', { activityIdx })
+        .execute();
+    }
   }
 }

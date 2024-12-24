@@ -30,6 +30,7 @@ import {
   ADMIN_ACTIVITIES,
   ADMIN_ACTIVITIES_BUDGET,
   ADMIN_ACTIVITIES_BUDGET_NOTE,
+  ADMIN_ACTIVITIES_CONFIRM,
   USERS_ACTIVITIES,
 } from './swagger/activity.swagger';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -52,6 +53,7 @@ import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { UpdateConfirmDto } from './dto/updateConfirm.dto';
 
 @ApiTags('사용자')
 @Controller('users/activities')
@@ -135,7 +137,7 @@ export class UserActivityController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
-  async getWelfare(@Query() query: ActivityFilterDto, @CurrentUser() user: UserPayload): Promise<ResponseInterface> {
+  async getActivity(@Query() query: ActivityFilterDto, @CurrentUser() user: UserPayload): Promise<ResponseInterface> {
     const activities: ActivityResult = await this.activityService.getActivity(query.year, query.month, user);
 
     const response: ResponseInterface = { message: '활동비 사용내역 조회 성공', data: activities };
@@ -239,6 +241,25 @@ export class AdminActivityController {
     await this.activityService.updateActivityStatsNote(activityStatsIdx, noteInfo, manager);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_ACTIVITIES_CONFIRM.PATCH.API_OPERATION)
+  @ApiBody(ADMIN_ACTIVITIES_CONFIRM.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_ACTIVITIES_CONFIRM.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch('confirm')
+  async updateConfirmActivity(
+    @Body() { activityIdxList, confirmYN }: UpdateConfirmDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.activityService.updateConfirmActivity(activityIdxList, confirmYN, manager);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

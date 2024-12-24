@@ -3,6 +3,7 @@ import { CreateActivityDto } from '../dto/createActivity.dto';
 import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
 import { UpdateBudgetDto } from '../dto/updateBudget.dto';
+import { UpdateConfirmDto } from '../dto/updateConfirm.dto';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 export const USERS_ACTIVITIES: SwaggerMethod = {
@@ -428,7 +429,7 @@ export const USERS_ACTIVITIES: SwaggerMethod = {
                 error: 'Bad Request',
                 statusCode: 400,
                 timeStamp: '2024. 10. 18. 오후 1:18:19',
-                path: '/users/welfares?year=2024',
+                path: '/users/activities?year=2024',
               },
             },
           },
@@ -690,6 +691,56 @@ export const ADMIN_ACTIVITIES_BUDGET_NOTE: SwaggerMethod = {
                 path: '/admin/activities/budget/10/note',
               },
             },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_ACTIVITIES_CONFIRM: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 내역 확인 API',
+    },
+    API_PARAM1: {
+      name: 'activityIdx',
+      type: Number,
+      required: true,
+      description: '활동비IDX',
+    },
+    API_BODY: {
+      type: UpdateConfirmDto,
+      examples: {
+        a: {
+          summary: '확인 전',
+          value: {
+            activityIdxList: [1],
+            confirmYN: 'N',
+          },
+        },
+        b: {
+          summary: '확인완료',
+          value: {
+            activityIdxList: [1, 2],
+            confirmYN: 'Y',
+          },
+        },
+        c: {
+          summary: '반려',
+          value: {
+            activityIdxList: [1, 2],
+            confirmYN: 'H',
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
           },
         },
       },

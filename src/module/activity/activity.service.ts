@@ -12,7 +12,7 @@ import {
   NewActivityStats,
 } from './interface/activity.interface';
 import { UserPayload } from '../../common/interface/payload.interface';
-import { HalfYearEnum } from '../../common/constant/enum';
+import { ConfirmEnum, HalfYearEnum } from '../../common/constant/enum';
 import { ActivityBudgetAdminResult, ActivityResult } from './interface/result.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminActivityBudgetFilterDto, AdminActivityFilterDto } from './dto/query.dto';
@@ -255,6 +255,24 @@ export class ActivityService {
     }
 
     await this.activityRepository.updateActivityStatsNote(activityStatsIdx, noteInfo, manager);
+    return;
+  }
+
+  async updateConfirmActivity(
+    activityIdxList: number[],
+    confirmYN: ConfirmEnum,
+    manager: EntityManager,
+  ): Promise<void> {
+    await Promise.all(
+      activityIdxList.map(async (activityIdx) => {
+        const activityInfo: ActivityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
+        if (!activityInfo) {
+          throw new NotFoundException(`해당 내역은 존재하지 않거나 삭제되었습니다: activityIdx: ${activityIdx}`);
+        }
+        await this.activityRepository.updateConfirmActivity(activityIdx, confirmYN, manager);
+      }),
+    );
+
     return;
   }
 }
