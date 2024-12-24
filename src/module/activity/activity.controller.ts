@@ -29,6 +29,7 @@ import { ActivityService } from './activity.service';
 import {
   ADMIN_ACTIVITIES,
   ADMIN_ACTIVITIES_BALANCES,
+  ADMIN_ACTIVITIES_BALANCES_CANCEL,
   ADMIN_ACTIVITIES_BUDGET,
   ADMIN_ACTIVITIES_BUDGET_NOTE,
   ADMIN_ACTIVITIES_CONFIRM,
@@ -302,6 +303,26 @@ export class AdminActivityController {
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
     await this.activityService.updateClearStatusComplete(activityStatsIdxList, manager);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_ACTIVITIES_BALANCES_CANCEL.PATCH.API_OPERATION)
+  @ApiBody(ADMIN_ACTIVITIES_BALANCES_CANCEL.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_ACTIVITIES_BALANCES_CANCEL.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_ACTIVITIES_BALANCES_CANCEL.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch('balances/cancel')
+  async updateClearStatusNotYet(
+    @Body('activityStatsIdxList') activityStatsIdxList: number[],
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.activityService.updateClearStatusNotYet(activityStatsIdxList, manager);
 
     const response: ResponseInterface = { message: 'success' };
 

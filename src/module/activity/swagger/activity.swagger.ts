@@ -832,3 +832,54 @@ export const ADMIN_ACTIVITIES_BALANCES: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_ACTIVITIES_BALANCES_CANCEL: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 활동비 정산완료 취소 처리 API',
+    },
+    API_BODY: {
+      type: Array,
+      description: '삭제할 통계내역IDX 배열',
+      examples: {
+        a: {
+          summary: '통계내역IDX 개별삭제',
+          value: { activityStatsIdxList: [1] },
+        },
+        b: {
+          summary: '통계내역IDX 복수삭제',
+          value: { activityStatsIdxList: [1, 2, 3] },
+        },
+      },
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 않는 내역',
+              value: {
+                message: '존재하지 않는 통계 내역입니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 11. 14. 오후 3:36:23',
+                path: '/admin/activitiess/balances/cancel',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};

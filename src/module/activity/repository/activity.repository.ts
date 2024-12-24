@@ -439,4 +439,13 @@ export class ActivityRepository {
       .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
       .execute();
   }
+
+  async updateClearStatusNotYet(activityStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ActivityStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.NOT_YET })
+      .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .execute();
+  }
 }

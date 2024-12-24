@@ -294,4 +294,16 @@ export class ActivityService {
       }),
     );
   }
+
+  async updateClearStatusNotYet(activityStatsIdxList: number[], manager: EntityManager): Promise<void> {
+    await Promise.all(
+      activityStatsIdxList.map(async (activityStatsIdx) => {
+        const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
+        if (activityStatsCnt < 1) {
+          throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+        }
+        await this.activityRepository.updateClearStatusNotYet(activityStatsIdx, manager);
+      }),
+    );
+  }
 }
