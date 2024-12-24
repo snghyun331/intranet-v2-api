@@ -287,4 +287,24 @@ export class AdminActivityController {
 
     return response;
   }
+
+  @ApiOperation(ADMIN_ACTIVITIES_BALANCES.PATCH.API_OPERATION)
+  @ApiBody(ADMIN_ACTIVITIES_BALANCES.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_ACTIVITIES_BALANCES.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_ACTIVITIES_BALANCES.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch('balances')
+  async updateClearStatusComplete(
+    @Body('activityStatsIdxList') activityStatsIdxList: number[],
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.activityService.updateClearStatusComplete(activityStatsIdxList, manager);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
 }

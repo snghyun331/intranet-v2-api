@@ -19,7 +19,7 @@ import {
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { UserPayload } from '../../../common/interface/payload.interface';
-import { ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum, ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
 import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
 import { AdminActivityFilterDto } from '../dto/query.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
@@ -429,5 +429,14 @@ export class ActivityRepository {
     const result: ActivityStatsAdminInfo[] = await query.getRawMany();
 
     return result;
+  }
+
+  async updateClearStatusComplete(activityStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ActivityStatsEntity)
+      .set({ clearStatus: ClearStatusEnum.COMPLETE })
+      .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
+      .execute();
   }
 }
