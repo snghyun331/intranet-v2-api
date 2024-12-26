@@ -6,9 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '../../entity/user/user.entity';
 import { WelfareEntity } from '../../entity/welfare/welfare.entity';
 import { WelfareStatsEntity } from '../../entity/welfare/welfareStats.entity';
+import { WelfareMonthlyStatsEntity } from '../../entity/welfare/welfareMonthlyStats.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, WelfareEntity, WelfareStatsEntity])],
+  imports: [TypeOrmModule.forFeature([UserEntity, WelfareEntity, WelfareMonthlyStatsEntity, WelfareStatsEntity])],
   providers: [WelfareService, WelfareRepository],
   controllers: [UserWelfareController, AdminWelfareController],
 })
