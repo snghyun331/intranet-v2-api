@@ -31,6 +31,8 @@ export class WelfareRepository {
   constructor(
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(WelfareEntity) private readonly welfareModel: Repository<WelfareEntity>,
+    @InjectRepository(WelfareMonthlyStatsEntity)
+    private readonly welfareMonthStatsModel: Repository<WelfareMonthlyStatsEntity>,
     @InjectRepository(WelfareStatsEntity)
     private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
   ) {}
@@ -126,8 +128,8 @@ export class WelfareRepository {
 
   async updateMonthlyWelfareStats(
     welfareMonthExpense: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
@@ -587,5 +589,16 @@ export class WelfareRepository {
       .set({ clearStatus: ClearStatusEnum.NOT_YET })
       .where('welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
       .execute();
+  }
+
+  async getWelfareMonthStatsCnt(userIdx: number, year: string, month: string): Promise<number> {
+    const statsCnt: number = await this.welfareMonthStatsModel
+      .createQueryBuilder('welfareMonthStatsEntity')
+      .where('welfareMonthStatsEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('welfareMonthStatsEntity.year = :year', { year })
+      .andWhere('welfareMonthStatsEntity.month = :month', { month })
+      .getCount();
+
+    return statsCnt;
   }
 }

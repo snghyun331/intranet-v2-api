@@ -38,16 +38,24 @@ export class ActivityService {
       throw new BadRequestException('결제자 란에는 본부장 혹은 P&C 팀장만 기입할 수 있습니다.');
     }
 
-    const year: number = Number(newActivityInfo.targetDay.substring(0, 4));
-    const month: number = Number(newActivityInfo.targetDay.substring(5, 7));
+    const year: string = newActivityInfo.targetDay.substring(0, 4);
+    const month: string = newActivityInfo.targetDay.substring(5, 7);
+
+    const yearToNum: number = Number(year);
+    const monthToNum: number = Number(month);
+
+    const statsCnt: number = await this.activityRepository.getActivityMonthStatsCnt(userIdx, year, month);
+    if (statsCnt < 1) {
+      throw new BadRequestException('아직 활동비를 작성할 수 없습니다.');
+    }
 
     await this.activityRepository.createActivity(userIdx, newActivityInfo, manager);
 
     // 활동비 사용금액 업데이트
     const { userIdx: payerIdx } = payerIdxInfo; // 결제자 IDX
     const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
-      year,
-      month,
+      yearToNum,
+      monthToNum,
       newActivityInfo.payerName,
       manager,
     );
@@ -82,8 +90,11 @@ export class ActivityService {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
-    const year: number = Number(activityInfo.targetDay.substring(0, 4));
-    const month: number = Number(activityInfo.targetDay.substring(5, 7));
+    const year: string = activityInfo.targetDay.substring(0, 4);
+    const month: string = activityInfo.targetDay.substring(5, 7);
+
+    const yearToNum: number = Number(year);
+    const monthToNum: number = Number(month);
 
     // 본인 결제자의 내역 업데이트
     await this.activityRepository.updateActivity(activityIdx, updateActivityInfo, manager);
@@ -91,8 +102,8 @@ export class ActivityService {
     // 활동비 사용금액 업데이트
     const { userIdx: payerIdx } = payerIdxInfo; // 결제자 IDX
     const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
-      year,
-      month,
+      yearToNum,
+      monthToNum,
       updateActivityInfo.payerName,
       manager,
     );
@@ -114,16 +125,19 @@ export class ActivityService {
 
     const payerIdxInfo: { userIdx: number } = await this.activityRepository.getUserIdxByName(activityInfo.payerName);
 
-    const year: number = Number(activityInfo.targetDay.substring(0, 4));
-    const month: number = Number(activityInfo.targetDay.substring(5, 7));
+    const year: string = activityInfo.targetDay.substring(0, 4);
+    const month: string = activityInfo.targetDay.substring(5, 7);
+
+    const yearToNum: number = Number(year);
+    const monthToNum: number = Number(month);
 
     await this.activityRepository.deleteActivity(activityIdx, manager);
 
     // 활동비 사용금액 업데이트
     const { userIdx: payerIdx } = payerIdxInfo; // 결제자 IDX
     const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
-      year,
-      month,
+      yearToNum,
+      monthToNum,
       activityInfo.payerName,
       manager,
     );
