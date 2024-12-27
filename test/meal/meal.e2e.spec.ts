@@ -1,7 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
-import { MealService } from '../../src/module/meal/meal.service';
 import { MealModule } from '../../src/module/meal/meal.module';
 import { CreateMealDto } from '../../src/module/meal/dto/createMeal.dto';
 import { AttendanceEnum } from '../../src/common/constant/enum';
@@ -10,10 +9,10 @@ import { DATABASE_CONFIG_TEST } from '../../src/config/database.config';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from '../../src/module/auth/auth.module';
 import { UserModule } from '../../src/module/user/user.module';
-import { AuthService } from '../../src/module/auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { MealCalenderResult } from '../../src/module/meal/interface/result.interface';
 
-describe('MealController (e2e)', () => {
+describe('UserMealController (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
 
@@ -36,10 +35,10 @@ describe('MealController (e2e)', () => {
       userName: '이승현',
       userGender: 'W',
       userBirth: '2000-03-31',
-      joinDate: '2024-03-04',
-      hqName: 'HR솔류션본부',
+      joinDate: '2004-03-04',
+      hqName: 'HR솔루션본부',
       teamName: 'HR Tech',
-      gradeName: '대표',
+      gradeName: '본부장',
       adminRole: 'Y',
     });
 
@@ -51,142 +50,62 @@ describe('MealController (e2e)', () => {
   });
 
   describe('UserMealController', () => {
-    it('/users/meals (GET)', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/users/meals')
-        .query({ year: '2023', month: '10' })
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
-
-      expect(response.body.message).toBe('식대 사용내역 조회 성공');
-    });
-
     it('/users/meals (POST)', async () => {
       const createMealDto: CreateMealDto = {
-        targetDay: '2024-11-10',
-        breakfast: { payerName: null, place: null, amount: null },
-        lunch: { payerName: '이승현', place: 'Cafe', amount: 20 },
-        dinner: { payerName: '이승현', place: 'Cafe', amount: 30 },
+        targetDay: '2024-10-29',
+        breakfast: { payerName: '', place: '', amount: null },
+        lunch: { payerName: '이승현', place: '김가네', amount: 5000 },
+        dinner: { payerName: '', place: '', amount: null },
         attendance: AttendanceEnum.WORKING,
       };
 
       const response = await request(app.getHttpServer())
         .post('/users/meals')
-        .send(createMealDto)
         .set('Authorization', `Bearer ${accessToken}`)
+        .send(createMealDto)
         .expect(201);
 
       expect(response.body.message).toBe('식대 사용내역 저장 성공');
     });
 
+    it('/users/meals (GET)', async () => {
+      const mockResult: MealCalenderResult = {
+        mealStats: {
+          year: '2024',
+          month: '10',
+          mealBudget: 230000,
+          mealExpense: 5000,
+          mealBalance: 0,
+          userName: '이승현',
+        },
+        meals: [
+          {
+            start: '2024-10-29',
+            holidayYN: 'N',
+            breakfast: { payerName: '', place: '', amount: null },
+            lunch: { payerName: '이승현', place: '김가네', amount: 5000, attendance: '근무' },
+            dinner: { payerName: '', place: '', amount: null },
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .get('/users/meals')
+        .query({ year: '2024', month: '10' })
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body.message).toBe('식대 사용내역 조회 성공');
+      expect(response.body.data).toEqual(mockResult);
+    });
+
     it('/users/meals/:targetDay (DELETE)', async () => {
       const response = await request(app.getHttpServer())
-        .delete('/users/meals/2023-10-10')
+        .delete('/users/meals/2024-10-29')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
       expect(response.body.message).toBe('식대 사용내역 초기화 성공');
     });
   });
-
-  //   describe('AdminMealController', () => {
-  //     it('/admin/meals (GET)', async () => {
-  //       const pageNoDto: PageNoDto = { pageNo: 1, perPage: 10 };
-  //       const filterInfo: AdminMealFilterDto = { sDate: '2023-10-01', eDate: '2023-10-31' };
-
-  //       const response = await request(app.getHttpServer())
-  //         .get('/admin/meals')
-  //         .query({ ...pageNoDto, ...filterInfo })
-  //         .set('Authorization', 'Bearer accessToken')
-  //         .expect(200);
-
-  //       expect(response.body.message).toBe('어드민 식대 내역 조회 성공');
-  //     });
-
-  //     it('/admin/meals/budget (POST)', async () => {
-  //       const createMealBudgetDto: CreateMealBudgetDto = {
-  //         year: '2023',
-  //         month: '10',
-  //         baseAmount: 1000,
-  //       };
-
-  //       const response = await request(app.getHttpServer())
-  //         .post('/admin/meals/budget')
-  //         .send(createMealBudgetDto)
-  //         .set('Authorization', 'Bearer accessToken')
-  //         .expect(201);
-
-  //       expect(response.body.message).toBe('어드민 식대 설정 등록 및 수정 성공');
-  //     });
-
-  //     it('/admin/meals/budget (GET)', async () => {
-  //       const pageNoDto: PageNoDto = { pageNo: 1, perPage: 10 };
-  //       const filterInfo: AdminMealBudgetFilterDto = { year: '2023', month: '10' };
-
-  //       const response = await request(app.getHttpServer())
-  //         .get('/admin/meals/budget')
-  //         .query({ ...pageNoDto, ...filterInfo })
-  //         .set('Authorization', 'Bearer accessToken')
-  //         .expect(200);
-
-  //       expect(response.body.message).toBe('10월 어드민 식대 설정 리스트 조회 성공');
-  //     });
-
-  //     it('/admin/meals/budget/:mealStatsIdx (PATCH)', async () => {
-  //       const updateNoteDto: UpdateNoteDto = { note: 'Updated note' };
-
-  //       const response = await request(app.getHttpServer())
-  //         .patch('/admin/meals/budget/1')
-  //         .send(updateNoteDto)
-  //         .set('Authorization', 'Bearer accessToken')
-  //         .expect(200);
-
-  //       expect(response.body.message).toBe('비고 수정 성공');
-  //     });
-
-  //     it('/admin/meals/balances (GET)', async () => {
-  //       const filterInfo: AdminMealBalanceFilterDto = { year: '2023', month: '10' };
-
-  //       const response = await request(app.getHttpServer())
-  //         .get('/admin/meals/balances')
-  //         .query(filterInfo)
-  //         .set('Authorization', 'Bearer accessToken')
-  //         .expect(200);
-
-  //       expect(response.body.message).toBe('어드민 10월 식대 정산 조회 성공');
-  //     });
-
-  //     it('/admin/meals/balances (PATCH)', async () => {
-  //       const mealStatsIdxList = [1, 2, 3];
-
-  //       const response = await request(app.getHttpServer())
-  //         .patch('/admin/meals/balances')
-  //         .send({ mealStatsIdxList })
-  //         .set('Authorization', 'Bearer accessToken')
-  //         .expect(200);
-
-  //       expect(response.body.message).toBe('어드민 식대 정산완료 처리 성공');
-  //     });
-
-  //     it('/admin/meals/balances/cancel (PATCH)', async () => {
-  //       const mealStatsIdxList = [1, 2, 3];
-
-  //       const response = await request(app.getHttpServer())
-  //         .patch('/admin/meals/balances/cancel')
-  //         .send({ mealStatsIdxList })
-  //         .set('Authorization', 'Bearer accessToken')
-  //         .expect(200);
-
-  //       expect(response.body.message).toBe('어드민 식대 정산완료 취소 처리 성공');
-  //     });
-
-  //     it('/admin/meals/balances/:mealStatsIdx (GET)', async () => {
-  //       const response = await request(app.getHttpServer())
-  //         .get('/admin/meals/balances/1')
-  //         .set('Authorization', 'Bearer accessToken')
-  //         .expect(200);
-
-  //       expect(response.body.message).toBe('success');
-  //     });
-  //   });
 });
