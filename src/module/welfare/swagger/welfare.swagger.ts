@@ -186,6 +186,16 @@ export const USERS_WELFARES: SwaggerMethod = {
                 path: '/users/welfares',
               },
             },
+            d: {
+              summary: '복포 설정 없이 사용자가 등록을 시도할 때',
+              value: {
+                message: '아직 복포를 작성할 수 없습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 12. 26. 오후 2:11:33',
+                path: '/users/welfares',
+              },
+            },
           },
         },
       },

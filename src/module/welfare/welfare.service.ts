@@ -33,8 +33,17 @@ export class WelfareService {
       throw new BadRequestException('결제자는 본인 이름만 입력 가능합니다.');
     }
 
-    const year: number = Number(newWelfareInfo.targetDay.substring(0, 4));
-    const month: number = Number(newWelfareInfo.targetDay.substring(5, 7));
+    const year: string = newWelfareInfo.targetDay.substring(0, 4);
+    const month: string = newWelfareInfo.targetDay.substring(5, 7);
+
+    const yearToNum: number = Number(year);
+    const monthToNum: number = Number(month);
+
+    const statsCnt: number = await this.welfareRepository.getWelfareMonthStatsCnt(userIdx, year, month);
+    if (statsCnt < 1) {
+      throw new BadRequestException('아직 복포를 작성할 수 없습니다.');
+    }
+
     const welfareIdx: number = await this.welfareRepository.createWelfare(userIdx, newWelfareInfo, manager);
     if (newWelfareInfo.payeeIdxs.length > 0) {
       await Promise.all(
@@ -49,8 +58,8 @@ export class WelfareService {
 
     // 복지포인트 사용금액 업데이트
     const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-      year,
-      month,
+      yearToNum,
+      monthToNum,
       userIdx,
       manager,
     );
@@ -74,8 +83,11 @@ export class WelfareService {
       throw new ForbiddenException('복포 삭제 권한이 없습니다');
     }
 
-    const year: number = Number(welfareInfo.targetDay.substring(0, 4));
-    const month: number = Number(welfareInfo.targetDay.substring(5, 7));
+    const year: string = welfareInfo.targetDay.substring(0, 4);
+    const month: string = welfareInfo.targetDay.substring(5, 7);
+
+    const yearToNum: number = Number(year);
+    const monthToNum: number = Number(month);
 
     // 대리 결제자 목록 불러오기
     const payeeIdxList: number[] = await this.welfareRepository.getUserIdxFromPayerWelfareIdx(welfareIdx);
@@ -84,8 +96,8 @@ export class WelfareService {
 
     // 본인의 복지포인트 사용금액 업데이트
     const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-      year,
-      month,
+      yearToNum,
+      monthToNum,
       userIdx,
       manager,
     );
@@ -96,8 +108,8 @@ export class WelfareService {
       await Promise.all(
         payeeIdxList.map(async (payeeIdx) => {
           const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-            year,
-            month,
+            yearToNum,
+            monthToNum,
             payeeIdx,
             manager,
           );
@@ -134,8 +146,11 @@ export class WelfareService {
       throw new ForbiddenException('복포 수정 권한이 없습니다');
     }
 
-    const year: number = Number(welfareInfo.targetDay.substring(0, 4));
-    const month: number = Number(welfareInfo.targetDay.substring(5, 7));
+    const year: string = welfareInfo.targetDay.substring(0, 4);
+    const month: string = welfareInfo.targetDay.substring(5, 7);
+
+    const yearToNum: number = Number(year);
+    const monthToNum: number = Number(month);
 
     // 본인 결제자의 내역 업데이트
     await this.welfareRepository.updateWelfare(welfareIdx, updateWelfareInfo, manager);
@@ -171,8 +186,8 @@ export class WelfareService {
 
     // 복지포인트 사용금액 업데이트
     const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-      year,
-      month,
+      yearToNum,
+      monthToNum,
       userIdx,
       manager,
     );

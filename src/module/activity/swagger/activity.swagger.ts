@@ -83,6 +83,16 @@ export const USERS_ACTIVITIES: SwaggerMethod = {
                 path: '/users/activities',
               },
             },
+            d: {
+              summary: '활동비 설정 없이 사용자가 등록을 시도할 때',
+              value: {
+                message: '아직 활동비를 작성할 수 없습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2024. 12. 26. 오후 2:11:33',
+                path: '/users/activities',
+              },
+            },
           },
         },
       },

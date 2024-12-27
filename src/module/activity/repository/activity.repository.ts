@@ -33,6 +33,8 @@ export class ActivityRepository {
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(ActivityEntity) private readonly activityModel: Repository<ActivityEntity>,
     @InjectRepository(ActivityStatsEntity) private readonly activityStatsModel: Repository<ActivityStatsEntity>,
+    @InjectRepository(ActivityMonthlyStatsEntity)
+    private readonly activityMonthStatsModel: Repository<ActivityMonthlyStatsEntity>,
   ) {}
 
   async getUserCountByIdx(userIdx: number): Promise<number> {
@@ -104,8 +106,8 @@ export class ActivityRepository {
 
   async updateMonthlyActivityStats(
     activityMonthExpense: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
@@ -447,5 +449,16 @@ export class ActivityRepository {
       .set({ clearStatus: ClearStatusEnum.NOT_YET })
       .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
       .execute();
+  }
+
+  async getActivityMonthStatsCnt(userIdx: number, year: string, month: string): Promise<number> {
+    const statsCnt: number = await this.activityMonthStatsModel
+      .createQueryBuilder('activityMonthStatsEntity')
+      .where('activityMonthStatsEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('activityMonthStatsEntity.year = :year', { year })
+      .andWhere('activityMonthStatsEntity.month = :month', { month })
+      .getCount();
+
+    return statsCnt;
   }
 }
