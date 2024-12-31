@@ -216,7 +216,11 @@ export class WelfareService {
     const nowYear: number = nowDate.getFullYear();
     const nowMonth: number = nowDate.getMonth() + 1;
     const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
-    const welfareStats: WelfareStats = await this.welfareRepository.getWelfareStats(nowYear, halfYear, userIdx);
+
+    let welfareStats: WelfareStats | null = await this.welfareRepository.getWelfareStats(nowYear, halfYear, userIdx);
+    if (!welfareStats) {
+      welfareStats = {} as WelfareStats;
+    }
 
     const result: WelfareResult = {
       welfareStats,
