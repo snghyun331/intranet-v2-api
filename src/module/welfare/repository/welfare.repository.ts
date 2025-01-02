@@ -601,4 +601,14 @@ export class WelfareRepository {
 
     return statsCnt;
   }
+
+  async getWelfareBudgetByIdx(welfareStatsIdx: number): Promise<number> {
+    const result = await this.welfareStatsModel
+      .createQueryBuilder('welfareStatsEntity')
+      .select(['welfareStatsEntity.welfareBudget AS welfareBudget'])
+      .where('welfareStatsEntity.welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
+      .getRawOne();
+
+    return result.welfareBudget;
+  }
 }
