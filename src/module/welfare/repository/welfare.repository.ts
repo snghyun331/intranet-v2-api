@@ -330,7 +330,12 @@ export class WelfareRepository {
   private async getPayeeWelfareFromPayerWelfareIdx(welfareIdx: number): Promise<PayeeWelfareInfo[]> {
     const result: PayeeWelfareInfo[] = await this.welfareModel
       .createQueryBuilder('welfareEntity')
-      .select(['welfareEntity.userIdx AS userIdx', 'userEntity.userName AS userName', 'welfareEntity.amount AS amount'])
+      .select([
+        'welfareEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'welfareEntity.amount AS amount',
+        'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
+      ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
       .where('welfareEntity.payerWelfareIdx = :welfareIdx', { welfareIdx })
       .getRawMany();
