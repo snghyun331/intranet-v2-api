@@ -10,57 +10,72 @@ export const USERS_WELFARES: SwaggerMethod = {
       summary: '전체/월별 복포 사용내역 조회 API',
       description: '복포 사용일 기준으로 내림차순 정렬됩니다. Query Param이 없으면 전체 데이터 조회로 검색됩니다.',
     },
-
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          example: {
-            statusCode: 200,
-            message: '복포 사용내역 조회 성공',
-            data: {
-              welfareStats: {
-                year: '2024',
-                halfYear: 'H2',
-                welfareBudget: 190000,
-                welfareExpense: 1005000,
-                welfareBalance: -815000,
-                userName: '이승현',
-              },
-              welfares: [
-                {
-                  welfareIdx: 55,
-                  userIdx: 1,
-                  targetDay: '2024-11-11',
-                  content: '마린커피',
-                  amount: 2500,
-                  payerName: '이승현',
-                  selfWrittenYN: 'Y',
-                  confirmYN: 'Y',
-                  payeeList: [],
+          examples: {
+            a: {
+              summary: '해당 기간에 복포 설정 미완료시',
+              value: {
+                statusCode: 200,
+                message: '복포 사용내역 조회 성공',
+                data: {
+                  welfareStats: {},
+                  welfares: [],
                 },
-                {
-                  welfareIdx: 52,
-                  userIdx: 1,
-                  targetDay: '2024-11-05',
-                  content: '마린커피',
-                  amount: 2500,
-                  payerName: '이승현',
-                  selfWrittenYN: 'Y',
-                  confirmYN: 'Y',
-                  payeeList: [
+              },
+            },
+            b: {
+              summary: '조회 성공',
+              value: {
+                statusCode: 200,
+                message: '복포 사용내역 조회 성공',
+                data: {
+                  welfareStats: {
+                    year: '2024',
+                    halfYear: 'H2',
+                    welfareBudget: 190000,
+                    welfareExpense: 1005000,
+                    welfareBalance: -815000,
+                    userName: '이승현',
+                  },
+                  welfares: [
                     {
-                      userIdx: 2,
-                      userName: '김현민',
-                      amount: 6000,
+                      welfareIdx: 55,
+                      userIdx: 1,
+                      targetDay: '2024-11-11',
+                      content: '마린커피',
+                      amount: 2500,
+                      payerName: '이승현',
+                      selfWrittenYN: 'Y',
+                      confirmYN: 'Y',
+                      payeeList: [],
                     },
                     {
-                      userIdx: 3,
-                      userName: '운용',
-                      amount: null,
+                      welfareIdx: 52,
+                      userIdx: 1,
+                      targetDay: '2024-11-05',
+                      content: '마린커피',
+                      amount: 2500,
+                      payerName: '이승현',
+                      selfWrittenYN: 'Y',
+                      confirmYN: 'Y',
+                      payeeList: [
+                        {
+                          userIdx: 2,
+                          userName: '김현민',
+                          amount: 6000,
+                        },
+                        {
+                          userIdx: 3,
+                          userName: '운용',
+                          amount: null,
+                        },
+                      ],
                     },
                   ],
                 },
-              ],
+              },
             },
           },
         },
