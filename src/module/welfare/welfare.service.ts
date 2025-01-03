@@ -39,7 +39,7 @@ export class WelfareService {
     const yearToNum: number = Number(year);
     const monthToNum: number = Number(month);
 
-    const statsCnt: number = await this.welfareRepository.getWelfareMonthStatsCnt(userIdx, year, month);
+    const statsCnt: number = await this.welfareRepository.getWelfareMonthStatsCnt(userIdx, year, monthToNum);
     if (statsCnt < 1) {
       throw new BadRequestException('아직 복포를 작성할 수 없습니다.');
     }
@@ -216,7 +216,11 @@ export class WelfareService {
     const nowYear: number = nowDate.getFullYear();
     const nowMonth: number = nowDate.getMonth() + 1;
     const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
-    const welfareStats: WelfareStats = await this.welfareRepository.getWelfareStats(nowYear, halfYear, userIdx);
+
+    let welfareStats: WelfareStats | null = await this.welfareRepository.getWelfareStats(nowYear, halfYear, userIdx);
+    if (!welfareStats) {
+      welfareStats = {} as WelfareStats;
+    }
 
     const result: WelfareResult = {
       welfareStats,

@@ -451,12 +451,13 @@ export class ActivityRepository {
       .execute();
   }
 
-  async getActivityMonthStatsCnt(userIdx: number, year: string, month: string): Promise<number> {
+  async getActivityMonthStatsCnt(userIdx: number, year: string, month: number): Promise<number> {
+    const refinedMonth: string = month.toString();
     const statsCnt: number = await this.activityMonthStatsModel
       .createQueryBuilder('activityMonthStatsEntity')
       .where('activityMonthStatsEntity.userIdx = :userIdx', { userIdx })
       .andWhere('activityMonthStatsEntity.year = :year', { year })
-      .andWhere('activityMonthStatsEntity.month = :month', { month })
+      .andWhere('activityMonthStatsEntity.month = :month', { month: refinedMonth })
       .getCount();
 
     return statsCnt;

@@ -7,6 +7,7 @@ import { UserModule } from '../src/module/user/user.module';
 import { DATABASE_CONFIG_TEST } from '../src/config/database.config';
 import { JwtService } from '@nestjs/jwt';
 import { INestApplication } from '@nestjs/common';
+import { WelfareModule } from '../src/module/welfare/welfare.module';
 
 export const createTestApp = async (
   modules: any[],
@@ -57,6 +58,14 @@ export const createTestAppWithMeal = async (): Promise<{
   adminAccessToken: string;
 }> => {
   return createTestApp([MealModule]);
+};
+
+export const createTestAppWithWelfare = async (): Promise<{
+  app: INestApplication;
+  userAccessToken: string;
+  adminAccessToken: string;
+}> => {
+  return createTestApp([WelfareModule]);
 };
 
 export const closeTestApp = async (app: INestApplication): Promise<void> => {

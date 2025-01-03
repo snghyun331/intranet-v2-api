@@ -100,7 +100,6 @@ describe('UserMealController (e2e)', () => {
       const meals: any = response.body.data.meals;
       expect(meals).toBeDefined();
       expect(Array.isArray(meals)).toBe(true);
-      expect(meals.length).toBeGreaterThanOrEqual(0);
 
       if (meals.length > 0) {
         meals.forEach((meal: any) => {
