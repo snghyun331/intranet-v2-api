@@ -23,7 +23,10 @@ export const ADMIN_NOTICES: SwaggerMethod = {
     API_CREATED_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          example: {
+            statusCode: 201,
+            message: 'success',
+          },
         },
       },
     },

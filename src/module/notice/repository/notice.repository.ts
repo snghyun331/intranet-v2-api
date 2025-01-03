@@ -13,7 +13,7 @@ export class NoticeRepostiory {
       .createQueryBuilder()
       .insert()
       .into(NoticeEntity)
-      .values({ creatorName: adminName, ...noticeInfo })
+      .values({ creatorName: adminName, lastEditorName: adminName, ...noticeInfo })
       .execute();
   }
 }
