@@ -44,7 +44,7 @@ export class ActivityService {
     const yearToNum: number = Number(year);
     const monthToNum: number = Number(month);
 
-    const statsCnt: number = await this.activityRepository.getActivityMonthStatsCnt(userIdx, year, month);
+    const statsCnt: number = await this.activityRepository.getActivityMonthStatsCnt(userIdx, year, monthToNum);
     if (statsCnt < 1) {
       throw new BadRequestException('아직 활동비를 작성할 수 없습니다.');
     }

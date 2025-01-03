@@ -591,12 +591,13 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getWelfareMonthStatsCnt(userIdx: number, year: string, month: string): Promise<number> {
+  async getWelfareMonthStatsCnt(userIdx: number, year: string, month: number): Promise<number> {
+    const refinedMonth: string = month.toString();
     const statsCnt: number = await this.welfareMonthStatsModel
       .createQueryBuilder('welfareMonthStatsEntity')
       .where('welfareMonthStatsEntity.userIdx = :userIdx', { userIdx })
       .andWhere('welfareMonthStatsEntity.year = :year', { year })
-      .andWhere('welfareMonthStatsEntity.month = :month', { month })
+      .andWhere('welfareMonthStatsEntity.month = :month', { month: refinedMonth })
       .getCount();
 
     return statsCnt;

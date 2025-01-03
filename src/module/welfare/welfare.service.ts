@@ -39,7 +39,7 @@ export class WelfareService {
     const yearToNum: number = Number(year);
     const monthToNum: number = Number(month);
 
-    const statsCnt: number = await this.welfareRepository.getWelfareMonthStatsCnt(userIdx, year, month);
+    const statsCnt: number = await this.welfareRepository.getWelfareMonthStatsCnt(userIdx, year, monthToNum);
     if (statsCnt < 1) {
       throw new BadRequestException('아직 복포를 작성할 수 없습니다.');
     }
