@@ -3,7 +3,7 @@ import { EntityManager, InsertResult, Repository, SelectQueryBuilder } from 'typ
 import { CreateNoticeDto } from '../dto/createNotice.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoticeEntity } from '../../../entity/notice/notice.entity';
-import { NoticeInfo } from '../interface/notice.dto';
+import { NoticeDetailInfo, NoticeInfo } from '../interface/notice.interface';
 import { NoticeAdminResult } from '../interface/result.interface';
 
 @Injectable()
@@ -40,5 +40,33 @@ export class NoticeRepostiory {
     const result: NoticeInfo[] = await query.getRawMany();
 
     return { totalPage, total, notices: result };
+  }
+
+  async getNoticeByIdx(noticeIdx: number): Promise<NoticeDetailInfo> {
+    const result: NoticeDetailInfo = await this.noticeModel
+      .createQueryBuilder('noticeEntity')
+      .select([
+        'noticeEntity.noticeIdx AS noticeIdx',
+        'noticeEntity.title AS title',
+        'noticeEntity.content AS content',
+        'noticeEntity.creatorName AS creatorName',
+        'noticeEntity.lastEditorName AS lastEditorName',
+        'noticeEntity.imageUrl AS imageUrl',
+        'noticeEntity.createdAt AS createdAt',
+        'noticeEntity.updatedAt AS updatedAt',
+      ])
+      .where('noticeEntity.noticeIdx = :noticeIdx', { noticeIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async getNoticeCnt(noticeIdx: number): Promise<number> {
+    const noticeCnt: number = await this.noticeModel
+      .createQueryBuilder('noticeEntity')
+      .where('noticeEntity.noticeIdx = :noticeIdx', { noticeIdx })
+      .getCount();
+
+    return noticeCnt;
   }
 }

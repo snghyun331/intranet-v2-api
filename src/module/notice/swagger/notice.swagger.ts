@@ -59,3 +59,55 @@ export const ADMIN_NOTICES: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_NOTICES_DETAIL: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 공지사항 상세 조회 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'noticeIdx',
+      description: '공지사항IDX',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              noticeIdx: 2,
+              title: '제목 90자 이내',
+              content: '내용 글자 수 제한 없음',
+              creatorName: '이승현',
+              lastEditorName: '이승현',
+              imageUrl: 'https://acg-benefit.....',
+              createdAt: '2025-01-06T06:41:40.000Z',
+              updatedAt: '2025-01-06T06:41:40.000Z',
+            },
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 X',
+              value: {
+                message: '존재하지 않거나 삭제된 공지사항 입니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2025. 1. 6. 오후 4:54:04',
+                path: '/admin/notices/3',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};

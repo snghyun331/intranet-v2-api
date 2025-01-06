@@ -1,6 +1,15 @@
-import { Body, Controller, Get, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ADMIN_NOTICES } from './swagger/notice.swagger';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ADMIN_NOTICES, ADMIN_NOTICES_DETAIL } from './swagger/notice.swagger';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { NoticeService } from './notice.service';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -15,6 +24,7 @@ import { CurrentAdmin } from '../../common/decorator/currentAdmin.decorator';
 import { AdminPayload } from '../../common/interface/payload.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { NoticeAdminResult } from './interface/result.interface';
+import { NoticeDetailInfo } from './interface/notice.interface';
 
 @ApiTags('어드민')
 @Controller('admin/notices')
@@ -49,6 +59,22 @@ export class NoticeController {
   @Get()
   async getNoticeList(@Query() pageNoInfo: PageNoDto): Promise<ResponseInterface> {
     const data: NoticeAdminResult = await this.noticeService.getNoticeList(pageNoInfo);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_NOTICES_DETAIL.GET.API_OPERATION)
+  @ApiParam(ADMIN_NOTICES_DETAIL.GET.API_PARAM1)
+  @ApiOkResponse(ADMIN_NOTICES_DETAIL.GET.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_NOTICES_DETAIL.GET.API_BAD_REQUEST_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get(':noticeIdx')
+  async getNoticeDetail(@Param('noticeIdx', ParseIntPipe) noticeIdx: number): Promise<ResponseInterface> {
+    const data: NoticeDetailInfo = await this.noticeService.getNoticeDetail(noticeIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
