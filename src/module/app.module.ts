@@ -17,7 +17,7 @@ import { AdminModule } from './admin/admin.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { REDIS_CONFIG } from '../config/redis.config';
 import { PlaygroundModule } from './playground/playground.module';
-import { DownloadModule } from './download/download.module';
+import { FileModule } from './file/file.module';
 import { NoticeModule } from './notice/notice.module';
 import { AwsModule } from './aws/aws.module';
 
@@ -35,7 +35,7 @@ import { AwsModule } from './aws/aws.module';
     QnaModule,
     NoticeModule,
     PlaygroundModule,
-    DownloadModule,
+    FileModule,
     UserModule,
     AdminModule,
     AwsModule,

@@ -42,6 +42,10 @@ jobs:
             echo "AUTH_KEY_AES=${{ secrets.AUTH_KEY_AES }}" >> .env            
             echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env            
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env            
-            echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .env            
+            echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .env
+            echo "S3_ACCESS_KEY_ID=${{ secrets.S3_ACCESS_KEY_ID }}" >> .env
+            echo "S3_SECRET_ACCESS_KEY=${{ secrets.S3_SECRET_ACCESS_KEY }}" >> .env
+            echo "S3_REGION=${{ secrets.S3_REGION }}" >> .env            
+            echo "S3_BUCKET_NAME_RECORD=${{ secrets.S3_BUCKET_NAME }}" >> .env            
             echo "############# RUN SCRIPT #############"
             sh script.sh

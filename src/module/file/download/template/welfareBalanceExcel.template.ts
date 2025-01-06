@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx-js-style';
-import { ClearStatusEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum } from '../../../../common/constant/enum';
 
-export const mealStatsExcelAdminTemplate = (mealStatsList) => {
+export const welfareStatsExcelAdminTemplate = (welfareStatsList: any) => {
   /* 셀 스타일 */
   // 카테고리-텍스트 style
   const category_text_style = {
@@ -46,13 +46,11 @@ export const mealStatsExcelAdminTemplate = (mealStatsList) => {
     },
     { v: '직급', t: 's', s: category_text_style },
     { v: '성명', t: 's', s: category_text_style },
-    { v: '사용가능금액(중식)', t: 's', s: category_text_style },
-    { v: '사용금액', t: 's', s: category_text_style },
-    { v: '', t: 's', s: category_text_style },
-    { v: '', t: 's', s: category_text_style },
+    { v: '총 금액', t: 's', s: category_text_style },
+    { v: '사용 금액', t: 's', s: category_text_style },
     { v: '잔액', t: 's', s: category_text_style },
     { v: '정산여부', t: 's', s: category_text_style },
-    { v: '총 정산금액', t: 's', s: category_text_style },
+    { v: '정산금액', t: 's', s: category_text_style },
     {
       v: '비고',
       t: 's',
@@ -70,21 +68,7 @@ export const mealStatsExcelAdminTemplate = (mealStatsList) => {
     },
   ];
 
-  const row2 = [
-    { v: '', t: 's', s: category_text_style },
-    { v: '', t: 's', s: category_text_style },
-    { v: '', t: 's', s: category_text_style },
-    { v: '', t: 's', s: category_text_style },
-    { v: '중식', t: 's', s: category_text_style },
-    { v: '석식', t: 's', s: category_text_style },
-    { v: '조식', t: 's', s: category_text_style },
-    { v: '', t: 's', s: category_text_style },
-    { v: '', t: 's', s: category_text_style },
-    { v: '', t: 's', s: category_text_style },
-    { v: '', t: 's', s: category_text_style },
-  ];
-
-  const dataRow = mealStatsList.map((mealStats, idx) => {
+  const dataRow = welfareStatsList.map((welfareStats, idx) => {
     return [
       {
         v: `${idx + 1}`,
@@ -101,52 +85,42 @@ export const mealStatsExcelAdminTemplate = (mealStatsList) => {
         },
       },
       {
-        v: `${mealStats.gradeName === null ? '-' : mealStats.gradeName}`,
+        v: `${welfareStats.gradeName === null ? '-' : welfareStats.gradeName}`,
         t: 's',
         s: content_text_style,
       },
       {
-        v: `${mealStats.userName === null ? '-' : mealStats.userName}`,
+        v: `${welfareStats.userName === null ? '-' : welfareStats.userName}`,
         t: 's',
         s: content_text_style,
       },
       {
-        v: `${mealStats.mealBudget === null ? '-' : mealStats.mealBudget}`,
+        v: `${welfareStats.welfareBudget === null ? '-' : welfareStats.welfareBudget}`,
         t: 's',
         s: content_text_style,
       },
       {
-        v: `${mealStats.mealExpense === null ? '-' : mealStats.mealExpense}`,
+        v: `${welfareStats.welfareExpense === null ? '-' : welfareStats.welfareExpense}`,
         t: 's',
         s: content_text_style,
       },
       {
-        v: `${mealStats.dinnerExpense === null ? '-' : mealStats.dinnerExpense}`,
+        v: `${welfareStats.welfareBalance === null ? '-' : welfareStats.welfareBalance}`,
         t: 's',
         s: content_text_style,
       },
       {
-        v: `${mealStats.breakfastExpense === null ? '-' : mealStats.breakfastExpense}`,
+        v: `${welfareStats.clearStatus === null ? '-' : welfareStats.clearStatus === ClearStatusEnum.NOT_YET ? '미정산' : '정산완료'}`,
         t: 's',
         s: content_text_style,
       },
       {
-        v: `${mealStats.mealBalance === null ? '-' : mealStats.mealBalance}`,
+        v: `${welfareStats.totalOverpay === null ? '-' : welfareStats.totalOverpay}`,
         t: 's',
         s: content_text_style,
       },
       {
-        v: `${mealStats.clearStatus === null ? '-' : mealStats.clearStatus === ClearStatusEnum.NOT_YET ? '미정산' : '정산완료'}`,
-        t: 's',
-        s: content_text_style,
-      },
-      {
-        v: `${mealStats.totalOverpay === null ? '-' : mealStats.totalOverpay}`,
-        t: 's',
-        s: content_text_style,
-      },
-      {
-        v: `${mealStats.note === null ? '-' : mealStats.note}`,
+        v: `${welfareStats.note === null ? '-' : welfareStats.note}`,
         t: 's',
         s: {
           font: { name: '나눔스퀘어', sz: 10 },
@@ -162,18 +136,16 @@ export const mealStatsExcelAdminTemplate = (mealStatsList) => {
     ];
   });
 
-  return [row1, row2, ...dataRow];
+  return [row1, ...dataRow];
 };
 
-export const mealStatsExcelAdminDecorate = (worksheet: XLSX.WorkSheet): XLSX.WorkSheet => {
+export const welfareStatsExcelAdminDecorate = (worksheet: XLSX.WorkSheet): XLSX.WorkSheet => {
   worksheet['!cols'] = [
     { wch: 9 }, // NO
     { wch: 15 }, // 직급
     { wch: 17 }, // 성명
-    { wch: 18 }, // 사용가능금액
+    { wch: 18 }, // 총 금액
     { wch: 18 }, // 사용금액(중식)
-    { wch: 18 }, // 사용금액(석식)
-    { wch: 18 }, // 사용금액(조식)
     { wch: 18 }, // 잔액
     { wch: 13 }, // 정산여부
     { wch: 18 }, // 정산금액
@@ -181,19 +153,7 @@ export const mealStatsExcelAdminDecorate = (worksheet: XLSX.WorkSheet): XLSX.Wor
   ];
   worksheet['!rows'] = [{ hpt: 23 }];
 
-  worksheet['!merges'] = [
-    { s: { c: 0, r: 0 }, e: { c: 0, r: 1 } },
-    { s: { c: 1, r: 0 }, e: { c: 1, r: 1 } },
-    { s: { c: 2, r: 0 }, e: { c: 2, r: 1 } },
-    { s: { c: 3, r: 0 }, e: { c: 3, r: 1 } },
-    { s: { c: 4, r: 0 }, e: { c: 6, r: 0 } },
-    { s: { c: 7, r: 0 }, e: { c: 7, r: 1 } },
-    { s: { c: 8, r: 0 }, e: { c: 8, r: 1 } },
-    { s: { c: 9, r: 0 }, e: { c: 9, r: 1 } },
-    { s: { c: 10, r: 0 }, e: { c: 10, r: 1 } },
-  ];
-
-  worksheet['!autofilter'] = { ref: 'A2:J2' };
+  worksheet['!autofilter'] = { ref: 'A1:I2' };
 
   return worksheet;
 };

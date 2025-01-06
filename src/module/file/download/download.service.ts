@@ -7,11 +7,11 @@ import { DownloadRepository } from './repository/download.repository';
 import { DownloadMealBalanceDto, DownloadMealDto } from './dto/downloadMeal.dto';
 import { mealStatsExcelAdminDecorate, mealStatsExcelAdminTemplate } from './template/mealBalanceExcel.template';
 import { DownloadWelfareBalanceDto } from './dto/downloadWelfare.dto';
-import { HalfYearEnum } from '../../common/constant/enum';
 import {
   welfareStatsExcelAdminDecorate,
   welfareStatsExcelAdminTemplate,
 } from './template/welfareBalanceExcel.template';
+import { HalfYearEnum } from '../../../common/constant/enum';
 
 @Injectable()
 export class DownloadService {
