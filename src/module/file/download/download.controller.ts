@@ -1,13 +1,13 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
-import { ResponseInterface } from '../../common/interface/response.interface';
+import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
+import { ResponseInterface } from '../../../common/interface/response.interface';
 import { DownloadService } from './download.service';
 import { DOWNLOAD_MEALS, DOWNLOAD_MEALS_BALANCES, DOWNLOAD_WELFARES_BALANCES } from './swagger/download.swagger';
 import { DownloadMealBalanceDto, DownloadMealDto } from './dto/downloadMeal.dto';
-import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
-import { AdminRole } from '../../common/decorator/role.decorator';
-import { AdminGradeEnum } from '../../common/constant/enum';
+import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
+import { AdminRole } from '../../../common/decorator/role.decorator';
+import { AdminGradeEnum } from '../../../common/constant/enum';
 import { DownloadWelfareBalanceDto } from './dto/downloadWelfare.dto';
 
 @Controller('download')
