@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager, InsertResult, Repository, SelectQueryBuilder } from 'typeorm';
+import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateNoticeDto } from '../dto/createNotice.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoticeEntity } from '../../../entity/notice/notice.entity';
 import { NoticeDetailInfo, NoticeInfo } from '../interface/notice.interface';
 import { NoticeAdminResult } from '../interface/result.interface';
+import { UpdateNoticeDto } from '../dto/updateNotice.dto';
 
 @Injectable()
 export class NoticeRepostiory {
@@ -68,5 +69,19 @@ export class NoticeRepostiory {
       .getCount();
 
     return noticeCnt;
+  }
+
+  async updateNotice(
+    adminName: string,
+    noticeIdx: number,
+    noticeInfo: UpdateNoticeDto,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(NoticeEntity)
+      .set({ lastEditorName: adminName, ...noticeInfo })
+      .where('noticeIdx = :noticeIdx', { noticeIdx })
+      .execute();
   }
 }

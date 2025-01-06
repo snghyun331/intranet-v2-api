@@ -1,7 +1,61 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateNoticeDto } from '../dto/createNotice.dto';
+import { UpdateNoticeDto } from '../dto/updateNotice.dto';
 
 export const ADMIN_NOTICES: SwaggerMethod = {
+  PUT: {
+    API_OPERATION: {
+      summary: '어드민 공지사항 수정 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'noticeIdx',
+      description: '공지사항IDX',
+      required: true,
+    },
+    API_BODY: {
+      type: UpdateNoticeDto,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            title: '제목 10자 이내',
+            content: '내용 글자 수 제한 없음',
+            imageUrl: `https://acg-benefit.....`,
+          },
+        },
+      },
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_BAD_REQUEST_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '존재하지 X',
+              value: {
+                message: '존재하지 않거나 삭제된 공지사항 입니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                timeStamp: '2025. 1. 6. 오후 4:54:04',
+                path: '/admin/notices/3',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   GET: {
     API_OPERATION: {
       summary: '어드민 공지사항 목록 조회 API',

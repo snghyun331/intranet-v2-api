@@ -5,6 +5,7 @@ import { EntityManager } from 'typeorm';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { NoticeAdminResult } from './interface/result.interface';
 import { NoticeDetailInfo } from './interface/notice.interface';
+import { UpdateNoticeDto } from './dto/updateNotice.dto';
 
 @Injectable()
 export class NoticeService {
@@ -31,5 +32,20 @@ export class NoticeService {
     const noticeDetail: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
 
     return noticeDetail;
+  }
+
+  async updateNotice(
+    adminName: string,
+    noticeIdx: number,
+    noticeInfo: UpdateNoticeDto,
+    manager: EntityManager,
+  ): Promise<void> {
+    const noticeCnt: number = await this.noticeRepository.getNoticeCnt(noticeIdx);
+    if (noticeCnt < 1) {
+      throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
+    }
+    await this.noticeRepository.updateNotice(adminName, noticeIdx, noticeInfo, manager);
+
+    return;
   }
 }
