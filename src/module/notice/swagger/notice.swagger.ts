@@ -2,6 +2,33 @@ import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateNoticeDto } from '../dto/createNotice.dto';
 
 export const ADMIN_NOTICES: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 공지사항 목록 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              totalPage: 1,
+              total: 1,
+              notices: [
+                {
+                  noticeIdx: 2,
+                  title: '제목 90자 이내',
+                  creatorName: '이승현',
+                  createdAt: '2025-01-06T06:41:40.000Z',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
   POST: {
     API_OPERATION: {
       summary: '공지사항 등록',
