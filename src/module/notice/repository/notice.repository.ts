@@ -4,7 +4,7 @@ import { CreateNoticeDto } from '../dto/createNotice.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoticeEntity } from '../../../entity/notice/notice.entity';
 import { NoticeDetailInfo, NoticeInfo } from '../interface/notice.interface';
-import { NoticeAdminResult } from '../interface/result.interface';
+import { NoticeResult } from '../interface/result.interface';
 import { UpdateNoticeDto } from '../dto/updateNotice.dto';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class NoticeRepostiory {
       .execute();
   }
 
-  async getNoticeList(pageNo: number, perPage: number): Promise<NoticeAdminResult> {
+  async getNoticeList(pageNo: number, perPage: number): Promise<NoticeResult> {
     const query: SelectQueryBuilder<NoticeEntity> = this.noticeModel
       .createQueryBuilder('noticeEntity')
       .select([

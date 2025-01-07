@@ -39,9 +39,7 @@ export class AwsService {
       Bucket: bucketName,
       Key: filePath,
     });
-    console.log(filePath);
-    const response = await this.s3Client.send(command);
-    console.log(response);
+    await this.s3Client.send(command);
 
     return;
   }
