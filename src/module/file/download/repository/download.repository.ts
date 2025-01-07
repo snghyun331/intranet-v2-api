@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../../entity/user/user.entity';
+import { UserEntity } from '../../../../entity/user/user.entity';
 import { Repository } from 'typeorm';
-import { MealEntity } from '../../../entity/meal/meal.entity';
-import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
-import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
-import { GradeEntity } from '../../../entity/user/grade.entity';
-import { HalfYearEnum } from '../../../common/constant/enum';
-import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
+import { MealEntity } from '../../../../entity/meal/meal.entity';
+import { getStartAndEndDateByMonth } from '../../../../common/utils/utility';
+import { MealStatsEntity } from '../../../../entity/meal/mealStats.entity';
+import { GradeEntity } from '../../../../entity/user/grade.entity';
+import { HalfYearEnum } from '../../../../common/constant/enum';
+import { WelfareStatsEntity } from '../../../../entity/welfare/welfareStats.entity';
 
 @Injectable()
 export class DownloadRepository {

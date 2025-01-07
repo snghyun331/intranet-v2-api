@@ -67,6 +67,10 @@ export interface MealStatsAdminInfo {
   mealOverpay: number;
   dinnerOverpay: number;
   totalOverpay: number;
+  workdays: number;
+  holidays: number;
+  timeoffDays: number;
+  holidayWorkdays: number;
   note: string;
   clearStatus: ClearStatusEnum;
 }

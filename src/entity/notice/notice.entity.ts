@@ -18,6 +18,6 @@ export class NoticeEntity extends CommonEntity {
   @Column({ name: 'last_editor_name', comment: '마지막 수정자 이름', nullable: false })
   lastEditorName: string;
 
-  @Column({ name: 'image_url', comment: '첨부파일 URL', nullable: false })
+  @Column({ name: 'image_url', comment: '첨부파일 URL', nullable: true })
   imageUrl: string;
 }
