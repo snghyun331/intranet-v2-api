@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class AwsService {
@@ -32,5 +32,17 @@ export class AwsService {
     const s3Region: string = this.configService.get<string>('S3_REGION');
 
     return `https://${bucketName}.s3.${s3Region}.amazonaws.com/${filePath}`;
+  }
+
+  async deleteS3Image(bucketName: string, filePath: string): Promise<void> {
+    const command: DeleteObjectCommand = new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: filePath,
+    });
+    console.log(filePath);
+    const response = await this.s3Client.send(command);
+    console.log(response);
+
+    return;
   }
 }

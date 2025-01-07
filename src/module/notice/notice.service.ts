@@ -6,10 +6,16 @@ import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { NoticeAdminResult } from './interface/result.interface';
 import { NoticeDetailInfo } from './interface/notice.interface';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
+import { ConfigService } from '@nestjs/config';
+import { AwsService } from '../aws/aws.service';
 
 @Injectable()
 export class NoticeService {
-  constructor(private readonly noticeRepository: NoticeRepostiory) {}
+  constructor(
+    private readonly noticeRepository: NoticeRepostiory,
+    private readonly awsService: AwsService,
+    public readonly configService: ConfigService,
+  ) {}
 
   async createNotice(noticeInfo: CreateNoticeDto, adminName: string, manager: EntityManager): Promise<void> {
     console.log(adminName);
@@ -45,6 +51,22 @@ export class NoticeService {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
     await this.noticeRepository.updateNotice(adminName, noticeIdx, noticeInfo, manager);
+
+    return;
+  }
+
+  async deleteNotice(noticeIdx: number, manager: EntityManager): Promise<void> {
+    const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    if (!noticeInfo) {
+      throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
+    }
+    /* DB 삭제 */
+    await this.noticeRepository.deleteNotice(noticeIdx, manager);
+    /* S3 삭제 */
+    if (noticeInfo.imageUrl) {
+      const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+      await this.awsService.deleteS3Image(bucketName, noticeInfo.imageUrl);
+    }
 
     return;
   }

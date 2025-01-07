@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -97,6 +98,7 @@ export class NoticeController {
   @ApiParam(ADMIN_NOTICES.PUT.API_PARAM1)
   @ApiBody(ADMIN_NOTICES.PUT.API_BODY)
   @ApiOkResponse(ADMIN_NOTICES.PUT.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_NOTICES.PUT.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
@@ -109,6 +111,26 @@ export class NoticeController {
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
     await this.noticeService.updateNotice(adminName, noticeIdx, noticeInfo, manager);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_NOTICES.DELETE.API_OPERATION)
+  @ApiParam(ADMIN_NOTICES.DELETE.API_PARAM1)
+  @ApiOkResponse(ADMIN_NOTICES.DELETE.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_NOTICES.DELETE.API_BAD_REQUEST_RESPONSE)
+  @Delete(':noticeIdx')
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @UseInterceptors(TransactionInterceptor)
+  async deleteNotice(
+    @Param('noticeIdx', ParseIntPipe) noticeIdx: number,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.noticeService.deleteNotice(noticeIdx, manager);
 
     const response: ResponseInterface = { message: 'success' };
 

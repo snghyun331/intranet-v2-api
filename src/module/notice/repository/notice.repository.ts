@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateNoticeDto } from '../dto/createNotice.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoticeEntity } from '../../../entity/notice/notice.entity';
@@ -81,6 +81,15 @@ export class NoticeRepostiory {
       .createQueryBuilder()
       .update(NoticeEntity)
       .set({ lastEditorName: adminName, ...noticeInfo })
+      .where('noticeIdx = :noticeIdx', { noticeIdx })
+      .execute();
+  }
+
+  async deleteNotice(noticeIdx: number, manager: EntityManager): Promise<DeleteResult> {
+    return await manager
+      .createQueryBuilder()
+      .delete()
+      .from(NoticeEntity)
       .where('noticeIdx = :noticeIdx', { noticeIdx })
       .execute();
   }
