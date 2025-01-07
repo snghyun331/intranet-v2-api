@@ -21,7 +21,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_NOTICES, ADMIN_NOTICES_DETAIL, USERS_NOTICES } from './swagger/notice.swagger';
+import { ADMIN_NOTICES, ADMIN_NOTICES_DETAIL, USERS_NOTICES, USERS_NOTICES_DETAIL } from './swagger/notice.swagger';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { NoticeService } from './notice.service';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -54,6 +54,22 @@ export class UserNoticeController {
   @Get()
   async getNoticeList(@Query() pageNoInfo: PageNoDto): Promise<ResponseInterface> {
     const data: NoticeResult = await this.noticeService.getNoticeList(pageNoInfo);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_NOTICES_DETAIL.GET.API_OPERATION)
+  @ApiParam(USERS_NOTICES_DETAIL.GET.API_PARAM1)
+  @ApiOkResponse(USERS_NOTICES_DETAIL.GET.API_OK_RESPONSE)
+  @ApiBadRequestResponse(USERS_NOTICES_DETAIL.GET.API_BAD_REQUEST_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get()
+  async getNoticeDetail(@Param('noticeIdx', ParseIntPipe) noticeIdx: number): Promise<ResponseInterface> {
+    const data: NoticeDetailInfo = await this.noticeService.getNoticeDetail(noticeIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
