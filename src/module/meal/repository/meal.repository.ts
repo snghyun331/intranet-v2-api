@@ -580,6 +580,10 @@ export class MealRepository {
         'mealStatsEntity.dinnerOverpay AS dinnerOverpay',
         'CASE WHEN mealStatsEntity.mealBalance < 0 THEN mealStatsEntity.mealBalance ELSE 0 END AS mealOverpay',
         'mealStatsEntity.totalOverpay AS totalOverpay',
+        'mealStatsEntity.workdays AS workdays',
+        'mealStatsEntity.holidays AS holidays',
+        'mealStatsEntity.timeoffDays AS timeoffDays',
+        'mealStatsEntity.holidayWorkdays AS holidayWorkdays',
         'mealStatsEntity.note AS note',
         'mealStatsEntity.clearStatus AS clearStatus',
       ])

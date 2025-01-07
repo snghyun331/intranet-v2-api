@@ -54,7 +54,6 @@ export const getStartAndEndDateByMonths = (year: number, monthArray: string[]) =
   // 배열로 입력된 월 기준으로 시작일과 종료일 계산
   const minMonth: number = Math.min(...monthArray.map(Number));
   const maxMonth: number = Math.max(...monthArray.map(Number));
-  console.log(minMonth);
 
   const firstDayOfMonth: moment.Moment = moment({ year: year, month: minMonth - 1 })
     .startOf('month')

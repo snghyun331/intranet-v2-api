@@ -231,13 +231,11 @@ export class WelfareService {
   }
 
   async createWelfareBudget(welfareBudgetInfo: CreateWelfareBudgetDto, manager: EntityManager) {
-    const date: Date = new Date();
-    const year: number = date.getFullYear();
-    const yearToString: string = year.toString();
+    const year: string = welfareBudgetInfo.year;
     const halfYear: HalfYearEnum = welfareBudgetInfo.period;
     const welfareBudget: number = welfareBudgetInfo.welfareBudget;
     const userIdxList: number[] = await this.welfareRepository.getAllUserIdxExceptCEO();
-    const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCount(welfareBudgetInfo, yearToString);
+    const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCount(welfareBudgetInfo, year);
 
     /** 기록이 없다면 통계 create (기록이 있다면 통계 업데이트) **/
     if (welfareStatsCnt < 1) {
@@ -248,7 +246,7 @@ export class WelfareService {
           for (const userIdx of userIdxList) {
             const newWelfareMonthStatsInfo: NewWelfareMonthStats = {
               userIdx,
-              year: yearToString,
+              year,
               month: i.toString(),
               welfareMonthExpense: 0,
             };
@@ -261,7 +259,7 @@ export class WelfareService {
           for (const userIdx of userIdxList) {
             const newWelfareMonthStatsInfo: NewWelfareMonthStats = {
               userIdx,
-              year: yearToString,
+              year,
               month: i.toString(),
               welfareMonthExpense: 0,
             };
@@ -274,7 +272,7 @@ export class WelfareService {
         userIdxList.map(async (userIdx) => {
           const newWelfareStatsInfo: NewWelfareStats = {
             userIdx,
-            year: yearToString,
+            year,
             halfYear,
             welfareBudget,
           };
@@ -284,7 +282,7 @@ export class WelfareService {
     } else {
       // update
       const newWelfareStatsInfo: NewWelfareStats = {
-        year: yearToString,
+        year,
         halfYear,
         welfareBudget,
       };

@@ -764,6 +764,7 @@ export const ADMIN_WELFARES_BUDGET: SwaggerMethod = {
         a: {
           summary: '상반기',
           value: {
+            year: '2024',
             period: 'H1',
             welfareBudget: 210000,
           },
@@ -771,6 +772,7 @@ export const ADMIN_WELFARES_BUDGET: SwaggerMethod = {
         b: {
           summary: '하반기',
           value: {
+            year: '2024',
             period: 'H2',
             welfareBudget: 200000,
           },

@@ -1,4 +1,4 @@
-import { HalfYearEnum } from '../../../common/constant/enum';
+import { HalfYearEnum } from '../../../../common/constant/enum';
 
 export class DownloadWelfareBalanceDto {
   year: string;
