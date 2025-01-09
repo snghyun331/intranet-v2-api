@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
@@ -40,6 +42,8 @@ import { NoticeDetailInfo } from './interface/notice.interface';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { noticeImageOptions } from '../file/uploadMulter.options';
 
 @ApiTags('사용자')
 @Controller('users/notices')
@@ -67,7 +71,7 @@ export class UserNoticeController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @Get()
+  @Get(':noticeIdx')
   async getNoticeDetail(@Param('noticeIdx', ParseIntPipe) noticeIdx: number): Promise<ResponseInterface> {
     const data: NoticeDetailInfo = await this.noticeService.getNoticeDetail(noticeIdx);
 
@@ -83,19 +87,22 @@ export class AdminNoticeController {
   constructor(private readonly noticeService: NoticeService) {}
 
   @ApiOperation(ADMIN_NOTICES.POST.API_OPERATION)
-  @ApiBody(ADMIN_NOTICES.POST.API_BODY)
+  @ApiConsumes('multipart/form-data')
   @ApiCreatedResponse(ADMIN_NOTICES.POST.API_CREATED_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @UseInterceptors(TransactionInterceptor, FileInterceptor('noticeImage', noticeImageOptions))
   @Post()
   async createNotice(
     @Body() noticeInfo: CreateNoticeDto,
     @CurrentAdmin() { adminName }: AdminPayload,
     @TransactionManager() manager: EntityManager,
+    @UploadedFile() noticeImage: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    await this.noticeService.createNotice(noticeInfo, adminName, manager);
+    console.log(noticeImage);
+    console.log(noticeInfo);
+    await this.noticeService.createNotice(noticeInfo, adminName, manager, noticeImage);
 
     const response: ResponseInterface = { message: 'success' };
 

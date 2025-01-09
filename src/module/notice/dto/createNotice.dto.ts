@@ -13,8 +13,10 @@ export class CreateNoticeDto {
   @IsString()
   content: string;
 
-  @ApiProperty({ type: String, description: '첨부 이미지 URL', required: false })
+  @ApiProperty({ type: String, format: 'binary', description: '첨부 이미지 파일', required: false })
   @IsOptional()
-  @IsString()
+  noticeImage?: any;
+
+  @IsOptional()
   imageUrl?: string;
 }

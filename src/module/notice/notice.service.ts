@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { NoticeRepostiory } from './repository/notice.repository';
 import { CreateNoticeDto } from './dto/createNotice.dto';
@@ -17,8 +18,21 @@ export class NoticeService {
     public readonly configService: ConfigService,
   ) {}
 
-  async createNotice(noticeInfo: CreateNoticeDto, adminName: string, manager: EntityManager): Promise<void> {
-    console.log(adminName);
+  async createNotice(
+    noticeInfo: CreateNoticeDto,
+    adminName: string,
+    manager: EntityManager,
+    noticeImage?: Express.Multer.File,
+  ): Promise<void> {
+    if (noticeImage) {
+      const { buffer, mimetype, originalname } = noticeImage;
+      const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+      const uploadS3FilePath: string = `NOTICE/${today}/${originalname}`;
+      const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+      const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, uploadS3FilePath, buffer, mimetype);
+      noticeInfo.imageUrl = imageUrl;
+    }
+
     await this.noticeRepository.createNotice(noticeInfo, adminName, manager);
 
     return;
