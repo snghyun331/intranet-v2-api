@@ -116,10 +116,17 @@ export class NoticeService {
     }
     /* DB 삭제 */
     await this.noticeRepository.deleteNotice(noticeIdx, manager);
+
     /* S3 삭제 */
     if (noticeInfo.imageUrl) {
+      const env: string = this.configService.get<string>('NODE_ENV');
+      const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
       const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
-      await this.awsService.deleteS3Image(bucketName, noticeInfo.imageUrl);
+      const s3FilePath: string = `${rootDir}/NOTICE/${noticeIdx}`;
+
+      const existingFileName: string = noticeInfo.imageUrl.split('/').pop();
+      const existingFilePath: string = `${s3FilePath}/${existingFileName}`;
+      await this.awsService.deleteS3Image(bucketName, existingFilePath);
     }
 
     return;
