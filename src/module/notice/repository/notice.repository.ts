@@ -11,12 +11,39 @@ import { UpdateNoticeDto } from '../dto/updateNotice.dto';
 export class NoticeRepostiory {
   constructor(@InjectRepository(NoticeEntity) private readonly noticeModel: Repository<NoticeEntity>) {}
 
-  async createNotice(noticeInfo: CreateNoticeDto, adminName: string, manager: EntityManager): Promise<InsertResult> {
-    return await manager
+  async createNotice(noticeInfo: CreateNoticeDto, adminName: string, manager: EntityManager): Promise<number> {
+    const result: InsertResult = await manager
       .createQueryBuilder()
       .insert()
       .into(NoticeEntity)
       .values({ creatorName: adminName, lastEditorName: adminName, ...noticeInfo })
+      .execute();
+
+    const noticeIdx: number = result.identifiers[0].noticeIdx;
+
+    return noticeIdx;
+  }
+
+  async updateNoticeImage(noticeIdx: number, imageUrl: string, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(NoticeEntity)
+      .set({ imageUrl })
+      .where('noticeIdx = :noticeIdx', { noticeIdx })
+      .execute();
+  }
+
+  async updateNotice(
+    adminName: string,
+    noticeIdx: number,
+    noticeInfo: UpdateNoticeDto,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(NoticeEntity)
+      .set({ lastEditorName: adminName, ...noticeInfo })
+      .where('noticeIdx = :noticeIdx', { noticeIdx })
       .execute();
   }
 
@@ -60,29 +87,6 @@ export class NoticeRepostiory {
       .getRawOne();
 
     return result;
-  }
-
-  async getNoticeCnt(noticeIdx: number): Promise<number> {
-    const noticeCnt: number = await this.noticeModel
-      .createQueryBuilder('noticeEntity')
-      .where('noticeEntity.noticeIdx = :noticeIdx', { noticeIdx })
-      .getCount();
-
-    return noticeCnt;
-  }
-
-  async updateNotice(
-    adminName: string,
-    noticeIdx: number,
-    noticeInfo: UpdateNoticeDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
-      .createQueryBuilder()
-      .update(NoticeEntity)
-      .set({ lastEditorName: adminName, ...noticeInfo })
-      .where('noticeIdx = :noticeIdx', { noticeIdx })
-      .execute();
   }
 
   async deleteNotice(noticeIdx: number, manager: EntityManager): Promise<DeleteResult> {
