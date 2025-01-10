@@ -1,3 +1,8 @@
+export enum NodeEnvEnum {
+  TEST = 'dev',
+  PROD = 'prod',
+}
+
 export enum GenderEnum {
   MAN = 'M',
   WOMAN = 'W',
