@@ -9,7 +9,7 @@ const swaggerCustomOptions: SwaggerCustomOptions = {
 };
 
 export function setupSwagger(app: INestApplication): void {
-  if (process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'local') {
+  if (process.env.NODE_ENV === 'dev') {
     const options: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
       .setTitle('ACG 식대/복포 관리 서비스 API Docs')
       .setDescription('ACG BENEFIT-MANAGEMENT API Swagger 문서')
