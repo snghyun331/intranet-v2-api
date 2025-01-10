@@ -86,9 +86,10 @@ export class AuthRepository {
         'gradeEntity.gradeName AS gradeName',
       ])
       .innerJoin(AdminGradeEntity, 'adminGradeEntity', 'adminGradeEntity.adminGradeIdx = adminEntity.adminGradeIdx')
-      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = adminEntity.hqIdx')
-      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = adminEntity.teamIdx')
-      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = adminEntity.gradeIdx')
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = adminEntity.userIdx')
+      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('adminEntity.id = :id', { id })
       .andWhere('adminEntity.adminAvail IS NULL')
       .getRawOne();
