@@ -15,7 +15,6 @@ import {
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
-  ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -98,10 +97,8 @@ export class AdminNoticeController {
     @Body() noticeInfo: CreateNoticeDto,
     @CurrentAdmin() { adminName }: AdminPayload,
     @TransactionManager() manager: EntityManager,
-    @UploadedFile() noticeImage: Express.Multer.File,
+    @UploadedFile() noticeImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    console.log(noticeImage);
-    console.log(noticeInfo);
     await this.noticeService.createNotice(noticeInfo, adminName, manager, noticeImage);
 
     const response: ResponseInterface = { message: 'success' };
@@ -140,22 +137,23 @@ export class AdminNoticeController {
   }
 
   @ApiOperation(ADMIN_NOTICES.PUT.API_OPERATION)
+  @ApiConsumes('multipart/form-data')
   @ApiParam(ADMIN_NOTICES.PUT.API_PARAM1)
-  @ApiBody(ADMIN_NOTICES.PUT.API_BODY)
   @ApiOkResponse(ADMIN_NOTICES.PUT.API_OK_RESPONSE)
   @ApiBadRequestResponse(ADMIN_NOTICES.PUT.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @UseInterceptors(TransactionInterceptor)
+  @UseInterceptors(TransactionInterceptor, FileInterceptor('noticeImage', noticeImageOptions))
   @Put(':noticeIdx')
   async updateNotice(
     @Param('noticeIdx', ParseIntPipe) noticeIdx: number,
     @Body() noticeInfo: UpdateNoticeDto,
     @CurrentAdmin() { adminName }: AdminPayload,
     @TransactionManager() manager: EntityManager,
+    @UploadedFile() noticeImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    await this.noticeService.updateNotice(adminName, noticeIdx, noticeInfo, manager);
+    await this.noticeService.updateNotice(adminName, noticeIdx, noticeInfo, manager, noticeImage);
 
     const response: ResponseInterface = { message: 'success' };
 

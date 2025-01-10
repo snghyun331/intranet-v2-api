@@ -62,15 +62,6 @@ export class NoticeRepostiory {
     return result;
   }
 
-  async getNoticeCnt(noticeIdx: number): Promise<number> {
-    const noticeCnt: number = await this.noticeModel
-      .createQueryBuilder('noticeEntity')
-      .where('noticeEntity.noticeIdx = :noticeIdx', { noticeIdx })
-      .getCount();
-
-    return noticeCnt;
-  }
-
   async updateNotice(
     adminName: string,
     noticeIdx: number,

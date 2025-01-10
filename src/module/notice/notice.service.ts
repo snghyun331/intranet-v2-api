@@ -45,8 +45,8 @@ export class NoticeService {
   }
 
   async getNoticeDetail(noticeIdx: number): Promise<NoticeDetailInfo> {
-    const noticeCnt: number = await this.noticeRepository.getNoticeCnt(noticeIdx);
-    if (noticeCnt < 1) {
+    const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
     const noticeDetail: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
@@ -57,14 +57,25 @@ export class NoticeService {
   async updateNotice(
     adminName: string,
     noticeIdx: number,
-    noticeInfo: UpdateNoticeDto,
+    noticeDto: UpdateNoticeDto,
     manager: EntityManager,
+    noticeImage?: Express.Multer.File,
   ): Promise<void> {
-    const noticeCnt: number = await this.noticeRepository.getNoticeCnt(noticeIdx);
-    if (noticeCnt < 1) {
+    const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
-    await this.noticeRepository.updateNotice(adminName, noticeIdx, noticeInfo, manager);
+
+    if (noticeImage) {
+      const { buffer, mimetype, originalname } = noticeImage;
+      const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+      const uploadS3FilePath: string = `NOTICE/${today}/${originalname}`;
+      const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+      const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, uploadS3FilePath, buffer, mimetype);
+      noticeDto.imageUrl = imageUrl;
+    }
+
+    await this.noticeRepository.updateNotice(adminName, noticeIdx, noticeDto, manager);
 
     return;
   }
