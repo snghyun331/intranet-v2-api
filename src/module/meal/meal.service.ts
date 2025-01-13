@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { MealRepository } from './repository/meal.repository';
 import { CreateMealDto, MealInputDto } from './dto/createMeal.dto';
-import { AttendanceEnum, MealTypeEnum, YNEnum } from '../../common/constant/enum';
+import { MealAttendanceEnum, MealTypeEnum, YNEnum } from '../../common/constant/enum';
 import { MealEntity } from '../../entity/meal/meal.entity';
 import { BasicMealData, DetailedMealData, MealStats, MealStatsAdminInfo } from './interface/meal.interface';
 import { EntityManager } from 'typeorm';
@@ -105,15 +105,18 @@ export class MealService {
     // 근무&휴일 (휴일근무)일 때 처리
     const monthHolidays: string[] = await this.mealRepository.getMonthHolidays(year, month);
     if (monthHolidays.includes(newMealInfo.targetDay)) {
-      const attendance: AttendanceEnum = newMealInfo.attendance;
-      if (attendance !== AttendanceEnum.WORKING) {
+      const attendance: MealAttendanceEnum = newMealInfo.attendance;
+      if (attendance !== MealAttendanceEnum.WORKING) {
         throw new BadRequestException('휴일에는 근무일 때만 등록할 수 있습니다.');
       }
       newMealInfo.holidayYN = YNEnum.YES;
     }
 
     // 식대 등록 예외처리(연차/휴무 & 재택근무)
-    if (newMealInfo.attendance === AttendanceEnum.REST || newMealInfo.attendance === AttendanceEnum.REMOTE_WORK) {
+    if (
+      newMealInfo.attendance === MealAttendanceEnum.REST ||
+      newMealInfo.attendance === MealAttendanceEnum.REMOTE_WORK
+    ) {
       if (
         this.isAnyFieldBlank(newMealInfo.breakfast) ||
         this.isAnyFieldBlank(newMealInfo.lunch) ||
@@ -123,7 +126,7 @@ export class MealService {
       }
     }
     // 식대 등록 예외처리(오후반차)
-    if (newMealInfo.attendance === AttendanceEnum.PM_HALF) {
+    if (newMealInfo.attendance === MealAttendanceEnum.PM_HALF) {
       if (
         this.isAnyFieldBlank(newMealInfo.breakfast) ||
         this.isAnyFieldBlank(newMealInfo.lunch) ||
@@ -133,7 +136,7 @@ export class MealService {
       }
     }
     // 식대 등록 예외처리(오전반차)
-    if (newMealInfo.attendance === AttendanceEnum.AM_HALF) {
+    if (newMealInfo.attendance === MealAttendanceEnum.AM_HALF) {
       if (this.isAnyFieldBlank(newMealInfo.lunch) || this.isAnyFieldBlank(newMealInfo.breakfast)) {
         throw new BadRequestException('오전 반차는 식대(조식, 중식) 지원이 불가합니다');
       }

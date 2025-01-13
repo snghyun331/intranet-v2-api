@@ -19,12 +19,18 @@ export enum MealTypeEnum {
   DINNER = 'dinner',
 }
 
-export enum AttendanceEnum {
+export enum MealAttendanceEnum {
   WORKING = '근무',
   REMOTE_WORK = '재택 근무',
   REST = '연차/휴무',
   AM_HALF = '오전 반차',
   PM_HALF = '오후 반차',
+}
+
+export enum IntranetAttendanceEnum {
+  NORMAL = '정상 출근',
+  SICK_LEAVE = '병가', // 병가
+  DAY_OFF = '휴무',
 }
 
 export enum UserGradeEnum {
@@ -84,4 +90,15 @@ export enum SortbyEnum {
 export enum AdminGradeEnum {
   HIGH_ADMIN = '상위 관리자',
   NORMAL_ADMIN = '일반 관리자',
+}
+
+export enum LateStatusEnum {
+  ON_TIME = '정상',
+  LATE = '지각',
+}
+
+export enum DeviceTypeEnum {
+  PC = 'PC',
+  MOBILE = 'MOBILE',
+  MAUNAL = 'MANUAL',
 }
