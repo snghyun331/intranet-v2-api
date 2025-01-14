@@ -38,8 +38,14 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'check_in_device_type', comment: '출근 기기', nullable: false })
   checkInDeviceType: string;
 
+  @Column({ name: 'check_in_ip_addr', comment: '출근 등록 IP', nullable: false })
+  checkInIpAddr: string;
+
   @Column({ name: 'check_out_device_type', comment: '퇴근 기기', nullable: true })
   checkOutDeviceType: string;
+
+  @Column({ name: 'check_out_ip_addr', comment: '퇴근 등록 IP', nullable: true })
+  checkOutIpAddr: string;
 
   @ManyToOne(() => UserEntity, (user) => user.commuteRelation, {
     onDelete: 'CASCADE',

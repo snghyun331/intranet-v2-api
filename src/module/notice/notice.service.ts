@@ -67,16 +67,6 @@ export class NoticeService {
     noticeImage?: Express.Multer.File,
   ): Promise<void> {
     delete noticeDto.noticeImage;
-    if (noticeDto.imageUrl === null || !noticeDto.imageUrl) {
-      noticeDto.imageUrl = null;
-    }
-    const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
-    if (!noticeInfo) {
-      throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
-    }
-
-    await this.noticeRepository.updateNotice(adminName, noticeIdx, noticeDto, manager);
-
     /*
      * 기존 이미지 삭제 및 새로운 이미지 추가 → imageUrl: null, noticeImage: any
      * 기존 이미지 없음 및 새로운 이미지 추가 → imageUrl: null, noticeImage: any
@@ -84,6 +74,20 @@ export class NoticeService {
      * 기존 이미지 유지 → imageUrl: string
      * 기존 이미지 없음(최종 이미지: 없음) → imageUrl: null
      */
+
+    // if (noticeDto.imageUrl === null || !noticeDto.imageUrl) {
+    //   noticeDto.imageUrl = null;
+    // }
+    const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    if (!noticeInfo) {
+      throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
+    }
+
+    if (noticeInfo.imageIdx && noticeDto.imageUrl === null) {
+      await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx, manager);
+    }
+
+    await this.noticeRepository.updateNotice(adminName, noticeIdx, noticeDto, manager);
 
     /* 새로운 사진으로 변경할 경우 */
     if (noticeImage) {
