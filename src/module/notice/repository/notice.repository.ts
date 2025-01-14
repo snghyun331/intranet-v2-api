@@ -53,13 +53,13 @@ export class NoticeRepostiory {
   async updateNotice(
     adminName: string,
     noticeIdx: number,
-    noticeInfo: UpdateNoticeDto,
+    { title, content }: UpdateNoticeDto,
     manager: EntityManager,
   ): Promise<UpdateResult> {
     return await manager
       .createQueryBuilder()
       .update(NoticeEntity)
-      .set({ lastEditorName: adminName, ...noticeInfo })
+      .set({ lastEditorName: adminName, title, content })
       .where('noticeIdx = :noticeIdx', { noticeIdx })
       .execute();
   }

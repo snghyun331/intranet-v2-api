@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Ip, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -37,11 +37,12 @@ export class UserCommuteController {
   @UserRole(UserGradeEnum.INTERN)
   @Post('check-in')
   async checkInWork(
+    @Ip() logIp: string,
     @CurrentUserIdx() userIdx: number,
     @Body() checkInDto: CheckInDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.commuteService.checkInWork(userIdx, checkInDto, manager);
+    await this.commuteService.checkInWork(userIdx, checkInDto, logIp, manager);
 
     const response: ResponseInterface = { message: 'success', data: { checkInTime: checkInDto.checkInTime } };
 
@@ -58,11 +59,12 @@ export class UserCommuteController {
   @UserRole(UserGradeEnum.INTERN)
   @Put('check-out')
   async checkOutWork(
+    @Ip() logIp: string,
     @CurrentUserIdx() userIdx: number,
     @Body() checkOutDto: CheckOutDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.commuteService.checkOutWork(userIdx, checkOutDto, manager);
+    await this.commuteService.checkOutWork(userIdx, checkOutDto, logIp, manager);
 
     const response: ResponseInterface = { message: 'success' };
 

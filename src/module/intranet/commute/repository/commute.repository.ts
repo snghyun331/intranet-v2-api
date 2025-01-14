@@ -10,12 +10,17 @@ import { CheckOutDto } from '../dto/checkOut.dto';
 export class CommuteRepository {
   constructor(@InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>) {}
 
-  async checkInWork(userIdx: number, checkInDto: CheckInDto, manager: EntityManager): Promise<InsertResult> {
+  async checkInWork(
+    userIdx: number,
+    checkInDto: CheckInDto,
+    checkInIpAddr: string,
+    manager: EntityManager,
+  ): Promise<InsertResult> {
     return await manager
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ userIdx, attendance: IntranetAttendanceEnum.NORMAL, ...checkInDto })
+      .values({ userIdx, attendance: IntranetAttendanceEnum.NORMAL, checkInIpAddr, ...checkInDto })
       .execute();
   }
 
@@ -43,12 +48,13 @@ export class CommuteRepository {
   async checkOutWork(
     userIdx: number,
     { commuteDate, checkOutDeviceType, checkOutTime, earlyLeaveReason }: CheckOutDto,
+    checkOutIpAddr: string,
     manager: EntityManager,
   ): Promise<UpdateResult> {
     return await manager
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ checkOutDeviceType, checkOutTime, earlyLeaveReason })
+      .set({ checkOutDeviceType, checkOutTime, earlyLeaveReason, checkOutIpAddr })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
