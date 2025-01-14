@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class StartWorkDto {
+export class CheckInDto {
   @ApiProperty({ type: String, description: '출근기기(PC, MOBILE)', required: true })
   checkInDeviceType: string;
 

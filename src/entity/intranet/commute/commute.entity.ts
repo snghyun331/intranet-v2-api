@@ -11,7 +11,7 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'user_idx', comment: '사용자 IDX', nullable: false })
   userIdx: number;
 
-  @Column({ name: 'commute_date', comment: '출근 날짜', nullable: false })
+  @Column({ name: 'commute_date', comment: '날짜', nullable: false })
   commuteDate: string;
 
   @Column({ name: 'check_in_time', comment: '출근 시간', nullable: true })
@@ -29,13 +29,16 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'update_reason', comment: '수정사유', nullable: true })
   updateReason: string;
 
+  @Column({ name: 'early_leave_reason', comment: '조기퇴근사유', nullable: true })
+  earlyLeaveReason: string;
+
   @Column({ name: 'note', comment: '특이사항', type: 'text', nullable: true })
   note: string;
 
   @Column({ name: 'check_in_device_type', comment: '출근 기기', nullable: false })
   checkInDeviceType: string;
 
-  @Column({ name: 'check_out_device_type', comment: '출근 기기', nullable: false })
+  @Column({ name: 'check_out_device_type', comment: '퇴근 기기', nullable: true })
   checkOutDeviceType: string;
 
   @ManyToOne(() => UserEntity, (user) => user.commuteRelation, {
