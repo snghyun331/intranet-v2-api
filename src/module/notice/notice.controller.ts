@@ -153,9 +153,9 @@ export class AdminNoticeController {
     @TransactionManager() manager: EntityManager,
     @UploadedFile() noticeImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    await this.noticeService.updateNotice(adminName, noticeIdx, noticeInfo, manager, noticeImage);
+    const imageInfo = await this.noticeService.updateNotice(adminName, noticeIdx, noticeInfo, manager, noticeImage);
 
-    const response: ResponseInterface = { message: 'success' };
+    const response: ResponseInterface = { message: 'success', data: imageInfo };
 
     return response;
   }

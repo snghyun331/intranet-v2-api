@@ -1,5 +1,5 @@
 import {
-  AttendanceEnum,
+  MealAttendanceEnum,
   ClearStatusEnum,
   HalfYearEnum,
   MealTypeEnum,
@@ -37,7 +37,7 @@ export interface MealAdminInfo {
   mealType: MealTypeEnum;
   amount: number;
   payerName: string;
-  attendance: AttendanceEnum;
+  attendance: MealAttendanceEnum;
 }
 
 export interface MealBudgetAdminInfo {

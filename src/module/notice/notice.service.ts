@@ -4,7 +4,7 @@ import { CreateNoticeDto } from './dto/createNotice.dto';
 import { EntityManager } from 'typeorm';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { NoticeResult } from './interface/result.interface';
-import { NoticeDetailInfo } from './interface/notice.interface';
+import { NoticeDetailInfo, NoticeImageInfo } from './interface/notice.interface';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { ConfigService } from '@nestjs/config';
 import { AwsService } from '../aws/aws.service';
@@ -36,8 +36,9 @@ export class NoticeService {
       const uploadS3FilePath: string = `${rootDir}/NOTICE/${noticeIdx}/${originalname}`;
       const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
       const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, uploadS3FilePath, buffer, mimetype);
+      const imageInfo: NoticeImageInfo = { imageName: noticeImage.originalname, imageSize: noticeImage.size, imageUrl };
       // 2. DB에 저장
-      await this.noticeRepository.updateNoticeImage(noticeIdx, imageUrl, manager);
+      await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo, manager);
     }
 
     return;
@@ -54,9 +55,8 @@ export class NoticeService {
     if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
-    const noticeDetail: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
 
-    return noticeDetail;
+    return noticeInfo;
   }
 
   async updateNotice(
@@ -102,8 +102,9 @@ export class NoticeService {
       const { buffer, mimetype, originalname } = noticeImage;
       const newFilePath: string = `${s3FilePath}/${originalname}`;
       const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, newFilePath, buffer, mimetype);
+      const imageInfo: NoticeImageInfo = { imageName: noticeImage.originalname, imageSize: noticeImage.size, imageUrl };
       // 3. DB 업데이트
-      await this.noticeRepository.updateNoticeImage(noticeIdx, imageUrl, manager);
+      await this.noticeRepository.updateNoticeImage(noticeInfo.imageIdx, imageInfo, manager);
     }
 
     return;
@@ -114,11 +115,14 @@ export class NoticeService {
     if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
-    /* DB 삭제 */
+    // DB 삭제
     await this.noticeRepository.deleteNotice(noticeIdx, manager);
 
-    /* S3 삭제 */
-    if (noticeInfo.imageUrl) {
+    /* 이미지가 있다면 */
+    if (noticeInfo.imageIdx) {
+      // DB 삭제
+      await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx, manager);
+      // S3 삭제
       const env: string = this.configService.get<string>('NODE_ENV');
       const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
       const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');

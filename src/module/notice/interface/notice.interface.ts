@@ -11,7 +11,16 @@ export interface NoticeDetailInfo {
   content: string;
   creatorName: string;
   lastEditorName: string;
+  imageIdx: number;
+  imageName: string;
+  imageSize: number;
   imageUrl: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface NoticeImageInfo {
+  imageName: string;
+  imageSize: number;
+  imageUrl: string;
 }

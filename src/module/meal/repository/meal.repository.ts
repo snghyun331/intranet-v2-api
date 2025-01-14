@@ -6,7 +6,13 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import { AttendanceEnum, ClearStatusEnum, UserGradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
+import {
+  MealAttendanceEnum,
+  ClearStatusEnum,
+  UserGradeIdxEnum,
+  MealTypeEnum,
+  YNEnum,
+} from '../../../common/constant/enum';
 import {
   DetailedMealData,
   MealAdminInfo,
@@ -186,7 +192,7 @@ export class MealRepository {
       .select('COUNT(DISTINCT(mealEntity.targetDay))', 'count')
       .where('mealEntity.userIdx = :userIdx', { userIdx })
       .andWhere('mealEntity.attendance NOT IN (:...attendance)', {
-        attendance: [AttendanceEnum.WORKING],
+        attendance: [MealAttendanceEnum.WORKING],
       })
       .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
         startDate,
@@ -267,7 +273,7 @@ export class MealRepository {
         endDate,
       })
       .andWhere('mealEntity.attendance IN (:...attendance)', {
-        attendance: [AttendanceEnum.WORKING],
+        attendance: [MealAttendanceEnum.WORKING],
       })
       .andWhere('mealEntity.holidayYN = :holidayYN', { holidayYN: YNEnum.YES })
       .getRawOne();

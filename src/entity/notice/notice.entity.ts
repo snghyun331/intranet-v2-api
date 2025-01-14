@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '../../common/entity/common.entity';
+import { NoticeHasImageEntity } from '../image/noticeHasImage.entity';
 
 @Entity({ name: 'notice', comment: '공지사항 tb' })
 export class NoticeEntity extends CommonEntity {
@@ -18,6 +19,6 @@ export class NoticeEntity extends CommonEntity {
   @Column({ name: 'last_editor_name', comment: '마지막 수정자 이름', nullable: false })
   lastEditorName: string;
 
-  @Column({ name: 'image_url', comment: '첨부파일 URL', nullable: true })
-  imageUrl: string;
+  @OneToMany(() => NoticeHasImageEntity, (noticeImage) => noticeImage.noticeIdxRelation)
+  noticeImageRelation: NoticeHasImageEntity[];
 }

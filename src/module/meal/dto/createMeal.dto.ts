@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { AttendanceEnum, YNEnum } from '../../../common/constant/enum';
+import { MealAttendanceEnum, YNEnum } from '../../../common/constant/enum';
 import { Type } from 'class-transformer';
 
 export class MealInputDto {
@@ -24,14 +24,14 @@ export class CreateMealDto {
   targetDay: string;
 
   @ApiProperty({
-    type: Object.values(AttendanceEnum),
-    enum: AttendanceEnum,
+    type: Object.values(MealAttendanceEnum),
+    enum: MealAttendanceEnum,
     description: '근태(근무, 재택 근무, 연차, 휴무, 오전 반차, 오후 반차)',
     required: true,
   })
   @IsNotEmpty({ message: '근무형태는 필수로 입력해주세요.' })
-  @IsEnum(AttendanceEnum)
-  attendance: AttendanceEnum;
+  @IsEnum(MealAttendanceEnum)
+  attendance: MealAttendanceEnum;
 
   @ApiProperty({ type: MealInputDto, description: '조식 정보' })
   @ValidateNested()
