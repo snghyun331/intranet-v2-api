@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { CreateMealDto } from '../../src/module/meal/dto/createMeal.dto';
-import { AttendanceEnum } from '../../src/common/constant/enum';
+import { MealAttendanceEnum } from '../../src/common/constant/enum';
 import { MealStats } from '../../src/module/meal/interface/meal.interface';
 import { closeTestApp, createTestAppWithMeal } from '../test-utility';
 
@@ -25,7 +25,7 @@ describe('UserMealController (e2e)', () => {
       breakfast: { payerName: '', place: '', amount: null },
       lunch: { payerName: '이승현', place: '김가네', amount: 5000 },
       dinner: { payerName: '', place: '', amount: null },
-      attendance: AttendanceEnum.WORKING,
+      attendance: MealAttendanceEnum.WORKING,
     };
 
     let response: any;

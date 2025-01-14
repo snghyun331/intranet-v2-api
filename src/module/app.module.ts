@@ -20,6 +20,7 @@ import { PlaygroundModule } from './playground/playground.module';
 import { FileModule } from './file/file.module';
 import { NoticeModule } from './notice/notice.module';
 import { AwsModule } from './aws/aws.module';
+import { IntranetModule } from './intranet/intranet.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AwsModule } from './aws/aws.module';
     MealModule,
     WelfareModule,
     ActivityModule,
+    IntranetModule,
     QnaModule,
     NoticeModule,
     PlaygroundModule,

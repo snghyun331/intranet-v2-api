@@ -3,9 +3,11 @@ import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuild
 import { CreateNoticeDto } from '../dto/createNotice.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoticeEntity } from '../../../entity/notice/notice.entity';
-import { NoticeDetailInfo, NoticeInfo } from '../interface/notice.interface';
+import { NoticeDetailInfo, NoticeImageInfo, NoticeInfo } from '../interface/notice.interface';
 import { NoticeResult } from '../interface/result.interface';
 import { UpdateNoticeDto } from '../dto/updateNotice.dto';
+import { ImageEntity } from '../../../entity/image/image.entity';
+import { NoticeHasImageEntity } from '../../../entity/image/noticeHasImage.entity';
 
 @Injectable()
 export class NoticeRepostiory {
@@ -24,12 +26,27 @@ export class NoticeRepostiory {
     return noticeIdx;
   }
 
-  async updateNoticeImage(noticeIdx: number, imageUrl: string, manager: EntityManager): Promise<UpdateResult> {
+  async createNoticeImage(noticeIdx: number, imageInfo: NoticeImageInfo, manager: EntityManager): Promise<void> {
+    /* image entity */
+    const result: InsertResult = await manager
+      .createQueryBuilder()
+      .insert()
+      .into(ImageEntity)
+      .values(imageInfo)
+      .execute();
+
+    const imageIdx: number = result.identifiers[0].imageIdx;
+
+    /* notice_has_image entity */
+    await manager.createQueryBuilder().insert().into(NoticeHasImageEntity).values({ noticeIdx, imageIdx }).execute();
+  }
+
+  async updateNoticeImage(imageIdx: number, imageInfo: NoticeImageInfo, manager: EntityManager): Promise<UpdateResult> {
     return await manager
       .createQueryBuilder()
-      .update(NoticeEntity)
-      .set({ imageUrl })
-      .where('noticeIdx = :noticeIdx', { noticeIdx })
+      .update(ImageEntity)
+      .set({ imageInfo })
+      .where('imageIdx = :imageIdx', { imageIdx })
       .execute();
   }
 
@@ -79,10 +96,15 @@ export class NoticeRepostiory {
         'noticeEntity.content AS content',
         'noticeEntity.creatorName AS creatorName',
         'noticeEntity.lastEditorName AS lastEditorName',
-        'noticeEntity.imageUrl AS imageUrl',
+        'noticeImageEntity.imageIdx AS imageIdx',
+        'imageEntity.imageName AS imageName',
+        'imageEntity.imageSize AS imageSize',
+        'imageEntity.imageUrl AS imageUrl',
         'noticeEntity.createdAt AS createdAt',
         'noticeEntity.updatedAt AS updatedAt',
       ])
+      .leftJoin(NoticeHasImageEntity, 'noticeImageEntity', 'noticeImageEntity.noticeIdx = noticeEntity.noticeIdx')
+      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = noticeImageEntity.imageIdx')
       .where('noticeEntity.noticeIdx = :noticeIdx', { noticeIdx })
       .getRawOne();
 
@@ -95,6 +117,15 @@ export class NoticeRepostiory {
       .delete()
       .from(NoticeEntity)
       .where('noticeIdx = :noticeIdx', { noticeIdx })
+      .execute();
+  }
+
+  async deleteNoticeImage(imageIdx: number, manager: EntityManager): Promise<DeleteResult> {
+    return await manager
+      .createQueryBuilder()
+      .delete()
+      .from(ImageEntity)
+      .where('imageIdx = :imageIdx', { imageIdx })
       .execute();
   }
 }

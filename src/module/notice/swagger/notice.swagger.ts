@@ -167,18 +167,46 @@ export const ADMIN_NOTICES_DETAIL: SwaggerMethod = {
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          example: {
-            statusCode: 200,
-            message: 'success',
-            data: {
-              noticeIdx: 2,
-              title: '제목 90자 이내',
-              content: '내용 글자 수 제한 없음',
-              creatorName: '이승현',
-              lastEditorName: '이승현',
-              imageUrl: 'https://acg-benefit.....',
-              createdAt: '2025-01-06T06:41:40.000Z',
-              updatedAt: '2025-01-06T06:41:40.000Z',
+          examples: {
+            a: {
+              summary: '이미지 O',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  noticeIdx: 14,
+                  title: '[공지테스트]',
+                  content: '야야',
+                  creatorName: '이승',
+                  lastEditorName: '이승',
+                  imageIdx: 1,
+                  imageName: 'server_rack.jpg',
+                  imageSize: 52255,
+                  imageUrl: 'https://acg-benefit.s3.ap-northeast-2.amazonaws.com/TEST/NOTICE/14/server_rack.jpg',
+                  createdAt: '2025-01-14T07:21:56.039Z',
+                  updatedAt: '2025-01-14T07:21:56.039Z',
+                },
+              },
+            },
+            b: {
+              summary: '이미지 X',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  noticeIdx: 15,
+                  title: '[공지테스트]',
+                  content: '야야',
+                  creatorName: '이승',
+                  lastEditorName: '이승',
+                  imageIdx: null,
+                  imageName: null,
+                  imageSize: null,
+                  imageUrl: null,
+                  createdAt: '2025-01-14T07:28:12.934Z',
+                  updatedAt: '2025-01-14T07:28:12.934Z',
+                },
+              },
             },
           },
         },
