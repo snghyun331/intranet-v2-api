@@ -45,7 +45,7 @@ export class NoticeRepostiory {
     return await manager
       .createQueryBuilder()
       .update(ImageEntity)
-      .set({ imageInfo })
+      .set(imageInfo)
       .where('imageIdx = :imageIdx', { imageIdx })
       .execute();
   }
@@ -61,6 +61,15 @@ export class NoticeRepostiory {
       .update(NoticeEntity)
       .set({ lastEditorName: adminName, title, content })
       .where('noticeIdx = :noticeIdx', { noticeIdx })
+      .execute();
+  }
+
+  async updateImageDataToNull(imageIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ImageEntity)
+      .set({ imageUrl: null, imageSize: null, imageName: null })
+      .where('imageIdx = :imageIdx', { imageIdx })
       .execute();
   }
 
