@@ -68,47 +68,55 @@ export class NoticeService {
   ): Promise<void> {
     delete noticeDto.noticeImage;
     /*
-     * 기존 이미지 삭제 및 새로운 이미지 추가 → imageUrl: null, noticeImage: any
-     * 기존 이미지 없음 및 새로운 이미지 추가 → imageUrl: null, noticeImage: any
-     * 기존 이미지 삭제(최종 이미지: 없음) → imageUrl: null
+     * 기존 이미지 삭제 및 새로운 이미지 추가 → imageUrl: X, noticeImage: O
+     * 기존 이미지 삭제(최종 이미지: 없음) → imageUrl: X
+     * 기존 이미지 없음 및 새로운 이미지 추가 → imageUrl: X, noticeImage: O
+     * 기존 이미지 없음(최종 이미지: 없음) → imageUrl: X
      * 기존 이미지 유지 → imageUrl: string
-     * 기존 이미지 없음(최종 이미지: 없음) → imageUrl: null
      */
 
-    // if (noticeDto.imageUrl === null || !noticeDto.imageUrl) {
-    //   noticeDto.imageUrl = null;
-    // }
     const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
     if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
 
-    if (noticeInfo.imageIdx && noticeDto.imageUrl === null) {
-      await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx, manager);
+    const env: string = this.configService.get<string>('NODE_ENV');
+    const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
+    const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+    const s3FilePath: string = `${rootDir}/NOTICE/${noticeIdx}`;
+
+    /* 기존 이미지 삭제 로직 */
+    if (noticeInfo.imageIdx && !noticeDto.imageUrl) {
+      // S3
+      const existingFileName: string = noticeInfo.imageUrl.split('/').pop();
+      const existingFilePath: string = `${s3FilePath}/${existingFileName}`;
+      await this.awsService.deleteS3Image(bucketName, existingFilePath);
+      // DB
+      if (noticeImage) {
+        // 기존 이미지를 삭제 및 새로운 이미지 추가
+        await this.noticeRepository.updateImageDataToNull(noticeInfo.imageIdx, manager);
+      } else {
+        // 기존 이미지 삭제만
+        await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx, manager);
+      }
     }
 
     await this.noticeRepository.updateNotice(adminName, noticeIdx, noticeDto, manager);
 
     /* 새로운 사진으로 변경할 경우 */
     if (noticeImage) {
-      const env: string = this.configService.get<string>('NODE_ENV');
-      const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
-      const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
-      const s3FilePath: string = `${rootDir}/NOTICE/${noticeIdx}`;
-      // 1. 기존 이미지가 있었다면, S3에서 삭제
-      if (noticeInfo.imageUrl) {
-        const existingFileName: string = noticeInfo.imageUrl.split('/').pop();
-        const existingFilePath: string = `${s3FilePath}/${existingFileName}`;
-        await this.awsService.deleteS3Image(bucketName, existingFilePath);
-      }
-      // 2. 새 이미지 S3에 업로드
+      // 1. 새 이미지 S3에 업로드
       noticeImage.originalname = Buffer.from(noticeImage.originalname, 'ascii').toString('utf8');
       const { buffer, mimetype, originalname } = noticeImage;
       const newFilePath: string = `${s3FilePath}/${originalname}`;
       const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, newFilePath, buffer, mimetype);
       const imageInfo: NoticeImageInfo = { imageName: noticeImage.originalname, imageSize: noticeImage.size, imageUrl };
-      // 3. DB 업데이트
-      await this.noticeRepository.updateNoticeImage(noticeInfo.imageIdx, imageInfo, manager);
+      // 2. DB 업데이트
+      if (noticeInfo.imageIdx) {
+        await this.noticeRepository.updateNoticeImage(noticeInfo.imageIdx, imageInfo, manager);
+      } else {
+        await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo, manager);
+      }
     }
 
     return;
