@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { Body, Controller, Get, Ip, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Ip, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -78,7 +78,7 @@ export class UserCommuteController {
 }
 
 @ApiTags('어드민')
-@Controller('admin/intranet/commute')
+@Controller('admin/intranet')
 export class AdminCommuteController {
   constructor(private readonly commuteService: CommuteService) {}
 
@@ -87,7 +87,7 @@ export class AdminCommuteController {
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Get()
+  @Get('commute')
   async getUserCommuteRecords(
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminCommuteFilterDto,
@@ -99,6 +99,25 @@ export class AdminCommuteController {
     const data = await this.commuteService.getUserCommuteRecords(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_COMMUTE.DELETE.API_OPERATION)
+  @ApiBody(ADMIN_INTRANET_COMMUTE.DELETE.API_BODY)
+  @ApiOkResponse(ADMIN_INTRANET_COMMUTE.DELETE.API_OPERATION)
+  @UseInterceptors(TransactionInterceptor)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Delete('commute')
+  async deleteUserCommuteRecord(
+    @Body('commuteIdxList') commuteIdxList: number[],
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.commuteService.deleteUserCommuteRecord(commuteIdxList, manager);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }
