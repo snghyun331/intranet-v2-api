@@ -1,26 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
-import { EntityManager, InsertResult, Repository, UpdateResult } from 'typeorm';
-import { CheckInDto } from '../dto/checkIn.dto';
-import { IntranetAttendanceEnum } from '../../../../common/constant/enum';
-import { CheckOutDto } from '../dto/checkOut.dto';
+import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { AdminCommuteFilterDto } from '../dto/query.dto';
+import { UserEntity } from '../../../../entity/user/user.entity';
+import { GradeEntity } from '../../../../entity/user/grade.entity';
+import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
+import { TeamEntity } from '../../../../entity/user/team.entity';
+import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo } from '../interface/commute.interface';
 
 @Injectable()
 export class CommuteRepository {
   constructor(@InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>) {}
 
-  async checkInWork(
+  async createCheckInWork(
     userIdx: number,
-    checkInDto: CheckInDto,
-    checkInIpAddr: string,
+    commuteInfo: InsertCheckInInfo,
     manager: EntityManager,
   ): Promise<InsertResult> {
     return await manager
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ userIdx, attendance: IntranetAttendanceEnum.NORMAL, checkInIpAddr, ...checkInDto })
+      .values({ userIdx, ...commuteInfo })
+      .execute();
+  }
+
+  async updateCheckInWork(
+    userIdx: number,
+    { commuteDate, ...commuteInfo }: UpdateCheckInInfo,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(commuteInfo)
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
   }
 
@@ -34,10 +50,14 @@ export class CommuteRepository {
     return result;
   }
 
-  async getTodayCommuteInfo(userIdx: number, commuteDate: string): Promise<{ checkInTime: Date }> {
+  async getTodayCommuteInfo(userIdx: number, commuteDate: string) {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
-      .select(['commuteEntity.checkInTime AS checkInTime'])
+      .select([
+        'commuteEntity.checkInTime AS checkInTime',
+        'commuteEntity.checkOutTime AS checkOutTime',
+        'commuteEntity.attendance AS attendance',
+      ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .getRawOne();
@@ -47,16 +67,66 @@ export class CommuteRepository {
 
   async checkOutWork(
     userIdx: number,
-    { commuteDate, checkOutDeviceType, checkOutTime, earlyLeaveReason }: CheckOutDto,
-    checkOutIpAddr: string,
+    { commuteDate, ...commuteInfo }: UpdateCheckOutInfo,
     manager: EntityManager,
   ): Promise<UpdateResult> {
     return await manager
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ checkOutDeviceType, checkOutTime, earlyLeaveReason, checkOutIpAddr })
+      .set(commuteInfo)
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
+  }
+
+  async getCommuteRecords(pageNo: number, perPage: number, filterInfo: AdminCommuteFilterDto) {
+    const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.userIdx AS userIdx',
+        'userEntity.id AS id',
+        'userEntity.userName AS userName',
+        'hqEntity.hqName AS hqName',
+        'teamEntity.teamName AS teamName',
+        'gradeEntity.gradeName AS gradeName',
+        'commuteEntity.checkInTime AS checkInTime',
+        'commuteEntity.checkOutTime AS checkOutTime',
+        'commuteEntity.workingMinutes AS workingMinutes',
+        'commuteEntity.overtimeWorkingMinutes AS overtimeWorkingMinutes',
+        'commuteEntity.lateStatus AS lateStatus',
+        'commuteEntity.attendance AS attendance',
+        'commuteEntity.updateReason AS updateReason',
+        'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
+        'commuteEntity.note AS note',
+        'commuteEntity.checkInIpAddr AS checkInIpAddr',
+        'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
+        'commuteEntity.checkInDeviceType AS checkInDeviceType',
+        'commuteEntity.checkOutDeviceType AS checkOutDeviåceType',
+        'commuteEntity.confirmYN AS confirmYN',
+        'commuteEntity.confirmDate AS confirmDate',
+        'commuteEntity.createdAt AS createdAt',
+        'commuteEntity.updatedAt AS updatedAt',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .where('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
+        sDate: filterInfo.sDate,
+        eDate: filterInfo.eDate,
+      });
+
+    const total: number = await query.getCount();
+    const totalPage: number = Math.ceil(total / perPage);
+
+    query
+      .orderBy('commuteEntity.createdAt', 'DESC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
+
+    const result = await query.getRawMany();
+
+    return { totalPage, total, records: result };
   }
 }

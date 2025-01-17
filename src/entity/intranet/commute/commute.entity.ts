@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '../../../common/entity/common.entity';
 import { UserEntity } from '../../user/user.entity';
-import { LateStatusEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, LateStatusEnum } from '../../../common/constant/enum';
 
 @Entity({ name: 'commute', comment: '출퇴근 정보 tb' })
 export class CommuteEntity extends CommonEntity {
@@ -20,11 +20,17 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'check_out_time', comment: '퇴근 시간', nullable: true })
   checkOutTime: Date;
 
-  @Column({ name: 'late_status', comment: '지각여부', default: LateStatusEnum.ON_TIME, nullable: false })
+  @Column({ name: 'late_status', comment: '지각여부', nullable: true })
   lateStatus: LateStatusEnum;
 
   @Column({ name: 'attendance', comment: '근태 상태', nullable: false })
   attendance: string;
+
+  @Column({ name: 'working_minutes', comment: '근무 시간(분단위)', nullable: true })
+  workingMinutes: number;
+
+  @Column({ name: 'overtime_working_minutes', comment: '초과 근무 시간(분단위)', nullable: true })
+  overtimeWorkingMinutes: number;
 
   @Column({ name: 'update_reason', comment: '수정사유', nullable: true })
   updateReason: string;
@@ -35,10 +41,10 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'note', comment: '특이사항', type: 'text', nullable: true })
   note: string;
 
-  @Column({ name: 'check_in_device_type', comment: '출근 기기', nullable: false })
+  @Column({ name: 'check_in_device_type', comment: '출근 기기', nullable: true })
   checkInDeviceType: string;
 
-  @Column({ name: 'check_in_ip_addr', comment: '출근 등록 IP', nullable: false })
+  @Column({ name: 'check_in_ip_addr', comment: '출근 등록 IP', nullable: true })
   checkInIpAddr: string;
 
   @Column({ name: 'check_out_device_type', comment: '퇴근 기기', nullable: true })
@@ -46,6 +52,19 @@ export class CommuteEntity extends CommonEntity {
 
   @Column({ name: 'check_out_ip_addr', comment: '퇴근 등록 IP', nullable: true })
   checkOutIpAddr: string;
+
+  @Column({
+    name: 'confirm_yn',
+    comment: '승인 여부',
+    type: 'enum',
+    enum: ConfirmEnum,
+    default: ConfirmEnum.NO,
+    nullable: false,
+  })
+  confirmYN: ConfirmEnum;
+
+  @Column({ name: 'confirm_date', comment: '승인 날짜', nullable: true })
+  confirmDate: string;
 
   @ManyToOne(() => UserEntity, (user) => user.commuteRelation, {
     onDelete: 'CASCADE',

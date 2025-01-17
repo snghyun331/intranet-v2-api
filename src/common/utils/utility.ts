@@ -102,3 +102,39 @@ export const decryptPassword = (encryptedValue: string): string => {
     throw new BadRequestException('잘못된 비밀번호 입니다.');
   }
 };
+
+export const getNormalLateBoundary = (timestamp: Date): Date => {
+  const boundary: Date = new Date(new Date(timestamp).setHours(10, 0, 0, 0));
+
+  return boundary;
+};
+
+export const getAmQuarterLateBoundary = (timestamp: Date): Date => {
+  const boundary: Date = new Date(timestamp.setHours(11, 0, 0, 0));
+
+  return boundary;
+};
+
+export const getAmHalfLateBoundary = (timestamp: Date): Date => {
+  const boundary: Date = new Date(timestamp.setHours(14, 30, 0, 0));
+
+  return boundary;
+};
+
+export const getAmHalfEarlyBoundary = (timestamp: Date): Date => {
+  const boundary: Date = new Date(timestamp.setHours(13, 30, 0, 0));
+
+  return boundary;
+};
+
+export const getAmQuarterEarlyBoundary = (timestamp: Date): Date => {
+  const boundary: Date = new Date(timestamp.setHours(10, 0, 0, 0));
+
+  return boundary;
+};
+
+export const getNormalEarlyBoundary = (timestamp: Date): Date => {
+  const boundary: Date = new Date(timestamp.setHours(8, 0, 0, 0));
+
+  return boundary;
+};
