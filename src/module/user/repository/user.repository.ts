@@ -88,14 +88,23 @@ export class UserRepository {
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .getRawOne();
 
-    const commuteInfo: { checkInTime: Date } = await this.commuteModel
+    const commuteInfo = await this.commuteModel
       .createQueryBuilder('commuteEntity')
-      .select(['commuteEntity.checkInTime AS checkInTime'])
+      .select([
+        'commuteEntity.checkInTime AS checkInTime',
+        'commuteEntity.attendance AS attendance',
+        'commuteEntity.workingMinutes AS workingMinutes',
+      ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .getRawOne();
 
-    const result: CurrentUserInfoResult = { ...queryResult, checkInTime: commuteInfo ? commuteInfo.checkInTime : null };
+    const result: CurrentUserInfoResult = {
+      ...queryResult,
+      checkInTime: commuteInfo?.checkInTime ?? null,
+      attendance: commuteInfo?.attendance ?? null,
+      workingMinutes: commuteInfo?.workingMinutes ?? null,
+    };
 
     return result;
   }
