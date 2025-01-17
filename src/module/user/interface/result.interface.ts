@@ -7,7 +7,7 @@ export interface UserIdxsResult {
   userName: string;
 }
 
-export interface CurrentUserInfoResult {
+export interface CurrentUserInfo {
   userIdx: number;
   userName: string;
   userGender: GenderEnum;
@@ -20,6 +20,10 @@ export interface CurrentUserInfoResult {
   teamName: string;
   gradeName: string;
   adminRole: YNEnum;
+}
+
+export interface CurrentUserInfoResult extends CurrentUserInfo {
+  checkInTime: Date;
 }
 
 export interface GradeIdxsResult {

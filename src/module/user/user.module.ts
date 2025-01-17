@@ -8,9 +8,12 @@ import { GradeEntity } from '../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../entity/user/team.entity';
 import { AdminEntity } from '../../entity/admin/admin.entity';
+import { CommuteEntity } from '../../entity/intranet/commute/commute.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, GradeEntity, HeadquarterEntity, TeamEntity, AdminEntity])],
+  imports: [
+    TypeOrmModule.forFeature([UserEntity, GradeEntity, HeadquarterEntity, TeamEntity, AdminEntity, CommuteEntity]),
+  ],
   providers: [UserService, UserRepository],
   controllers: [UserController, AdminUserController],
 })

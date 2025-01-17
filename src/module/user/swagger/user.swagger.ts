@@ -58,6 +58,7 @@ export const USERS_MY: SwaggerMethod = {
               teamName: 'HR Tech',
               gradeName: '위원',
               adminRole: 'Y',
+              checkInTime: '2025-01-17T00:16:16.000Z',
             },
           },
         },
