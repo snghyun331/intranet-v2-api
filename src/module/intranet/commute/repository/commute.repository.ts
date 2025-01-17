@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
-import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { AdminCommuteFilterDto } from '../dto/query.dto';
 import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
@@ -128,5 +128,23 @@ export class CommuteRepository {
     const result = await query.getRawMany();
 
     return { totalPage, total, records: result };
+  }
+
+  async getCommuteCountByIdx(commuteIdx: number): Promise<number> {
+    const result: number = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .where('commuteEntity.commuteIdx', { commuteIdx })
+      .getCount();
+
+    return result;
+  }
+
+  async deleteCommute(commuteIdx: number, manager: EntityManager): Promise<DeleteResult> {
+    return await manager
+      .createQueryBuilder()
+      .delete()
+      .from(CommuteEntity)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
   }
 }
