@@ -87,13 +87,13 @@ export class NoticeService {
 
     /* 기존 이미지 삭제 로직 */
     if (noticeInfo.imageIdx && !noticeDto.imageUrl) {
-      // S3
+      // S3 이미지 삭제
       const existingFileName: string = noticeInfo.imageUrl.split('/').pop();
       const existingFilePath: string = `${s3FilePath}/${existingFileName}`;
       await this.awsService.deleteS3Image(bucketName, existingFilePath);
-      // DB
+      // DB 처리
       if (noticeImage) {
-        // 기존 이미지를 삭제 및 새로운 이미지 추가
+        // 기존 이미지 삭제 및 새로운 이미지 추가
         await this.noticeRepository.updateImageDataToNull(noticeInfo.imageIdx, manager);
       } else {
         // 기존 이미지 삭제만
@@ -110,11 +110,14 @@ export class NoticeService {
       const { buffer, mimetype, originalname } = noticeImage;
       const newFilePath: string = `${s3FilePath}/${originalname}`;
       const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, newFilePath, buffer, mimetype);
+      // 2. 이미지 정보 생성
       const imageInfo: NoticeImageInfo = { imageName: noticeImage.originalname, imageSize: noticeImage.size, imageUrl };
-      // 2. DB 업데이트
+      // 3. DB 업데이트
       if (noticeInfo.imageIdx) {
+        // 기존 이미지가 있으면 업데이트
         await this.noticeRepository.updateNoticeImage(noticeInfo.imageIdx, imageInfo, manager);
       } else {
+        // 기존 이미지가 없으면 생성
         await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo, manager);
       }
     }
