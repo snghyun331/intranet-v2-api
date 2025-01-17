@@ -146,6 +146,33 @@ export const USERS_INTRANET_CHECK_OUT: SwaggerMethod = {
 };
 
 export const ADMIN_INTRANET_COMMUTE: SwaggerMethod = {
+  DELETE: {
+    API_OPERATION: {
+      summary: '어드민 출퇴근 내역 삭제 API',
+    },
+    API_BODY: {
+      type: Array,
+      description: '근태내역IDX 배열',
+      examples: {
+        a: {
+          summary: '개별삭제',
+          value: { commuteIdxList: [1] },
+        },
+        b: {
+          summary: '복수삭제',
+          value: { commuteIdxList: [1, 2, 3] },
+        },
+      },
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {},
+        },
+      },
+    },
+  },
   GET: {
     API_OPERATION: {
       summary: '어드민 출퇴근 관리 조회 API',

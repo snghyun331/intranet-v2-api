@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CommuteRepository } from './repository/commute.repository';
 import { CheckInDto } from './dto/checkIn.dto';
 import { EntityManager } from 'typeorm';
@@ -37,8 +37,6 @@ export class CommuteService {
     const commuteDate: string = moment(checkInDto.checkInTime).utcOffset(9).format('YYYY-MM-DD');
     /* 오늘의 출근 정보가 있는지 확인 */
     const todayCommuteInfo = await this.commuteRepository.getTodayCommuteInfo(userIdx, commuteDate);
-    console.log(commuteDate);
-    console.log(todayCommuteInfo);
     if (todayCommuteInfo) {
       if (todayCommuteInfo.checkInTime) {
         throw new BadRequestException('이미 출근이 등록되었습니다.');
@@ -176,5 +174,18 @@ export class CommuteService {
     const { totalPage, total, records } = await this.commuteRepository.getCommuteRecords(pageNo, perPage, filterInfo);
 
     return { totalPage, total, records };
+  }
+
+  async deleteUserCommuteRecord(commuteIdxList: number[], manager: EntityManager): Promise<void> {
+    await Promise.all(
+      commuteIdxList.map(async (commuteIdx) => {
+        const commuteCnt: number = await this.commuteRepository.getCommuteCountByIdx(commuteIdx);
+        if (commuteCnt === 0) {
+          throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+        }
+
+        await this.commuteRepository.deleteCommute(commuteIdx, manager);
+      }),
+    );
   }
 }

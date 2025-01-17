@@ -5,7 +5,7 @@ import { ConfirmEnum, LateStatusEnum } from '../../../common/constant/enum';
 
 @Entity({ name: 'commute', comment: '출퇴근 정보 tb' })
 export class CommuteEntity extends CommonEntity {
-  @PrimaryGeneratedColumn({ name: 'commute_idx', comment: '출퇴근IDX' })
+  @PrimaryGeneratedColumn({ name: 'commute_idx', comment: '근태내역IDX' })
   commuteIdx: number;
 
   @Column({ name: 'user_idx', comment: '사용자 IDX', nullable: false })
