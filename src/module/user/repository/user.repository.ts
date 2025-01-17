@@ -8,6 +8,7 @@ import {
   AllUserInfoResult,
   HqIdxsResult,
   TeamIdxsResult,
+  CurrentUserInfo,
 } from '../interface/result.interface';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
@@ -22,6 +23,7 @@ import { SortbyEnum } from '../../../common/constant/enum';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 import { AdminEntity } from '../../../entity/admin/admin.entity';
 import { UpdateUserDto } from '../dto/updateUser.dto';
+import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
 
 @Injectable()
 export class UserRepository {
@@ -31,6 +33,7 @@ export class UserRepository {
     @InjectRepository(HeadquarterEntity) private readonly hqModel: Repository<HeadquarterEntity>,
     @InjectRepository(TeamEntity) private readonly teamModel: Repository<TeamEntity>,
     @InjectRepository(AdminEntity) private readonly adminModel: Repository<AdminEntity>,
+    @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<AdminEntity>,
   ) {}
 
   async getLoginIdCount(loginId: string): Promise<number> {
@@ -62,8 +65,8 @@ export class UserRepository {
     return result;
   }
 
-  async getUserInfo(userIdx: number): Promise<CurrentUserInfoResult> {
-    const result: CurrentUserInfoResult = await this.userModel
+  async getUserInfo(userIdx: number, commuteDate: string): Promise<CurrentUserInfoResult> {
+    const queryResult: CurrentUserInfo = await this.userModel
       .createQueryBuilder('userEntity')
       .select([
         'userEntity.userIdx AS userIdx',
@@ -84,6 +87,15 @@ export class UserRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .getRawOne();
+
+    const commuteInfo: { checkInTime: Date } = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['commuteEntity.checkInTime AS checkInTime'])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .getRawOne();
+
+    const result: CurrentUserInfoResult = { ...queryResult, checkInTime: commuteInfo ? commuteInfo.checkInTime : null };
 
     return result;
   }
