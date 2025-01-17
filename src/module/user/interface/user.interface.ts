@@ -1,6 +1,6 @@
-import { CurrentUserInfoResult } from './result.interface';
+import { CurrentUserInfo } from './result.interface';
 
-export interface AllUserInfo extends CurrentUserInfoResult {
+export interface AllUserInfo extends CurrentUserInfo {
   id: string;
   userAddress: string;
   comment: string;
