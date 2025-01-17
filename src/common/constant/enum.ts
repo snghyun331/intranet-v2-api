@@ -29,8 +29,17 @@ export enum MealAttendanceEnum {
 
 export enum IntranetAttendanceEnum {
   NORMAL = '정상 출근',
-  SICK_LEAVE = '병가', // 병가
-  DAY_OFF = '휴무',
+  AM_HALF = '오전 반차',
+  PM_HALF = '오후 반차',
+  AM_QUARTER = '오전 반반차',
+  PM_QUARTER = '오후 반반차',
+  SICK_LEAVE = '병가',
+  TRAINING = '훈련',
+  HEALTH_BREAK = '보건휴가',
+  SPECIAL_HOLIDAY = '특별 휴무',
+  ALTERNATIVE_HOLIDAY = '대체 휴무',
+  CONGRATS_HOLIDAY = '경조 휴무',
+  FULL_HOLIDAY = '연차',
 }
 
 export enum UserGradeEnum {

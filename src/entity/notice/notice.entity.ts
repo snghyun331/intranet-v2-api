@@ -10,7 +10,7 @@ export class NoticeEntity extends CommonEntity {
   @Column({ name: 'title', comment: '제목', length: 100, nullable: false })
   title: string;
 
-  @Column({ name: 'content', comment: '내용', type: 'text', nullable: false })
+  @Column({ name: 'content', comment: '내용', type: 'text', nullable: true })
   content: string;
 
   @Column({ name: 'creator_name', comment: '초기 작성자 이름', nullable: false })

@@ -8,10 +8,10 @@ export class CreateNoticeDto {
   @MaxLength(100, { message: '제목은 100자 이내로 입력해주세요.' })
   title: string;
 
-  @ApiProperty({ type: String, description: '내용', required: true })
-  @IsNotEmpty({ message: '내용은 필수로 입력해주세요.' })
+  @ApiProperty({ type: String, description: '내용', required: false })
+  @IsOptional()
   @IsString()
-  content: string;
+  content?: string;
 
   @ApiProperty({ type: String, format: 'binary', description: '첨부 이미지 파일', required: false })
   @IsOptional()
