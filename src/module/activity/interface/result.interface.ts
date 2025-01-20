@@ -13,4 +13,7 @@ export interface ActivityBudgetAdminResult {
   gradeName: UserGradeEnum;
   activityBudget: number;
   note: string;
+  memberCount: number;
+  budgetPerMember: number;
+  extraBudget: number;
 }

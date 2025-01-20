@@ -19,6 +19,7 @@ import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminActivityBalanceFilterDto, AdminActivityBudgetFilterDto, AdminActivityFilterDto } from './dto/query.dto';
 import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { UpdateBudgetDto } from './dto/updateBudget.dto';
 
 @Injectable()
 export class ActivityService {
@@ -218,6 +219,8 @@ export class ActivityService {
         year: yearToString,
         halfYear,
         activityBudget,
+        memberCount: budgetInfo.memberCount,
+        budgetPerMember: budgetInfo.budgetPerMember,
       };
       await this.activityRepository.createActivityStats(newActivityStatsInfo, manager);
     } else {
@@ -249,12 +252,16 @@ export class ActivityService {
     return result;
   }
 
-  async updateActivityBudget(activityStatsIdx: number, activityBudget: number, manager: EntityManager): Promise<void> {
+  async updateActivityBudget(
+    activityStatsIdx: number,
+    budgetInfo: UpdateBudgetDto,
+    manager: EntityManager,
+  ): Promise<void> {
     const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
     if (activityStatsCnt < 1) {
       throw new NotFoundException('존재하지 않는 통계 내역입니다.');
     }
-    await this.activityRepository.updateActivityBudget(activityStatsIdx, activityBudget, manager);
+    await this.activityRepository.updateActivityBudget(activityStatsIdx, budgetInfo, manager);
 
     return;
   }

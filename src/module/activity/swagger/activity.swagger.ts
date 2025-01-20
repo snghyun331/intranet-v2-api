@@ -527,7 +527,10 @@ export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
         a: {
           summary: '예시',
           value: {
-            activityBudget: 200000,
+            budgetPerMember: 200000,
+            memberCount: 7,
+            extraBudget: 10000,
+            activityBudget: 1410000,
           },
         },
       },
@@ -576,12 +579,15 @@ export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
                 message: 'success',
                 data: [
                   {
-                    activityStatsIdx: 5,
-                    userIdx: 1,
-                    userName: '이승현',
-                    gradeName: '대표',
-                    activityBudget: 200000,
+                    activityStatsIdx: 6,
+                    userIdx: 5,
+                    userName: '김현근',
+                    gradeName: '본부장',
+                    activityBudget: 1400000,
                     note: null,
+                    memberCount: 7,
+                    budgetPerMember: 200000,
+                    extraBudget: 0,
                   },
                 ],
               },
@@ -612,7 +618,9 @@ export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
           value: {
             period: 'H1',
             userIdx: 1,
-            activityBudget: 200000,
+            memberCount: 7,
+            budgetPerMember: 200000,
+            activityBudget: 1400000,
           },
         },
       },

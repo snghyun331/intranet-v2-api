@@ -49,6 +49,8 @@ export interface NewActivityStats {
   year: string;
   halfYear: HalfYearEnum;
   activityBudget: number;
+  memberCount: number;
+  budgetPerMember: number;
 }
 
 export interface ActivityStatsAdminInfo {
