@@ -26,6 +26,7 @@ import { GradeEntity } from '../../../entity/user/grade.entity';
 import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
 import { ActivityBudgetAdminResult } from '../interface/result.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
+import { UpdateBudgetDto } from '../dto/updateBudget.dto';
 
 @Injectable()
 export class ActivityRepository {
@@ -317,12 +318,7 @@ export class ActivityRepository {
   }
 
   async createActivityStats(statsInfo: NewActivityStats, manager: EntityManager): Promise<InsertResult> {
-    return await manager
-      .createQueryBuilder()
-      .insert()
-      .into(ActivityStatsEntity)
-      .values({ ...statsInfo })
-      .execute();
+    return await manager.createQueryBuilder().insert().into(ActivityStatsEntity).values(statsInfo).execute();
   }
 
   async getAdminActivityBudget(year: string, halfYear: HalfYearEnum): Promise<ActivityBudgetAdminResult[]> {
@@ -335,6 +331,9 @@ export class ActivityRepository {
         'gradeEntity.gradeName AS gradeName',
         'activityStatsEntity.activityBudget AS activityBudget',
         'activityStatsEntity.note AS note',
+        'activityStatsEntity.memberCount AS memberCount',
+        'activityStatsEntity.budgetPerMember AS budgetPerMember',
+        'activityStatsEntity.extraBudget AS extraBudget',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
@@ -358,13 +357,13 @@ export class ActivityRepository {
 
   async updateActivityBudget(
     activityStatsIdx: number,
-    activityBudget: number,
+    budgetInfo: UpdateBudgetDto,
     manager: EntityManager,
   ): Promise<UpdateResult> {
     return await manager
       .createQueryBuilder()
       .update(ActivityStatsEntity)
-      .set({ activityBudget })
+      .set(budgetInfo)
       .where('activityStatsIdx = :activityStatsIdx', { activityStatsIdx })
       .execute();
   }

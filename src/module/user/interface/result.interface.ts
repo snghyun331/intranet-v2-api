@@ -5,6 +5,7 @@ import { AllUserInfo } from './user.interface';
 export interface UserIdxsResult {
   userIdx: number;
   userName: string;
+  gradeIdx: number;
 }
 
 export interface CurrentUserInfo {
