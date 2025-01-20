@@ -23,11 +23,11 @@ export const QUARTER_HOLIDAY_WORKING_MINUTES: number = 7 * 60;
 export const FULL_DAY_REST_LISTS: IntranetAttendanceEnum[] = [
   IntranetAttendanceEnum.SICK_LEAVE,
   IntranetAttendanceEnum.TRAINING,
-  IntranetAttendanceEnum.HEALTH_BREAK,
-  IntranetAttendanceEnum.SPECIAL_HOLIDAY,
-  IntranetAttendanceEnum.ALTERNATIVE_HOLIDAY,
-  IntranetAttendanceEnum.CONGRATS_HOLIDAY,
-  IntranetAttendanceEnum.FULL_HOLIDAY,
+  IntranetAttendanceEnum.HEALTH_LEAVE,
+  IntranetAttendanceEnum.SPECIAL_LEAVE,
+  IntranetAttendanceEnum.ALTERNATIVE_LEAVE,
+  IntranetAttendanceEnum.FAMILY_EVENT_LEAVE,
+  IntranetAttendanceEnum.ANNUAL_LEAVE,
 ];
 
 export const PARTIAL_DAY_REST_LISTS: IntranetAttendanceEnum[] = [
