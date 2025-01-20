@@ -58,7 +58,7 @@ export class UserRepository {
   async getAllUserIdxInfo(): Promise<UserIdxsResult[]> {
     const result: UserIdxsResult[] = await this.userModel
       .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx', 'userEntity.userName AS userName'])
+      .select(['userEntity.userIdx AS userIdx', 'userEntity.userName AS userName', 'userEntity.gradeIdx AS gradeIdx'])
       .where('userEntity.userAvail IS NULL')
       .getRawMany();
 
