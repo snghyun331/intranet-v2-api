@@ -33,6 +33,7 @@ import {
   USERS_MY_PW,
   USERS_HQ_IDX,
   USERS_TEAM_IDX,
+  ADMIN_USERS_IDXS,
 } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
@@ -278,6 +279,20 @@ export class AdminUserController {
     await this.userService.deleteUser(userIdx, manager);
 
     const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_USERS_IDXS.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_USERS_IDXS.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('ids')
+  async getAllUserIdxs(): Promise<ResponseInterface> {
+    const userIdxInfo: UserIdxsResult[] = await this.userService.getAllUserIdxInfo();
+
+    const response: ResponseInterface = { message: '모든 사용자 IDX 조회 성공', data: userIdxInfo };
 
     return response;
   }
