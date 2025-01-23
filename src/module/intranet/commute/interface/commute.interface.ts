@@ -26,3 +26,16 @@ export interface UpdateCheckOutInfo {
   overtimeWorkingMinutes: number;
   checkOutIpAddr: string;
 }
+
+export interface UpdateCommuteTimeInfo {
+  checkInTime: Date;
+  checkOutTime: Date;
+  updateReason: string;
+  workingMinutes: number;
+  overtimeWorkingMinutes: number;
+  checkInIpAddr: string | null;
+  checkOutIpAddr: string | null;
+  checkInDeviceType: string;
+  checkOutDeviceType: string;
+  lateStatus: LateStatusEnum;
+}
