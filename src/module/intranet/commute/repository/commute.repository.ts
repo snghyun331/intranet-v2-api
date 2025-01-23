@@ -7,7 +7,12 @@ import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
-import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo } from '../interface/commute.interface';
+import {
+  InsertCheckInInfo,
+  UpdateCheckInInfo,
+  UpdateCheckOutInfo,
+  UpdateCommuteTimeInfo,
+} from '../interface/commute.interface';
 
 @Injectable()
 export class CommuteRepository {
@@ -40,17 +45,7 @@ export class CommuteRepository {
       .execute();
   }
 
-  async getTodayCommuteCnt(userIdx: number, commuteDate: string): Promise<number> {
-    const result: number = await this.commuteModel
-      .createQueryBuilder('commuteEntity')
-      .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
-      .getCount();
-
-    return result;
-  }
-
-  async getTodayCommuteInfo(userIdx: number, commuteDate: string) {
+  async getCommuteInfoByDate(userIdx: number, commuteDate: string) {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
@@ -139,11 +134,40 @@ export class CommuteRepository {
     return result;
   }
 
+  async getCommuteInfoByIdx(commuteIdx: number) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.attendance AS attendance',
+        'commuteEntity.checkInTime AS checkInTime',
+        'commuteEntity.checkOutTime AS checkOutTime',
+        'commuteEntity.checkInDeviceType AS checkInDeviceType',
+        'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
+      ])
+      .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
+      .getRawOne();
+
+    return result;
+  }
+
   async deleteCommute(commuteIdx: number, manager: EntityManager): Promise<DeleteResult> {
     return await manager
       .createQueryBuilder()
       .delete()
       .from(CommuteEntity)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
+  }
+
+  async updateCommuteTime(
+    commuteIdx: number,
+    updateInfo: UpdateCommuteTimeInfo,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(updateInfo)
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
