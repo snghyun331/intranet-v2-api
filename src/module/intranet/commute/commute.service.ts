@@ -29,6 +29,7 @@ import {
   getNormalLateBoundary,
 } from '../../../common/utils/utility';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @Injectable()
 export class CommuteService {
@@ -272,6 +273,17 @@ export class CommuteService {
     };
 
     await this.commuteRepository.updateCommuteTime(commuteIdx, updateInfo, manager);
+
+    return;
+  }
+
+  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
+    const commuteCnt: number = await this.commuteRepository.getCommuteCountByIdx(commuteIdx);
+    if (commuteCnt === 0) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+
+    await this.commuteRepository.updateCommuteNote(commuteIdx, noteInfo, manager);
 
     return;
   }
