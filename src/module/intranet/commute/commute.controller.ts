@@ -1,5 +1,18 @@
 import * as moment from 'moment';
-import { Body, Controller, Delete, Get, Ip, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Ip,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -7,12 +20,19 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { ResponseInterface } from '../../../common/interface/response.interface';
 import { CommuteService } from './commute.service';
 import { CheckInDto } from './dto/checkIn.dto';
-import { ADMIN_INTRANET_COMMUTE, USERS_INTRANET_CHECK_IN, USERS_INTRANET_CHECK_OUT } from './swagger/commute.swagger';
+import {
+  ADMIN_INTRANET_COMMUTE,
+  ADMIN_INTRANET_COMMUTE_NOTE,
+  ADMIN_INTRANET_COMMUTE_TIME,
+  USERS_INTRANET_CHECK_IN,
+  USERS_INTRANET_CHECK_OUT,
+} from './swagger/commute.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '../../../common/decorator/role.decorator';
@@ -26,6 +46,8 @@ import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
 import { AdminCommuteFilterDto } from './dto/query.dto';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
+import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('사용자')
 @Controller('users/intranet')
@@ -116,6 +138,48 @@ export class AdminCommuteController {
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
     await this.commuteService.deleteUserCommuteRecord(commuteIdxList, manager);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_PARAM1)
+  @ApiBody(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_BODY)
+  @ApiOkResponse(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_OK_RESPONSE)
+  @UseInterceptors(TransactionInterceptor)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Put('commute/:commuteIdx/time')
+  async updateCommuteTime(
+    @Param('commuteIdx') commuteIdx: number,
+    @Body() updateInfo: UpdateCommuteTimeDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.commuteService.updateCommuteTime(commuteIdx, updateInfo, manager);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_PARAM1)
+  @ApiBody(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_OK_RESPONSE)
+  @UseInterceptors(TransactionInterceptor)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch('commute/:commuteIdx/note')
+  async updateCommuteNote(
+    @Param('commuteIdx') commuteIdx: number,
+    @Body() noteInfo: UpdateNoteDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.commuteService.updateCommuteNote(commuteIdx, noteInfo, manager);
 
     const response: ResponseInterface = { message: 'success' };
 

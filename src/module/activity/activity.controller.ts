@@ -221,10 +221,10 @@ export class AdminActivityController {
   @Patch('budget/:activityStatsIdx')
   async updateActivityBudget(
     @Param('activityStatsIdx', ParseIntPipe) activityStatsIdx: number,
-    @Body() { activityBudget }: UpdateBudgetDto,
+    @Body() budgetInfo: UpdateBudgetDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.activityService.updateActivityBudget(activityStatsIdx, activityBudget, manager);
+    await this.activityService.updateActivityBudget(activityStatsIdx, budgetInfo, manager);
 
     const response: ResponseInterface = { message: 'success' };
 

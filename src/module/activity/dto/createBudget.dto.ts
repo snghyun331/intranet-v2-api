@@ -13,6 +13,16 @@ export class CreateActivityBudgetDto {
   @IsNumber()
   userIdx: number;
 
+  @ApiProperty({ type: Number, description: '구성원 수', required: true })
+  @IsNotEmpty({ message: '구성원 수를 입력해주세요' })
+  @IsNumber()
+  memberCount: number;
+
+  @ApiProperty({ type: Number, description: '구성원 당 금액', required: true })
+  @IsNotEmpty({ message: '구성원 당 금액을 입력해주세요' })
+  @IsNumber()
+  budgetPerMember: number;
+
   @ApiProperty({ type: Number, description: '활동비 사용가능금액', required: true })
   @IsNotEmpty({ message: '사용가능금액을 입력해주세요.' })
   @IsNumber()
