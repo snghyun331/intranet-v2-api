@@ -2,6 +2,7 @@ import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
 import { CheckInDto } from '../dto/checkIn.dto';
 import { CheckOutDto } from '../dto/checkOut.dto';
 import { UpdateCommuteTimeDto } from '../dto/updateCommuteTime.dto';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 export const USERS_INTRANET_CHECK_IN: SwaggerMethod = {
   POST: {
@@ -484,7 +485,7 @@ export const ADMIN_INTRANET_COMMUTE: SwaggerMethod = {
 };
 
 export const ADMIN_INTRANET_COMMUTE_TIME: SwaggerMethod = {
-  PATCH: {
+  PUT: {
     API_OPERATION: {
       summary: '어드민 출퇴근 시간 수정 API',
     },
@@ -504,6 +505,42 @@ export const ADMIN_INTRANET_COMMUTE_TIME: SwaggerMethod = {
             checkInTime: '2025-01-22T00:16:15.759Z',
             checkOutTime: '2025-01-22T10:16:15.759Z',
             updateReason: '사유사유',
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_INTRANET_COMMUTE_NOTE: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 출퇴근 특이사항 수정 API',
+    },
+    API_PARAM1: {
+      name: 'commuteIdx',
+      type: Number,
+      required: true,
+      description: '근태내역IDX',
+    },
+    API_BODY: {
+      type: UpdateNoteDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            note: '특이사항입니다.',
           },
         },
       },

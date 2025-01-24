@@ -13,6 +13,7 @@ import {
   UpdateCheckOutInfo,
   UpdateCommuteTimeInfo,
 } from '../interface/commute.interface';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 @Injectable()
 export class CommuteRepository {
@@ -168,6 +169,15 @@ export class CommuteRepository {
       .createQueryBuilder()
       .update(CommuteEntity)
       .set(updateInfo)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
+  }
+
+  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(noteInfo)
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }

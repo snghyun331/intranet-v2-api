@@ -28,6 +28,7 @@ import { CommuteService } from './commute.service';
 import { CheckInDto } from './dto/checkIn.dto';
 import {
   ADMIN_INTRANET_COMMUTE,
+  ADMIN_INTRANET_COMMUTE_NOTE,
   ADMIN_INTRANET_COMMUTE_TIME,
   USERS_INTRANET_CHECK_IN,
   USERS_INTRANET_CHECK_OUT,
@@ -46,6 +47,7 @@ import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
 import { AdminCommuteFilterDto } from './dto/query.dto';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('사용자')
 @Controller('users/intranet')
@@ -142,21 +144,42 @@ export class AdminCommuteController {
     return response;
   }
 
-  @ApiOperation(ADMIN_INTRANET_COMMUTE_TIME.PATCH.API_OPERATION)
-  @ApiParam(ADMIN_INTRANET_COMMUTE_TIME.PATCH.API_PARAM1)
-  @ApiBody(ADMIN_INTRANET_COMMUTE_TIME.PATCH.API_BODY)
-  @ApiOkResponse(ADMIN_INTRANET_COMMUTE_TIME.PATCH.API_OK_RESPONSE)
+  @ApiOperation(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_PARAM1)
+  @ApiBody(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_BODY)
+  @ApiOkResponse(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_OK_RESPONSE)
   @UseInterceptors(TransactionInterceptor)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Patch('commute/:commuteIdx/time')
+  @Put('commute/:commuteIdx/time')
   async updateCommuteTime(
     @Param('commuteIdx') commuteIdx: number,
     @Body() updateInfo: UpdateCommuteTimeDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
     await this.commuteService.updateCommuteTime(commuteIdx, updateInfo, manager);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_PARAM1)
+  @ApiBody(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_BODY)
+  @ApiOkResponse(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_OK_RESPONSE)
+  @UseInterceptors(TransactionInterceptor)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch('commute/:commuteIdx/note')
+  async updateCommuteNote(
+    @Param('commuteIdx') commuteIdx: number,
+    @Body() noteInfo: UpdateNoteDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.commuteService.updateCommuteNote(commuteIdx, noteInfo, manager);
 
     const response: ResponseInterface = { message: 'success' };
 
