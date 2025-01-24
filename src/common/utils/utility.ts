@@ -104,6 +104,7 @@ export const decryptPassword = (encryptedValue: string): string => {
 };
 
 export const getNormalLateBoundary = (timestamp: Date): Date => {
+  // 정상, 오후 반반차
   const boundary: Date = new Date(new Date(timestamp).setHours(10, 0, 0, 0));
 
   return boundary;
@@ -117,6 +118,12 @@ export const getAmQuarterLateBoundary = (timestamp: Date): Date => {
 
 export const getAmHalfLateBoundary = (timestamp: Date): Date => {
   const boundary: Date = new Date(timestamp.setHours(14, 30, 0, 0));
+
+  return boundary;
+};
+
+export const getPmHalfLateBoundary = (timestamp: Date): Date => {
+  const boundary: Date = new Date(timestamp.setHours(9, 30, 0, 0));
 
   return boundary;
 };
