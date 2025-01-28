@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '../../../common/entity/common.entity';
 import { UserEntity } from '../../user/user.entity';
 import { ConfirmEnum, LateStatusEnum } from '../../../common/constant/enum';
+import { CommuteHasImageEntity } from '../../image/commuteHasImage.entity';
 
 @Entity({ name: 'commute', comment: '출퇴근 정보 tb' })
 export class CommuteEntity extends CommonEntity {
@@ -63,8 +64,11 @@ export class CommuteEntity extends CommonEntity {
   })
   confirmYN: ConfirmEnum;
 
-  @Column({ name: 'confirm_date', comment: '승인 날짜', nullable: true })
+  @Column({ name: 'confirm_date', comment: '승인 날짜', type: Number, nullable: true })
   confirmDate: string;
+
+  @Column({ name: 'confirm_person_idx', comment: '승인자 IDX', nullable: true })
+  confirmPersonIdx: number;
 
   @ManyToOne(() => UserEntity, (user) => user.commuteRelation, {
     onDelete: 'CASCADE',
@@ -72,4 +76,7 @@ export class CommuteEntity extends CommonEntity {
   })
   @JoinColumn({ name: 'user_idx', referencedColumnName: 'userIdx' })
   userIdxRelation: UserEntity;
+
+  @OneToMany(() => CommuteHasImageEntity, (commuteImage) => commuteImage.commuteIdxRelation)
+  commuteImageRelation: CommuteHasImageEntity[];
 }

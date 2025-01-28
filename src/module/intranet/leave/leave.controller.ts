@@ -1,7 +1,14 @@
-import { Body, Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { LeaveService } from './leave.service';
 import { ResponseInterface } from '../../../common/interface/response.interface';
-import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { USERS_INTRANET_LEAVE } from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
@@ -11,24 +18,32 @@ import { UserAuthGuard } from '../../auth/guard/authGuard/userAuth.guard';
 import { TransactionManager } from '../../../common/decorator/transaction.decorator';
 import { EntityManager } from 'typeorm';
 import { CreateLeaveDto } from './dto/createLeave.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { leaveImageOptions } from '../../file/uploadMulter.options';
+import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
 
+@ApiTags('사용자')
 @Controller('users/intranet')
 export class UserLeaveController {
   constructor(private readonly leaveService: LeaveService) {}
 
   @ApiOperation(USERS_INTRANET_LEAVE.POST.API_OPERATION)
-  @ApiBody(USERS_INTRANET_LEAVE.POST.API_BODY)
+  @ApiConsumes('multipart/form-data')
   @ApiCreatedResponse(USERS_INTRANET_LEAVE.POST.API_CREATED_RESPONSE)
+  @ApiBadRequestResponse(USERS_INTRANET_LEAVE.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
+  @UseInterceptors(TransactionInterceptor, FileInterceptor('leaveImage', leaveImageOptions))
   @Post('leave')
   async createLeave(
-    @Body() leaveInfo: CreateLeaveDto,
+    @Body() { dto }: CreateLeaveDto,
+    @CurrentUserIdx() userIdx: number,
     @TransactionManager() manager: EntityManager,
+    @UploadedFile() leaveImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    await this.leaveService.createLeave(leaveInfo, manager);
+    const dtoObject = JSON.parse(dto.toString());
+    await this.leaveService.createLeave(dtoObject, userIdx, manager, leaveImage);
 
     const response: ResponseInterface = { message: 'success' };
 
