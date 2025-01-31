@@ -1,0 +1,11 @@
+services:
+  benefit-test-db:
+    image: mariadb:latest
+    container_name: benefit-test-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 11111111
+      MYSQL_DATABASE: benefit_test
+      MYSQL_PASSWORD: 11111111
+    ports:
+      - '3307:3306'
+    command: --default-authentication-plugin=mysql_native_password
