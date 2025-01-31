@@ -35,11 +35,11 @@ export enum IntranetAttendanceEnum {
   PM_QUARTER = '오후 반반차',
   SICK_LEAVE = '병가',
   TRAINING = '훈련',
-  HEALTH_BREAK = '보건휴가',
-  SPECIAL_HOLIDAY = '특별 휴무',
-  ALTERNATIVE_HOLIDAY = '대체 휴무',
-  CONGRATS_HOLIDAY = '경조 휴무',
-  FULL_HOLIDAY = '연차',
+  HEALTH_LEAVE = '보건휴가',
+  SPECIAL_LEAVE = '특별 휴무',
+  ALTERNATIVE_LEAVE = '대체 휴무',
+  FAMILY_EVENT_LEAVE = '경조 휴무',
+  ANNUAL_LEAVE = '연차',
 }
 
 export enum UserGradeEnum {

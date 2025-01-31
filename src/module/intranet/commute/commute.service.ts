@@ -27,6 +27,7 @@ import {
   getAmQuarterLateBoundary,
   getNormalEarlyBoundary,
   getNormalLateBoundary,
+  getPmHalfLateBoundary,
 } from '../../../common/utils/utility';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -55,21 +56,26 @@ export class CommuteService {
       /* 근태가 반/반반차이면 업데이트 */
       if (PARTIAL_DAY_REST_LISTS.includes(commuteInfo.attendance)) {
         /* 지각 판별 */
-        const isLate: boolean =
-          (commuteInfo.attendance === IntranetAttendanceEnum.PM_HALF ||
-            commuteInfo.attendance === IntranetAttendanceEnum.PM_QUARTER) &&
+        const isPmQuarterLate: boolean =
+          commuteInfo.attendance === IntranetAttendanceEnum.PM_QUARTER &&
           new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
 
         const isAmHalfLate: boolean =
           commuteInfo.attendance === IntranetAttendanceEnum.AM_HALF &&
           new Date(checkInDto.checkInTime) >= getAmHalfLateBoundary(new Date(checkInDto.checkInTime));
 
+        const isPMHalfLate: boolean =
+          commuteInfo.attendance === IntranetAttendanceEnum.PM_HALF &&
+          new Date(checkInDto.checkInTime) >= getPmHalfLateBoundary(new Date(checkInDto.checkInTime));
+
         const isAmQuarterLate: boolean =
           commuteInfo.attendance === IntranetAttendanceEnum.AM_QUARTER &&
           new Date(checkInDto.checkInTime) >= getAmQuarterLateBoundary(new Date(checkInDto.checkInTime));
 
         const lateStatus: LateStatusEnum =
-          isLate || isAmHalfLate || isAmQuarterLate ? LateStatusEnum.LATE : LateStatusEnum.ON_TIME;
+          isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
+            ? LateStatusEnum.LATE
+            : LateStatusEnum.ON_TIME;
 
         const updateCheckInInfo: UpdateCheckInInfo = {
           ...checkInDto,
@@ -83,9 +89,9 @@ export class CommuteService {
       }
     } else {
       /* 지각 판별 */
-      const isLate: boolean =
+      const isNormalLate: boolean =
         new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
-      const lateStatus: LateStatusEnum = isLate ? LateStatusEnum.LATE : LateStatusEnum.ON_TIME;
+      const lateStatus: LateStatusEnum = isNormalLate ? LateStatusEnum.LATE : LateStatusEnum.ON_TIME;
 
       const insertCheckInInfo: InsertCheckInInfo = {
         ...checkInDto,

@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { NoticeHasImageEntity } from './noticeHasImage.entity';
+import { CommuteHasImageEntity } from './commuteHasImage.entity';
 
 @Entity({ name: 'image', comment: '이미지 tb' })
 export class ImageEntity {
@@ -17,4 +18,7 @@ export class ImageEntity {
 
   @OneToMany(() => NoticeHasImageEntity, (noticeImage) => noticeImage.imageIdxRelation)
   noticeImageRelation: NoticeHasImageEntity[];
+
+  @OneToMany(() => CommuteHasImageEntity, (commuteImage) => commuteImage.imageIdxRelation)
+  commuteImageRelation: CommuteHasImageEntity[];
 }
