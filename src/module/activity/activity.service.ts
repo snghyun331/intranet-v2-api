@@ -60,7 +60,8 @@ export class ActivityService {
       newActivityInfo.payerName,
       manager,
     );
-    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerIdx, manager);
+
+    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, monthToNum, payerIdx, manager);
 
     return newActivityInfo.targetDay;
   }
@@ -108,7 +109,7 @@ export class ActivityService {
       updateActivityInfo.payerName,
       manager,
     );
-    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerIdx, manager);
+    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, monthToNum, payerIdx, manager);
 
     return updateActivityInfo.targetDay;
   }
@@ -142,7 +143,7 @@ export class ActivityService {
       activityInfo.payerName,
       manager,
     );
-    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerIdx, manager);
+    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, monthToNum, payerIdx, manager);
 
     return activityInfo.targetDay;
   }

@@ -8,7 +8,7 @@ describe('UserCommuteController', () => {
   let app: INestApplication;
   let userAccessToken: string;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
@@ -23,7 +23,7 @@ describe('UserCommuteController', () => {
     await app.init();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await app.close();
   });
 
