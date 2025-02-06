@@ -108,17 +108,19 @@ export class ActivityRepository {
   async updateMonthlyActivityStats(
     activityMonthExpense: number,
     year: string,
-    month: string,
+    month: number,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
+    const refinedMonth: string = month.toString();
+
     return await manager
       .createQueryBuilder()
       .update(ActivityMonthlyStatsEntity)
       .set({ activityMonthExpense })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('year = :year', { year })
-      .andWhere('month = :month', { month })
+      .andWhere('month = :month', { month: refinedMonth })
       .execute();
   }
 
