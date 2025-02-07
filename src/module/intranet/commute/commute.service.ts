@@ -216,6 +216,24 @@ export class CommuteService {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
+    /* 지각 판별 */
+    const isLate: boolean =
+      (commuteInfo.attendance === IntranetAttendanceEnum.NORMAL ||
+        commuteInfo.attendance === IntranetAttendanceEnum.PM_HALF ||
+        commuteInfo.attendance === IntranetAttendanceEnum.PM_QUARTER) &&
+      new Date(updateDto.checkInTime) >= getNormalLateBoundary(new Date(updateDto.checkInTime));
+
+    const isAmHalfLate: boolean =
+      commuteInfo.attendance === IntranetAttendanceEnum.AM_HALF &&
+      new Date(updateDto.checkInTime) >= getAmHalfLateBoundary(new Date(updateDto.checkInTime));
+
+    const isAmQuarterLate: boolean =
+      commuteInfo.attendance === IntranetAttendanceEnum.AM_QUARTER &&
+      new Date(updateDto.checkInTime) >= getAmQuarterLateBoundary(new Date(updateDto.checkInTime));
+
+    const lateStatus: LateStatusEnum =
+      isLate || isAmHalfLate || isAmQuarterLate ? LateStatusEnum.LATE : LateStatusEnum.ON_TIME;
+
     let standardWorkingMinutes: number;
     switch (commuteInfo.attendance) {
       case IntranetAttendanceEnum.NORMAL:
@@ -235,37 +253,29 @@ export class CommuteService {
         break;
     }
 
-    const workingMinutes: number = (updateDto.checkOutTime.getTime() - updateDto.checkInTime.getTime()) / (1000 * 60);
+    /* 근무시간 계산 */
+    let workingMinutes: number | null;
+    let overtimeWorkingMinutes: number | null;
+    if (!updateDto.checkOutTime) {
+      workingMinutes = null;
+      overtimeWorkingMinutes = null;
+    } else {
+      workingMinutes = (updateDto.checkOutTime.getTime() - updateDto.checkInTime.getTime()) / (1000 * 60);
+      overtimeWorkingMinutes =
+        workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
+    }
 
-    const overtimeWorkingMinutes: number =
-      workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
-
+    /* 출퇴근 IP 및 디바이스 업데이트 */
     const { checkInIpAddr, checkInDeviceType } =
       commuteInfo.checkInTime !== updateDto.checkInTime
         ? { checkInIpAddr: null, checkInDeviceType: DeviceTypeEnum.MAUNAL }
         : { checkInIpAddr: commuteInfo.checkInIpAddr, checkInDeviceType: commuteInfo.checkInDeviceType };
 
-    const { checkOutIpAddr, checkOutDeviceType } =
-      commuteInfo.checkOutTime !== updateDto.checkOutTime
+    const { checkOutIpAddr, checkOutDeviceType } = !updateDto.checkOutTime
+      ? { checkOutIpAddr: null, checkOutDeviceType: null }
+      : commuteInfo.checkOutTime !== updateDto.checkOutTime
         ? { checkOutIpAddr: null, checkOutDeviceType: DeviceTypeEnum.MAUNAL }
         : { checkOutIpAddr: commuteInfo.checkOutIpAddr, checkOutDeviceType: commuteInfo.checkOutDeviceType };
-
-    const isLate: boolean =
-      (commuteInfo.attendance === IntranetAttendanceEnum.NORMAL ||
-        commuteInfo.attendance === IntranetAttendanceEnum.PM_HALF ||
-        commuteInfo.attendance === IntranetAttendanceEnum.PM_QUARTER) &&
-      new Date(updateDto.checkInTime) >= getNormalLateBoundary(new Date(updateDto.checkInTime));
-
-    const isAmHalfLate: boolean =
-      commuteInfo.attendance === IntranetAttendanceEnum.AM_HALF &&
-      new Date(updateDto.checkInTime) >= getAmHalfLateBoundary(new Date(updateDto.checkInTime));
-
-    const isAmQuarterLate: boolean =
-      commuteInfo.attendance === IntranetAttendanceEnum.AM_QUARTER &&
-      new Date(updateDto.checkInTime) >= getAmQuarterLateBoundary(new Date(updateDto.checkInTime));
-
-    const lateStatus: LateStatusEnum =
-      isLate || isAmHalfLate || isAmQuarterLate ? LateStatusEnum.LATE : LateStatusEnum.ON_TIME;
 
     const updateInfo: UpdateCommuteTimeInfo = {
       ...updateDto,
