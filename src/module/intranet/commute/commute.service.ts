@@ -13,7 +13,12 @@ import {
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto } from './dto/query.dto';
-import { DeviceTypeEnum, IntranetAttendanceEnum, LateStatusEnum } from '../../../common/constant/enum';
+import {
+  DeviceTypeEnum,
+  IntranetAttendanceEnum,
+  IntranetLeaveTypeEnum,
+  LateStatusEnum,
+} from '../../../common/constant/enum';
 import {
   InsertCheckInInfo,
   UpdateCheckInInfo,
@@ -50,26 +55,26 @@ export class CommuteService {
         throw new BadRequestException('이미 출근이 등록되었습니다.');
       }
       /* 근태 상태가 휴무인지 확인 */
-      if (FULL_DAY_REST_LISTS.includes(commuteInfo.attendance)) {
+      if (FULL_DAY_REST_LISTS.includes(commuteInfo.leaveType)) {
         throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
       }
       /* 근태가 반/반반차이면 업데이트 */
-      if (PARTIAL_DAY_REST_LISTS.includes(commuteInfo.attendance)) {
+      if (PARTIAL_DAY_REST_LISTS.includes(commuteInfo.leaveType)) {
         /* 지각 판별 */
         const isPmQuarterLate: boolean =
-          commuteInfo.attendance === IntranetAttendanceEnum.PM_QUARTER &&
+          commuteInfo.leaveType === IntranetLeaveTypeEnum.PM_QUARTER &&
           new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
 
         const isAmHalfLate: boolean =
-          commuteInfo.attendance === IntranetAttendanceEnum.AM_HALF &&
+          commuteInfo.leaveType === IntranetLeaveTypeEnum.AM_HALF &&
           new Date(checkInDto.checkInTime) >= getAmHalfLateBoundary(new Date(checkInDto.checkInTime));
 
         const isPMHalfLate: boolean =
-          commuteInfo.attendance === IntranetAttendanceEnum.PM_HALF &&
+          commuteInfo.leaveType === IntranetLeaveTypeEnum.PM_HALF &&
           new Date(checkInDto.checkInTime) >= getPmHalfLateBoundary(new Date(checkInDto.checkInTime));
 
         const isAmQuarterLate: boolean =
-          commuteInfo.attendance === IntranetAttendanceEnum.AM_QUARTER &&
+          commuteInfo.leaveType === IntranetLeaveTypeEnum.AM_QUARTER &&
           new Date(checkInDto.checkInTime) >= getAmQuarterLateBoundary(new Date(checkInDto.checkInTime));
 
         const lateStatus: LateStatusEnum =
@@ -98,7 +103,7 @@ export class CommuteService {
         lateStatus,
         commuteDate,
         checkInIpAddr,
-        attendance: IntranetAttendanceEnum.NORMAL,
+        leaveType: IntranetLeaveTypeEnum.NORMAL,
       };
 
       /* 근태 생성 */
@@ -124,26 +129,26 @@ export class CommuteService {
       throw new BadRequestException('이미 퇴근을 찍었습니다.');
     }
     /* 근태 상태가 휴무인지 확인 */
-    if (FULL_DAY_REST_LISTS.includes(commuteInfo.attendance)) {
+    if (FULL_DAY_REST_LISTS.includes(commuteInfo.leaveType)) {
       throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
     }
-    const { checkInTime, attendance } = commuteInfo;
+    const { checkInTime, leaveType } = commuteInfo;
 
     let standardWorkingMinutes: number;
-    switch (attendance) {
-      case IntranetAttendanceEnum.NORMAL:
+    switch (leaveType) {
+      case IntranetLeaveTypeEnum.NORMAL:
         standardWorkingMinutes = NORMAL_WORKING_MINUTES;
         break;
-      case IntranetAttendanceEnum.AM_HALF:
+      case IntranetLeaveTypeEnum.AM_HALF:
         standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
         break;
-      case IntranetAttendanceEnum.PM_HALF:
+      case IntranetLeaveTypeEnum.PM_HALF:
         standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
         break;
-      case IntranetAttendanceEnum.AM_QUARTER:
+      case IntranetLeaveTypeEnum.AM_QUARTER:
         standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
         break;
-      case IntranetAttendanceEnum.PM_QUARTER:
+      case IntranetLeaveTypeEnum.PM_QUARTER:
         standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
         break;
     }
@@ -152,15 +157,15 @@ export class CommuteService {
     const finalCheckOutTime: Date = new Date(checkOutDto.checkOutTime);
     // 추후 리펙토링 필요....
     let finalCheckInTime: Date;
-    if (attendance === IntranetAttendanceEnum.AM_HALF && checkInTime < getAmHalfEarlyBoundary(new Date(checkInTime))) {
+    if (leaveType === IntranetLeaveTypeEnum.AM_HALF && checkInTime < getAmHalfEarlyBoundary(new Date(checkInTime))) {
       finalCheckInTime = getAmHalfEarlyBoundary(new Date(checkInTime));
     } else if (
-      attendance === IntranetAttendanceEnum.AM_QUARTER &&
+      leaveType === IntranetLeaveTypeEnum.AM_QUARTER &&
       checkInTime < getAmQuarterEarlyBoundary(new Date(checkInTime))
     ) {
       finalCheckInTime = getAmQuarterEarlyBoundary(new Date(checkInTime));
     } else if (
-      attendance === IntranetAttendanceEnum.NORMAL &&
+      leaveType === IntranetLeaveTypeEnum.NORMAL &&
       checkInTime < getNormalEarlyBoundary(new Date(checkInTime))
     ) {
       finalCheckInTime = getNormalEarlyBoundary(new Date(checkInTime));
@@ -173,10 +178,15 @@ export class CommuteService {
       workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
 
     /* 최종 근무시간이 기준시간 미만이면 사유를 필수 입력 */
-    const isEarlyLeave: boolean = workingMinutes < standardWorkingMinutes && !checkOutDto.earlyLeaveReason;
-    if (isEarlyLeave) {
+    if (workingMinutes < standardWorkingMinutes && !checkOutDto.earlyLeaveReason) {
       throw new BadRequestException('조기퇴근 시, 사유 입력은 필수입니다.');
     }
+
+    /* 근태 상태 설정 */
+    const attendance: IntranetAttendanceEnum =
+      workingMinutes < standardWorkingMinutes
+        ? IntranetAttendanceEnum.EARLY_CHECK_OUT
+        : IntranetAttendanceEnum.CHECK_OUT;
 
     const updateCheckOutInfo: UpdateCheckOutInfo = {
       commuteDate,
@@ -184,6 +194,7 @@ export class CommuteService {
       workingMinutes,
       overtimeWorkingMinutes,
       checkOutIpAddr,
+      attendance,
     };
 
     await this.commuteRepository.checkOutWork(userIdx, updateCheckOutInfo, manager);
@@ -218,37 +229,37 @@ export class CommuteService {
 
     /* 지각 판별 */
     const isLate: boolean =
-      (commuteInfo.attendance === IntranetAttendanceEnum.NORMAL ||
-        commuteInfo.attendance === IntranetAttendanceEnum.PM_HALF ||
-        commuteInfo.attendance === IntranetAttendanceEnum.PM_QUARTER) &&
+      (commuteInfo.leaveType === IntranetLeaveTypeEnum.NORMAL ||
+        commuteInfo.leaveType === IntranetLeaveTypeEnum.PM_HALF ||
+        commuteInfo.leaveType === IntranetLeaveTypeEnum.PM_QUARTER) &&
       new Date(updateDto.checkInTime) >= getNormalLateBoundary(new Date(updateDto.checkInTime));
 
     const isAmHalfLate: boolean =
-      commuteInfo.attendance === IntranetAttendanceEnum.AM_HALF &&
+      commuteInfo.leaveType === IntranetLeaveTypeEnum.AM_HALF &&
       new Date(updateDto.checkInTime) >= getAmHalfLateBoundary(new Date(updateDto.checkInTime));
 
     const isAmQuarterLate: boolean =
-      commuteInfo.attendance === IntranetAttendanceEnum.AM_QUARTER &&
+      commuteInfo.leaveType === IntranetLeaveTypeEnum.AM_QUARTER &&
       new Date(updateDto.checkInTime) >= getAmQuarterLateBoundary(new Date(updateDto.checkInTime));
 
     const lateStatus: LateStatusEnum =
       isLate || isAmHalfLate || isAmQuarterLate ? LateStatusEnum.LATE : LateStatusEnum.ON_TIME;
 
     let standardWorkingMinutes: number;
-    switch (commuteInfo.attendance) {
-      case IntranetAttendanceEnum.NORMAL:
+    switch (commuteInfo.leaveType) {
+      case IntranetLeaveTypeEnum.NORMAL:
         standardWorkingMinutes = NORMAL_WORKING_MINUTES;
         break;
-      case IntranetAttendanceEnum.AM_HALF:
+      case IntranetLeaveTypeEnum.AM_HALF:
         standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
         break;
-      case IntranetAttendanceEnum.PM_HALF:
+      case IntranetLeaveTypeEnum.PM_HALF:
         standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
         break;
-      case IntranetAttendanceEnum.AM_QUARTER:
+      case IntranetLeaveTypeEnum.AM_QUARTER:
         standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
         break;
-      case IntranetAttendanceEnum.PM_QUARTER:
+      case IntranetLeaveTypeEnum.PM_QUARTER:
         standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
         break;
     }

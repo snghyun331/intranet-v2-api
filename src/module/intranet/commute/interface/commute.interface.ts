@@ -1,7 +1,7 @@
-import { IntranetAttendanceEnum, LateStatusEnum } from '../../../../common/constant/enum';
+import { IntranetAttendanceEnum, IntranetLeaveTypeEnum, LateStatusEnum } from '../../../../common/constant/enum';
 
 export interface InsertCheckInInfo {
-  attendance: IntranetAttendanceEnum;
+  leaveType: IntranetLeaveTypeEnum;
   checkInIpAddr: string;
   commuteDate: string;
   lateStatus: LateStatusEnum;
@@ -25,6 +25,7 @@ export interface UpdateCheckOutInfo {
   workingMinutes: number;
   overtimeWorkingMinutes: number;
   checkOutIpAddr: string;
+  attendance: IntranetAttendanceEnum;
 }
 
 export interface UpdateCommuteTimeInfo {

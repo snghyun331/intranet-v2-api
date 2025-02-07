@@ -32,7 +32,7 @@ export const USERS_INTRANET_LEAVE: SwaggerMethod = {
             b: {
               summary: '올바르지 않는 휴가 유형',
               value: {
-                message: '올바른 attendance를 입력해주세요.',
+                message: '올바른 leaveType을 입력해주세요.',
                 error: 'Bad Request',
                 statusCode: 400,
                 timeStamp: '2025. 1. 28. 오후 3:38:31',
