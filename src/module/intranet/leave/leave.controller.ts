@@ -17,7 +17,7 @@ import { UserGradeEnum } from '../../../common/constant/enum';
 import { UserAuthGuard } from '../../auth/guard/authGuard/userAuth.guard';
 import { TransactionManager } from '../../../common/decorator/transaction.decorator';
 import { EntityManager } from 'typeorm';
-import { CreateLeaveDto } from './dto/createLeave.dto';
+import { CreateLeaveDto, LeaveRequestDto } from './dto/createLeave.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { leaveImageOptions } from '../../file/uploadMulter.options';
 import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
@@ -42,8 +42,8 @@ export class UserLeaveController {
     @TransactionManager() manager: EntityManager,
     @UploadedFile() leaveImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    const dtoObject = JSON.parse(dto.toString());
-    await this.leaveService.createLeave(dtoObject, userIdx, manager, leaveImage);
+    const parsedDto: LeaveRequestDto = dto as LeaveRequestDto;
+    await this.leaveService.createLeave(parsedDto, userIdx, manager, leaveImage);
 
     const response: ResponseInterface = { message: 'success' };
 

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { IntranetAttendanceEnum } from '../../../../common/constant/enum';
 
@@ -53,6 +53,7 @@ export class CreateLeaveDto {
     },
   })
   @IsNotEmpty()
+  @Transform(({ value }) => (typeof value === 'string' ? JSON.parse(value) : value))
   dto: object;
 
   @ApiProperty({ type: String, format: 'binary', description: '첨부사진', required: false })
