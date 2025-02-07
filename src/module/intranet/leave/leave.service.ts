@@ -6,7 +6,6 @@ import { ConfigService } from '@nestjs/config';
 import { IntranetAttendanceEnum, NodeEnvEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo } from './interface/leave.interface';
-import { FULL_DAY_REST_LISTS, PARTIAL_DAY_REST_LISTS } from '../../../common/constant/constant';
 
 @Injectable()
 export class LeaveService {
