@@ -10,6 +10,10 @@ import {
   HALF_HOLIDAY_WORKING_MINUTES,
   QUARTER_HOLIDAY_WORKING_MINUTES,
   PARTIAL_DAY_REST_LISTS,
+  PM_QUARTER_REST_LISTS,
+  AM_REST_LISTS,
+  PM_REST_LISTS,
+  AM_QUARTER_REST_LISTS,
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto } from './dto/query.dto';
@@ -55,26 +59,26 @@ export class CommuteService {
         throw new BadRequestException('이미 출근이 등록되었습니다.');
       }
       /* 근태 상태가 휴무인지 확인 */
-      if (FULL_DAY_REST_LISTS.includes(commuteInfo.leaveType)) {
+      if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveType)) {
         throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
       }
       /* 근태가 반/반반차이면 업데이트 */
-      if (PARTIAL_DAY_REST_LISTS.includes(commuteInfo.leaveType)) {
+      if (PARTIAL_DAY_REST_LISTS.has(commuteInfo.leaveType)) {
         /* 지각 판별 */
         const isPmQuarterLate: boolean =
-          commuteInfo.leaveType === IntranetLeaveTypeEnum.PM_QUARTER &&
+          PM_QUARTER_REST_LISTS.has(commuteInfo.leaveType) &&
           new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
 
         const isAmHalfLate: boolean =
-          commuteInfo.leaveType === IntranetLeaveTypeEnum.AM_HALF &&
+          AM_REST_LISTS.has(commuteInfo.leaveType) &&
           new Date(checkInDto.checkInTime) >= getAmHalfLateBoundary(new Date(checkInDto.checkInTime));
 
         const isPMHalfLate: boolean =
-          commuteInfo.leaveType === IntranetLeaveTypeEnum.PM_HALF &&
+          PM_REST_LISTS.has(commuteInfo.leaveType) &&
           new Date(checkInDto.checkInTime) >= getPmHalfLateBoundary(new Date(checkInDto.checkInTime));
 
         const isAmQuarterLate: boolean =
-          commuteInfo.leaveType === IntranetLeaveTypeEnum.AM_QUARTER &&
+          AM_QUARTER_REST_LISTS.has(commuteInfo.leaveType) &&
           new Date(checkInDto.checkInTime) >= getAmQuarterLateBoundary(new Date(checkInDto.checkInTime));
 
         const lateStatus: LateStatusEnum =
@@ -129,40 +133,27 @@ export class CommuteService {
       throw new BadRequestException('이미 퇴근을 찍었습니다.');
     }
     /* 근태 상태가 휴무인지 확인 */
-    if (FULL_DAY_REST_LISTS.includes(commuteInfo.leaveType)) {
+    if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveType)) {
       throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
     }
     const { checkInTime, leaveType } = commuteInfo;
 
     let standardWorkingMinutes: number;
-    switch (leaveType) {
-      case IntranetLeaveTypeEnum.NORMAL:
-        standardWorkingMinutes = NORMAL_WORKING_MINUTES;
-        break;
-      case IntranetLeaveTypeEnum.AM_HALF:
-        standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
-        break;
-      case IntranetLeaveTypeEnum.PM_HALF:
-        standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
-        break;
-      case IntranetLeaveTypeEnum.AM_QUARTER:
-        standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
-        break;
-      case IntranetLeaveTypeEnum.PM_QUARTER:
-        standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
-        break;
+    if (AM_REST_LISTS.has(leaveType) || PM_REST_LISTS.has(leaveType)) {
+      standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
+    } else if (AM_QUARTER_REST_LISTS.has(leaveType) || PM_QUARTER_REST_LISTS.has(leaveType)) {
+      standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
+    } else {
+      standardWorkingMinutes = NORMAL_WORKING_MINUTES;
     }
 
     /* 최종 근무시간 혹은 초과근무시간 저장 */
     const finalCheckOutTime: Date = new Date(checkOutDto.checkOutTime);
-    // 추후 리펙토링 필요....
+
     let finalCheckInTime: Date;
-    if (leaveType === IntranetLeaveTypeEnum.AM_HALF && checkInTime < getAmHalfEarlyBoundary(new Date(checkInTime))) {
+    if (AM_REST_LISTS.has(leaveType) && checkInTime < getAmHalfEarlyBoundary(new Date(checkInTime))) {
       finalCheckInTime = getAmHalfEarlyBoundary(new Date(checkInTime));
-    } else if (
-      leaveType === IntranetLeaveTypeEnum.AM_QUARTER &&
-      checkInTime < getAmQuarterEarlyBoundary(new Date(checkInTime))
-    ) {
+    } else if (AM_QUARTER_REST_LISTS.has(leaveType) && checkInTime < getAmQuarterEarlyBoundary(new Date(checkInTime))) {
       finalCheckInTime = getAmQuarterEarlyBoundary(new Date(checkInTime));
     } else if (
       leaveType === IntranetLeaveTypeEnum.NORMAL &&
@@ -230,38 +221,28 @@ export class CommuteService {
     /* 지각 판별 */
     const isLate: boolean =
       (commuteInfo.leaveType === IntranetLeaveTypeEnum.NORMAL ||
-        commuteInfo.leaveType === IntranetLeaveTypeEnum.PM_HALF ||
-        commuteInfo.leaveType === IntranetLeaveTypeEnum.PM_QUARTER) &&
+        PM_REST_LISTS.has(commuteInfo.leaveType) ||
+        PM_QUARTER_REST_LISTS.has(commuteInfo.leaveType)) &&
       new Date(updateDto.checkInTime) >= getNormalLateBoundary(new Date(updateDto.checkInTime));
 
     const isAmHalfLate: boolean =
-      commuteInfo.leaveType === IntranetLeaveTypeEnum.AM_HALF &&
+      AM_REST_LISTS.has(commuteInfo.leaveType) &&
       new Date(updateDto.checkInTime) >= getAmHalfLateBoundary(new Date(updateDto.checkInTime));
 
     const isAmQuarterLate: boolean =
-      commuteInfo.leaveType === IntranetLeaveTypeEnum.AM_QUARTER &&
+      AM_QUARTER_REST_LISTS.has(commuteInfo.leaveType) &&
       new Date(updateDto.checkInTime) >= getAmQuarterLateBoundary(new Date(updateDto.checkInTime));
 
     const lateStatus: LateStatusEnum =
       isLate || isAmHalfLate || isAmQuarterLate ? LateStatusEnum.LATE : LateStatusEnum.ON_TIME;
 
     let standardWorkingMinutes: number;
-    switch (commuteInfo.leaveType) {
-      case IntranetLeaveTypeEnum.NORMAL:
-        standardWorkingMinutes = NORMAL_WORKING_MINUTES;
-        break;
-      case IntranetLeaveTypeEnum.AM_HALF:
-        standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
-        break;
-      case IntranetLeaveTypeEnum.PM_HALF:
-        standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
-        break;
-      case IntranetLeaveTypeEnum.AM_QUARTER:
-        standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
-        break;
-      case IntranetLeaveTypeEnum.PM_QUARTER:
-        standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
-        break;
+    if (AM_REST_LISTS.has(commuteInfo.leaveType) || PM_REST_LISTS.has(commuteInfo.leaveType)) {
+      standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
+    } else if (AM_QUARTER_REST_LISTS.has(commuteInfo.leaveType) || PM_QUARTER_REST_LISTS.has(commuteInfo.leaveType)) {
+      standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
+    } else {
+      standardWorkingMinutes = NORMAL_WORKING_MINUTES;
     }
 
     /* 근무시간 계산 */
