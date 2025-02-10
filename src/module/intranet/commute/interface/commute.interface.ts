@@ -32,6 +32,7 @@ export interface UpdateCommuteTimeInfo {
   checkInTime: Date;
   checkOutTime: Date;
   updateReason: string;
+  attendance: IntranetAttendanceEnum;
   workingMinutes: number;
   overtimeWorkingMinutes: number;
   checkInIpAddr: string | null;

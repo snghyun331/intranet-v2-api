@@ -267,13 +267,19 @@ export class CommuteService {
     /* 근무시간 계산 */
     let workingMinutes: number | null;
     let overtimeWorkingMinutes: number | null;
+    let attendance: IntranetAttendanceEnum;
     if (!updateDto.checkOutTime) {
       workingMinutes = null;
       overtimeWorkingMinutes = null;
+      attendance = IntranetAttendanceEnum.CHECK_IN;
     } else {
       workingMinutes = (updateDto.checkOutTime.getTime() - updateDto.checkInTime.getTime()) / (1000 * 60);
       overtimeWorkingMinutes =
         workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
+      attendance =
+        workingMinutes < standardWorkingMinutes
+          ? IntranetAttendanceEnum.EARLY_CHECK_OUT
+          : IntranetAttendanceEnum.CHECK_OUT;
     }
 
     /* 출퇴근 IP 및 디바이스 업데이트 */
@@ -296,6 +302,7 @@ export class CommuteService {
       checkOutIpAddr,
       checkInDeviceType,
       checkOutDeviceType,
+      attendance,
       lateStatus,
     };
 
