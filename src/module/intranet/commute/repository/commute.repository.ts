@@ -14,6 +14,7 @@ import {
   UpdateCommuteTimeInfo,
 } from '../interface/commute.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
+import { IntranetAttendanceEnum } from '../../../../common/constant/enum';
 
 @Injectable()
 export class CommuteRepository {
@@ -28,7 +29,7 @@ export class CommuteRepository {
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ userIdx, ...commuteInfo })
+      .values({ userIdx, ...commuteInfo, attendance: IntranetAttendanceEnum.CHECK_IN })
       .execute();
   }
 
@@ -40,7 +41,7 @@ export class CommuteRepository {
     return await manager
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set(commuteInfo)
+      .set({ ...commuteInfo, attendance: IntranetAttendanceEnum.CHECK_IN })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
@@ -52,7 +53,7 @@ export class CommuteRepository {
       .select([
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
-        'commuteEntity.attendance AS attendance',
+        'commuteEntity.leaveType AS leaveType',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
@@ -92,6 +93,7 @@ export class CommuteRepository {
         'commuteEntity.overtimeWorkingMinutes AS overtimeWorkingMinutes',
         'commuteEntity.lateStatus AS lateStatus',
         'commuteEntity.attendance AS attendance',
+        'commuteEntity.leaveType AS leaveType',
         'commuteEntity.updateReason AS updateReason',
         'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
         'commuteEntity.note AS note',
@@ -139,7 +141,7 @@ export class CommuteRepository {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
-        'commuteEntity.attendance AS attendance',
+        'commuteEntity.leaveType AS leaveType',
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.checkInDeviceType AS checkInDeviceType',

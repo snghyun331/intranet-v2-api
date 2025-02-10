@@ -27,8 +27,8 @@ export enum MealAttendanceEnum {
   PM_HALF = '오후 반차',
 }
 
-export enum IntranetAttendanceEnum {
-  NORMAL = '정상 출근',
+export enum IntranetLeaveTypeEnum {
+  NORMAL = '근무',
   AM_HALF = '오전 반차',
   PM_HALF = '오후 반차',
   AM_QUARTER = '오전 반반차',
@@ -40,6 +40,12 @@ export enum IntranetAttendanceEnum {
   ALTERNATIVE_LEAVE = '대체 휴무',
   FAMILY_EVENT_LEAVE = '경조 휴무',
   ANNUAL_LEAVE = '연차',
+}
+
+export enum IntranetAttendanceEnum {
+  CHECK_IN = '출근',
+  CHECK_OUT = '퇴근',
+  EARLY_CHECK_OUT = '조기 퇴근',
 }
 
 export enum UserGradeEnum {

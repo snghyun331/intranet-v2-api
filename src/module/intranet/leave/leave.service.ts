@@ -3,7 +3,7 @@ import { LeaveRepository } from './repository/leave.repository';
 import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
-import { IntranetAttendanceEnum, NodeEnvEnum } from '../../../common/constant/enum';
+import { IntranetLeaveTypeEnum, NodeEnvEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo } from './interface/leave.interface';
 
@@ -29,7 +29,7 @@ export class LeaveService {
         if (!dateStringFormat.test(leave.commuteDate)) {
           throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
         }
-        if (!Object.values(IntranetAttendanceEnum).includes(leave.attendance)) {
+        if (!Object.values(IntranetLeaveTypeEnum).includes(leave.leaveType)) {
           throw new BadRequestException('올바른 휴가 유형을 입력해주세요.');
         }
         const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, confirmPersonIdx, manager);
