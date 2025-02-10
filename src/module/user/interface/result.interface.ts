@@ -1,4 +1,4 @@
-import { GenderEnum, IntranetAttendanceEnum, YNEnum } from '../../../common/constant/enum';
+import { GenderEnum, IntranetLeaveTypeEnum, YNEnum } from '../../../common/constant/enum';
 import { TotalPageInfo } from '../../../common/interface/totalPage.interface';
 import { AllUserInfo } from './user.interface';
 
@@ -25,7 +25,7 @@ export interface CurrentUserInfo {
 
 export interface CurrentUserInfoResult extends CurrentUserInfo {
   checkInTime: Date;
-  attendance: IntranetAttendanceEnum;
+  attendance: IntranetLeaveTypeEnum;
   workingMinutes: number;
 }
 
