@@ -9,6 +9,7 @@ import { QnaFilterDto } from '../dto/query.dto';
 import { YNEnum } from '../../../common/constant/enum';
 import { QnaInfo } from '../interface/qna.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
+import { removeAllWhiteSpace } from '../../../common/utils/utility';
 
 @Injectable()
 export class QnaRepository {
@@ -83,7 +84,8 @@ export class QnaRepository {
       query.andWhere('userEntity.userCell LIKE :userCell', { userCell: `${filterInfo.userCell}%` });
     }
     if (filterInfo.userName) {
-      query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
+      const userName: string = removeAllWhiteSpace(filterInfo.userName);
+      query.andWhere('userEntity.userName = :userName', { userName });
     }
 
     const total = await query.getCount();

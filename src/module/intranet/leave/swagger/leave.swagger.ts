@@ -45,3 +45,72 @@ export const USERS_INTRANET_LEAVE: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_INTRANET_LEAVE: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 연차 관리 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              totalPage: 1,
+              total: 3,
+              summaries: [
+                {
+                  userIdx: 2,
+                  leaveStatsIdx: 1,
+                  joinDate: '2024-03-04',
+                  userName: '이승현',
+                  userEmail: 'shlee1@acghr.co.kr',
+                  hqName: 'HR솔루션본부',
+                  teamName: 'HR Tech',
+                  gradeName: '위원',
+                  year: '2025',
+                  totalAnnualLeave: 12,
+                  annualLeaveBalance: 3,
+                  note: null,
+                  lastLeaveDate: '2025-01-05',
+                },
+                {
+                  userIdx: 1,
+                  leaveStatsIdx: 2,
+                  joinDate: '2023-03-04',
+                  userName: '김현민',
+                  userEmail: 'hmkim@acghr.co.kr',
+                  hqName: 'HR솔루션본부',
+                  teamName: 'HR Tech',
+                  gradeName: '선임',
+                  year: '2025',
+                  totalAnnualLeave: 12,
+                  annualLeaveBalance: 3,
+                  note: null,
+                  lastLeaveDate: '2025-01-23',
+                },
+                {
+                  userIdx: 4,
+                  leaveStatsIdx: 3,
+                  joinDate: '2010-05-09',
+                  userName: '신효은',
+                  userEmail: 'heshin@acghr.co.kr',
+                  hqName: 'HR솔루션본부',
+                  teamName: 'HR Tech',
+                  gradeName: '책임',
+                  year: '2025',
+                  totalAnnualLeave: 12,
+                  annualLeaveBalance: 3,
+                  note: null,
+                  lastLeaveDate: null,
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
