@@ -6,6 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { IntranetLeaveTypeEnum, NodeEnvEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo } from './interface/leave.interface';
+import { PageNoDto } from '../../../common/dto/pageNo.dto';
+import { AdminLeaveFilterDto } from './dto/query.dto';
 
 @Injectable()
 export class LeaveService {
@@ -60,5 +62,15 @@ export class LeaveService {
     );
 
     return;
+  }
+
+  async getLeaveSummary({ pageNo, perPage }: PageNoDto, filterInfo: AdminLeaveFilterDto) {
+    const { totalPage, total, summaries } = await this.leaveRepository.getUserLeaveSummaries(
+      pageNo,
+      perPage,
+      filterInfo,
+    );
+
+    return { totalPage, total, summaries };
   }
 }

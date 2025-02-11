@@ -164,8 +164,8 @@ export class UserRepository {
       });
     }
 
-    const total = await query.getCount();
-    const totalPage = Math.ceil(total / perPage);
+    const total: number = await query.getCount();
+    const totalPage: number = Math.ceil(total / perPage);
 
     if (filterInfo.sortby && filterInfo.orderby) {
       if (filterInfo.sortby === SortbyEnum.GRADE) {

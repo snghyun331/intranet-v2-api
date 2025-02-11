@@ -4,7 +4,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateActivityDto } from '../dto/createActivity.dto';
 import { ActivityEntity } from '../../../entity/activity/activity.entity';
-import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../common/utils/utility';
+import {
+  getStartAndEndDateByMonth,
+  getStartAndEndDateByMonths,
+  removeAllWhiteSpace,
+} from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
 import {
@@ -277,7 +281,8 @@ export class ActivityRepository {
       });
 
     if (filterInfo.userName) {
-      query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
+      const userName: string = removeAllWhiteSpace(filterInfo.userName);
+      query.andWhere('userEntity.userName = :userName', { userName });
     }
     if (filterInfo.gradeIdx) {
       query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });

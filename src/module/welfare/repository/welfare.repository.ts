@@ -4,7 +4,11 @@ import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { WelfareEntity } from '../../../entity/welfare/welfare.entity';
-import { getStartAndEndDateByMonth, getStartAndEndDateByMonths } from '../../../common/utils/utility';
+import {
+  getStartAndEndDateByMonth,
+  getStartAndEndDateByMonths,
+  removeAllWhiteSpace,
+} from '../../../common/utils/utility';
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
@@ -482,7 +486,8 @@ export class WelfareRepository {
       });
 
     if (filterInfo.userName) {
-      query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
+      const userName: string = removeAllWhiteSpace(filterInfo.userName);
+      query.andWhere('userEntity.userName = :userName', { userName });
     }
     if (filterInfo.gradeIdx) {
       query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
