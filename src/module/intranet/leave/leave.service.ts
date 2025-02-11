@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveRepository } from './repository/leave.repository';
 import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
@@ -8,6 +8,7 @@ import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveFilterDto } from './dto/query.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @Injectable()
 export class LeaveService {
@@ -72,5 +73,15 @@ export class LeaveService {
     );
 
     return { totalPage, total, summaries };
+  }
+
+  async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
+    const leaveStatsCnt: number = await this.leaveRepository.getLeaveStatsCountByIdx(leaveStatsIdx);
+    if (leaveStatsCnt < 1) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+    await this.leaveRepository.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
+
+    return;
   }
 }

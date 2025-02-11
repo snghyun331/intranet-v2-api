@@ -67,7 +67,7 @@ export class CommuteEntity extends CommonEntity {
   })
   confirmYN: ConfirmEnum;
 
-  @Column({ name: 'confirm_date', comment: '승인 날짜', type: Number, nullable: true })
+  @Column({ name: 'confirm_date', comment: '승인 날짜', type: String, nullable: true })
   confirmDate: string;
 
   @Column({ name: 'confirm_person_idx', comment: '승인자 IDX', nullable: true })

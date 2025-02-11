@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
-import { EntityManager, InsertResult, Repository, SelectQueryBuilder } from 'typeorm';
+import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { LeaveDetailDto } from '../dto/createLeave.dto';
 import { LeaveImageInfo } from '../interface/leave.interface';
 import { ImageEntity } from '../../../../entity/image/image.entity';
@@ -14,6 +14,7 @@ import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
 import { IntranetLeaveTypeEnum, SortbyEnum } from '../../../../common/constant/enum';
 import { removeAllWhiteSpace } from '../../../../common/utils/utility';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 @Injectable()
 export class LeaveRepository {
@@ -21,6 +22,15 @@ export class LeaveRepository {
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
   ) {}
+
+  async getLeaveStatsCountByIdx(leaveStatsIdx: number): Promise<number> {
+    const result: number = await this.leaveStatsModel
+      .createQueryBuilder('leaveStatsEntity')
+      .where('leaveStatsEntity.leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
+      .getCount();
+
+    return result;
+  }
 
   async createLeave(
     leaveInfo: LeaveDetailDto,
@@ -171,5 +181,18 @@ export class LeaveRepository {
     }));
 
     return { totalPage, total, summaries: result };
+  }
+
+  async updateLeaveStatsNote(
+    leaveStatsIdx: number,
+    { note }: UpdateNoteDto,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(LeaveStatsEntity)
+      .set({ note })
+      .where('leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
+      .execute();
   }
 }
