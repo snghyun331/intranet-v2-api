@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { LeaveService } from './leave.service';
 import { ResponseInterface } from '../../../common/interface/response.interface';
 import {
@@ -6,11 +18,13 @@ import {
   ApiBearerAuth,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_INTRANET_LEAVE, USERS_INTRANET_LEAVE } from './swagger/leave.swagger';
+import { ADMIN_INTRANET_LEAVE, ADMIN_INTRANET_LEAVE_NOTE, USERS_INTRANET_LEAVE } from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '../../../common/decorator/role.decorator';
@@ -26,6 +40,7 @@ import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveFilterDto } from './dto/query.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('사용자')
 @Controller('users/intranet/leave')
@@ -74,6 +89,27 @@ export class AdminLeaveController {
     const data = await this.leaveService.getLeaveSummary(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch(':leaveStatsIdx/note')
+  async updateLeaveStatsNote(
+    @Param('leaveStatsIdx', ParseIntPipe) leaveStatsIdx: number,
+    @Body() noteInfo: UpdateNoteDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.leaveService.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
+
+    const response: ResponseInterface = { message: '비고 수정 성공' };
 
     return response;
   }

@@ -114,3 +114,44 @@ export const ADMIN_INTRANET_LEAVE: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_INTRANET_LEAVE_NOTE: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 연차 관리 특이사항 수정 API',
+    },
+    API_PARAM1: {
+      name: 'leaveStatsIdx',
+      type: Number,
+      required: true,
+      description: '연차관리IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            message: 'success',
+          },
+        },
+      },
+    },
+    API_NOT_FOUND_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '잘못된 leaveStatsIdx',
+              value: {
+                message: '해당 내역은 존재하지 않거나 삭제되었습니다.',
+                error: 'Not Found',
+                statusCode: 404,
+                timeStamp: '2024. 10. 18. 오후 3:18:24',
+                path: '/admin/intranet/leave/1',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
