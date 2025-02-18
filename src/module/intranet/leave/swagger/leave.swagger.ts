@@ -159,7 +159,7 @@ export const ADMIN_INTRANET_LEAVE_NOTE: SwaggerMethod = {
   },
 };
 
-export const ADMIN_INTRANET_LEAVE_SUMMARY: SwaggerMethod = {
+export const ADMIN_INTRANET_LEAVE_STATS: SwaggerMethod = {
   GET: {
     API_OPERATION: {
       summary: '어드민 사용자 휴가관리 요약정보 조회 API 개발',

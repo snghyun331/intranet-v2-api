@@ -27,7 +27,7 @@ import {
 import {
   ADMIN_INTRANET_LEAVE,
   ADMIN_INTRANET_LEAVE_NOTE,
-  ADMIN_INTRANET_LEAVE_SUMMARY,
+  ADMIN_INTRANET_LEAVE_STATS,
   USERS_INTRANET_LEAVE,
 } from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
@@ -119,18 +119,18 @@ export class AdminLeaveController {
     return response;
   }
 
-  @ApiOperation(ADMIN_INTRANET_LEAVE_SUMMARY.GET.API_OPERATION)
-  @ApiParam(ADMIN_INTRANET_LEAVE_SUMMARY.GET.API_PARAM1)
-  @ApiOkResponse(ADMIN_INTRANET_LEAVE_SUMMARY.GET.API_OK_RESPONSE)
+  @ApiOperation(ADMIN_INTRANET_LEAVE_STATS.GET.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_LEAVE_STATS.GET.API_PARAM1)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_STATS.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Get('users/:userIdx/summary')
+  @Get('users/:userIdx/stats')
   async getUserLeaveInfo(
     @Param('userIdx', ParseIntPipe) userIdx: number,
     @Query('year') year: string,
   ): Promise<ResponseInterface> {
-    const data = await this.leaveService.getUserLeaveSummary(year, userIdx);
+    const data = await this.leaveService.getUserLeaveStats(year, userIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
