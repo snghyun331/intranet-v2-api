@@ -84,4 +84,52 @@ export class LeaveService {
 
     return;
   }
+
+  async getUserLeaveSummary(year: string, userIdx: number) {
+    const userCnt: number = await this.leaveRepository.getUserCountByIdx(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
+    /* 사용자 휴가 요약정보와 휴가 종류별 사용현황 조회 */
+    const {
+      userName,
+      joinDate,
+      hqName,
+      teamName,
+      gradeName,
+      totalReceivedAnnualLeave,
+      totalAnnualLeaveUsage,
+      totalAnnualLeaveBalance,
+      midJoinReceivedAnnualLeave,
+      yearsSinceJoin,
+      oneYearAfterJoin,
+      proRatedAnnualLeave,
+      ...leaveUsageStats
+    } = await this.leaveRepository.getUserLeaveStats(year, userIdx);
+
+    const leaveSummary = {
+      userIdx,
+      userName,
+      year,
+      joinDate,
+      hqName,
+      teamName,
+      gradeName,
+      totalReceivedAnnualLeave,
+      totalAnnualLeaveUsage,
+      totalAnnualLeaveBalance,
+      midJoinReceivedAnnualLeave,
+      yearsSinceJoin,
+      oneYearAfterJoin,
+      proRatedAnnualLeave,
+    };
+
+    const result = {
+      leaveSummary,
+      leaveUsageStats,
+    };
+
+    return result;
+  }
 }

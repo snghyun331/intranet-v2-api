@@ -145,3 +145,20 @@ export const getNormalEarlyBoundary = (timestamp: Date): Date => {
 
   return boundary;
 };
+
+// 근속년수 계산
+export const getYearsSinceJoin = (joinDateString: string): number => {
+  const now: moment.Moment = moment().utcOffset(9);
+  const joinDate = moment(joinDateString).utcOffset(9);
+  const yearsSinceJoin: number = now.diff(joinDate, 'years');
+
+  return yearsSinceJoin;
+};
+
+// 입사 후 만 1년 날짜 계산
+export const getOneYearAfterJoin = (joinDateString: string): string => {
+  const joinDate = moment(joinDateString).utcOffset(9);
+  const oneYearAfterJoin: string = joinDate.add(1, 'years').subtract(1, 'days').format('YYYY-MM-DD');
+
+  return oneYearAfterJoin;
+};
