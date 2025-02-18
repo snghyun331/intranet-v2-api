@@ -24,7 +24,12 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_INTRANET_LEAVE, ADMIN_INTRANET_LEAVE_NOTE, USERS_INTRANET_LEAVE } from './swagger/leave.swagger';
+import {
+  ADMIN_INTRANET_LEAVE,
+  ADMIN_INTRANET_LEAVE_NOTE,
+  ADMIN_INTRANET_LEAVE_SUMMARY,
+  USERS_INTRANET_LEAVE,
+} from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '../../../common/decorator/role.decorator';
@@ -110,6 +115,24 @@ export class AdminLeaveController {
     await this.leaveService.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE_SUMMARY.GET.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_LEAVE_SUMMARY.GET.API_PARAM1)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_SUMMARY.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('users/:userIdx/summary')
+  async getUserLeaveInfo(
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+    @Query('year') year: string,
+  ): Promise<ResponseInterface> {
+    const data = await this.leaveService.getUserLeaveSummary(year, userIdx);
+
+    const response: ResponseInterface = { message: 'success', data };
 
     return response;
   }

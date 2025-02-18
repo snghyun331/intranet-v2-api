@@ -13,7 +13,7 @@ import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
 import { IntranetLeaveTypeEnum, SortbyEnum } from '../../../../common/constant/enum';
-import { removeAllWhiteSpace } from '../../../../common/utils/utility';
+import { getOneYearAfterJoin, getYearsSinceJoin, removeAllWhiteSpace } from '../../../../common/utils/utility';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 @Injectable()
@@ -21,6 +21,7 @@ export class LeaveRepository {
   constructor(
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
+    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
   ) {}
 
   async getLeaveStatsCountByIdx(leaveStatsIdx: number): Promise<number> {
@@ -79,8 +80,9 @@ export class LeaveRepository {
         'teamEntity.teamName AS teamName',
         'gradeEntity.gradeName AS gradeName',
         'leaveStatsEntity.year AS year',
-        'leaveStatsEntity.totalAnnualLeave AS totalAnnualLeave',
-        'leaveStatsEntity.annualLeaveBalance AS annualLeaveBalance',
+        'leaveStatsEntity.totalReceivedAnnualLeave AS totalReceivedAnnualLeave',
+        'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage',
+        '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance',
         'leaveStatsEntity.note AS note',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveStatsEntity.userIdx')
@@ -177,6 +179,7 @@ export class LeaveRepository {
     const result = leaveStatsList.map((leaveStats) => ({
       userIdx: leaveStats.userIdx,
       ...leaveStats,
+      totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance),
       lastLeaveDate: recentLeaveMap.has(leaveStats.userIdx) ? recentLeaveMap.get(leaveStats.userIdx) : null,
     }));
 
@@ -194,5 +197,82 @@ export class LeaveRepository {
       .set({ note })
       .where('leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
       .execute();
+  }
+
+  async getUserCountByIdx(userIdx: number): Promise<number> {
+    const userCnt: number = await this.userModel
+      .createQueryBuilder('userEntity')
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail IS NULL')
+      .getCount();
+
+    return userCnt;
+  }
+
+  async getUserLeaveStats(year: string, userIdx: number) {
+    const leaveStats = await this.leaveStatsModel
+      .createQueryBuilder('leaveStatsEntity')
+      .select([
+        'userEntity.userName AS userName',
+        'userEntity.joinDate AS joinDate',
+        'hqEntity.hqName AS hqName',
+        'teamEntity.teamName AS teamName',
+        'gradeEntity.gradeName AS gradeName',
+        'leaveStatsEntity.totalReceivedAnnualLeave AS totalReceivedAnnualLeave', // 총 연차 개수
+        'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage', // 사용 연차 개수
+        '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance', // 잔여 연차 개수
+        'leaveStatsEntity.midJoinReceivedAnnualLeave AS midJoinReceivedAnnualLeave', // 중도입사 연차 부여개수
+        'leaveStatsEntity.fullLeaveUsage AS fullLeaveUsage',
+        'leaveStatsEntity.halfLeaveUsage AS halfLeaveUsage',
+        'leaveStatsEntity.quarterLeaveUsage AS quarterLeaveUsage',
+        'leaveStatsEntity.specialLeaveUsage AS specialLeaveUsage',
+        'leaveStatsEntity.alternativeLeaveUsage AS alternativeLeaveUsage',
+        'leaveStatsEntity.sickLeaveUsage AS sickLeaveUsage',
+        'leaveStatsEntity.trainingLeaveUsage AS trainingLeaveUsage',
+        'leaveStatsEntity.familyEventLeaveUsage AS familyEventLeaveUsage',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveStatsEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveStatsEntity.year = :year', { year })
+      .getRawOne();
+
+    const result = {
+      ...leaveStats,
+      yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
+      oneYearAfterJoin: getOneYearAfterJoin(leaveStats.joinDate), // 만 1년 날짜
+      totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
+    };
+
+    return result;
+  }
+
+  async getUserLeaveDetail(year: string, userIdx: number) {
+    const startDate: string = `${year}-01-01`;
+    const endDate: string = `${year}-12-31`;
+
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.userIdx AS userIdx',
+        'commuteEntity.commuteDate AS commuteDate',
+        'DAYNAME(commuteEntity.commuteDate) AS commuteDayName',
+        'commuteEntity.leaveType AS leaveType',
+        'commuteEntity.note AS note',
+        'commuteEntity.confirmYN AS confirmYN',
+        'commuteEntity.confirmDate AS confirmDate',
+        'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
+        'userEntity.userName AS confirmPersonName',
+      ])
+      .leftJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.confirmPersonIdx')
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('commuteEntity.leaveType NOT IN (:leaveType)', { leaveType: IntranetLeaveTypeEnum.NORMAL })
+      .getRawMany();
+
+    return result;
   }
 }

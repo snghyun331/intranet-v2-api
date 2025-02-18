@@ -7,9 +7,10 @@ import { AdminLeaveController, UserLeaveController } from './leave.controller';
 import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
 import { AwsModule } from '../../aws/aws.module';
 import { AwsService } from '../../aws/aws.service';
+import { UserEntity } from '../../../entity/user/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CommuteEntity, LeaveStatsEntity]), AwsModule],
+  imports: [TypeOrmModule.forFeature([CommuteEntity, LeaveStatsEntity, UserEntity]), AwsModule],
   providers: [LeaveService, LeaveRepository, AwsService],
   controllers: [UserLeaveController, AdminLeaveController],
 })
