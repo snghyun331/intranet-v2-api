@@ -85,7 +85,7 @@ export class LeaveService {
     return;
   }
 
-  async getUserLeaveSummary(year: string, userIdx: number) {
+  async getUserLeaveStats(year: string, userIdx: number) {
     const userCnt: number = await this.leaveRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
