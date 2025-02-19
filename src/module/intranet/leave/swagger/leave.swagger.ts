@@ -216,3 +216,24 @@ export const ADMIN_INTRANET_LEAVE_STATS: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 사용자 휴가관리 상세정보 조회 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'userIdx',
+      required: true,
+      description: '사용자IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {},
+        },
+      },
+    },
+  },
+};

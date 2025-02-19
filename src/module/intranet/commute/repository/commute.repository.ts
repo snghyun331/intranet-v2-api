@@ -15,6 +15,7 @@ import {
 } from '../interface/commute.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { IntranetAttendanceEnum } from '../../../../common/constant/enum';
+import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 
 @Injectable()
 export class CommuteRepository {
@@ -53,7 +54,7 @@ export class CommuteRepository {
       .select([
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
-        'commuteEntity.leaveType AS leaveType',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
@@ -93,7 +94,8 @@ export class CommuteRepository {
         'commuteEntity.overtimeWorkingMinutes AS overtimeWorkingMinutes',
         'commuteEntity.lateStatus AS lateStatus',
         'commuteEntity.attendance AS attendance',
-        'commuteEntity.leaveType AS leaveType',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'leaveTypEntity.leaveType AS leaveType',
         'commuteEntity.updateReason AS updateReason',
         'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
         'commuteEntity.note AS note',
@@ -107,6 +109,7 @@ export class CommuteRepository {
         'commuteEntity.updatedAt AS updatedAt',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
@@ -141,7 +144,7 @@ export class CommuteRepository {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
-        'commuteEntity.leaveType AS leaveType',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.checkInDeviceType AS checkInDeviceType',

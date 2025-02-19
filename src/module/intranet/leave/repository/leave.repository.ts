@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
 import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
@@ -6,15 +6,21 @@ import { LeaveDetailDto } from '../dto/createLeave.dto';
 import { LeaveImageInfo } from '../interface/leave.interface';
 import { ImageEntity } from '../../../../entity/image/image.entity';
 import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
-import { AdminLeaveFilterDto } from '../dto/query.dto';
+import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from '../dto/query.dto';
 import { LeaveStatsEntity } from '../../../../entity/intranet/leave/leaveStats.entity';
 import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
-import { IntranetLeaveTypeEnum, SortbyEnum } from '../../../../common/constant/enum';
-import { getOneYearAfterJoin, getYearsSinceJoin, removeAllWhiteSpace } from '../../../../common/utils/utility';
+import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
+import {
+  getOneYearAfterJoin,
+  getStartAndEndDateByMonth,
+  getYearsSinceJoin,
+  removeAllWhiteSpace,
+} from '../../../../common/utils/utility';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
+import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 
 @Injectable()
 export class LeaveRepository {
@@ -111,13 +117,13 @@ export class LeaveRepository {
     const lastLeaveDates = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select(['commuteEntity.userIdx AS userIdx', 'MAX(commuteEntity.commuteDate) AS lastLeaveDate'])
-      .where('commuteEntity.leaveType IN (:leaveType)', {
-        leaveType: [
-          IntranetLeaveTypeEnum.ANNUAL_LEAVE,
-          IntranetLeaveTypeEnum.PM_HALF,
-          IntranetLeaveTypeEnum.PM_QUARTER,
-          IntranetLeaveTypeEnum.AM_HALF,
-          IntranetLeaveTypeEnum.AM_QUARTER,
+      .where('commuteEntity.leaveTypeIdx IN (:leaveTypeIdx)', {
+        leaveTypeIdx: [
+          IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE,
+          IntranetLeaveTypeIdxEnum.PM_HALF,
+          IntranetLeaveTypeIdxEnum.PM_QUARTER,
+          IntranetLeaveTypeIdxEnum.AM_HALF,
+          IntranetLeaveTypeIdxEnum.AM_QUARTER,
         ],
       })
       .groupBy('commuteEntity.userIdx')
@@ -202,29 +208,47 @@ export class LeaveRepository {
     return result;
   }
 
-  async getUserLeaveDetail(year: string, userIdx: number) {
-    const startDate: string = `${year}-01-01`;
-    const endDate: string = `${year}-12-31`;
+  async getUserLeaveDetail({ year, month, ...filter }: AdminLeaveDetailFilterDto, userIdx: number) {
+    // 해당 월의 첫 번째 날과 마지막 날을 구함
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(Number(year), Number(month));
+    const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
 
-    const result = await this.commuteModel
+    const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
         'commuteEntity.commuteIdx AS commuteIdx',
         'commuteEntity.userIdx AS userIdx',
         'commuteEntity.commuteDate AS commuteDate',
         'DAYNAME(commuteEntity.commuteDate) AS commuteDayName',
-        'commuteEntity.leaveType AS leaveType',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'leaveTypeEntity.leaveType AS leaveType',
+        'leaveTypeEntity.leaveReduceUnit AS leaveReduceUnit',
         'commuteEntity.note AS note',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
         'userEntity.userName AS confirmPersonName',
+        'commuteEntity.createdAt AS createdAt',
+        'commuteEntity.updatedAt AS updatedAt',
       ])
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .leftJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.confirmPersonIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate })
-      .andWhere('commuteEntity.leaveType NOT IN (:leaveType)', { leaveType: IntranetLeaveTypeEnum.NORMAL })
-      .getRawMany();
+      .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
+        firstDayOfMonthToString,
+        lastDayOfMonthToString,
+      });
+
+    if (filter.leaveTypeIdx) {
+      query.andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: filter.leaveTypeIdx });
+    } else {
+      query.andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
+        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+      });
+    }
+
+    const result = await query.getRawMany();
 
     return result;
   }

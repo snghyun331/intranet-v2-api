@@ -41,7 +41,7 @@ export const getWeekendDates = (year: number, month: number): string[] => {
 
 export const getStartAndEndDateByMonth = (year: number, month: number) => {
   // 월의 첫 날과 마지막 날 계산
-  const firstDayOfMonth: moment.Moment = moment({ year: year, month: month - 1 })
+  const firstDayOfMonth: moment.Moment = moment({ year: Number(year), month: Number(month) - 1 })
     .startOf('month')
     .utcOffset(9);
 
