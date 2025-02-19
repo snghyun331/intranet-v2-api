@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { IntranetLeaveTypeEnum } from '../../../../common/constant/enum';
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, ValidateNested } from 'class-validator';
 
 export class LeaveDetailDto {
   @ApiProperty({ type: String, description: '신청 날짜', example: '2025-01-04', required: true })
@@ -10,15 +9,14 @@ export class LeaveDetailDto {
   commuteDate: string;
 
   @ApiProperty({
-    type: 'enum',
-    enum: IntranetLeaveTypeEnum,
-    description: '휴가 유형',
-    example: '연차',
+    type: Number,
+    description: '휴가유형IDX',
+    example: 6,
     required: true,
   })
   @IsNotEmpty()
-  @IsString()
-  leaveType: IntranetLeaveTypeEnum;
+  @IsNumber()
+  leaveTypeIdx: number;
 }
 
 export class LeaveRequestDto {
@@ -42,11 +40,11 @@ export class CreateLeaveDto {
       leaveInfo: [
         {
           commuteDate: '2025-01-04',
-          leaveType: '연차',
+          leaveTypeIdx: 6,
         },
         {
           commuteDate: '2025-01-05',
-          leaveType: '오후 반차',
+          leaveTypeIdx: 3,
         },
       ],
       confirmPersonIdx: 1,

@@ -3,11 +3,11 @@ import { LeaveRepository } from './repository/leave.repository';
 import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
-import { IntranetLeaveTypeEnum, NodeEnvEnum } from '../../../common/constant/enum';
+import { IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { AdminLeaveFilterDto } from './dto/query.dto';
+import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @Injectable()
@@ -32,8 +32,8 @@ export class LeaveService {
         if (!dateStringFormat.test(leave.commuteDate)) {
           throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
         }
-        if (!Object.values(IntranetLeaveTypeEnum).includes(leave.leaveType)) {
-          throw new BadRequestException('올바른 휴가 유형을 입력해주세요.');
+        if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leave.leaveTypeIdx)) {
+          throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
         }
         const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, confirmPersonIdx, manager);
 
@@ -129,6 +129,16 @@ export class LeaveService {
       leaveSummary,
       leaveUsageStats,
     };
+
+    return result;
+  }
+
+  async getUserLeaveInfo(filterInfo: AdminLeaveDetailFilterDto, userIdx: number) {
+    if (filterInfo.leaveTypeIdx && !Object.values(IntranetLeaveTypeIdxEnum).includes(filterInfo.leaveTypeIdx)) {
+      throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
+    }
+
+    const result = await this.leaveRepository.getUserLeaveDetail(filterInfo, userIdx);
 
     return result;
   }

@@ -3,6 +3,7 @@ import { CommonEntity } from '../../../common/entity/common.entity';
 import { UserEntity } from '../../user/user.entity';
 import { ConfirmEnum, IntranetAttendanceEnum, LateStatusEnum } from '../../../common/constant/enum';
 import { CommuteHasImageEntity } from '../../image/commuteHasImage.entity';
+import { LeaveTypeEntity } from '../leave/leaveType.entity';
 
 @Entity({ name: 'commute', comment: '출퇴근 정보 tb' })
 export class CommuteEntity extends CommonEntity {
@@ -27,8 +28,8 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'attendance', comment: '근태 상태', nullable: true })
   attendance: IntranetAttendanceEnum;
 
-  @Column({ name: 'leave_type', comment: '휴가 유형', nullable: false })
-  leaveType: string;
+  @Column({ name: 'leave_type_idx', comment: '근태(휴가)유형 IDX', nullable: true })
+  leaveTypeIdx: number;
 
   @Column({ name: 'working_minutes', comment: '근무 시간(분단위)', nullable: true })
   workingMinutes: number;
@@ -79,6 +80,13 @@ export class CommuteEntity extends CommonEntity {
   })
   @JoinColumn({ name: 'user_idx', referencedColumnName: 'userIdx' })
   userIdxRelation: UserEntity;
+
+  @ManyToOne(() => LeaveTypeEntity, (leaveType) => leaveType.commuteRelation, {
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn({ name: 'leave_type_idx', referencedColumnName: 'leaveTypeIdx' })
+  leaveTypeIdxRelation: LeaveTypeEntity;
 
   @OneToMany(() => CommuteHasImageEntity, (commuteImage) => commuteImage.commuteIdxRelation)
   commuteImageRelation: CommuteHasImageEntity[];

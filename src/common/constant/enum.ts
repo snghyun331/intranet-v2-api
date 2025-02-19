@@ -27,27 +27,27 @@ export enum MealAttendanceEnum {
   PM_HALF = '오후 반차',
 }
 
-export enum IntranetLeaveTypeEnum {
-  NORMAL = '근무',
-  AM_HALF = '오전 반차',
-  PM_HALF = '오후 반차',
-  AM_QUARTER = '오전 반반차',
-  PM_QUARTER = '오후 반반차',
-  SICK_LEAVE = '병가',
-  TRAINING = '훈련',
-  AM_TRAINING = '훈련(오전)',
-  PM_TRAINING = '훈련(오후)',
-  HEALTH_LEAVE = '보건휴가',
-  SPECIAL_LEAVE = '특별 휴무',
-  AM_SPECIAL_LEAVE = '특별 휴무(오전)',
-  PM_SPECIAL_LEAVE = '특별 휴무(오후)',
-  AM_QUARTER_SPECIAL_LEAVE = '특별 휴무(오전 반반)',
-  PM_QUARTER_SPECIAL_LEAVE = '특별 휴무(오후 반반)',
-  ALTERNATIVE_LEAVE = '대체 휴무',
-  AM_ALTERNATIVE_LEAVE = '대체 휴무(오전)',
-  PM_ALTERNATIVE_LEAVE = '대체 휴무(오후)',
-  FAMILY_EVENT_LEAVE = '경조 휴무',
-  ANNUAL_LEAVE = '연차',
+export enum IntranetLeaveTypeIdxEnum {
+  NORMAL = 1, // 근무
+  AM_HALF = 2, // 오전 반차
+  PM_HALF = 3, // 오후 반차
+  AM_QUARTER = 4, // 오전 반반차,
+  PM_QUARTER = 5, // 오후 반반차,
+  ANNUAL_LEAVE = 6, // 연차,
+  SPECIAL_LEAVE = 7, // 특별 휴무,
+  AM_SPECIAL_LEAVE = 8, // 특별 휴무(오전),
+  PM_SPECIAL_LEAVE = 9, // 특별 휴무(오후),
+  AM_QUARTER_SPECIAL_LEAVE = 10, // 특별 휴무(오전 반반),
+  PM_QUARTER_SPECIAL_LEAVE = 11, // 특별 휴무(오후 반반),
+  ALTERNATIVE_LEAVE = 12, // 대체 휴무,
+  AM_ALTERNATIVE_LEAVE = 13, // 대체 휴무(오전),
+  PM_ALTERNATIVE_LEAVE = 14, // 대체 휴무(오후),
+  FAMILY_EVENT_LEAVE = 15, // 경조 휴무,
+  HEALTH_LEAVE = 16, // 보건휴가,
+  TRAINING = 17, // 훈련,
+  AM_TRAINING = 18, // 훈련(오전),
+  PM_TRAINING = 19, // 훈련(오후),
+  SICK_LEAVE = 20, // 병가,
 }
 
 export enum IntranetAttendanceEnum {

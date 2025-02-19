@@ -26,6 +26,7 @@ import {
 } from '@nestjs/swagger';
 import {
   ADMIN_INTRANET_LEAVE,
+  ADMIN_INTRANET_LEAVE_DETAIL,
   ADMIN_INTRANET_LEAVE_NOTE,
   ADMIN_INTRANET_LEAVE_STATS,
   USERS_INTRANET_LEAVE,
@@ -44,7 +45,7 @@ import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator'
 import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { AdminLeaveFilterDto } from './dto/query.dto';
+import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('사용자')
@@ -126,11 +127,29 @@ export class AdminLeaveController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('users/:userIdx/stats')
-  async getUserLeaveInfo(
+  async getUserLeaveStats(
     @Param('userIdx', ParseIntPipe) userIdx: number,
     @Query('year') year: string,
   ): Promise<ResponseInterface> {
     const data = await this.leaveService.getUserLeaveStats(year, userIdx);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE_DETAIL.GET.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_LEAVE_DETAIL.GET.API_PARAM1)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_DETAIL.GET.API_OPERATION)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('users/:userIdx')
+  async getUserLeaveInfo(
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+    @Query() filterInfo: AdminLeaveDetailFilterDto,
+  ): Promise<ResponseInterface> {
+    const data = await this.leaveService.getUserLeaveInfo(filterInfo, userIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
