@@ -1,0 +1,370 @@
+import { INestApplication } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DATABASE_CONFIG } from '../../config/database.config';
+import { AuthModule } from '../auth/auth.module';
+import { UserModule } from '../user/user.module';
+import { MealModule } from './meal.module';
+import { JwtService } from '@nestjs/jwt';
+import { AdminGradeEnum, GenderEnum, MealAttendanceEnum, UserGradeEnum, YNEnum } from '../../common/constant/enum';
+import { CreateMealDto } from './dto/createMeal.dto';
+import * as request from 'supertest';
+import { CreateMealBudgetDto } from './dto/createBudget.dto';
+import { MealRepository } from './repository/meal.repository';
+import { MealBudgetAdminResult } from './interface/result.interface';
+import { MealStats, MealStatsAdminInfo } from './interface/meal.interface';
+import { MealEntity } from '../../entity/meal/meal.entity';
+
+describe('MealController', () => {
+  let app: INestApplication;
+  let userAccessToken: string;
+  let adminAccessToken: string;
+  let mealRepository: MealRepository;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({
+          envFilePath: '.env.test',
+          isGlobal: true,
+        }),
+        TypeOrmModule.forRootAsync(DATABASE_CONFIG),
+        AuthModule,
+        UserModule,
+        MealModule,
+      ],
+    }).compile();
+
+    app = module.createNestApplication();
+    mealRepository = app.get(MealRepository);
+
+    const jwtService: JwtService = app.get(JwtService);
+
+    userAccessToken = jwtService.sign({
+      userIdx: 1,
+      userName: '관리자',
+      userGender: GenderEnum.WOMAN,
+      userBirth: '1980-01-01',
+      joinDate: '2021-01-01',
+      hqName: 'P&C',
+      teamName: 'P&C',
+      gradeName: UserGradeEnum.MANAGER,
+      adminRole: YNEnum.YES,
+    });
+
+    adminAccessToken = jwtService.sign({
+      adminIdx: 1,
+      adminName: '관리자',
+      adminEmail: 'email@acghr.co.kr',
+      adminGradeName: AdminGradeEnum.HIGH_ADMIN,
+      hqName: 'P&C',
+      teamName: 'P&C',
+      gradeName: UserGradeEnum.MANAGER,
+    });
+
+    await app.init();
+  });
+
+  afterEach(async () => {
+    if (app) {
+      await app.close();
+    }
+  });
+
+  describe('[POST] /admin/meals/budget', () => {
+    const createMealBudgetDto: CreateMealBudgetDto = {
+      baseAmount: 10000,
+      mealBudget: 23000,
+      year: '2024',
+      month: '10',
+    };
+
+    let response: any;
+
+    beforeEach(async () => {
+      response = await request(app.getHttpServer())
+        .post('/admin/meals/budget')
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(createMealBudgetDto);
+    });
+
+    it('성공 메세지가 반환되는가?', async () => {
+      expect(response.body.message).toBe('어드민 식대 설정 등록 및 수정 성공');
+    });
+
+    it('DB에 값이 제대로 들어갔는가?', async () => {
+      const { year, month } = createMealBudgetDto;
+      const { baseAmount } = await mealRepository.getMealBaseInfo(year, month);
+      expect(baseAmount).toEqual(createMealBudgetDto.baseAmount);
+    });
+  });
+
+  describe('[GET] /admin/meals/budget', () => {
+    let response: any;
+    const pageNo: number = 1;
+    const perPage: number = 20;
+    const year: string = '2024';
+    const month: string = '10';
+
+    beforeEach(async () => {
+      response = await request(app.getHttpServer())
+        .get('/admin/meals/budget')
+        .query({ pageNo, perPage, year, month })
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+    });
+
+    it('성공 메세지가 반환되는가?', async () => {
+      expect(response.body.message).toBe(`${month}월 어드민 식대 설정 리스트 조회 성공`);
+    });
+
+    it('형식이 올바르게 반환되는가?', async () => {
+      const data: MealBudgetAdminResult = response.body.data;
+
+      expect(data.totalPage).toBeGreaterThanOrEqual(0);
+      expect(data.total).toBeGreaterThanOrEqual(0);
+      expect(data.workdays).toBeGreaterThanOrEqual(0);
+      expect(data.mealBudget.length).toBeGreaterThanOrEqual(0);
+      if (data.mealBudget.length > 0) {
+        expect(data.mealBudget[0]).toHaveProperty('mealStatsIdx');
+        expect(data.mealBudget[0]).toHaveProperty('userIdx');
+        expect(data.mealBudget[0]).toHaveProperty('userName');
+        expect(data.mealBudget[0]).toHaveProperty('gradeName');
+        expect(data.mealBudget[0]).toHaveProperty('mealBudget');
+        expect(data.mealBudget[0]).toHaveProperty('note');
+        expect(data.mealBudget[0]).toHaveProperty('year');
+        expect(data.mealBudget[0]).toHaveProperty('month');
+      }
+    });
+  });
+
+  describe('[POST] /users/meals', () => {
+    const createMealDto: CreateMealDto = {
+      targetDay: '2024-10-29',
+      breakfast: { payerName: '', place: '', amount: null },
+      lunch: { payerName: '관리자', place: '김가네', amount: 5000 },
+      dinner: { payerName: '', place: '', amount: null },
+      attendance: MealAttendanceEnum.WORKING,
+    };
+
+    let response: any;
+
+    beforeEach(async () => {
+      response = await request(app.getHttpServer())
+        .post('/users/meals')
+        .set('Authorization', `Bearer ${userAccessToken}`)
+        .send(createMealDto);
+    });
+
+    it('성공 메세지가 반환되는가?', async () => {
+      expect(response.body.message).toBe('식대 사용내역 저장 성공');
+    });
+
+    it('DB에 값이 제대로 들어갔는가?', async () => {
+      const getResponse = await request(app.getHttpServer())
+        .get('/users/meals')
+        .query({ year: '2024', month: '10' })
+        .set('Authorization', `Bearer ${userAccessToken}`);
+
+      const savedMeal: any = getResponse.body.data.meals.find((meal: any) => meal.start === createMealDto.targetDay);
+
+      expect(savedMeal).toBeDefined();
+      expect(savedMeal.breakfast.payerName).toBe(createMealDto.breakfast.payerName);
+      expect(savedMeal.breakfast.place).toBe(createMealDto.breakfast.place);
+      expect(savedMeal.breakfast.amount).toBe(createMealDto.breakfast.amount);
+      expect(savedMeal.lunch.payerName).toBe(createMealDto.lunch.payerName);
+      expect(savedMeal.lunch.place).toBe(createMealDto.lunch.place);
+      expect(savedMeal.lunch.amount).toBe(createMealDto.lunch.amount);
+      expect(savedMeal.lunch.attendance).toBe(createMealDto.attendance);
+      expect(savedMeal.dinner.payerName).toBe(createMealDto.dinner.payerName);
+      expect(savedMeal.dinner.place).toBe(createMealDto.dinner.place);
+      expect(savedMeal.dinner.amount).toBe(createMealDto.dinner.amount);
+    });
+  });
+
+  describe('[GET] /users/meals', () => {
+    let response: any;
+
+    beforeEach(async () => {
+      response = await request(app.getHttpServer())
+        .get('/users/meals')
+        .query({ year: '2024', month: '10' })
+        .set('Authorization', `Bearer ${userAccessToken}`);
+    });
+
+    it('성공 메세지가 반환되는가?', async () => {
+      expect(response.body.message).toBe('식대 사용내역 조회 성공');
+    });
+
+    it('mealStats가 올바르게 반환되는가?', async () => {
+      const mealStats: MealStats = response.body.data.mealStats;
+      expect(mealStats).toBeDefined();
+      expect(mealStats.year).toBe('2024');
+      expect(mealStats.month).toBe('10');
+      expect(mealStats.userName).toBe('관리자');
+      expect(mealStats.mealBudget).toBeGreaterThan(0);
+      expect(mealStats.mealExpense).toBeGreaterThanOrEqual(0);
+      expect(typeof mealStats.mealBalance).toBe('number');
+    });
+
+    it('mealBalance = mealBudget - mealExpense 가 성립하는가?', async () => {
+      const { mealBudget, mealExpense, mealBalance } = response.body.data.mealStats;
+      expect(mealBudget - mealExpense).toEqual(mealBalance);
+    });
+
+    it('meals 배열이 올바르게 반환되는가?', () => {
+      const meals: any = response.body.data.meals;
+      expect(meals).toBeDefined();
+      expect(Array.isArray(meals)).toBe(true);
+
+      if (meals.length > 0) {
+        meals.forEach((meal: any) => {
+          expect(meal.start).toMatch(/2024-10-\d{2}/);
+          expect(meal.holidayYN).toMatch(/Y|N/);
+          expect(meal.breakfast).toBeDefined();
+          expect(meal.breakfast).toHaveProperty('payerName');
+          expect(meal.breakfast).toHaveProperty('place');
+          expect(meal.breakfast).toHaveProperty('amount');
+          expect(meal.lunch).toBeDefined();
+          expect(meal.lunch).toHaveProperty('payerName');
+          expect(meal.lunch).toHaveProperty('place');
+          expect(meal.lunch).toHaveProperty('amount');
+          expect(meal.lunch).toHaveProperty('attendance');
+          expect(meal.dinner).toBeDefined();
+          expect(meal.dinner).toHaveProperty('payerName');
+          expect(meal.dinner).toHaveProperty('place');
+          expect(meal.dinner).toHaveProperty('amount');
+        });
+      }
+    });
+
+    it('meals 배열이 start 기준 오름차순으로 정렬되어 있는가?', () => {
+      const meals: any = response.body.data.meals;
+      const sortedMeals = meals.sort((a: any, b: any) => a.start - b.start);
+      expect(meals).toEqual(sortedMeals);
+    });
+  });
+
+  describe('[DELETE] /users/meals/:targetDay', () => {
+    const targetDay: string = '2024-10-29';
+
+    it('성공 메세지가 반환되는가?', async () => {
+      const response = await request(app.getHttpServer())
+        .delete(`/users/meals/${targetDay}`)
+        .set('Authorization', `Bearer ${userAccessToken}`);
+
+      expect(response.body.message).toBe('식대 사용내역 초기화 성공');
+    });
+
+    it('DB에서 값이 제대로 삭제되었는가?', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/users/meals')
+        .set('Authorization', `Bearer ${userAccessToken}`);
+
+      const deletedMeal: any = response.body.data.meals.find((meal: any) => meal.start === targetDay);
+      expect(deletedMeal).toBeUndefined();
+    });
+  });
+
+  describe('[GET] /admin/meals/balances', () => {
+    let response: any;
+    const year = '2024';
+    const month = '10';
+
+    beforeEach(async () => {
+      response = await request(app.getHttpServer())
+        .get('/admin/meals/balances')
+        .query({ year, month })
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+    });
+
+    it('성공 메세지가 반환되는가?', async () => {
+      expect(response.body.message).toBe(`어드민 ${month}월 식대 정산 조회 성공`);
+    });
+
+    it('형식이 올바르게 반환되는가?', async () => {
+      expect(response.body.data.year).toBe(year);
+      expect(response.body.data.month).toBe(month);
+
+      const mealStats: MealStatsAdminInfo[] = response.body.data.mealStats;
+      expect(mealStats.length).toBeGreaterThanOrEqual(0);
+
+      if (mealStats.length > 0) {
+        expect(mealStats[0]).toHaveProperty('mealStatsIdx');
+        expect(mealStats[0]).toHaveProperty('userIdx');
+        expect(mealStats[0]).toHaveProperty('userName');
+        expect(mealStats[0]).toHaveProperty('gradeName');
+        expect(mealStats[0]).toHaveProperty('mealBudget');
+        expect(mealStats[0]).toHaveProperty('mealExpense');
+        expect(mealStats[0]).toHaveProperty('mealBalance');
+        expect(mealStats[0]).toHaveProperty('breakfastExpense');
+        expect(mealStats[0]).toHaveProperty('dinnerExpense');
+        expect(mealStats[0]).toHaveProperty('breakfastOverpay');
+        expect(mealStats[0]).toHaveProperty('dinnerOverpay');
+        expect(mealStats[0]).toHaveProperty('mealOverpay');
+        expect(mealStats[0]).toHaveProperty('totalOverpay');
+        expect(mealStats[0]).toHaveProperty('note');
+        expect(mealStats[0]).toHaveProperty('clearStatus');
+      }
+    });
+
+    it('mealBalance = mealBudget - mealExpense 가 성립하는가?', async () => {
+      const { mealStats } = response.body.data;
+      mealStats.forEach((stats: MealStatsAdminInfo) => {
+        expect(stats.mealBalance).toEqual(stats.mealBudget - stats.mealExpense);
+      });
+    });
+
+    it('totalOverpay가 알맞게 계산되었는가?', async () => {
+      const mealStats: MealStatsAdminInfo[] = response.body.data.mealStats;
+      if (mealStats.length > 0) {
+        mealStats.forEach((stats: MealStatsAdminInfo) => {
+          if (stats.mealBalance < 0) {
+            expect(stats.totalOverpay).toBe(stats.breakfastOverpay + stats.dinnerOverpay + Math.abs(stats.mealBalance));
+          } else {
+            expect(stats.totalOverpay).toBe(stats.breakfastOverpay + stats.dinnerOverpay);
+          }
+        });
+      }
+    });
+
+    // 추후 사용가능금액 = 기본금액 X 업무일 수... 검증로직 추가
+    it('사용가능금액 = 기본금액 X (업무일수 + 휴일근무일수 - 휴무일)가 성립하는가?', async () => {
+      const { mealStats } = response.body.data;
+      const { baseAmount } = await mealRepository.getMealBaseInfo(year, month);
+      mealStats.forEach((stats: MealStatsAdminInfo) => {
+        expect(stats.mealBudget).toEqual(baseAmount * (stats.workdays + stats.holidayWorkdays - stats.timeoffDays));
+      });
+    });
+  });
+
+  describe('[GET] /admin/meals/balances/:mealStatsIdx', () => {
+    let response: any;
+    let mealStatsIdx: number = 1;
+
+    beforeEach(async () => {
+      response = await request(app.getHttpServer())
+        .get(`/admin/meals/balances/${mealStatsIdx}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+    });
+
+    it('성공 메세지가 반환되는가?', async () => {
+      expect(response.body.message).toBe('success');
+    });
+
+    it('응답값이 targetDay 기준 오름차순으로 정렬되어 있는가?', () => {
+      const data: MealEntity[] = response.body.data;
+      const sortedData: MealEntity[] = data.sort((a: any, b: any) => a.targetDay - b.targetDay);
+      expect(data).toEqual(sortedData);
+    });
+
+    it('존재하지 않는 Param에 대해 예외가 처리되는가?', async () => {
+      mealStatsIdx = 9999999;
+      response = await request(app.getHttpServer())
+        .get(`/admin/meals/balances/${mealStatsIdx}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`);
+
+      expect(response.body.message).toBe('해당 IDX에 대한 정보가 존재하지 않습니다.');
+    });
+  });
+});
