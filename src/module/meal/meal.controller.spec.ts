@@ -1,13 +1,5 @@
 import { INestApplication } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DATABASE_CONFIG } from '../../config/database.config';
-import { AuthModule } from '../auth/auth.module';
-import { UserModule } from '../user/user.module';
-import { MealModule } from './meal.module';
-import { JwtService } from '@nestjs/jwt';
-import { AdminGradeEnum, GenderEnum, MealAttendanceEnum, UserGradeEnum, YNEnum } from '../../common/constant/enum';
+import { MealAttendanceEnum } from '../../common/constant/enum';
 import { CreateMealDto } from './dto/createMeal.dto';
 import * as request from 'supertest';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
@@ -15,60 +7,22 @@ import { MealRepository } from './repository/meal.repository';
 import { MealBudgetAdminResult } from './interface/result.interface';
 import { MealStats, MealStatsAdminInfo } from './interface/meal.interface';
 import { MealEntity } from '../../entity/meal/meal.entity';
+import { closeTestApp, createTestAppWithMeal } from '../../../test/appInit';
 
-describe('MealController', () => {
+describe('MealController(e2e)', () => {
   let app: INestApplication;
   let userAccessToken: string;
   let adminAccessToken: string;
   let mealRepository: MealRepository;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          envFilePath: '.env.test',
-          isGlobal: true,
-        }),
-        TypeOrmModule.forRootAsync(DATABASE_CONFIG),
-        AuthModule,
-        UserModule,
-        MealModule,
-      ],
-    }).compile();
-
-    app = module.createNestApplication();
+    ({ app, userAccessToken, adminAccessToken } = await createTestAppWithMeal());
     mealRepository = app.get(MealRepository);
-
-    const jwtService: JwtService = app.get(JwtService);
-
-    userAccessToken = jwtService.sign({
-      userIdx: 1,
-      userName: '관리자',
-      userGender: GenderEnum.WOMAN,
-      userBirth: '1980-01-01',
-      joinDate: '2021-01-01',
-      hqName: 'P&C',
-      teamName: 'P&C',
-      gradeName: UserGradeEnum.MANAGER,
-      adminRole: YNEnum.YES,
-    });
-
-    adminAccessToken = jwtService.sign({
-      adminIdx: 1,
-      adminName: '관리자',
-      adminEmail: 'email@acghr.co.kr',
-      adminGradeName: AdminGradeEnum.HIGH_ADMIN,
-      hqName: 'P&C',
-      teamName: 'P&C',
-      gradeName: UserGradeEnum.MANAGER,
-    });
-
-    await app.init();
   });
 
   afterEach(async () => {
     if (app) {
-      await app.close();
+      await closeTestApp(app);
     }
   });
 
