@@ -41,7 +41,7 @@ export const getWeekendDates = (year: number, month: number): string[] => {
 
 export const getStartAndEndDateByMonth = (year: number, month: number) => {
   // 월의 첫 날과 마지막 날 계산
-  const firstDayOfMonth: moment.Moment = moment({ year: year, month: month - 1 })
+  const firstDayOfMonth: moment.Moment = moment({ year: Number(year), month: Number(month) - 1 })
     .startOf('month')
     .utcOffset(9);
 
@@ -144,4 +144,21 @@ export const getNormalEarlyBoundary = (timestamp: Date): Date => {
   const boundary: Date = new Date(timestamp.setHours(8, 0, 0, 0));
 
   return boundary;
+};
+
+// 근속년수 계산
+export const getYearsSinceJoin = (joinDateString: string): number => {
+  const now: moment.Moment = moment().utcOffset(9);
+  const joinDate = moment(joinDateString).utcOffset(9);
+  const yearsSinceJoin: number = now.diff(joinDate, 'years');
+
+  return yearsSinceJoin;
+};
+
+// 입사 후 만 1년 날짜 계산
+export const getOneYearAfterJoin = (joinDateString: string): string => {
+  const joinDate = moment(joinDateString).utcOffset(9);
+  const oneYearAfterJoin: string = joinDate.add(1, 'years').subtract(1, 'days').format('YYYY-MM-DD');
+
+  return oneYearAfterJoin;
 };

@@ -1,7 +1,7 @@
-import { IntranetAttendanceEnum, IntranetLeaveTypeEnum, LateStatusEnum } from '../../../../common/constant/enum';
+import { IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum, LateStatusEnum } from '../../../../common/constant/enum';
 
 export interface InsertCheckInInfo {
-  leaveType: IntranetLeaveTypeEnum;
+  leaveTypeIdx: IntranetLeaveTypeIdxEnum;
   checkInIpAddr: string;
   commuteDate: string;
   lateStatus: LateStatusEnum;

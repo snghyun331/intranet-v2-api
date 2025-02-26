@@ -1,13 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveRepository } from './repository/leave.repository';
 import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
-import { IntranetLeaveTypeEnum, NodeEnvEnum } from '../../../common/constant/enum';
+import { IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { AdminLeaveFilterDto } from './dto/query.dto';
+import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @Injectable()
 export class LeaveService {
@@ -31,8 +32,8 @@ export class LeaveService {
         if (!dateStringFormat.test(leave.commuteDate)) {
           throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
         }
-        if (!Object.values(IntranetLeaveTypeEnum).includes(leave.leaveType)) {
-          throw new BadRequestException('올바른 휴가 유형을 입력해주세요.');
+        if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leave.leaveTypeIdx)) {
+          throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
         }
         const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, confirmPersonIdx, manager);
 
@@ -72,5 +73,73 @@ export class LeaveService {
     );
 
     return { totalPage, total, summaries };
+  }
+
+  async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
+    const leaveStatsCnt: number = await this.leaveRepository.getLeaveStatsCountByIdx(leaveStatsIdx);
+    if (leaveStatsCnt < 1) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+    await this.leaveRepository.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
+
+    return;
+  }
+
+  async getUserLeaveStats(year: string, userIdx: number) {
+    const userCnt: number = await this.leaveRepository.getUserCountByIdx(userIdx);
+    if (userCnt !== 1) {
+      throw new BadRequestException('올바른 유저가 아닙니다.');
+    }
+
+    /* 사용자 휴가 요약정보와 휴가 종류별 사용현황 조회 */
+    const {
+      userName,
+      joinDate,
+      hqName,
+      teamName,
+      gradeName,
+      totalReceivedAnnualLeave,
+      totalAnnualLeaveUsage,
+      totalAnnualLeaveBalance,
+      midJoinReceivedAnnualLeave,
+      yearsSinceJoin,
+      oneYearAfterJoin,
+      proRatedAnnualLeave,
+      ...leaveUsageStats
+    } = await this.leaveRepository.getUserLeaveStats(year, userIdx);
+
+    const leaveSummary = {
+      userIdx,
+      userName,
+      year,
+      joinDate,
+      hqName,
+      teamName,
+      gradeName,
+      totalReceivedAnnualLeave,
+      totalAnnualLeaveUsage,
+      totalAnnualLeaveBalance,
+      midJoinReceivedAnnualLeave,
+      yearsSinceJoin,
+      oneYearAfterJoin,
+      proRatedAnnualLeave,
+    };
+
+    const result = {
+      leaveSummary,
+      leaveUsageStats,
+    };
+
+    return result;
+  }
+
+  async getUserLeaveInfo(filterInfo: AdminLeaveDetailFilterDto, userIdx: number) {
+    if (filterInfo.leaveTypeIdx && !Object.values(IntranetLeaveTypeIdxEnum).includes(filterInfo.leaveTypeIdx)) {
+      throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
+    }
+
+    const result = await this.leaveRepository.getUserLeaveDetail(filterInfo, userIdx);
+
+    return result;
   }
 }
