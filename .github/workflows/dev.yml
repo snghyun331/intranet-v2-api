@@ -1,4 +1,4 @@
-name: Deploy to testServer
+name: E2E Test & Merge to Dev
 on:
   pull_request:
     branches: ['dev']
