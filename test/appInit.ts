@@ -1,7 +1,7 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DATABASE_CONFIG } from '../src/config/database.config';
+import { DATABASE_CONFIG, TEST_DATABASE_CONFIG } from '../src/config/database.config';
 import { AuthModule } from '../src/module/auth/auth.module';
 import { UserModule } from '../src/module/user/user.module';
 import { INestApplication } from '@nestjs/common';
@@ -16,7 +16,7 @@ const createTestApp = async (modules: any[]) => {
         envFilePath: '.env.test',
         isGlobal: true,
       }),
-      TypeOrmModule.forRootAsync(DATABASE_CONFIG),
+      TypeOrmModule.forRootAsync(TEST_DATABASE_CONFIG),
       AuthModule,
       UserModule,
       ...modules,

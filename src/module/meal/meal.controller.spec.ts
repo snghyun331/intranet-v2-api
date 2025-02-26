@@ -282,7 +282,6 @@ describe('MealController(e2e)', () => {
       }
     });
 
-    // 추후 사용가능금액 = 기본금액 X 업무일 수... 검증로직 추가
     it('사용가능금액 = 기본금액 X (업무일수 + 휴일근무일수 - 휴무일)가 성립하는가?', async () => {
       const { mealStats } = response.body.data;
       const { baseAmount } = await mealRepository.getMealBaseInfo(year, month);
