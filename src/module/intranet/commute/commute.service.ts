@@ -17,12 +17,7 @@ import {
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto } from './dto/query.dto';
-import {
-  DeviceTypeEnum,
-  IntranetAttendanceEnum,
-  IntranetLeaveTypeIdxEnum,
-  LateStatusEnum,
-} from '../../../common/constant/enum';
+import { DeviceTypeEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
 import {
   InsertCheckInInfo,
   UpdateCheckInInfo,
@@ -81,14 +76,14 @@ export class CommuteService {
           AM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
           new Date(checkInDto.checkInTime) >= getAmQuarterLateBoundary(new Date(checkInDto.checkInTime));
 
-        const lateStatus: LateStatusEnum =
+        const attendance: IntranetAttendanceEnum =
           isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
-            ? LateStatusEnum.LATE
-            : LateStatusEnum.ON_TIME;
+            ? IntranetAttendanceEnum.CHECK_IN_LATE
+            : IntranetAttendanceEnum.CHECK_IN;
 
         const updateCheckInInfo: UpdateCheckInInfo = {
           ...checkInDto,
-          lateStatus,
+          attendance,
           commuteDate,
           checkInIpAddr,
         };
@@ -100,11 +95,13 @@ export class CommuteService {
       /* 지각 판별 */
       const isNormalLate: boolean =
         new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
-      const lateStatus: LateStatusEnum = isNormalLate ? LateStatusEnum.LATE : LateStatusEnum.ON_TIME;
+      const attendance: IntranetAttendanceEnum = isNormalLate
+        ? IntranetAttendanceEnum.CHECK_IN_LATE
+        : IntranetAttendanceEnum.CHECK_IN;
 
       const insertCheckInInfo: InsertCheckInInfo = {
         ...checkInDto,
-        lateStatus,
+        attendance,
         commuteDate,
         checkInIpAddr,
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
@@ -177,10 +174,18 @@ export class CommuteService {
     }
 
     /* 근태 상태 설정 */
-    const attendance: IntranetAttendanceEnum =
-      workingMinutes < standardWorkingMinutes
-        ? IntranetAttendanceEnum.EARLY_CHECK_OUT
-        : IntranetAttendanceEnum.CHECK_OUT;
+    let attendance: IntranetAttendanceEnum;
+    if (commuteInfo.attendance === IntranetAttendanceEnum.CHECK_IN_LATE) {
+      attendance =
+        workingMinutes < standardWorkingMinutes
+          ? IntranetAttendanceEnum.EARLY_CHECK_OUT_LATE
+          : IntranetAttendanceEnum.CHECK_OUT_LATE;
+    } else {
+      attendance =
+        workingMinutes < standardWorkingMinutes
+          ? IntranetAttendanceEnum.EARLY_CHECK_OUT
+          : IntranetAttendanceEnum.CHECK_OUT;
+    }
 
     const updateCheckOutInfo: UpdateCheckOutInfo = {
       commuteDate,
@@ -222,7 +227,7 @@ export class CommuteService {
     }
 
     /* 지각 판별 */
-    const isLate: boolean =
+    const isNormalLate: boolean =
       (commuteInfo.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL ||
         PM_REST_LISTS.has(commuteInfo.leaveTypeIdx) ||
         PM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx)) &&
@@ -236,8 +241,7 @@ export class CommuteService {
       AM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
       new Date(updateDto.checkInTime) >= getAmQuarterLateBoundary(new Date(updateDto.checkInTime));
 
-    const lateStatus: LateStatusEnum =
-      isLate || isAmHalfLate || isAmQuarterLate ? LateStatusEnum.LATE : LateStatusEnum.ON_TIME;
+    const isLate: boolean = isNormalLate || isAmHalfLate || isAmQuarterLate;
 
     let standardWorkingMinutes: number;
     if (AM_REST_LISTS.has(commuteInfo.leaveTypeIdx) || PM_REST_LISTS.has(commuteInfo.leaveTypeIdx)) {
@@ -258,15 +262,23 @@ export class CommuteService {
     if (!updateDto.checkOutTime) {
       workingMinutes = null;
       overtimeWorkingMinutes = null;
-      attendance = IntranetAttendanceEnum.CHECK_IN;
+      attendance = isLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
     } else {
       workingMinutes = (updateDto.checkOutTime.getTime() - updateDto.checkInTime.getTime()) / (1000 * 60);
       overtimeWorkingMinutes =
         workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
-      attendance =
-        workingMinutes < standardWorkingMinutes
-          ? IntranetAttendanceEnum.EARLY_CHECK_OUT
-          : IntranetAttendanceEnum.CHECK_OUT;
+
+      if (isLate) {
+        attendance =
+          workingMinutes < standardWorkingMinutes
+            ? IntranetAttendanceEnum.EARLY_CHECK_OUT_LATE
+            : IntranetAttendanceEnum.CHECK_OUT_LATE;
+      } else {
+        attendance =
+          workingMinutes < standardWorkingMinutes
+            ? IntranetAttendanceEnum.EARLY_CHECK_OUT
+            : IntranetAttendanceEnum.CHECK_OUT;
+      }
     }
 
     /* 출퇴근 IP 및 디바이스 업데이트 */
@@ -290,7 +302,6 @@ export class CommuteService {
       checkInDeviceType,
       checkOutDeviceType,
       attendance,
-      lateStatus,
     };
 
     await this.commuteRepository.updateCommuteTime(commuteIdx, updateInfo, manager);

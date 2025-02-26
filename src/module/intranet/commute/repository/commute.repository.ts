@@ -14,7 +14,6 @@ import {
   UpdateCommuteTimeInfo,
 } from '../interface/commute.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
-import { IntranetAttendanceEnum } from '../../../../common/constant/enum';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 
 @Injectable()
@@ -30,7 +29,7 @@ export class CommuteRepository {
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ userIdx, ...commuteInfo, attendance: IntranetAttendanceEnum.CHECK_IN })
+      .values({ userIdx, ...commuteInfo })
       .execute();
   }
 
@@ -42,7 +41,7 @@ export class CommuteRepository {
     return await manager
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ ...commuteInfo, attendance: IntranetAttendanceEnum.CHECK_IN })
+      .set({ ...commuteInfo })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
@@ -55,6 +54,7 @@ export class CommuteRepository {
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.attendance AS attendance',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
@@ -92,10 +92,9 @@ export class CommuteRepository {
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.workingMinutes AS workingMinutes',
         'commuteEntity.overtimeWorkingMinutes AS overtimeWorkingMinutes',
-        'commuteEntity.lateStatus AS lateStatus',
         'commuteEntity.attendance AS attendance',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
-        'leaveTypEntity.leaveType AS leaveType',
+        'leaveTypeEntity.leaveType AS leaveType',
         'commuteEntity.updateReason AS updateReason',
         'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
         'commuteEntity.note AS note',

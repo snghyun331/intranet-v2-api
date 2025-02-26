@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '../../../common/entity/common.entity';
 import { UserEntity } from '../../user/user.entity';
-import { ConfirmEnum, IntranetAttendanceEnum, LateStatusEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, IntranetAttendanceEnum } from '../../../common/constant/enum';
 import { CommuteHasImageEntity } from '../../image/commuteHasImage.entity';
 import { LeaveTypeEntity } from '../leave/leaveType.entity';
 
@@ -21,9 +21,6 @@ export class CommuteEntity extends CommonEntity {
 
   @Column({ name: 'check_out_time', comment: '퇴근 시간', nullable: true })
   checkOutTime: Date;
-
-  @Column({ name: 'late_status', comment: '지각여부', nullable: true })
-  lateStatus: LateStatusEnum;
 
   @Column({ name: 'attendance', comment: '근태 상태', nullable: true })
   attendance: IntranetAttendanceEnum;
