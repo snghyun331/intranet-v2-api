@@ -1,7 +1,5 @@
 name: E2E Test & Merge to Dev
 on:
-  push:
-    branches: ['dev']
   pull_request:
     branches: ['dev']
 jobs:

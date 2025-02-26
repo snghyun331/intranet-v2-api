@@ -11,7 +11,7 @@
     "start:dev": "nest start --watch",
     "test:db:start": "docker compose --env-file .env.test -f docker-compose.test.yaml up -d",
     "test:db:stop": "docker compose -f docker-compose.test.yaml down -v",
-    "test": "npm run test:db:start && sleep 5 && jest --runInBand || true; npm run test:db:stop"
+    "test": "npm run test:db:start && sleep 4 && jest --runInBand && npm run test:db:stop"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.721.0",
