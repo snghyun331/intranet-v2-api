@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
-import { AdminCommuteFilterDto } from '../dto/query.dto';
+import { AdminCommuteFilterDto, UserCommuteFilterDto } from '../dto/query.dto';
 import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
@@ -18,7 +18,20 @@ import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.ent
 
 @Injectable()
 export class CommuteRepository {
-  constructor(@InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>) {}
+  constructor(
+    @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
+    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
+  ) {}
+
+  async getUserCountByIdx(userIdx: number): Promise<number> {
+    const userCnt: number = await this.userModel
+      .createQueryBuilder('userEntity')
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail IS NULL')
+      .getCount();
+
+    return userCnt;
+  }
 
   async createCheckInWork(
     userIdx: number,
@@ -88,6 +101,7 @@ export class CommuteRepository {
         'hqEntity.hqName AS hqName',
         'teamEntity.teamName AS teamName',
         'gradeEntity.gradeName AS gradeName',
+        'commuteEntity.commuteDate AS commuteDate',
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.workingMinutes AS workingMinutes',
@@ -101,7 +115,7 @@ export class CommuteRepository {
         'commuteEntity.checkInIpAddr AS checkInIpAddr',
         'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
         'commuteEntity.checkInDeviceType AS checkInDeviceType',
-        'commuteEntity.checkOutDeviceType AS checkOutDeviåceType',
+        'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.createdAt AS createdAt',
@@ -184,5 +198,51 @@ export class CommuteRepository {
       .set(noteInfo)
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
+  }
+
+  async getUserCommuteRecords(userIdx: number, pageNo: number, perPage: number, filterInfo: UserCommuteFilterDto) {
+    const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.userIdx AS userIdx',
+        'commuteEntity.commuteDate AS commuteDate',
+        'commuteEntity.checkInTime AS checkInTime',
+        'commuteEntity.checkOutTime AS checkOutTime',
+        'commuteEntity.workingMinutes AS workingMinutes',
+        'commuteEntity.overtimeWorkingMinutes AS overtimeWorkingMinutes',
+        'commuteEntity.attendance AS attendance',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'leaveTypeEntity.leaveType AS leaveType',
+        'commuteEntity.updateReason AS updateReason',
+        'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
+        'commuteEntity.note AS note',
+        'commuteEntity.checkInIpAddr AS checkInIpAddr',
+        'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
+        'commuteEntity.checkInDeviceType AS checkInDeviceType',
+        'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
+        'commuteEntity.confirmYN AS confirmYN',
+        'commuteEntity.confirmDate AS confirmDate',
+        'commuteEntity.createdAt AS createdAt',
+        'commuteEntity.updatedAt AS updatedAt',
+      ])
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
+        sDate: filterInfo.sDate,
+        eDate: filterInfo.eDate,
+      });
+
+    const total: number = await query.getCount();
+    const totalPage: number = Math.ceil(total / perPage);
+
+    query
+      .orderBy('commuteEntity.createdAt', 'DESC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
+
+    const result = await query.getRawMany();
+
+    return { totalPage, total, records: result };
   }
 }
