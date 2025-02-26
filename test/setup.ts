@@ -3,7 +3,7 @@ dotenv.config({ path: '.env.test' }); // .env.test 파일 강제 로드
 
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { DATABASE_CONFIG } from '../src/config/database.config';
+import { DATABASE_CONFIG, TEST_DATABASE_CONFIG } from '../src/config/database.config';
 import { seedUser } from './seed/user/user.seeder';
 import { seedUserGrade } from './seed/user/grade.seeder';
 import { seedAdmin } from './seed/admin/admin.seeder';
@@ -19,7 +19,7 @@ let dataSource: DataSource;
 beforeAll(async () => {
   // TypeORM 초기화
   const configService = new ConfigService();
-  const typeOrmModuleOptions = await DATABASE_CONFIG.useFactory(configService);
+  const typeOrmModuleOptions = await TEST_DATABASE_CONFIG.useFactory(configService);
 
   dataSource = new DataSource(typeOrmModuleOptions as DataSourceOptions);
 
