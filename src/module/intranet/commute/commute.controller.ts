@@ -30,6 +30,7 @@ import {
   ADMIN_INTRANET_COMMUTE,
   ADMIN_INTRANET_COMMUTE_NOTE,
   ADMIN_INTRANET_COMMUTE_TIME,
+  USERS_INTRAENT_COMMUTE,
   USERS_INTRANET_CHECK_IN,
   USERS_INTRANET_CHECK_OUT,
 } from './swagger/commute.swagger';
@@ -44,7 +45,7 @@ import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator'
 import { CheckOutDto } from './dto/checkOut.dto';
 import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
-import { AdminCommuteFilterDto } from './dto/query.dto';
+import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -97,6 +98,25 @@ export class UserCommuteController {
 
     return response;
   }
+
+  @ApiOperation(USERS_INTRAENT_COMMUTE.GET.API_OPERATION)
+  @ApiOkResponse(USERS_INTRAENT_COMMUTE.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('commute')
+  async getUserCommuteRecords(
+    @Query() pageNoInfo: PageNoDto,
+    @Query() filterInfo: UserCommuteFilterDto,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    const data = await this.commuteService.getUserCommuteRecords(userIdx, pageNoInfo, filterInfo);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
 }
 
 @ApiTags('어드민')
@@ -110,7 +130,7 @@ export class AdminCommuteController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('commute')
-  async getUserCommuteRecords(
+  async getCommuteRecords(
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminCommuteFilterDto,
   ): Promise<ResponseInterface> {
@@ -118,7 +138,7 @@ export class AdminCommuteController {
       filterInfo.sDate = moment().utcOffset(9).format('YYYY-MM-DD');
       filterInfo.eDate = moment().utcOffset(9).format('YYYY-MM-DD');
     }
-    const data = await this.commuteService.getUserCommuteRecords(pageNoInfo, filterInfo);
+    const data = await this.commuteService.getCommuteRecords(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
 

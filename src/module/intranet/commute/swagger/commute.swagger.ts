@@ -147,6 +147,76 @@ export const USERS_INTRANET_CHECK_OUT: SwaggerMethod = {
   },
 };
 
+export const USERS_INTRAENT_COMMUTE: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '개인 출퇴근 내역 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              totalPage: 1,
+              total: 2,
+              records: [
+                {
+                  commuteIdx: 72,
+                  userIdx: 2,
+                  commuteDate: '2025-02-24',
+                  checkInTime: '2025-02-24T02:16:16.000Z',
+                  checkOutTime: '2025-02-24T09:16:16.000Z',
+                  workingMinutes: 419,
+                  overtimeWorkingMinutes: 0,
+                  attendance: '조기 퇴근(지각)',
+                  leaveTypeIdx: 1,
+                  leaveType: '근무',
+                  updateReason: null,
+                  earlyLeaveReason: 'dp',
+                  note: null,
+                  checkInIpAddr: '172.18.0.1',
+                  checkOutIpAddr: '172.18.0.1',
+                  checkInDeviceType: 'PC',
+                  checkOutDeviceType: 'PC',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                  createdAt: '2025-02-26T06:48:28.615Z',
+                  updatedAt: '2025-02-26T06:48:34.000Z',
+                },
+                {
+                  commuteIdx: 71,
+                  userIdx: 2,
+                  commuteDate: '2025-02-22',
+                  checkInTime: '2025-02-22T00:16:16.000Z',
+                  checkOutTime: '2025-02-22T12:16:16.000Z',
+                  workingMinutes: 720,
+                  overtimeWorkingMinutes: 180,
+                  attendance: '퇴근',
+                  leaveTypeIdx: 1,
+                  leaveType: '근무',
+                  updateReason: '사유사유',
+                  earlyLeaveReason: 'dp',
+                  note: null,
+                  checkInIpAddr: null,
+                  checkOutIpAddr: null,
+                  checkInDeviceType: 'MANUAL',
+                  checkOutDeviceType: 'MANUAL',
+                  confirmYN: 'N',
+                  confirmDate: null,
+                  createdAt: '2025-02-26T06:48:00.439Z',
+                  updatedAt: '2025-02-26T06:59:10.000Z',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const ADMIN_INTRANET_COMMUTE: SwaggerMethod = {
   DELETE: {
     API_OPERATION: {

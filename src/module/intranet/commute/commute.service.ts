@@ -16,7 +16,7 @@ import {
   AM_QUARTER_REST_LISTS,
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { AdminCommuteFilterDto } from './dto/query.dto';
+import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
 import { DeviceTypeEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
 import {
   InsertCheckInInfo,
@@ -201,8 +201,24 @@ export class CommuteService {
     return;
   }
 
-  async getUserCommuteRecords({ pageNo, perPage }: PageNoDto, filterInfo: AdminCommuteFilterDto) {
+  async getCommuteRecords({ pageNo, perPage }: PageNoDto, filterInfo: AdminCommuteFilterDto) {
     const { totalPage, total, records } = await this.commuteRepository.getCommuteRecords(pageNo, perPage, filterInfo);
+
+    return { totalPage, total, records };
+  }
+
+  async getUserCommuteRecords(userIdx: number, { pageNo, perPage }: PageNoDto, filterInfo: UserCommuteFilterDto) {
+    const userCnt: number = await this.commuteRepository.getUserCountByIdx(userIdx);
+    if (userCnt === 0) {
+      throw new NotFoundException('해당 사용자는 존재하지 않습니다.');
+    }
+
+    const { totalPage, total, records } = await this.commuteRepository.getUserCommuteRecords(
+      userIdx,
+      pageNo,
+      perPage,
+      filterInfo,
+    );
 
     return { totalPage, total, records };
   }
