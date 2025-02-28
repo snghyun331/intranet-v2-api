@@ -252,7 +252,7 @@ export class CommuteRepository {
     const totalPage: number = Math.ceil(total / perPage);
 
     query
-      .orderBy('commuteEntity.createdAt', 'DESC')
+      .orderBy('commuteEntity.commuteDate', 'DESC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 

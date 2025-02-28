@@ -1,6 +1,34 @@
 import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
 
 export const USERS_INTRANET_LEAVE: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가 관리 조회 API',
+    },
+    API_QUERY1: {
+      name: 'year',
+      type: String,
+      required: true,
+      description: '회계연도',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              year: '2025',
+              userIdx: 1,
+              totalReceivedAnnualLeave: 15,
+              totalAnnualLeaveUsage: 1,
+              totalAnnualLeaveBalance: 14,
+            },
+          },
+        },
+      },
+    },
+  },
   POST: {
     API_OPERATION: {
       summary: '사용자 휴가 신청 API',
@@ -83,16 +111,17 @@ export const USERS_INTRANET_LEAVE_ALL: SwaggerMethod = {
   },
 };
 
-export const USERS_INTRANET_LEAVE_SUMMARY: SwaggerMethod = {
+export const USERS_INTRANET_LEAVE_STATS: SwaggerMethod = {
   GET: {
     API_OPERATION: {
-      summary: '사용자 개인 휴가 요약정보 조회 API',
+      summary: '사용자 개인 휴가관리 요약정보 조회 API 개발',
     },
     API_QUERY1: {
       name: 'year',
       type: String,
-      required: true,
+      example: '2025',
       description: '회계연도',
+      required: true,
     },
     API_OK_RESPONSE: {
       content: {
@@ -101,13 +130,48 @@ export const USERS_INTRANET_LEAVE_SUMMARY: SwaggerMethod = {
             statusCode: 200,
             message: 'success',
             data: {
-              year: '2025',
-              userIdx: 1,
-              totalReceivedAnnualLeave: 15,
-              totalAnnualLeaveUsage: 1,
-              totalAnnualLeaveBalance: 14,
+              leaveSummary: {
+                userIdx: 1,
+                userName: '김현민',
+                year: '2025',
+                joinDate: '2023-03-04',
+                hqName: 'HR솔루션본부',
+                teamName: 'HR Tech',
+                gradeName: '선임',
+                totalReceivedAnnualLeave: 15,
+                totalAnnualLeaveUsage: 1,
+                totalAnnualLeaveBalance: 14,
+                yearsSinceJoin: 1,
+                oneYearAfterJoin: '2024-03-03',
+                midJoinReceivedAnnualLeave: 0,
+              },
+              leaveUsageStats: {
+                fullLeaveUsage: 0,
+                halfLeaveUsage: 0,
+                quarterLeaveUsage: 0,
+                specialLeaveUsage: 0,
+                alternativeLeaveUsage: 0,
+                sickLeaveUsage: 0,
+                trainingLeaveUsage: 0,
+                familyEventLeaveUsage: 0,
+              },
             },
           },
+        },
+      },
+    },
+  },
+};
+
+export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가관리 상세정보 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {},
         },
       },
     },
