@@ -32,6 +32,7 @@ import {
   getNormalEarlyBoundary,
   getNormalLateBoundary,
   getPmHalfLateBoundary,
+  getStartAndEndDateByMonth,
 } from '../../../common/utils/utility';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -208,6 +209,14 @@ export class CommuteService {
   }
 
   async getUserCommuteRecords(userIdx: number, { pageNo, perPage }: PageNoDto, filterInfo: UserCommuteFilterDto) {
+    if (!filterInfo.sDate || !filterInfo.eDate) {
+      const nowYear: number = moment().utcOffset(9).year();
+      const nowMonth: number = moment().utcOffset(9).month() + 1;
+      const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(nowYear, nowMonth);
+      filterInfo.sDate = firstDayOfMonth.format('YYYY-MM-DD');
+      filterInfo.eDate = lastDayOfMonth.format('YYYY-MM-DD');
+    }
+
     const userCnt: number = await this.commuteRepository.getUserCountByIdx(userIdx);
     if (userCnt === 0) {
       throw new NotFoundException('해당 사용자는 존재하지 않습니다.');

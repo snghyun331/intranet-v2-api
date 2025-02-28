@@ -6,7 +6,7 @@ export class UserCommuteFilterDto {
     name: 'sDate',
     required: false,
     type: String,
-    description: '시작 일자',
+    description: '시작 일자(기본: 현재 달의 1일)',
     example: '2025-01-01',
   })
   @IsOptional()
@@ -16,7 +16,7 @@ export class UserCommuteFilterDto {
     name: 'eDate',
     required: false,
     type: String,
-    description: '종료 일자',
+    description: '종료 일자(기본: 현재 달의 마지막일)',
     example: '2025-01-31',
   })
   @IsOptional()
