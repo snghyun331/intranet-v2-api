@@ -22,6 +22,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import {
@@ -30,6 +31,7 @@ import {
   ADMIN_INTRANET_LEAVE_NOTE,
   ADMIN_INTRANET_LEAVE_STATS,
   USERS_INTRANET_LEAVE,
+  USERS_INTRANET_LEAVE_ALL,
 } from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
@@ -72,6 +74,21 @@ export class UserLeaveController {
     await this.leaveService.createLeave(parsedDto, userIdx, manager, leaveImage);
 
     const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_ALL.GET.API_OPERATION)
+  @ApiQuery(USERS_INTRANET_LEAVE_ALL.GET.API_QUERY1)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_ALL.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('all')
+  async getAllUsersLeaveByDate(@Query('date') date: string): Promise<ResponseInterface> {
+    const data = await this.leaveService.getAllUsersLeaveByDate(date);
+
+    const response: ResponseInterface = { message: 'success', data };
 
     return response;
   }

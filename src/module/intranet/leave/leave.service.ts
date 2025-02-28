@@ -142,4 +142,15 @@ export class LeaveService {
 
     return result;
   }
+
+  async getAllUsersLeaveByDate(date: string) {
+    const leaveList = await this.leaveRepository.getAllUsersLeaveByDate(date);
+
+    const result = {
+      date,
+      leaveList,
+    };
+
+    return result;
+  }
 }

@@ -46,6 +46,43 @@ export const USERS_INTRANET_LEAVE: SwaggerMethod = {
   },
 };
 
+export const USERS_INTRANET_LEAVE_ALL: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '날짜별 전제 직원 휴무 현황 API',
+    },
+    API_QUERY1: {
+      type: String,
+      name: 'date',
+      description: 'yyyy-MM-dd',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              date: '2025-02-04',
+              leaveList: [
+                {
+                  userName: '이승현',
+                  leaveType: '연차',
+                },
+                {
+                  userName: '김현민',
+                  leaveType: '연차',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const ADMIN_INTRANET_LEAVE: SwaggerMethod = {
   GET: {
     API_OPERATION: {

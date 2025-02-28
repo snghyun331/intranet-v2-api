@@ -252,4 +252,17 @@ export class LeaveRepository {
 
     return result;
   }
+
+  async getAllUsersLeaveByDate(date: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['userEntity.userName AS userName', 'leaveTypeEntity.leaveType AS leaveType'])
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
+      .where('commuteEntity.commuteDate = :date', { date })
+      .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .getRawMany();
+
+    return result;
+  }
 }
