@@ -15,6 +15,7 @@ import {
 } from '../interface/commute.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
+import { addConfirmStatusField } from '../../../../common/utils/utility';
 
 @Injectable()
 export class CommuteRepository {
@@ -118,6 +119,7 @@ export class CommuteRepository {
         'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
+        'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.createdAt AS createdAt',
         'commuteEntity.updatedAt AS updatedAt',
       ])
@@ -139,7 +141,19 @@ export class CommuteRepository {
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
-    const result = await query.getRawMany();
+    const records = await query.getRawMany();
+
+    // 승인여부와 날짜를 합친 새 필드 추가
+    const result = await Promise.all(
+      records.map(async (record) => {
+        const confirmStatus: string = addConfirmStatusField(record.confirmYN, record.confirmDate, record.rejectDate);
+
+        return {
+          ...record,
+          confirmStatus,
+        };
+      }),
+    );
 
     return { totalPage, total, records: result };
   }
@@ -223,6 +237,7 @@ export class CommuteRepository {
         'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
+        'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.createdAt AS createdAt',
         'commuteEntity.updatedAt AS updatedAt',
       ])
@@ -241,7 +256,19 @@ export class CommuteRepository {
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
-    const result = await query.getRawMany();
+    const records = await query.getRawMany();
+
+    // 승인여부와 날짜를 합친 새 필드 추가
+    const result = await Promise.all(
+      records.map(async (record) => {
+        const confirmStatus: string = addConfirmStatusField(record.confirmYN, record.confirmDate, record.rejectDate);
+
+        return {
+          ...record,
+          confirmStatus,
+        };
+      }),
+    );
 
     return { totalPage, total, records: result };
   }

@@ -86,7 +86,7 @@ export enum HalfYearEnum {
 
 export enum ConfirmEnum {
   NO = 'N',
-  HOLD = 'H',
+  REJECT = 'R',
   YES = 'Y',
 }
 
