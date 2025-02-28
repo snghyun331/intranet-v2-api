@@ -32,6 +32,7 @@ import {
   ADMIN_INTRANET_LEAVE_STATS,
   USERS_INTRANET_LEAVE,
   USERS_INTRANET_LEAVE_ALL,
+  USERS_INTRANET_LEAVE_STATS,
   USERS_INTRANET_LEAVE_SUMMARY,
 } from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
@@ -103,6 +104,20 @@ export class UserLeaveController {
   @Get('all')
   async getAllUsersLeaveByDate(@Query('date') date: string): Promise<ResponseInterface> {
     const data = await this.leaveService.getAllUsersLeaveByDate(date);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_STATS.GET.API_OPERATION)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_STATS.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('stats')
+  async getUserLeaveStats(@CurrentUserIdx() userIdx: number, @Query('year') year: string): Promise<ResponseInterface> {
+    const data = await this.leaveService.getUserLeaveStats(year, userIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 

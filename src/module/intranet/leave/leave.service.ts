@@ -5,7 +5,7 @@ import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
 import { IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
-import { LeaveImageInfo } from './interface/leave.interface';
+import { LeaveImageInfo, LeaveSummary } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -110,7 +110,7 @@ export class LeaveService {
       ...leaveUsageStats
     } = await this.leaveRepository.getUserLeaveStats(year, userIdx);
 
-    const leaveSummary = {
+    const leaveSummary: LeaveSummary = {
       userIdx,
       userName,
       year,
@@ -121,11 +121,14 @@ export class LeaveService {
       totalReceivedAnnualLeave,
       totalAnnualLeaveUsage,
       totalAnnualLeaveBalance,
-      midJoinReceivedAnnualLeave,
       yearsSinceJoin,
       oneYearAfterJoin,
       proRatedAnnualLeave,
     };
+    // 근속년수가 3년 미만인 경우 중도입사 연차 개수를 추가
+    if (yearsSinceJoin < 3) {
+      leaveSummary.midJoinReceivedAnnualLeave = midJoinReceivedAnnualLeave;
+    }
 
     const result = {
       leaveSummary,
