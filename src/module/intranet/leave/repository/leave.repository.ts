@@ -14,6 +14,7 @@ import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
 import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
 import {
+  addConfirmStatusField,
   getOneYearAfterJoin,
   getStartAndEndDateByMonth,
   getYearsSinceJoin,
@@ -245,6 +246,7 @@ export class LeaveRepository {
         'commuteEntity.note AS note',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
+        'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
         'userEntity.userName AS confirmPersonName',
         'commuteEntity.createdAt AS createdAt',
@@ -266,7 +268,23 @@ export class LeaveRepository {
       });
     }
 
-    const result = await query.getRawMany();
+    const leaveDetails = await query.getRawMany();
+
+    // 승인여부와 날짜를 합친 새 필드 추가
+    const result = await Promise.all(
+      leaveDetails.map(async (leaveDetail) => {
+        const confirmStatus: string = addConfirmStatusField(
+          leaveDetail.confirmYN,
+          leaveDetail.confirmDate,
+          leaveDetail.rejectDate,
+        );
+
+        return {
+          ...leaveDetail,
+          confirmStatus,
+        };
+      }),
+    );
 
     return result;
   }

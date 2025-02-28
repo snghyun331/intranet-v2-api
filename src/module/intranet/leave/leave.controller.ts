@@ -32,8 +32,8 @@ import {
   ADMIN_INTRANET_LEAVE_STATS,
   USERS_INTRANET_LEAVE,
   USERS_INTRANET_LEAVE_ALL,
+  USERS_INTRANET_LEAVE_DETAIL,
   USERS_INTRANET_LEAVE_STATS,
-  USERS_INTRANET_LEAVE_SUMMARY,
 } from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
@@ -80,13 +80,13 @@ export class UserLeaveController {
     return response;
   }
 
-  @ApiOperation(USERS_INTRANET_LEAVE_SUMMARY.GET.API_OPERATION)
-  @ApiQuery(USERS_INTRANET_LEAVE_SUMMARY.GET.API_QUERY1)
-  @ApiOkResponse(USERS_INTRANET_LEAVE_SUMMARY.GET.API_OK_RESPONSE)
+  @ApiOperation(USERS_INTRANET_LEAVE.GET.API_OPERATION)
+  @ApiQuery(USERS_INTRANET_LEAVE.GET.API_QUERY1)
+  @ApiOkResponse(USERS_INTRANET_LEAVE.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @Get('summary')
+  @Get()
   async getLeaveSummary(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
     const data = await this.leaveService.getLeaveSummary(userIdx);
 
@@ -118,6 +118,23 @@ export class UserLeaveController {
   @Get('stats')
   async getUserLeaveStats(@CurrentUserIdx() userIdx: number, @Query('year') year: string): Promise<ResponseInterface> {
     const data = await this.leaveService.getUserLeaveStats(year, userIdx);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_DETAIL.GET.API_OPERATION)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_DETAIL.GET.API_OPERATION)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('detail')
+  async getUserLeaveInfo(
+    @CurrentUserIdx() userIdx: number,
+    @Query() filterInfo: AdminLeaveDetailFilterDto,
+  ): Promise<ResponseInterface> {
+    const data = await this.leaveService.getUserLeaveInfo(filterInfo, userIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
