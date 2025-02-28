@@ -46,6 +46,74 @@ export const USERS_INTRANET_LEAVE: SwaggerMethod = {
   },
 };
 
+export const USERS_INTRANET_LEAVE_ALL: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '날짜별 전제 직원 휴무 현황 API',
+    },
+    API_QUERY1: {
+      type: String,
+      name: 'date',
+      description: 'yyyy-MM-dd',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              date: '2025-02-04',
+              leaveList: [
+                {
+                  userName: '이승현',
+                  leaveType: '연차',
+                },
+                {
+                  userName: '김현민',
+                  leaveType: '연차',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const USERS_INTRANET_LEAVE_SUMMARY: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가 요약정보 조회 API',
+    },
+    API_QUERY1: {
+      name: 'year',
+      type: String,
+      required: true,
+      description: '회계연도',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              year: '2025',
+              userIdx: 1,
+              totalReceivedAnnualLeave: 15,
+              totalAnnualLeaveUsage: 1,
+              totalAnnualLeaveBalance: 14,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const ADMIN_INTRANET_LEAVE: SwaggerMethod = {
   GET: {
     API_OPERATION: {

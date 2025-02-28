@@ -72,7 +72,25 @@ export class LeaveRepository {
     await manager.createQueryBuilder().insert().into(CommuteHasImageEntity).values({ commuteIdx, imageIdx }).execute();
   }
 
-  async getUserLeaveSummaries(pageNo: number, perPage: number, filterInfo: AdminLeaveFilterDto) {
+  async getLeaveSummary(userIdx: number) {
+    const result = await this.leaveStatsModel
+      .createQueryBuilder('leaveStatsEntity')
+      .select([
+        'leaveStatsEntity.year AS year',
+        'leaveStatsEntity.userIdx AS userIdx',
+        'leaveStatsEntity.totalReceivedAnnualLeave AS totalReceivedAnnualLeave',
+        'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage',
+        '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance',
+      ])
+      .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
+      .getRawOne();
+
+    result.totalAnnualLeaveBalance = Number(result.totalAnnualLeaveBalance);
+
+    return result;
+  }
+
+  async getLeaveSummaries(pageNo: number, perPage: number, filterInfo: AdminLeaveFilterDto) {
     // 쿼리 1: 전체 사용자 연차 정보
     const query: SelectQueryBuilder<LeaveStatsEntity> = this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')
@@ -249,6 +267,19 @@ export class LeaveRepository {
     }
 
     const result = await query.getRawMany();
+
+    return result;
+  }
+
+  async getAllUsersLeaveByDate(date: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['userEntity.userName AS userName', 'leaveTypeEntity.leaveType AS leaveType'])
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
+      .where('commuteEntity.commuteDate = :date', { date })
+      .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .getRawMany();
 
     return result;
   }

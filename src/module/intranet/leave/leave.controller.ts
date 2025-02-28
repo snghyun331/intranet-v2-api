@@ -22,6 +22,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import {
@@ -30,6 +31,8 @@ import {
   ADMIN_INTRANET_LEAVE_NOTE,
   ADMIN_INTRANET_LEAVE_STATS,
   USERS_INTRANET_LEAVE,
+  USERS_INTRANET_LEAVE_ALL,
+  USERS_INTRANET_LEAVE_SUMMARY,
 } from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
@@ -75,6 +78,36 @@ export class UserLeaveController {
 
     return response;
   }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_SUMMARY.GET.API_OPERATION)
+  @ApiQuery(USERS_INTRANET_LEAVE_SUMMARY.GET.API_QUERY1)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_SUMMARY.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('summary')
+  async getLeaveSummary(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
+    const data = await this.leaveService.getLeaveSummary(userIdx);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_ALL.GET.API_OPERATION)
+  @ApiQuery(USERS_INTRANET_LEAVE_ALL.GET.API_QUERY1)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_ALL.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('all')
+  async getAllUsersLeaveByDate(@Query('date') date: string): Promise<ResponseInterface> {
+    const data = await this.leaveService.getAllUsersLeaveByDate(date);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
 }
 
 @ApiTags('어드민')
@@ -88,11 +121,11 @@ export class AdminLeaveController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get()
-  async getLeaveSummary(
+  async getLeaveSummaries(
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminLeaveFilterDto,
   ): Promise<ResponseInterface> {
-    const data = await this.leaveService.getLeaveSummary(pageNoInfo, filterInfo);
+    const data = await this.leaveService.getLeaveSummaries(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
 
