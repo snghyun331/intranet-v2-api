@@ -65,14 +65,16 @@ export class LeaveService {
     return;
   }
 
-  async getLeaveSummary({ pageNo, perPage }: PageNoDto, filterInfo: AdminLeaveFilterDto) {
-    const { totalPage, total, summaries } = await this.leaveRepository.getUserLeaveSummaries(
-      pageNo,
-      perPage,
-      filterInfo,
-    );
+  async getLeaveSummaries({ pageNo, perPage }: PageNoDto, filterInfo: AdminLeaveFilterDto) {
+    const { totalPage, total, summaries } = await this.leaveRepository.getLeaveSummaries(pageNo, perPage, filterInfo);
 
     return { totalPage, total, summaries };
+  }
+
+  async getLeaveSummary(userIdx: number) {
+    const data = await this.leaveRepository.getLeaveSummary(userIdx);
+
+    return data;
   }
 
   async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {

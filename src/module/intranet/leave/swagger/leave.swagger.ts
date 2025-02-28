@@ -83,6 +83,37 @@ export const USERS_INTRANET_LEAVE_ALL: SwaggerMethod = {
   },
 };
 
+export const USERS_INTRANET_LEAVE_SUMMARY: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가 요약정보 조회 API',
+    },
+    API_QUERY1: {
+      name: 'year',
+      type: String,
+      required: true,
+      description: '회계연도',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              year: '2025',
+              userIdx: 1,
+              totalReceivedAnnualLeave: 15,
+              totalAnnualLeaveUsage: 1,
+              totalAnnualLeaveBalance: 14,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const ADMIN_INTRANET_LEAVE: SwaggerMethod = {
   GET: {
     API_OPERATION: {
