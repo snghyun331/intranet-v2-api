@@ -25,7 +25,8 @@ export class LeaveService {
     manager: EntityManager,
     leaveImage?: Express.Multer.File,
   ): Promise<void> {
-    const { leaveInfo, confirmPersonIdx } = dto;
+    console.log(dto);
+    const { leaveInfo, confirmablePersonIdxs, note } = dto;
     const nowYear: number = moment().utcOffset(9).year();
     const nowMonth: number = moment().utcOffset(9).month() + 1;
     // 보건 휴가 월 사용 개수 조회
@@ -60,7 +61,10 @@ export class LeaveService {
           );
         }
 
-        const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, confirmPersonIdx, manager);
+        const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
+        if (confirmablePersonIdxs !== null) {
+          await this.leaveRepository.createLeaveConfirmableList(commuteIdx, confirmablePersonIdxs, manager);
+        }
 
         if (leaveImage) {
           const env: string = this.configService.get<string>('NODE_ENV');
