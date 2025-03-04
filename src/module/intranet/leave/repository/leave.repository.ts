@@ -22,12 +22,15 @@ import {
 } from '../../../../common/utils/utility';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
+import { LeaveMontlyStatsEntity } from '../../../../entity/intranet/leave/leaveMonthlyStats.entity';
 
 @Injectable()
 export class LeaveRepository {
   constructor(
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
+    @InjectRepository(LeaveMontlyStatsEntity)
+    private readonly leaveMonthlyStatsModel: Repository<LeaveMontlyStatsEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
   ) {}
 
@@ -73,7 +76,7 @@ export class LeaveRepository {
     await manager.createQueryBuilder().insert().into(CommuteHasImageEntity).values({ commuteIdx, imageIdx }).execute();
   }
 
-  async getLeaveSummary(userIdx: number) {
+  async getAnnualLeaveSummary(userIdx: number, year: string) {
     const result = await this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')
       .select([
@@ -84,6 +87,7 @@ export class LeaveRepository {
         '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance',
       ])
       .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveStatsEntity.year = :year', { year })
       .getRawOne();
 
     result.totalAnnualLeaveBalance = Number(result.totalAnnualLeaveBalance);
@@ -298,6 +302,18 @@ export class LeaveRepository {
       .where('commuteEntity.commuteDate = :date', { date })
       .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
       .getRawMany();
+
+    return result;
+  }
+
+  async getHealthMonthlyUsage(userIdx: number, year: string, month: string) {
+    const result = await this.leaveMonthlyStatsModel
+      .createQueryBuilder('leaveMonthlyStatsEntity')
+      .select(['leaveStatsEntity.healthMonthlyUsage AS healthMonthlyUsage'])
+      .where('leaveMonthlyStatsEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveMonthlyStatsEntity.year = :year', { year })
+      .andWhere('leaveMonthlyStatsEntity.month = :month', { month })
+      .getRawOne();
 
     return result;
   }

@@ -87,8 +87,11 @@ export class UserLeaveController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
-  async getLeaveSummary(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
-    const data = await this.leaveService.getLeaveSummary(userIdx);
+  async getAnnualLeaveSummary(
+    @Query('year') year: string,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    const data = await this.leaveService.getAnnualLeaveSummary(userIdx, year);
 
     const response: ResponseInterface = { message: 'success', data };
 
