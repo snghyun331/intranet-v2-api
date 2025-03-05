@@ -1,8 +1,9 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModuleAsyncOptions } from '@nestjs/mongoose';
 import { TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { join } from 'path';
 
-export const DATABASE_CONFIG: TypeOrmModuleAsyncOptions = {
+export const TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
   inject: [ConfigService],
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -18,7 +19,7 @@ export const DATABASE_CONFIG: TypeOrmModuleAsyncOptions = {
   }),
 };
 
-export const TEST_DATABASE_CONFIG: TypeOrmModuleAsyncOptions = {
+export const TEST_TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
   inject: [ConfigService],
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -31,5 +32,16 @@ export const TEST_DATABASE_CONFIG: TypeOrmModuleAsyncOptions = {
     charset: 'utf8mb4',
     entities: [join(__dirname, '../entity/**/*.entity{.ts,.js}')],
     synchronize: true,
+  }),
+};
+
+export const MONGOOSE_CONFIG: MongooseModuleAsyncOptions = {
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: async (configService: ConfigService) => ({
+    uri: configService.get<string>('MONGODB_URL'),
+    dbName: 'test_lunch_group',
+    retryAttempts: 5,
+    // connectonErrorFactory
   }),
 };
