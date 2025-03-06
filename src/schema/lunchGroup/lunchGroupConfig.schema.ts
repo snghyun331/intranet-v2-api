@@ -17,11 +17,11 @@ export class LunchGroupConfig {
   @Prop({ type: Number, required: true }) // 추가 인원 그룹 수
   extraGroupCount: number;
 
-  @Prop({ type: Date, required: true }) // 점심조 시작 일자
-  sDate: Date;
+  @Prop({ type: String, required: true }) // 점심조 시작 일자
+  sDate: string;
 
-  @Prop({ type: Date, required: true }) // 점심조 마감 일자
-  eDate: Date;
+  @Prop({ type: String, required: true }) // 점심조 마감 일자
+  eDate: string;
 
   @Prop({ type: String, required: false }) // 점심조 관련 공지사항
   notice: string;
