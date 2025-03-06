@@ -202,6 +202,7 @@ export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
                   },
                 ],
                 confirmStatus: '미승인',
+                leaveBalance: 2,
               },
               {
                 commuteIdx: 96,
@@ -230,6 +231,7 @@ export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
                   },
                 ],
                 confirmStatus: '미승인',
+                leaveBalance: 2,
               },
               {
                 commuteIdx: 97,
@@ -249,6 +251,7 @@ export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
                 updatedAt: '2025-03-04T08:04:09.683Z',
                 confirmablePerson: [],
                 confirmStatus: '미승인',
+                leaveBalance: 2,
               },
               {
                 commuteIdx: 98,
@@ -268,6 +271,7 @@ export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
                 updatedAt: '2025-03-04T08:04:09.688Z',
                 confirmablePerson: [],
                 confirmStatus: '미승인',
+                leaveBalance: 2,
               },
               {
                 commuteIdx: 99,
@@ -287,6 +291,7 @@ export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
                 updatedAt: '2025-03-04T08:04:29.067Z',
                 confirmablePerson: [],
                 confirmStatus: '미승인',
+                leaveBalance: 2,
               },
               {
                 commuteIdx: 100,
@@ -306,6 +311,7 @@ export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
                 updatedAt: '2025-03-04T08:04:29.068Z',
                 confirmablePerson: [],
                 confirmStatus: '미승인',
+                leaveBalance: 2,
               },
             ],
           },

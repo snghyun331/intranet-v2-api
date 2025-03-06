@@ -4,12 +4,13 @@ import { LeaveRepository } from './repository/leave.repository';
 import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
-import { IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo, LeaveSummary } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { ANNUAL_REST_LISTS } from '../../../common/constant/constant';
 
 @Injectable()
 export class LeaveService {
@@ -172,7 +173,18 @@ export class LeaveService {
       throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
     }
 
-    const result = await this.leaveRepository.getUserLeaveDetail(filterInfo, userIdx);
+    const leaveDetails = await this.leaveRepository.getUserLeaveDetail(filterInfo, userIdx);
+
+    // 누적 잔여 계산
+    const result = leaveDetails.map((leaveDetail) => {
+      return {
+        ...leaveDetail,
+        leaveBalance: 2, // 누적 잔여 개수
+      };
+      // if (leaveDetail.confirmYN === ConfirmEnum.YES && ANNUAL_REST_LISTS.has(leaveDetail.leaveTypeIdx)) {
+
+      // }
+    });
 
     return result;
   }
