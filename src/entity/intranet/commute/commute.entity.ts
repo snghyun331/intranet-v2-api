@@ -4,6 +4,7 @@ import { UserEntity } from '../../user/user.entity';
 import { ConfirmEnum, IntranetAttendanceEnum } from '../../../common/constant/enum';
 import { CommuteHasImageEntity } from '../../image/commuteHasImage.entity';
 import { LeaveTypeEntity } from '../leave/leaveType.entity';
+import { CommuteConfirmableEntity } from './commuteConfirmable.entity';
 
 @Entity({ name: 'commute', comment: '출퇴근 정보 tb' })
 export class CommuteEntity extends CommonEntity {
@@ -40,7 +41,7 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'early_leave_reason', comment: '조기퇴근사유', nullable: true })
   earlyLeaveReason: string;
 
-  @Column({ name: 'note', comment: '특이사항', type: 'text', nullable: true })
+  @Column({ name: 'note', comment: '내용', type: 'text', nullable: true })
   note: string;
 
   @Column({ name: 'check_in_device_type', comment: '출근 기기', nullable: true })
@@ -90,4 +91,7 @@ export class CommuteEntity extends CommonEntity {
 
   @OneToMany(() => CommuteHasImageEntity, (commuteImage) => commuteImage.commuteIdxRelation)
   commuteImageRelation: CommuteHasImageEntity[];
+
+  @OneToMany(() => CommuteConfirmableEntity, (commuteConfirmable) => commuteConfirmable.commuteIdxRelation)
+  commuteConfirmableRelation: CommuteConfirmableEntity[];
 }

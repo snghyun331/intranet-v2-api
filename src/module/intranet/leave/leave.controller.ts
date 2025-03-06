@@ -49,7 +49,7 @@ import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator'
 import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
+import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('사용자')
@@ -87,8 +87,11 @@ export class UserLeaveController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
-  async getLeaveSummary(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
-    const data = await this.leaveService.getLeaveSummary(userIdx);
+  async getAnnualLeaveSummary(
+    @Query('year') year: string,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    const data = await this.leaveService.getAnnualLeaveSummary(userIdx, year);
 
     const response: ResponseInterface = { message: 'success', data };
 
@@ -132,7 +135,7 @@ export class UserLeaveController {
   @Get('detail')
   async getUserLeaveInfo(
     @CurrentUserIdx() userIdx: number,
-    @Query() filterInfo: AdminLeaveDetailFilterDto,
+    @Query() filterInfo: UserLeaveDetailFilterDto,
   ): Promise<ResponseInterface> {
     const data = await this.leaveService.getUserLeaveInfo(filterInfo, userIdx);
 

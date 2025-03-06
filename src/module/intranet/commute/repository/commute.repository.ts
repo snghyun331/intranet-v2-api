@@ -16,6 +16,7 @@ import {
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField } from '../../../../common/utils/utility';
+import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
 
 @Injectable()
 export class CommuteRepository {
@@ -235,14 +236,12 @@ export class CommuteRepository {
         'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
         'commuteEntity.checkInDeviceType AS checkInDeviceType',
         'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
-        'commuteEntity.confirmYN AS confirmYN',
-        'commuteEntity.confirmDate AS confirmDate',
-        'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.createdAt AS createdAt',
         'commuteEntity.updatedAt AS updatedAt',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
       .andWhere('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,

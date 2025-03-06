@@ -22,12 +22,18 @@ import {
 } from '../../../../common/utils/utility';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
+import { LeaveMontlyStatsEntity } from '../../../../entity/intranet/leave/leaveMonthlyStats.entity';
+import { CommuteConfirmableEntity } from '../../../../entity/intranet/commute/commuteConfirmable.entity';
 
 @Injectable()
 export class LeaveRepository {
   constructor(
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
+    @InjectRepository(CommuteConfirmableEntity)
+    private readonly commuteConfirmableModel: Repository<CommuteConfirmableEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
+    @InjectRepository(LeaveMontlyStatsEntity)
+    private readonly leaveMonthlyStatsModel: Repository<LeaveMontlyStatsEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
   ) {}
 
@@ -43,14 +49,14 @@ export class LeaveRepository {
   async createLeave(
     leaveInfo: LeaveDetailDto,
     userIdx: number,
-    confirmPersonIdx: number,
+    note: string | null,
     manager: EntityManager,
   ): Promise<number> {
     const result: InsertResult = await manager
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ ...leaveInfo, confirmPersonIdx, userIdx })
+      .values({ ...leaveInfo, note, userIdx })
       .execute();
 
     const commuteIdx: number = result.identifiers[0].commuteIdx;
@@ -73,7 +79,7 @@ export class LeaveRepository {
     await manager.createQueryBuilder().insert().into(CommuteHasImageEntity).values({ commuteIdx, imageIdx }).execute();
   }
 
-  async getLeaveSummary(userIdx: number) {
+  async getAnnualLeaveSummary(userIdx: number, year: string) {
     const result = await this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')
       .select([
@@ -84,6 +90,7 @@ export class LeaveRepository {
         '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance',
       ])
       .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveStatsEntity.year = :year', { year })
       .getRawOne();
 
     result.totalAnnualLeaveBalance = Number(result.totalAnnualLeaveBalance);
@@ -248,12 +255,22 @@ export class LeaveRepository {
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
-        'userEntity.userName AS confirmPersonName',
+        'confirmUserEntity.userName AS confirmPersonName',
         'commuteEntity.createdAt AS createdAt',
         'commuteEntity.updatedAt AS updatedAt',
+
+        // 추가: 승인 가능자 정보 가져오기
+        'commuteConfirmableEntity.userIdx AS confirmablePersonIdx',
+        'confirmableUserEntity.userName AS confirmablePersonName',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
-      .leftJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.confirmPersonIdx')
+      .leftJoin(UserEntity, 'confirmUserEntity', 'confirmUserEntity.userIdx = commuteEntity.confirmPersonIdx')
+      .leftJoin(
+        CommuteConfirmableEntity,
+        'commuteConfirmableEntity',
+        'commuteConfirmableEntity.commuteIdx = commuteEntity.commuteIdx',
+      )
+      .leftJoin(UserEntity, 'confirmableUserEntity', 'confirmableUserEntity.userIdx = commuteConfirmableEntity.userIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
         firstDayOfMonthToString,
@@ -268,11 +285,48 @@ export class LeaveRepository {
       });
     }
 
-    const leaveDetails = await query.getRawMany();
+    const rawResults = await query.getRawMany();
+
+    // 데이터를 commuteIdx 기준으로 그룹화
+    const leaveDetails = rawResults.reduce((acc, row) => {
+      // 기존 commuteIdx가 있는지 확인
+      const existing = acc.find((item: any) => item.commuteIdx === row.commuteIdx);
+      const confirmablePerson = {
+        confirmablePersonIdx: row.confirmablePersonIdx,
+        confirmablePersonName: row.confirmablePersonName,
+      };
+      if (existing) {
+        // 같은 commuteIdx이면 confirmablePerson 리스트에 추가
+        if (row.confirmablePersonIdx) {
+          existing.confirmablePerson.push(confirmablePerson);
+        }
+      } else {
+        // 새로운 commuteIdx이면 새로운 객체 생성
+        acc.push({
+          commuteIdx: row.commuteIdx,
+          userIdx: row.userIdx,
+          commuteDate: row.commuteDate,
+          commuteDayName: row.commuteDayName,
+          leaveTypeIdx: row.leaveTypeIdx,
+          leaveType: row.leaveType,
+          leaveReduceUnit: row.leaveReduceUnit,
+          note: row.note,
+          confirmYN: row.confirmYN,
+          confirmDate: row.confirmDate,
+          rejectDate: row.rejectDate,
+          confirmPersonIdx: row.confirmPersonIdx,
+          confirmPersonName: row.confirmPersonName,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          confirmablePerson: row.confirmablePersonIdx ? [confirmablePerson] : [],
+        });
+      }
+      return acc;
+    }, []);
 
     // 승인여부와 날짜를 합친 새 필드 추가
     const result = await Promise.all(
-      leaveDetails.map(async (leaveDetail) => {
+      leaveDetails.map(async (leaveDetail: any) => {
         const confirmStatus: string = addConfirmStatusField(
           leaveDetail.confirmYN,
           leaveDetail.confirmDate,
@@ -300,5 +354,32 @@ export class LeaveRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async getHealthMonthlyUsage(userIdx: number, year: string, month: string) {
+    const result = await this.leaveMonthlyStatsModel
+      .createQueryBuilder('leaveMonthlyStatsEntity')
+      .select(['leaveMonthlyStatsEntity.healthMonthlyUsage AS healthMonthlyUsage'])
+      .where('leaveMonthlyStatsEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveMonthlyStatsEntity.year = :year', { year })
+      .andWhere('leaveMonthlyStatsEntity.month = :month', { month })
+      .getRawOne();
+    console.log(result);
+    return result;
+  }
+
+  async createLeaveConfirmableList(commuteIdx: number, userIdxs: number[], manager: EntityManager) {
+    await Promise.all(
+      userIdxs.map(async (userIdx) => {
+        await manager
+          .createQueryBuilder()
+          .insert()
+          .into(CommuteConfirmableEntity)
+          .values({ commuteIdx, userIdx })
+          .execute();
+      }),
+    );
+
+    return;
   }
 }

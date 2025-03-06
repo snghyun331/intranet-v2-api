@@ -60,3 +60,11 @@ export const FULL_DAY_REST_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
   IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE,
   IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE,
 ]);
+
+export const ANNUAL_REST_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE,
+  IntranetLeaveTypeIdxEnum.AM_HALF,
+  IntranetLeaveTypeIdxEnum.PM_HALF,
+  IntranetLeaveTypeIdxEnum.AM_QUARTER,
+  IntranetLeaveTypeIdxEnum.PM_QUARTER,
+]);
