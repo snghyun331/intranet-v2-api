@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
 import { LoggerMiddleware } from '../common/middleware/logger.middleware';
-import { DATABASE_CONFIG } from '../config/database.config';
+import { MONGOOSE_CONFIG, TYPEORM_CONFIG } from '../config/database.config';
 import { WINSTON_CONFIG } from '../config/logger.config';
 import { HealthModule } from './health/health.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
@@ -21,12 +21,14 @@ import { FileModule } from './file/file.module';
 import { NoticeModule } from './notice/notice.module';
 import { AwsModule } from './aws/aws.module';
 import { IntranetModule } from './intranet/intranet.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     WinstonModule.forRoot(WINSTON_CONFIG),
-    TypeOrmModule.forRootAsync(DATABASE_CONFIG),
+    TypeOrmModule.forRootAsync(TYPEORM_CONFIG),
+    MongooseModule.forRootAsync(MONGOOSE_CONFIG),
     RedisModule.forRootAsync(REDIS_CONFIG),
     SchedulerModule,
     AuthModule,

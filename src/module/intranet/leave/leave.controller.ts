@@ -22,6 +22,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import {
@@ -30,6 +31,9 @@ import {
   ADMIN_INTRANET_LEAVE_NOTE,
   ADMIN_INTRANET_LEAVE_STATS,
   USERS_INTRANET_LEAVE,
+  USERS_INTRANET_LEAVE_ALL,
+  USERS_INTRANET_LEAVE_DETAIL,
+  USERS_INTRANET_LEAVE_STATS,
 } from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
@@ -45,7 +49,7 @@ import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator'
 import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
+import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @ApiTags('사용자')
@@ -75,6 +79,70 @@ export class UserLeaveController {
 
     return response;
   }
+
+  @ApiOperation(USERS_INTRANET_LEAVE.GET.API_OPERATION)
+  @ApiQuery(USERS_INTRANET_LEAVE.GET.API_QUERY1)
+  @ApiOkResponse(USERS_INTRANET_LEAVE.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get()
+  async getAnnualLeaveSummary(
+    @Query('year') year: string,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    const data = await this.leaveService.getAnnualLeaveSummary(userIdx, year);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_ALL.GET.API_OPERATION)
+  @ApiQuery(USERS_INTRANET_LEAVE_ALL.GET.API_QUERY1)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_ALL.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('all')
+  async getAllUsersLeaveByDate(@Query('date') date: string): Promise<ResponseInterface> {
+    const data = await this.leaveService.getAllUsersLeaveByDate(date);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_STATS.GET.API_OPERATION)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_STATS.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('stats')
+  async getUserLeaveStats(@CurrentUserIdx() userIdx: number, @Query('year') year: string): Promise<ResponseInterface> {
+    const data = await this.leaveService.getUserLeaveStats(year, userIdx);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_DETAIL.GET.API_OPERATION)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_DETAIL.GET.API_OPERATION)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('detail')
+  async getUserLeaveInfo(
+    @CurrentUserIdx() userIdx: number,
+    @Query() filterInfo: UserLeaveDetailFilterDto,
+  ): Promise<ResponseInterface> {
+    const data = await this.leaveService.getUserLeaveInfo(filterInfo, userIdx);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
 }
 
 @ApiTags('어드민')
@@ -88,11 +156,11 @@ export class AdminLeaveController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get()
-  async getLeaveSummary(
+  async getLeaveSummaries(
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminLeaveFilterDto,
   ): Promise<ResponseInterface> {
-    const data = await this.leaveService.getLeaveSummary(pageNoInfo, filterInfo);
+    const data = await this.leaveService.getLeaveSummaries(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
 

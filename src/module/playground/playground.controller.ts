@@ -96,7 +96,7 @@ export class AdminPlaygroundController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Delete('lunch-group')
   async deleteLunchGroup(): Promise<ResponseInterface> {
-    await this.playgroundService.deleteLunchGroup();
+    await this.playgroundService.deleteLunchGroupConfig();
 
     const response: ResponseInterface = { message: 'success' };
 

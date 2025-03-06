@@ -1,14 +1,16 @@
+import * as moment from 'moment';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveRepository } from './repository/leave.repository';
 import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
-import { IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
-import { LeaveImageInfo } from './interface/leave.interface';
+import { LeaveImageInfo, LeaveSummary } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { ANNUAL_REST_LISTS } from '../../../common/constant/constant';
 
 @Injectable()
 export class LeaveService {
@@ -24,7 +26,18 @@ export class LeaveService {
     manager: EntityManager,
     leaveImage?: Express.Multer.File,
   ): Promise<void> {
-    const { leaveInfo, confirmPersonIdx } = dto;
+    console.log(dto);
+    const { leaveInfo, confirmablePersonIdxs, note } = dto;
+    const nowYear: number = moment().utcOffset(9).year();
+    const nowMonth: number = moment().utcOffset(9).month() + 1;
+    // 보건 휴가 월 사용 개수 조회
+    const { healthMonthlyUsage } = await this.leaveRepository.getHealthMonthlyUsage(
+      userIdx,
+      nowYear.toString(),
+      nowMonth.toString(),
+    );
+    // 연차 잔여 개수 조회
+    const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(userIdx, nowYear.toString());
 
     await Promise.all(
       leaveInfo.map(async (leave) => {
@@ -35,7 +48,24 @@ export class LeaveService {
         if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leave.leaveTypeIdx)) {
           throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
         }
-        const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, confirmPersonIdx, manager);
+
+        // 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가
+        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE && healthMonthlyUsage !== 0) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
+        }
+        // 잔여 연차가 0개이면 연차 사용 불가
+        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE && totalAnnualLeaveBalance === 0) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
+        }
+
+        const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
+        if (confirmablePersonIdxs !== null) {
+          await this.leaveRepository.createLeaveConfirmableList(commuteIdx, confirmablePersonIdxs, manager);
+        }
 
         if (leaveImage) {
           const env: string = this.configService.get<string>('NODE_ENV');
@@ -65,14 +95,16 @@ export class LeaveService {
     return;
   }
 
-  async getLeaveSummary({ pageNo, perPage }: PageNoDto, filterInfo: AdminLeaveFilterDto) {
-    const { totalPage, total, summaries } = await this.leaveRepository.getUserLeaveSummaries(
-      pageNo,
-      perPage,
-      filterInfo,
-    );
+  async getLeaveSummaries({ pageNo, perPage }: PageNoDto, filterInfo: AdminLeaveFilterDto) {
+    const { totalPage, total, summaries } = await this.leaveRepository.getLeaveSummaries(pageNo, perPage, filterInfo);
 
     return { totalPage, total, summaries };
+  }
+
+  async getAnnualLeaveSummary(userIdx: number, year: string) {
+    const data = await this.leaveRepository.getAnnualLeaveSummary(userIdx, year);
+
+    return data;
   }
 
   async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
@@ -108,7 +140,7 @@ export class LeaveService {
       ...leaveUsageStats
     } = await this.leaveRepository.getUserLeaveStats(year, userIdx);
 
-    const leaveSummary = {
+    const leaveSummary: LeaveSummary = {
       userIdx,
       userName,
       year,
@@ -119,11 +151,14 @@ export class LeaveService {
       totalReceivedAnnualLeave,
       totalAnnualLeaveUsage,
       totalAnnualLeaveBalance,
-      midJoinReceivedAnnualLeave,
       yearsSinceJoin,
       oneYearAfterJoin,
       proRatedAnnualLeave,
     };
+    // 근속년수가 3년 미만인 경우 중도입사 연차 개수를 추가
+    if (yearsSinceJoin < 3) {
+      leaveSummary.midJoinReceivedAnnualLeave = midJoinReceivedAnnualLeave;
+    }
 
     const result = {
       leaveSummary,
@@ -138,7 +173,29 @@ export class LeaveService {
       throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
     }
 
-    const result = await this.leaveRepository.getUserLeaveDetail(filterInfo, userIdx);
+    const leaveDetails = await this.leaveRepository.getUserLeaveDetail(filterInfo, userIdx);
+
+    // 누적 잔여 계산
+    const result = leaveDetails.map((leaveDetail) => {
+      return {
+        ...leaveDetail,
+        leaveBalance: 2, // 누적 잔여 개수
+      };
+      // if (leaveDetail.confirmYN === ConfirmEnum.YES && ANNUAL_REST_LISTS.has(leaveDetail.leaveTypeIdx)) {
+
+      // }
+    });
+
+    return result;
+  }
+
+  async getAllUsersLeaveByDate(date: string) {
+    const leaveList = await this.leaveRepository.getAllUsersLeaveByDate(date);
+
+    const result = {
+      date,
+      leaveList,
+    };
 
     return result;
   }

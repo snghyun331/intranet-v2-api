@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment';
 import { AES, enc } from 'crypto-js';
+import { ConfirmEnum } from '../constant/enum';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (dateString: string): string => {
@@ -161,4 +162,15 @@ export const getOneYearAfterJoin = (joinDateString: string): string => {
   const oneYearAfterJoin: string = joinDate.add(1, 'years').subtract(1, 'days').format('YYYY-MM-DD');
 
   return oneYearAfterJoin;
+};
+
+export const addConfirmStatusField = (confirmYN: ConfirmEnum, confirmDate: string, rejectDate: string): string => {
+  switch (confirmYN) {
+    case ConfirmEnum.NO:
+      return '미승인';
+    case ConfirmEnum.YES:
+      return `${confirmDate}`;
+    case ConfirmEnum.REJECT:
+      return `반려 ${rejectDate}`;
+  }
 };

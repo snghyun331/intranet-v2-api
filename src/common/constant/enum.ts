@@ -51,9 +51,12 @@ export enum IntranetLeaveTypeIdxEnum {
 }
 
 export enum IntranetAttendanceEnum {
-  CHECK_IN = '출근',
-  CHECK_OUT = '퇴근',
+  CHECK_IN = '정상 출근',
+  CHECK_IN_LATE = '정상 출근(지각)',
+  CHECK_OUT = '정상 퇴근',
+  CHECK_OUT_LATE = '정상 퇴근(지각)',
   EARLY_CHECK_OUT = '조기 퇴근',
+  EARLY_CHECK_OUT_LATE = '조기 퇴근(지각)',
 }
 
 export enum UserGradeEnum {
@@ -83,7 +86,7 @@ export enum HalfYearEnum {
 
 export enum ConfirmEnum {
   NO = 'N',
-  HOLD = 'H',
+  REJECT = 'R',
   YES = 'Y',
 }
 
@@ -113,11 +116,6 @@ export enum SortbyEnum {
 export enum AdminGradeEnum {
   HIGH_ADMIN = '상위 관리자',
   NORMAL_ADMIN = '일반 관리자',
-}
-
-export enum LateStatusEnum {
-  ON_TIME = '정상',
-  LATE = '지각',
 }
 
 export enum DeviceTypeEnum {

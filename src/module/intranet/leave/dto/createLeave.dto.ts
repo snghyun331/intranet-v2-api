@@ -25,10 +25,13 @@ export class LeaveRequestDto {
   @Type(() => LeaveDetailDto)
   leaveInfo: LeaveDetailDto[];
 
-  @ApiProperty({ type: Number, description: '승인해줄 유저', example: 1, required: true })
+  @ApiProperty({ type: Array, description: '승인해줄 유저IDX (없으면 null)', example: [1, 2], required: true })
   @IsNotEmpty()
-  @IsNumber()
-  confirmPersonIdx: number;
+  confirmablePersonIdxs: number[] | null;
+
+  @ApiProperty({ type: String, description: '내용(string 혹은 null)', example: '특이사항', required: true })
+  @IsNotEmpty()
+  note: string | null;
 }
 
 export class CreateLeaveDto {
@@ -47,7 +50,8 @@ export class CreateLeaveDto {
           leaveTypeIdx: 3,
         },
       ],
-      confirmPersonIdx: 1,
+      confirmablePersonIdxs: [5, 6],
+      note: null,
     },
   })
   @IsNotEmpty()

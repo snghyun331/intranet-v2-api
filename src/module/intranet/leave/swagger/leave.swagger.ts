@@ -1,6 +1,34 @@
 import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
 
 export const USERS_INTRANET_LEAVE: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가 관리 조회 API',
+    },
+    API_QUERY1: {
+      name: 'year',
+      type: String,
+      required: true,
+      description: '회계연도',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              year: '2025',
+              userIdx: 1,
+              totalReceivedAnnualLeave: 15,
+              totalAnnualLeaveUsage: 1,
+              totalAnnualLeaveBalance: 14,
+            },
+          },
+        },
+      },
+    },
+  },
   POST: {
     API_OPERATION: {
       summary: '사용자 휴가 신청 API',
@@ -39,6 +67,253 @@ export const USERS_INTRANET_LEAVE: SwaggerMethod = {
                 path: '/users/intranet/leave',
               },
             },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const USERS_INTRANET_LEAVE_ALL: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '날짜별 전제 직원 휴무 현황 API',
+    },
+    API_QUERY1: {
+      type: String,
+      name: 'date',
+      description: 'yyyy-MM-dd',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              date: '2025-02-04',
+              leaveList: [
+                {
+                  userName: '이승현',
+                  leaveType: '연차',
+                },
+                {
+                  userName: '김현민',
+                  leaveType: '연차',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const USERS_INTRANET_LEAVE_STATS: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가관리 요약정보 조회 API 개발',
+    },
+    API_QUERY1: {
+      name: 'year',
+      type: String,
+      example: '2025',
+      description: '회계연도',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              leaveSummary: {
+                userIdx: 1,
+                userName: '김현민',
+                year: '2025',
+                joinDate: '2023-03-04',
+                hqName: 'HR솔루션본부',
+                teamName: 'HR Tech',
+                gradeName: '선임',
+                totalReceivedAnnualLeave: 15,
+                totalAnnualLeaveUsage: 1,
+                totalAnnualLeaveBalance: 14,
+                yearsSinceJoin: 1,
+                oneYearAfterJoin: '2024-03-03',
+                midJoinReceivedAnnualLeave: 0,
+              },
+              leaveUsageStats: {
+                fullLeaveUsage: 0,
+                halfLeaveUsage: 0,
+                quarterLeaveUsage: 0,
+                specialLeaveUsage: 0,
+                alternativeLeaveUsage: 0,
+                sickLeaveUsage: 0,
+                trainingLeaveUsage: 0,
+                familyEventLeaveUsage: 0,
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가관리 상세정보 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: [
+              {
+                commuteIdx: 95,
+                userIdx: 2,
+                commuteDate: '2025-02-22',
+                commuteDayName: 'Saturday',
+                leaveTypeIdx: 15,
+                leaveType: '경조 휴무',
+                leaveReduceUnit: 1,
+                note: null,
+                confirmYN: 'N',
+                confirmDate: null,
+                rejectDate: null,
+                confirmPersonIdx: null,
+                confirmPersonName: null,
+                createdAt: '2025-03-04T08:03:29.494Z',
+                updatedAt: '2025-03-04T08:03:29.494Z',
+                confirmablePerson: [
+                  {
+                    confirmablePersonIdx: 4,
+                    confirmablePersonName: '신효은',
+                  },
+                  {
+                    confirmablePersonIdx: 7,
+                    confirmablePersonName: '정진우',
+                  },
+                ],
+                confirmStatus: '미승인',
+                leaveBalance: 2,
+              },
+              {
+                commuteIdx: 96,
+                userIdx: 2,
+                commuteDate: '2025-02-23',
+                commuteDayName: 'Sunday',
+                leaveTypeIdx: 3,
+                leaveType: '오후 반차',
+                leaveReduceUnit: 0.5,
+                note: null,
+                confirmYN: 'N',
+                confirmDate: null,
+                rejectDate: null,
+                confirmPersonIdx: null,
+                confirmPersonName: null,
+                createdAt: '2025-03-04T08:03:29.515Z',
+                updatedAt: '2025-03-04T08:03:29.515Z',
+                confirmablePerson: [
+                  {
+                    confirmablePersonIdx: 4,
+                    confirmablePersonName: '신효은',
+                  },
+                  {
+                    confirmablePersonIdx: 7,
+                    confirmablePersonName: '정진우',
+                  },
+                ],
+                confirmStatus: '미승인',
+                leaveBalance: 2,
+              },
+              {
+                commuteIdx: 97,
+                userIdx: 2,
+                commuteDate: '2025-02-08',
+                commuteDayName: 'Saturday',
+                leaveTypeIdx: 15,
+                leaveType: '경조 휴무',
+                leaveReduceUnit: 1,
+                note: null,
+                confirmYN: 'N',
+                confirmDate: null,
+                rejectDate: null,
+                confirmPersonIdx: null,
+                confirmPersonName: null,
+                createdAt: '2025-03-04T08:04:09.683Z',
+                updatedAt: '2025-03-04T08:04:09.683Z',
+                confirmablePerson: [],
+                confirmStatus: '미승인',
+                leaveBalance: 2,
+              },
+              {
+                commuteIdx: 98,
+                userIdx: 2,
+                commuteDate: '2025-02-09',
+                commuteDayName: 'Sunday',
+                leaveTypeIdx: 3,
+                leaveType: '오후 반차',
+                leaveReduceUnit: 0.5,
+                note: null,
+                confirmYN: 'N',
+                confirmDate: null,
+                rejectDate: null,
+                confirmPersonIdx: null,
+                confirmPersonName: null,
+                createdAt: '2025-03-04T08:04:09.688Z',
+                updatedAt: '2025-03-04T08:04:09.688Z',
+                confirmablePerson: [],
+                confirmStatus: '미승인',
+                leaveBalance: 2,
+              },
+              {
+                commuteIdx: 99,
+                userIdx: 2,
+                commuteDate: '2025-02-03',
+                commuteDayName: 'Monday',
+                leaveTypeIdx: 15,
+                leaveType: '경조 휴무',
+                leaveReduceUnit: 1,
+                note: null,
+                confirmYN: 'N',
+                confirmDate: null,
+                rejectDate: null,
+                confirmPersonIdx: null,
+                confirmPersonName: null,
+                createdAt: '2025-03-04T08:04:29.067Z',
+                updatedAt: '2025-03-04T08:04:29.067Z',
+                confirmablePerson: [],
+                confirmStatus: '미승인',
+                leaveBalance: 2,
+              },
+              {
+                commuteIdx: 100,
+                userIdx: 2,
+                commuteDate: '2025-02-04',
+                commuteDayName: 'Tuesday',
+                leaveTypeIdx: 3,
+                leaveType: '오후 반차',
+                leaveReduceUnit: 0.5,
+                note: null,
+                confirmYN: 'N',
+                confirmDate: null,
+                rejectDate: null,
+                confirmPersonIdx: null,
+                confirmPersonName: null,
+                createdAt: '2025-03-04T08:04:29.068Z',
+                updatedAt: '2025-03-04T08:04:29.068Z',
+                confirmablePerson: [],
+                confirmStatus: '미승인',
+                leaveBalance: 2,
+              },
+            ],
           },
         },
       },

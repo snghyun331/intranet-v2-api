@@ -131,6 +131,9 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 data: {
                   sDate: '2024-12-09',
                   eDate: '2024-12-10',
+                  total: 5,
+                  perGroup: 2,
+                  notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
                   groups: {
                     '1': [],
                     '2': [],
@@ -145,12 +148,14 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 statusCode: 200,
                 message: 'success',
                 data: {
-                  sDate: '2024-12-09',
-                  eDate: '2024-12-10',
+                  sDate: '2025-03-05',
+                  eDate: '2025-03-06',
+                  total: 5,
+                  perGroup: 2,
+                  notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
                   groups: {
-                    '1': ['김정현'],
-                    '2': ['이혜빈'],
-                    '3': ['이승현', '김현민'],
+                    '1': ['신효은', '박민수', '이승현'],
+                    '2': ['김현근', '정진우'],
                   },
                 },
               },
