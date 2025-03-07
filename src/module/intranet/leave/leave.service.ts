@@ -10,7 +10,7 @@ import { LeaveImageInfo, LeaveSummary } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
-import { ANNUAL_REST_LISTS } from '../../../common/constant/constant';
+import { addConfirmStatusField } from '../../../common/utils/utility';
 
 @Injectable()
 export class LeaveService {
@@ -27,7 +27,7 @@ export class LeaveService {
     leaveImage?: Express.Multer.File,
   ): Promise<void> {
     console.log(dto);
-    const { leaveInfo, confirmablePersonIdxs, note } = dto;
+    const { leaveInfo, approverIdxs, note } = dto;
     const nowYear: number = moment().utcOffset(9).year();
     const nowMonth: number = moment().utcOffset(9).month() + 1;
     // 보건 휴가 월 사용 개수 조회
@@ -63,8 +63,8 @@ export class LeaveService {
         }
 
         const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
-        if (confirmablePersonIdxs !== null) {
-          await this.leaveRepository.createLeaveConfirmableList(commuteIdx, confirmablePersonIdxs, manager);
+        if (approverIdxs !== null) {
+          await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs, manager);
         }
 
         if (leaveImage) {
@@ -172,18 +172,77 @@ export class LeaveService {
     if (filterInfo.leaveTypeIdx && !Object.values(IntranetLeaveTypeIdxEnum).includes(filterInfo.leaveTypeIdx)) {
       throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
     }
+    // 부여받은 총 연차 수 가져오기
+    const { totalReceivedAnnualLeave } = await this.leaveRepository.getAnnualLeaveSummary(userIdx, filterInfo.year);
 
+    // 휴가 상세내역 정보 가져오기
     const leaveDetails = await this.leaveRepository.getUserLeaveDetail(filterInfo, userIdx);
 
-    // 누적 잔여 계산
-    const result = leaveDetails.map((leaveDetail) => {
+    // 데이터를 commuteIdx 기준으로 그룹화
+    const leaveDetailsWithApprovers = leaveDetails.reduce((acc, row) => {
+      // 기존 commuteIdx가 있는지 확인
+      const existing = acc.find((item: any) => item.commuteIdx === row.commuteIdx);
+      const approverInfo = {
+        approverIdx: row.approverIdx,
+        approverName: row.approverName,
+      };
+      if (existing) {
+        // 같은 commuteIdx이면 approverInfo 리스트에 추가
+        if (row.approverIdx) {
+          existing.approverInfo.push(approverInfo);
+        }
+      } else {
+        // 새로운 commuteIdx이면 새로운 객체 생성
+        acc.push({
+          commuteIdx: row.commuteIdx,
+          userIdx: row.userIdx,
+          commuteDate: row.commuteDate,
+          commuteDayName: row.commuteDayName,
+          leaveTypeIdx: row.leaveTypeIdx,
+          leaveType: row.leaveType,
+          annualLeaveReduceUnit: row.annualLeaveReduceUnit,
+          note: row.note,
+          confirmYN: row.confirmYN,
+          confirmDate: row.confirmDate,
+          rejectDate: row.rejectDate,
+          confirmPersonIdx: row.confirmPersonIdx,
+          confirmPersonName: row.confirmPersonName,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          approverInfo: row.approverIdx ? [approverInfo] : [],
+        });
+      }
+      return acc;
+    }, []);
+
+    const updatedLeaveDetails = await Promise.all(
+      leaveDetailsWithApprovers.map(async (leaveDetail: any) => {
+        // leaveReduceUnit 재설정
+        leaveDetail.annualLeaveReduceUnit =
+          leaveDetail.confirmYN === ConfirmEnum.YES ? leaveDetail.annualLeaveReduceUnit : 0;
+        // 승인여부와 날짜를 합친 새 필드 추가
+        const confirmStatus: string = addConfirmStatusField(
+          leaveDetail.confirmYN,
+          leaveDetail.confirmDate,
+          leaveDetail.rejectDate,
+        );
+
+        return {
+          ...leaveDetail,
+          confirmStatus,
+        };
+      }),
+    );
+
+    // 누적 잔여 연차 수 계산
+    let remainingAnnualLeaveQuota: number = totalReceivedAnnualLeave;
+    const result = updatedLeaveDetails.map((leaveDetail) => {
+      remainingAnnualLeaveQuota -= leaveDetail.annualLeaveReduceUnit;
+
       return {
         ...leaveDetail,
-        leaveBalance: 2, // 누적 잔여 개수
+        remainingAnnualLeaveQuota,
       };
-      // if (leaveDetail.confirmYN === ConfirmEnum.YES && ANNUAL_REST_LISTS.has(leaveDetail.leaveTypeIdx)) {
-
-      // }
     });
 
     return result;
