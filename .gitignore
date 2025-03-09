@@ -63,3 +63,7 @@ Dockerfile.prod
 
 # script.sh
 script.sh
+
+# MongoDB
+/mongo-data
+/mongo-data/*

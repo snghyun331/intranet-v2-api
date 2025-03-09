@@ -40,8 +40,6 @@ export const MONGOOSE_CONFIG: MongooseModuleAsyncOptions = {
   inject: [ConfigService],
   useFactory: async (configService: ConfigService) => ({
     uri: configService.get<string>('MONGODB_URL'),
-    dbName: 'test_lunch_group',
-    retryAttempts: 5,
-    // connectonErrorFactory
+    dbName: 'lunch_group',
   }),
 };
