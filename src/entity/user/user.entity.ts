@@ -15,7 +15,7 @@ import { ActivityEntity } from '../activity/activity.entity';
 import { QnaEntity } from '../qna/qna.entity';
 import { AdminEntity } from '../admin/admin.entity';
 import { CommuteEntity } from '../intranet/commute/commute.entity';
-import { CommuteConfirmableEntity } from '../intranet/commute/commuteConfirmable.entity';
+import { CommuteApproverEntity } from '../intranet/commute/commuteApprover.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -131,6 +131,6 @@ export class UserEntity extends CommonEntity {
   @OneToMany(() => CommuteEntity, (commute) => commute.userIdxRelation)
   commuteRelation: CommuteEntity[];
 
-  @OneToMany(() => CommuteConfirmableEntity, (commuteConfirmable) => commuteConfirmable.userIdxRelation)
-  commuteConfirmableRelation: CommuteConfirmableEntity[];
+  @OneToMany(() => CommuteApproverEntity, (commuteApprover) => commuteApprover.userIdxRelation)
+  commuteApproverRelation: CommuteApproverEntity[];
 }

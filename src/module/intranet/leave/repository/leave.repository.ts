@@ -14,7 +14,6 @@ import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
 import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
 import {
-  addConfirmStatusField,
   getOneYearAfterJoin,
   getStartAndEndDateByMonth,
   getYearsSinceJoin,
@@ -23,14 +22,12 @@ import {
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { LeaveMontlyStatsEntity } from '../../../../entity/intranet/leave/leaveMonthlyStats.entity';
-import { CommuteConfirmableEntity } from '../../../../entity/intranet/commute/commuteConfirmable.entity';
+import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
 
 @Injectable()
 export class LeaveRepository {
   constructor(
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
-    @InjectRepository(CommuteConfirmableEntity)
-    private readonly commuteConfirmableModel: Repository<CommuteConfirmableEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
     @InjectRepository(LeaveMontlyStatsEntity)
     private readonly leaveMonthlyStatsModel: Repository<LeaveMontlyStatsEntity>,
@@ -249,7 +246,7 @@ export class LeaveRepository {
         'DAYNAME(commuteEntity.commuteDate) AS commuteDayName',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
-        'leaveTypeEntity.leaveReduceUnit AS leaveReduceUnit',
+        'leaveTypeEntity.leaveReduceUnit AS annualLeaveReduceUnit',
         'commuteEntity.note AS note',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
@@ -260,17 +257,17 @@ export class LeaveRepository {
         'commuteEntity.updatedAt AS updatedAt',
 
         // 추가: 승인 가능자 정보 가져오기
-        'commuteConfirmableEntity.userIdx AS confirmablePersonIdx',
-        'confirmableUserEntity.userName AS confirmablePersonName',
+        'commuteApproverEntity.userIdx AS approverIdx',
+        'approverUserEntity.userName AS approverName',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .leftJoin(UserEntity, 'confirmUserEntity', 'confirmUserEntity.userIdx = commuteEntity.confirmPersonIdx')
       .leftJoin(
-        CommuteConfirmableEntity,
-        'commuteConfirmableEntity',
-        'commuteConfirmableEntity.commuteIdx = commuteEntity.commuteIdx',
+        CommuteApproverEntity,
+        'commuteApproverEntity',
+        'commuteApproverEntity.commuteIdx = commuteEntity.commuteIdx',
       )
-      .leftJoin(UserEntity, 'confirmableUserEntity', 'confirmableUserEntity.userIdx = commuteConfirmableEntity.userIdx')
+      .leftJoin(UserEntity, 'approverUserEntity', 'approverUserEntity.userIdx = commuteApproverEntity.userIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
         firstDayOfMonthToString,
@@ -285,60 +282,7 @@ export class LeaveRepository {
       });
     }
 
-    const rawResults = await query.getRawMany();
-
-    // 데이터를 commuteIdx 기준으로 그룹화
-    const leaveDetails = rawResults.reduce((acc, row) => {
-      // 기존 commuteIdx가 있는지 확인
-      const existing = acc.find((item: any) => item.commuteIdx === row.commuteIdx);
-      const confirmablePerson = {
-        confirmablePersonIdx: row.confirmablePersonIdx,
-        confirmablePersonName: row.confirmablePersonName,
-      };
-      if (existing) {
-        // 같은 commuteIdx이면 confirmablePerson 리스트에 추가
-        if (row.confirmablePersonIdx) {
-          existing.confirmablePerson.push(confirmablePerson);
-        }
-      } else {
-        // 새로운 commuteIdx이면 새로운 객체 생성
-        acc.push({
-          commuteIdx: row.commuteIdx,
-          userIdx: row.userIdx,
-          commuteDate: row.commuteDate,
-          commuteDayName: row.commuteDayName,
-          leaveTypeIdx: row.leaveTypeIdx,
-          leaveType: row.leaveType,
-          leaveReduceUnit: row.leaveReduceUnit,
-          note: row.note,
-          confirmYN: row.confirmYN,
-          confirmDate: row.confirmDate,
-          rejectDate: row.rejectDate,
-          confirmPersonIdx: row.confirmPersonIdx,
-          confirmPersonName: row.confirmPersonName,
-          createdAt: row.createdAt,
-          updatedAt: row.updatedAt,
-          confirmablePerson: row.confirmablePersonIdx ? [confirmablePerson] : [],
-        });
-      }
-      return acc;
-    }, []);
-
-    // 승인여부와 날짜를 합친 새 필드 추가
-    const result = await Promise.all(
-      leaveDetails.map(async (leaveDetail: any) => {
-        const confirmStatus: string = addConfirmStatusField(
-          leaveDetail.confirmYN,
-          leaveDetail.confirmDate,
-          leaveDetail.rejectDate,
-        );
-
-        return {
-          ...leaveDetail,
-          confirmStatus,
-        };
-      }),
-    );
+    const result = await query.getRawMany();
 
     return result;
   }
@@ -368,13 +312,13 @@ export class LeaveRepository {
     return result;
   }
 
-  async createLeaveConfirmableList(commuteIdx: number, userIdxs: number[], manager: EntityManager) {
+  async createLeaveApproverList(commuteIdx: number, userIdxs: number[], manager: EntityManager) {
     await Promise.all(
       userIdxs.map(async (userIdx) => {
         await manager
           .createQueryBuilder()
           .insert()
-          .into(CommuteConfirmableEntity)
+          .into(CommuteApproverEntity)
           .values({ commuteIdx, userIdx })
           .execute();
       }),

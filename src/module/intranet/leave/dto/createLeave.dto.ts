@@ -27,7 +27,7 @@ export class LeaveRequestDto {
 
   @ApiProperty({ type: Array, description: '승인해줄 유저IDX (없으면 null)', example: [1, 2], required: true })
   @IsNotEmpty()
-  confirmablePersonIdxs: number[] | null;
+  approverIdxs: number[] | null;
 
   @ApiProperty({ type: String, description: '내용(string 혹은 null)', example: '특이사항', required: true })
   @IsNotEmpty()
@@ -50,7 +50,7 @@ export class CreateLeaveDto {
           leaveTypeIdx: 3,
         },
       ],
-      confirmablePersonIdxs: [5, 6],
+      approverIdxs: [5, 6],
       note: null,
     },
   })
