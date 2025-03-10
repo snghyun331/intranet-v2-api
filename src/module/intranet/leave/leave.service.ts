@@ -95,6 +95,14 @@ export class LeaveService {
     return;
   }
 
+  async deleteLeave(commuteIdx: number, manager: EntityManager): Promise<void> {
+    const commuteCount: number = await this.leaveRepository.getCommuteCountByIdx(commuteIdx);
+    if (commuteCount !== 1) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+    await this.leaveRepository.deleteLeave(commuteIdx, manager);
+  }
+
   async getLeaveSummaries({ pageNo, perPage }: PageNoDto, filterInfo: AdminLeaveFilterDto) {
     const { totalPage, total, summaries } = await this.leaveRepository.getLeaveSummaries(pageNo, perPage, filterInfo);
 

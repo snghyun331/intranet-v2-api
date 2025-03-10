@@ -277,7 +277,7 @@ export class AdminMealController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('balances/:mealStatsIdx')
-  async getMealBalanaceDetail(@Param('mealStatsIdx') mealStatsIdx: number): Promise<ResponseInterface> {
+  async getMealBalanaceDetail(@Param('mealStatsIdx', ParseIntPipe) mealStatsIdx: number): Promise<ResponseInterface> {
     const data: MealEntity[] = await this.mealService.getMealBalanceDetail(mealStatsIdx);
 
     const response: ResponseInterface = { message: 'success', data };
