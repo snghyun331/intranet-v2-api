@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
-import { EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { LeaveDetailDto } from '../dto/createLeave.dto';
 import { LeaveImageInfo } from '../interface/leave.interface';
 import { ImageEntity } from '../../../../entity/image/image.entity';
@@ -33,6 +33,15 @@ export class LeaveRepository {
     private readonly leaveMonthlyStatsModel: Repository<LeaveMontlyStatsEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
   ) {}
+
+  async getCommuteCountByIdx(commuteIdx: number): Promise<number> {
+    const result: number = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .where('commuteEntity.commuteIdx', { commuteIdx })
+      .getCount();
+
+    return result;
+  }
 
   async getLeaveStatsCountByIdx(leaveStatsIdx: number): Promise<number> {
     const result: number = await this.leaveStatsModel
@@ -325,5 +334,14 @@ export class LeaveRepository {
     );
 
     return;
+  }
+
+  async deleteLeave(commuteIdx: number, manager: EntityManager): Promise<DeleteResult> {
+    return await manager
+      .createQueryBuilder()
+      .delete()
+      .from(CommuteEntity)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
   }
 }
