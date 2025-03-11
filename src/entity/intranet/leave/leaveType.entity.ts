@@ -1,5 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CommuteEntity } from '../commute/commute.entity';
+import { LeaveMonthlyUsageEntity } from './leaveMonthlyUsage.entity';
+import { LeaveUsageEntity } from './leaveUsage.entity';
 
 @Entity({ name: 'leave_type', comment: '근태(휴가) 유형' })
 export class LeaveTypeEntity {
@@ -14,4 +16,10 @@ export class LeaveTypeEntity {
 
   @OneToMany(() => CommuteEntity, (commute) => commute.leaveTypeIdxRelation)
   commuteRelation: CommuteEntity[];
+
+  @OneToMany(() => LeaveMonthlyUsageEntity, (monthlyUseCount) => monthlyUseCount.leaveTypeIdxRelation)
+  monthlyUseCountRelation: LeaveMonthlyUsageEntity[];
+
+  @OneToMany(() => LeaveUsageEntity, (usage) => usage.leaveTypeIdxRelation)
+  usageRelation: LeaveUsageEntity[];
 }
