@@ -1,6 +1,27 @@
 import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
 
 export const USERS_INTRANET_LEAVE: SwaggerMethod = {
+  DELETE: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가 삭제 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'commuteIdx',
+      required: true,
+      description: 'IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
   GET: {
     API_OPERATION: {
       summary: '사용자 개인 휴가 관리 조회 API',
@@ -93,16 +114,9 @@ export const USERS_INTRANET_LEAVE_ALL: SwaggerMethod = {
             message: 'success',
             data: {
               date: '2025-02-04',
-              leaveList: [
-                {
-                  userName: '이승현',
-                  leaveType: '연차',
-                },
-                {
-                  userName: '김현민',
-                  leaveType: '연차',
-                },
-              ],
+              leaveByType: {
+                '오후 반차': ['이승현'],
+              },
             },
           },
         },

@@ -6,6 +6,7 @@ import {
   Get,
   Ip,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
@@ -174,7 +175,7 @@ export class AdminCommuteController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Put('commute/:commuteIdx/time')
   async updateCommuteTime(
-    @Param('commuteIdx') commuteIdx: number,
+    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() updateInfo: UpdateCommuteTimeDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
@@ -195,7 +196,7 @@ export class AdminCommuteController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('commute/:commuteIdx/note')
   async updateCommuteNote(
-    @Param('commuteIdx') commuteIdx: number,
+    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() noteInfo: UpdateNoteDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {

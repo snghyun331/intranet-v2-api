@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -74,6 +75,25 @@ export class UserLeaveController {
   ): Promise<ResponseInterface> {
     const parsedDto: LeaveRequestDto = dto as LeaveRequestDto;
     await this.leaveService.createLeave(parsedDto, userIdx, manager, leaveImage);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE.DELETE.API_OPERATION)
+  @ApiParam(USERS_INTRANET_LEAVE.DELETE.API_PARAM1)
+  @ApiOkResponse(USERS_INTRANET_LEAVE.DELETE.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @UseInterceptors(TransactionInterceptor)
+  @Delete(':commuteIdx')
+  async deleteLeave(
+    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.leaveService.deleteLeave(commuteIdx, manager);
 
     const response: ResponseInterface = { message: 'success' };
 
