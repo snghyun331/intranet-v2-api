@@ -30,20 +30,8 @@ export class LeaveStatsEntity extends CommonEntity {
   @Column({ name: 'quarter_leave_usage', comment: '사용 반반차 수', default: 0, nullable: false })
   quarterLeaveUsage: number;
 
-  @Column({ name: 'total_special_leave', comment: '총 특별휴무 수', nullable: false })
-  totalSpecialLeave: number;
-
-  @Column({ name: 'special_leave_balance', comment: '잔여 특별휴무 수', default: 0, nullable: false })
-  specialLeaveBalance: number;
-
   @Column({ name: 'special_leave_usage', comment: '사용 특별휴무 수', default: 0, nullable: false })
   specialLeaveUsage: number;
-
-  @Column({ name: 'total_alternative_leave', comment: '총 대체휴무 수', nullable: false })
-  totalAlternativeLeave: number;
-
-  @Column({ name: 'alternative_leave_balance', comment: '잔여 대체휴무 수', default: 0, nullable: false })
-  alternativeLeaveBalance: number;
 
   @Column({ name: 'alternative_leave_usage', comment: '사용 대체휴무 수', default: 0, nullable: false })
   alternativeLeaveUsage: number;
