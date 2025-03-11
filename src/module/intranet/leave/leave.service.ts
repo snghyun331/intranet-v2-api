@@ -258,12 +258,13 @@ export class LeaveService {
 
   async getAllUsersLeaveByDate(date: string) {
     const leaveList = await this.leaveRepository.getAllUsersLeaveByDate(date);
+    const leaveByType = {};
 
-    const result = {
-      date,
-      leaveList,
-    };
+    leaveList.forEach(({ leaveType, userName }) => {
+      leaveByType[leaveType] = leaveByType[leaveType] || [];
+      leaveByType[leaveType].push(userName);
+    });
 
-    return result;
+    return { date, leaveByType };
   }
 }

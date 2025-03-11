@@ -114,16 +114,9 @@ export const USERS_INTRANET_LEAVE_ALL: SwaggerMethod = {
             message: 'success',
             data: {
               date: '2025-02-04',
-              leaveList: [
-                {
-                  userName: '이승현',
-                  leaveType: '연차',
-                },
-                {
-                  userName: '김현민',
-                  leaveType: '연차',
-                },
-              ],
+              leaveByType: {
+                '오후 반차': ['이승현'],
+              },
             },
           },
         },
