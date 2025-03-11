@@ -68,3 +68,33 @@ export const ANNUAL_REST_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
   IntranetLeaveTypeIdxEnum.AM_QUARTER,
   IntranetLeaveTypeIdxEnum.PM_QUARTER,
 ]);
+
+export const HALF_ANNUAL_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.AM_HALF,
+  IntranetLeaveTypeIdxEnum.PM_HALF,
+]);
+
+export const QUARTER_ANNUAL_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.AM_QUARTER,
+  IntranetLeaveTypeIdxEnum.PM_QUARTER,
+]);
+
+export const SPECIAL_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE,
+  IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE,
+  IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE,
+  IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE,
+  IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE,
+]);
+
+export const ALTERNATIVE_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE,
+  IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE,
+  IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE,
+]);
+
+export const TRAINING_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.TRAINING,
+  IntranetLeaveTypeIdxEnum.AM_TRAINING,
+  IntranetLeaveTypeIdxEnum.PM_TRAINING,
+]);

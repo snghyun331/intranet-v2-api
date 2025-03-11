@@ -13,24 +13,21 @@ import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
 import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
-import {
-  getOneYearAfterJoin,
-  getStartAndEndDateByMonth,
-  getYearsSinceJoin,
-  removeAllWhiteSpace,
-} from '../../../../common/utils/utility';
+import { getStartAndEndDateByMonth, removeAllWhiteSpace } from '../../../../common/utils/utility';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
-import { LeaveMontlyStatsEntity } from '../../../../entity/intranet/leave/leaveMonthlyStats.entity';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
+import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
+import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 
 @Injectable()
 export class LeaveRepository {
   constructor(
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
-    @InjectRepository(LeaveMontlyStatsEntity)
-    private readonly leaveMonthlyStatsModel: Repository<LeaveMontlyStatsEntity>,
+    @InjectRepository(LeaveMonthlyUsageEntity)
+    private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
+    @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
   ) {}
 
@@ -213,14 +210,6 @@ export class LeaveRepository {
         'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage', // 사용 연차 개수
         '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance', // 잔여 연차 개수
         'leaveStatsEntity.midJoinReceivedAnnualLeave AS midJoinReceivedAnnualLeave', // 중도입사 연차 부여개수
-        'leaveStatsEntity.fullLeaveUsage AS fullLeaveUsage',
-        'leaveStatsEntity.halfLeaveUsage AS halfLeaveUsage',
-        'leaveStatsEntity.quarterLeaveUsage AS quarterLeaveUsage',
-        'leaveStatsEntity.specialLeaveUsage AS specialLeaveUsage',
-        'leaveStatsEntity.alternativeLeaveUsage AS alternativeLeaveUsage',
-        'leaveStatsEntity.sickLeaveUsage AS sickLeaveUsage',
-        'leaveStatsEntity.trainingLeaveUsage AS trainingLeaveUsage',
-        'leaveStatsEntity.familyEventLeaveUsage AS familyEventLeaveUsage',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
@@ -230,12 +219,16 @@ export class LeaveRepository {
       .andWhere('leaveStatsEntity.year = :year', { year })
       .getRawOne();
 
-    const result = {
-      ...leaveStats,
-      yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
-      oneYearAfterJoin: getOneYearAfterJoin(leaveStats.joinDate), // 만 1년 날짜
-      totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
-    };
+    return leaveStats;
+  }
+
+  async getUserLeaveUsageInfo(year: string, userIdx: number) {
+    const result = await this.leaveUsageModel
+      .createQueryBuilder('leaveUsageEntity')
+      .select(['leaveUsageEntity.leaveTypeIdx AS leaveTypeIdx', 'leaveUsageEntity.annualUseCount AS annualUseCount'])
+      .where('leaveUsageEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveUsageEntity.year = :year', { year })
+      .getRawMany();
 
     return result;
   }
@@ -309,15 +302,29 @@ export class LeaveRepository {
     return result;
   }
 
+  // async getHealthMonthlyUsage(userIdx: number, year: string, month: string) {
+  //   const result = await this.leaveMonthlyUsageModel
+  //     .createQueryBuilder('leaveMonthlyUsageEntity')
+  //     .select(['leaveMonthlyUsageEntity.healthMonthlyUsage AS healthMonthlyUsage'])
+  //     .where('leaveMonthlyUsageEntity.userIdx = :userIdx', { userIdx })
+  //     .andWhere('leaveMonthlyUsageEntity.year = :year', { year })
+  //     .andWhere('leaveMonthlyUsageEntity.month = :month', { month })
+  //     .getRawOne();
+
+  //   return result;
+  // }
   async getHealthMonthlyUsage(userIdx: number, year: string, month: string) {
-    const result = await this.leaveMonthlyStatsModel
-      .createQueryBuilder('leaveMonthlyStatsEntity')
-      .select(['leaveMonthlyStatsEntity.healthMonthlyUsage AS healthMonthlyUsage'])
-      .where('leaveMonthlyStatsEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('leaveMonthlyStatsEntity.year = :year', { year })
-      .andWhere('leaveMonthlyStatsEntity.month = :month', { month })
+    const result = await this.leaveMonthlyUsageModel
+      .createQueryBuilder('leaveMonthlyUsageEntity')
+      .select(['leaveMonthlyUsageEntity.usage AS healthMonthlyUsage'])
+      .where('leaveMonthlyUsageEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveMonthlyUsageEntity.year = :year', { year })
+      .andWhere('leaveMonthlyUsageEntity.month = :month', { month })
+      .andWhere('leaveMonthlyUsageEntity.leaveTypeIdx = :leaveTypeIdx', {
+        leaveTypeIdx: IntranetLeaveTypeIdxEnum.HEALTH_LEAVE,
+      })
       .getRawOne();
-    console.log(result);
+
     return result;
   }
 

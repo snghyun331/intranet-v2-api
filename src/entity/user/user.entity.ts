@@ -16,6 +16,9 @@ import { QnaEntity } from '../qna/qna.entity';
 import { AdminEntity } from '../admin/admin.entity';
 import { CommuteEntity } from '../intranet/commute/commute.entity';
 import { CommuteApproverEntity } from '../intranet/commute/commuteApprover.entity';
+import { LeaveMonthlyUsageEntity } from '../intranet/leave/leaveMonthlyUsage.entity';
+import { LeaveUsageEntity } from '../intranet/leave/leaveUsage.entity';
+import { LeaveStatsEntity } from '../intranet/leave/leaveStats.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -133,4 +136,13 @@ export class UserEntity extends CommonEntity {
 
   @OneToMany(() => CommuteApproverEntity, (commuteApprover) => commuteApprover.userIdxRelation)
   commuteApproverRelation: CommuteApproverEntity[];
+
+  @OneToMany(() => LeaveMonthlyUsageEntity, (monthlyUseCount) => monthlyUseCount.userIdxRelation)
+  monthlyUseCountRelation: LeaveMonthlyUsageEntity[];
+
+  @OneToMany(() => LeaveUsageEntity, (usage) => usage.userIdxRelation)
+  usageRelation: LeaveUsageEntity[];
+
+  @OneToMany(() => LeaveStatsEntity, (leaveStats) => leaveStats.userIdxRelation)
+  leaveStatsRelation: LeaveStatsEntity[];
 }
