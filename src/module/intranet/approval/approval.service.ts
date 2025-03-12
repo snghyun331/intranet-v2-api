@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalRepository } from './repository/approval.repository';
 import { EntityManager } from 'typeorm';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
+import { ConfirmEnum } from '../../../common/constant/enum';
 
 @Injectable()
 export class ApprovalService {
@@ -33,45 +33,35 @@ export class ApprovalService {
 
     /* 승인여부 업데이트 */
     await this.approvalRepository.updateConfirm(commuteIdx, userIdx, confirmYN, manager);
-    // /* 승인여부 업데이트에 따른 휴가 산정 변경 */
-    // const year: string = existing.commuteDate.substring(0, 4);
-    // const month: string = existing.commuteDate.substring(5, 7);
-    // // 승인
-    // if (confirmYN === ConfirmEnum.YES) {
-    //   const leaveTypeIdx: number = existing.leaveTypeIdx;
-    //   const usage: number = await this.approvalRepository.getTotalLeaveCountForMonth(
-    //     year,
-    //     month,
-    //     userIdx,
-    //     leaveTypeIdx,
-    //   );
-    // const updateField
-    // switch (existing.leaveTypeIdx) {
-    //   case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
-    //     await this.approvalRepository.updateFullLeaveUsageForMonth(year, month, userIdx, usage);
-    //     break;
-    //   case IntranetLeaveTypeIdxEnum.AM_HALF:
-    //     await this.approvalRepository.updateAMHalfLeaveUsageForMonth(year, month, userIdx, usage);
-    //     break;
-    //   case IntranetLeaveTypeIdxEnum.PM_HALF:
-    //     await this.approvalRepository.updatePMHalfLeaveUsageForMonth(year, month, userIdx, usage);
-    //     break;
-    //   case IntranetLeaveTypeIdxEnum.AM_QUARTER:
-    //     await this.approvalRepository.updateAMQuarterLeaveUsageForMonth(year, month, userIdx, usage);
-    //     break;
-    //   case IntranetLeaveTypeIdxEnum.PM_QUARTER:
-    //     await this.approvalRepository.updatePMQuarterLeaveUsageForMonth(year, month, userIdx, usage);
-    //     break;
-    //   case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
-    //     await this.approvalRepository.updateSpecialLeaveUsageForMonth(year, month, userIdx, usage);
-    //     break;
-    //   case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
-    //     await this.approvalRepository.updateSpecialLeaveUsageForMonth(year, month, userIdx, usage);
-    //     break;
-    //   case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
-    //     await this.approvalRepository.updateSpecialLeaveUsageForMonth(year, month, userIdx, usage);
-    //     break;
-    // }
+    /* 승인여부 업데이트에 따른 휴가 산정 변경 */
+
+    if (confirmYN === ConfirmEnum.YES) {
+      const year: number = Number(existing.commuteDate.substring(0, 4));
+      const month: number = Number(existing.commuteDate.substring(5, 7));
+      const leaveTypeIdx: number = existing.leaveTypeIdx;
+      const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
+        year,
+        month,
+        userIdx,
+        leaveTypeIdx,
+        manager,
+      );
+
+      // 월별 사용개수 업데이트
+      await this.approvalRepository.updateLeaveMonthlyUseCount(
+        year.toString(),
+        month.toString(),
+        userIdx,
+        leaveTypeIdx,
+        useCount,
+        manager,
+      );
+
+      // 연도별 사용개수 업데이트
+      await this.approvalRepository.updateLeaveAnnualUseCount(year.toString(), userIdx, leaveTypeIdx, manager);
+
+      // 연도별 연차 총 사용량 업데이트
+      await this.approvalRepository.updateTotalAnnualLeaveUsage(year.toString(), userIdx, manager);
+    }
   }
-  // 반려
 }

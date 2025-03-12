@@ -37,11 +37,6 @@ export class PlayGroundModel {
       { $match: { configId } },
       { $group: { _id: '$groupNo', count: { $sum: 1 } } },
     ]);
-    // [
-    //     { "_id": 1, "count": 4 },  // groupNo가 1인 그룹에는 4명이 있음
-    //     { "_id": 2, "count": 3 },  // groupNo가 2인 그룹에는 3명이 있음
-    //     { "_id": 3, "count": 5 }   // groupNo가 3인 그룹에는 5명이 있음
-    //   ]
 
     return result;
   }
