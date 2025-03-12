@@ -12,13 +12,14 @@ import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
-import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
 import { getStartAndEndDateByMonth, removeAllWhiteSpace } from '../../../../common/utils/utility';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
 import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
+import * as moment from 'moment';
 
 @Injectable()
 export class LeaveRepository {
@@ -65,6 +66,22 @@ export class LeaveRepository {
     const commuteIdx: number = result.identifiers[0].commuteIdx;
 
     return commuteIdx;
+  }
+
+  async autoApprove(commuteIdx: number, userIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    const updateInfo = {
+      confirmYN: ConfirmEnum.YES,
+      confirmDate: moment().utcOffset(9).format('YYYY-MM-DD'),
+      confirmPersonIdx: userIdx,
+    };
+
+    return await manager
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(updateInfo)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .andWhere('userIdx = :userIdx', { userIdx })
+      .execute();
   }
 
   async createLeaveImage(commuteIdx: number, imageInfo: LeaveImageInfo, manager: EntityManager): Promise<void> {
