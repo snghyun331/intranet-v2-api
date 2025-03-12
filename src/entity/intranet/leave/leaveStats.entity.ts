@@ -13,13 +13,19 @@ export class LeaveStatsEntity extends CommonEntity {
   @Column({ name: 'year', comment: '회계연도', nullable: false })
   year: string;
 
-  @Column({ name: 'total_received_annual_leave', comment: '부여받은 총 연차 수', nullable: false })
+  @Column({ name: 'total_received_annual_leave', comment: '부여받은 총 연차 수', type: 'float', nullable: false })
   totalReceivedAnnualLeave: number;
 
-  @Column({ name: 'total_annual_leave_usage', comment: '사용 연차 수', default: 0, nullable: false })
+  @Column({ name: 'total_annual_leave_usage', comment: '사용 연차 수', type: 'float', default: 0, nullable: false })
   totalAnnualLeaveUsage: number;
 
-  @Column({ name: 'mid_join_received_annual_leave', comment: '중도 입사 연차 부여 개수', default: 0, nullable: false })
+  @Column({
+    name: 'mid_join_received_annual_leave',
+    comment: '중도입사 연차 부여 개수',
+    type: 'float',
+    default: 0,
+    nullable: false,
+  })
   midJoinReceivedAnnualLeave: number;
 
   @Column({ name: 'note', comment: '특이사항', type: 'text', nullable: true })

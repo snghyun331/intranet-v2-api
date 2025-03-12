@@ -11,7 +11,7 @@ export class LeaveTypeEntity {
   @Column({ name: 'leave_type', comment: '근태(휴가) 유형' })
   leaveType: string;
 
-  @Column({ name: 'leave_reduce_unit', comment: '차감 수 단위(연차만 해당)', type: 'double' })
+  @Column({ name: 'leave_reduce_unit', comment: '차감 수 단위(연차만 해당)', type: 'float' })
   leaveReduceUnit: number;
 
   @OneToMany(() => CommuteEntity, (commute) => commute.leaveTypeIdxRelation)

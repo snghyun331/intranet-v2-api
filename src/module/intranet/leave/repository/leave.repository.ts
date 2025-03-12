@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
@@ -302,21 +302,10 @@ export class LeaveRepository {
     return result;
   }
 
-  // async getHealthMonthlyUsage(userIdx: number, year: string, month: string) {
-  //   const result = await this.leaveMonthlyUsageModel
-  //     .createQueryBuilder('leaveMonthlyUsageEntity')
-  //     .select(['leaveMonthlyUsageEntity.healthMonthlyUsage AS healthMonthlyUsage'])
-  //     .where('leaveMonthlyUsageEntity.userIdx = :userIdx', { userIdx })
-  //     .andWhere('leaveMonthlyUsageEntity.year = :year', { year })
-  //     .andWhere('leaveMonthlyUsageEntity.month = :month', { month })
-  //     .getRawOne();
-
-  //   return result;
-  // }
-  async getHealthMonthlyUsage(userIdx: number, year: string, month: string) {
+  async getHealthMonthlyUseCount(userIdx: number, year: string, month: string) {
     const result = await this.leaveMonthlyUsageModel
       .createQueryBuilder('leaveMonthlyUsageEntity')
-      .select(['leaveMonthlyUsageEntity.usage AS healthMonthlyUsage'])
+      .select(['leaveMonthlyUsageEntity.monthlyUseCount AS healthMonthlyUseCount'])
       .where('leaveMonthlyUsageEntity.userIdx = :userIdx', { userIdx })
       .andWhere('leaveMonthlyUsageEntity.year = :year', { year })
       .andWhere('leaveMonthlyUsageEntity.month = :month', { month })
@@ -325,6 +314,9 @@ export class LeaveRepository {
       })
       .getRawOne();
 
+    if (!result) {
+      throw new BadRequestException('해당 사용자의 월별 보건휴가 사용량이 설정되어 있지 않습니다.');
+    }
     return result;
   }
 

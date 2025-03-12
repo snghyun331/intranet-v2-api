@@ -36,14 +36,6 @@ export class LeaveService {
     const { leaveInfo, approverIdxs, note } = dto;
     const nowYear: number = moment().utcOffset(9).year();
     const nowMonth: number = moment().utcOffset(9).month() + 1;
-    // 보건 휴가 월 사용 개수 조회
-    const { healthMonthlyUsage } = await this.leaveRepository.getHealthMonthlyUsage(
-      userIdx,
-      nowYear.toString(),
-      nowMonth.toString(),
-    );
-    // 연차 잔여 개수 조회
-    const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(userIdx, nowYear.toString());
 
     await Promise.all(
       leaveInfo.map(async (leave) => {
@@ -56,16 +48,57 @@ export class LeaveService {
         }
 
         // 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가
-        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE && healthMonthlyUsage !== 0) {
-          throw new BadRequestException(
-            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
+          // 보건 휴가 월 사용 개수 조회
+          const { healthMonthlyUseCount } = await this.leaveRepository.getHealthMonthlyUseCount(
+            userIdx,
+            nowYear.toString(),
+            nowMonth.toString(),
           );
+          if (healthMonthlyUseCount !== 0) {
+            throw new BadRequestException(
+              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+            );
+          }
         }
-        // 잔여 연차가 0개이면 연차 사용 불가
-        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE && totalAnnualLeaveBalance === 0) {
-          throw new BadRequestException(
-            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-          );
+
+        // 연차 잔여 개수 조회
+        const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(
+          userIdx,
+          nowYear.toString(),
+        );
+
+        // 잔여 연차가 1미만이면 연차 사용 불가
+        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE) {
+          if (totalAnnualLeaveBalance < 1) {
+            throw new BadRequestException(
+              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+            );
+          }
+        }
+
+        // 잔여 연차가 0.5미만이면 반차 사용 불가
+        if (
+          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_HALF ||
+          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF
+        ) {
+          if (totalAnnualLeaveBalance < 0.5) {
+            throw new BadRequestException(
+              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+            );
+          }
+        }
+
+        // 잔여 연차가 0.25미만이면 반반차 사용 불가
+        if (
+          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_QUARTER ||
+          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER
+        ) {
+          if (totalAnnualLeaveBalance < 0.25) {
+            throw new BadRequestException(
+              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+            );
+          }
         }
 
         const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
