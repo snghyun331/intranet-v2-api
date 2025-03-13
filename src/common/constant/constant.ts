@@ -12,7 +12,7 @@ export const DEFAULT_DINNER_RATE: number = 11000;
 
 export const DEFAULT_TOTAL_WELFARE: number = 200000;
 
-export const ACTIVITY_APPROVERS: string[] = ['김현근', '박민수', '윤이나'];
+export const ACTIVITY_APPROVERS: string[] = ['김현근', '박민수', '윤이나', '이승현'];
 
 export const NORMAL_WORKING_MINUTES: number = 9 * 60;
 

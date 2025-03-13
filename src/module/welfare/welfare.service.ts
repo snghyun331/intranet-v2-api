@@ -63,7 +63,16 @@ export class WelfareService {
       userIdx,
       manager,
     );
-    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
+    await this.welfareRepository.updateMonthlyWelfareStats(
+      welfareMonthExpense,
+      year,
+      monthToNum.toString(),
+      userIdx,
+      manager,
+    );
+
+    // 복지포인트 반기별 사용금액 업데이트
+    await this.welfareRepository.updateWelfareExpense(year, month, userIdx, manager);
 
     return newWelfareInfo.targetDay;
   }
@@ -89,7 +98,7 @@ export class WelfareService {
     const yearToNum: number = Number(year);
     const monthToNum: number = Number(month);
 
-    // 대리 결제자 목록 불러오기
+    // 동반 결제자 목록 불러오기
     const payeeIdxList: number[] = await this.welfareRepository.getUserIdxFromPayerWelfareIdx(welfareIdx);
 
     await this.welfareRepository.deleteWelfare(welfareIdx, manager);
@@ -101,9 +110,17 @@ export class WelfareService {
       userIdx,
       manager,
     );
-    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
+    await this.welfareRepository.updateMonthlyWelfareStats(
+      welfareMonthExpense,
+      year,
+      monthToNum.toString(),
+      userIdx,
+      manager,
+    );
 
-    // 대리결제자의 복지포인트 사용금액 업데이트
+    // 본인의 복지포인트 반기별 사용금액 업데이트
+    await this.welfareRepository.updateWelfareExpense(year, month, userIdx, manager);
+
     if (payeeIdxList.length > 0) {
       await Promise.all(
         payeeIdxList.map(async (payeeIdx) => {
@@ -113,7 +130,17 @@ export class WelfareService {
             payeeIdx,
             manager,
           );
-          await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, payeeIdx, manager);
+          // 동반결제자의 복지포인트 월별 사용금액 업데이트
+          await this.welfareRepository.updateMonthlyWelfareStats(
+            welfareMonthExpense,
+            year,
+            monthToNum.toString(),
+            payeeIdx,
+            manager,
+          );
+
+          // 동반 결제자의 복지포인트 반기별 사용금액 업데이트
+          await this.welfareRepository.updateWelfareExpense(year, month, payeeIdx, manager);
         }),
       );
     }
@@ -154,7 +181,7 @@ export class WelfareService {
 
     // 본인 결제자의 내역 업데이트
     await this.welfareRepository.updateWelfare(welfareIdx, updateWelfareInfo, manager);
-    // 대리 결제자 내역도 업데이트
+    // 동반 결제자 내역도 업데이트
     await this.welfareRepository.updatePayeeWelfare(welfareIdx, updateWelfareInfo, manager);
 
     /* payeeIdxs 처리 */
@@ -191,7 +218,16 @@ export class WelfareService {
       userIdx,
       manager,
     );
-    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
+    await this.welfareRepository.updateMonthlyWelfareStats(
+      welfareMonthExpense,
+      year,
+      monthToNum.toString(),
+      userIdx,
+      manager,
+    );
+
+    // 복지포인트 반기별 사용금액 업데이트
+    await this.welfareRepository.updateWelfareExpense(year, month, userIdx, manager);
 
     return updateWelfareInfo.targetDay;
   }

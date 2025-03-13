@@ -238,7 +238,7 @@ export class ActivityRepository {
         'activityStatsEntity.halfYear AS halfYear',
         'activityStatsEntity.activityBudget AS activityBudget',
         'activityStatsEntity.activityExpense AS activityExpense',
-        'activityStatsEntity.activityBalance AS activityBalance',
+        '(activityStatsEntity.activityBudget - activityStatsEntity.activityExpense) AS activityBalance',
         'hqEntity.hqName AS hqName',
         'teamEntity.teamName AS teamName',
       ])
@@ -253,7 +253,9 @@ export class ActivityRepository {
     } else if (user.teamName) {
       query.andWhere('teamEntity.teamName = :teamName', { teamName: user.teamName });
     }
-    const result: ActivityStats = await query.getRawOne();
+    const statsInfo = await query.getRawOne();
+
+    const result: ActivityStats = { ...statsInfo, activityBalance: Number(statsInfo.activityBalance) };
 
     return result;
   }
@@ -419,7 +421,7 @@ export class ActivityRepository {
         'gradeEntity.gradeName AS gradeName',
         'activityStatsEntity.activityBudget AS activityBudget',
         'activityStatsEntity.activityExpense AS activityExpense',
-        'activityStatsEntity.activityBalance AS activityBalance',
+        '(activityStatsEntity.activityBudget - activityStatsEntity.activityExpense) AS activityBalance',
         'activityStatsEntity.totalOverpay AS totalOverpay',
         'activityStatsEntity.note AS note',
         'activityStatsEntity.clearStatus AS clearStatus',
@@ -434,7 +436,12 @@ export class ActivityRepository {
 
     query.orderBy('userEntity.gradeIdx', 'ASC').addOrderBy('activityStatsEntity.halfYear', 'ASC');
 
-    const result: ActivityStatsAdminInfo[] = await query.getRawMany();
+    const userStatsInfo = await query.getRawMany();
+
+    const result: ActivityStatsAdminInfo[] = userStatsInfo.map((stats) => ({
+      ...stats,
+      activityBalance: Number(stats.activityBalance),
+    }));
 
     return result;
   }
@@ -467,5 +474,48 @@ export class ActivityRepository {
       .getCount();
 
     return statsCnt;
+  }
+
+  async updateActivityExpense(
+    year: string,
+    month: string,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    if (Number(month) > 7) {
+      const query = `(
+        SELECT COALESCE(SUM(activity_month_expense), 0) 
+        FROM activity_monthly_stats  
+        WHERE activity_monthly_stats.user_idx = activity_stats.user_idx 
+        AND activity_monthly_stats.year = activity_stats.year
+        AND activity_monthly_stats.month IN ('7','8','9','10','11','12')
+      )`;
+
+      return await manager
+        .createQueryBuilder()
+        .update(ActivityStatsEntity)
+        .set({ activityExpense: () => query })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .andWhere('halfYear = :halfYear', { halfYear: HalfYearEnum.H2 })
+        .execute();
+    } else {
+      const query = `(
+        SELECT COALESCE(SUM(activity_month_expense), 0) 
+        FROM activity_monthly_stats  
+        WHERE activity_monthly_stats.user_idx = activity_stats.user_idx 
+        AND activity_monthly_stats.year = activity_stats.year
+        AND activity_monthly_stats.month IN ('1','2','3','4','5','6')
+      )`;
+
+      return await manager
+        .createQueryBuilder()
+        .update(ActivityStatsEntity)
+        .set({ activityExpense: () => query })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .andWhere('halfYear = :halfYear', { halfYear: HalfYearEnum.H1 })
+        .execute();
+    }
   }
 }

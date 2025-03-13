@@ -35,9 +35,6 @@ export class MealStatsEntity extends CommonEntity {
   @Column({ name: 'meal_expense', comment: '이번달 식대(중식) 사용 금액', default: 0, nullable: false })
   mealExpense: number;
 
-  @Column({ name: 'meal_balance', comment: '이번달 식대(중식) 잔액', nullable: true })
-  mealBalance: number;
-
   @Column({ name: 'breakfast_expense', comment: '이번달 식대(조식) 사용 금액', default: 0, nullable: false })
   breakfastExpense: number;
 
