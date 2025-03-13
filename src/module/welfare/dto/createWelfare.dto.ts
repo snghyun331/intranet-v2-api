@@ -25,7 +25,7 @@ export class CreateWelfareDto {
 
   @ApiProperty({
     type: Array,
-    description: '대리 결제자IDX(number) 리스트',
+    description: '동반 결제자IDX(number) 리스트',
     required: true,
   })
   @IsNotEmpty()

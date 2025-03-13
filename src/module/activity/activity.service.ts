@@ -52,7 +52,7 @@ export class ActivityService {
 
     await this.activityRepository.createActivity(userIdx, newActivityInfo, manager);
 
-    // 활동비 사용금액 업데이트
+    // 활동비 월별 사용금액 업데이트
     const { userIdx: payerIdx } = payerIdxInfo; // 결제자 IDX
     const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
       yearToNum,
@@ -60,8 +60,10 @@ export class ActivityService {
       newActivityInfo.payerName,
       manager,
     );
-
     await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, monthToNum, payerIdx, manager);
+
+    // 활동비 반기별 사용금액 업데이트
+    await this.activityRepository.updateActivityExpense(year, month, payerIdx, manager);
 
     return newActivityInfo.targetDay;
   }
@@ -111,6 +113,9 @@ export class ActivityService {
     );
     await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, monthToNum, payerIdx, manager);
 
+    // 활동비 반기별 사용금액 업데이트
+    await this.activityRepository.updateActivityExpense(year, month, payerIdx, manager);
+
     return updateActivityInfo.targetDay;
   }
 
@@ -144,6 +149,9 @@ export class ActivityService {
       manager,
     );
     await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, monthToNum, payerIdx, manager);
+
+    // 활동비 반기별 사용금액 업데이트
+    await this.activityRepository.updateActivityExpense(year, month, payerIdx, manager);
 
     return activityInfo.targetDay;
   }

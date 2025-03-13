@@ -127,14 +127,14 @@ export class MealRepository {
   }
 
   async getMyMealStats(year: number, month: number, userIdx: number): Promise<MealStats> {
-    const result: MealStats = await this.mealStatsModel
+    const myStatsInfo = await this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([
         'mealStatsEntity.year AS year',
         'mealStatsEntity.month AS month',
         'mealStatsEntity.mealBudget AS mealBudget',
         'mealStatsEntity.mealExpense AS mealExpense',
-        'mealStatsEntity.mealBalance AS mealBalance',
+        '(mealStatsEntity.mealBudget - mealStatsEntity.mealExpense) AS mealBalance',
         'userEntity.userName AS userName',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealStatsEntity.userIdx')
@@ -142,6 +142,8 @@ export class MealRepository {
       .andWhere('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
       .getRawOne();
+
+    const result: MealStats = myStatsInfo ? { ...myStatsInfo, mealBalance: Number(myStatsInfo.mealBalance) } : {};
 
     return result;
   }
@@ -468,19 +470,6 @@ export class MealRepository {
       .execute();
   }
 
-  async updateMealBudget(
-    { year, month, mealBudget }: CreateMealBudgetDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
-      .createQueryBuilder()
-      .update(MealStatsEntity)
-      .set({ mealBudget })
-      .where('year = :year', { year })
-      .andWhere('month = :month', { month })
-      .execute();
-  }
-
   async getMealBaseInfo(year: string, month: string): Promise<{ baseAmount: number }> {
     const result: { baseAmount: number } = await this.mealBaseModel
       .createQueryBuilder('mealBaseEntity')
@@ -579,13 +568,13 @@ export class MealRepository {
         'gradeEntity.gradeName AS gradeName',
         'mealStatsEntity.mealBudget AS mealBudget',
         'mealStatsEntity.mealExpense AS mealExpense',
-        'mealStatsEntity.mealBalance AS mealBalance',
+        '(mealStatsEntity.mealBudget - mealStatsEntity.mealExpense) AS mealBalance',
+        'CASE WHEN (mealStatsEntity.mealBudget - mealStatsEntity.mealExpense) < 0 THEN (mealStatsEntity.mealBudget - mealStatsEntity.mealExpense) ELSE 0 END AS mealOverpay',
+        'mealStatsEntity.totalOverpay AS totalOverpay',
         'mealStatsEntity.breakfastExpense AS breakfastExpense',
         'mealStatsEntity.dinnerExpense AS dinnerExpense',
         'mealStatsEntity.breakfastOverpay AS breakfastOverpay',
         'mealStatsEntity.dinnerOverpay AS dinnerOverpay',
-        'CASE WHEN mealStatsEntity.mealBalance < 0 THEN mealStatsEntity.mealBalance ELSE 0 END AS mealOverpay',
-        'mealStatsEntity.totalOverpay AS totalOverpay',
         'mealStatsEntity.workdays AS workdays',
         'mealStatsEntity.holidays AS holidays',
         'mealStatsEntity.timeoffDays AS timeoffDays',
@@ -603,6 +592,7 @@ export class MealRepository {
     const transformedResult: MealStatsAdminInfo[] = results.map((result) => ({
       ...result,
       mealOverpay: Number(result.mealOverpay),
+      mealBalance: Number(result.mealBalance),
     }));
 
     return transformedResult;
@@ -740,5 +730,20 @@ export class MealRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async updateMealBudget(year: string, month: string, manager: EntityManager) {
+    const query = `
+        (workdays + holiday_workdays - time_off_days) * 
+        (SELECT base_amount FROM meal_base WHERE meal_base.year = :year AND meal_base.month = :month)
+    `;
+
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ mealBudget: () => query })
+      .where('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
   }
 }

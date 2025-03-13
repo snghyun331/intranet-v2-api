@@ -23,9 +23,6 @@ export class ActivityStatsEntity extends CommonEntity {
   @Column({ name: 'activity_expense', comment: '활동비 사용금액', default: 0, nullable: false })
   activityExpense: number;
 
-  @Column({ name: 'activity_balance', comment: '활동비 잔액', nullable: true })
-  activityBalance: number;
-
   @Column({ name: 'total_overpay', comment: '정산금', default: 0, nullable: false })
   totalOverpay: number;
 
