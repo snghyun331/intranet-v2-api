@@ -30,10 +30,10 @@ export class ApprovalController {
   async confirmLeave(
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() { confirmYN }: UpdateConfirmDto,
-    @CurrentUserIdx() userIdx: number,
+    @CurrentUserIdx() confirmPersonIdx: number,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.approvalService.confirmLeave(commuteIdx, userIdx, confirmYN, manager);
+    await this.approvalService.confirmLeave(commuteIdx, confirmPersonIdx, confirmYN, manager);
 
     const response: ResponseInterface = { message: 'success' };
 
