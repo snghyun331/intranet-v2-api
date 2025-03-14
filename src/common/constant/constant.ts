@@ -12,7 +12,7 @@ export const DEFAULT_DINNER_RATE: number = 11000;
 
 export const DEFAULT_TOTAL_WELFARE: number = 200000;
 
-export const ACTIVITY_APPROVERS: string[] = ['김현근', '박민수', '윤이나'];
+export const ACTIVITY_APPROVERS: string[] = ['김현근', '박민수', '윤이나', '이승현'];
 
 export const NORMAL_WORKING_MINUTES: number = 9 * 60;
 
@@ -67,4 +67,34 @@ export const ANNUAL_REST_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
   IntranetLeaveTypeIdxEnum.PM_HALF,
   IntranetLeaveTypeIdxEnum.AM_QUARTER,
   IntranetLeaveTypeIdxEnum.PM_QUARTER,
+]);
+
+export const HALF_ANNUAL_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.AM_HALF,
+  IntranetLeaveTypeIdxEnum.PM_HALF,
+]);
+
+export const QUARTER_ANNUAL_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.AM_QUARTER,
+  IntranetLeaveTypeIdxEnum.PM_QUARTER,
+]);
+
+export const SPECIAL_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE,
+  IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE,
+  IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE,
+  IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE,
+  IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE,
+]);
+
+export const ALTERNATIVE_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE,
+  IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE,
+  IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE,
+]);
+
+export const TRAINING_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
+  IntranetLeaveTypeIdxEnum.TRAINING,
+  IntranetLeaveTypeIdxEnum.AM_TRAINING,
+  IntranetLeaveTypeIdxEnum.PM_TRAINING,
 ]);

@@ -5,7 +5,7 @@ import { UpdateConfirmDto } from '../dto/updateConfirm.dto';
 export const USERS_INTRANET_APPROVAL: SwaggerMethod = {
   PATCH: {
     API_OPERATION: {
-      summary: '결제 및 승인하기 API',
+      summary: '휴가 승인/반려하기 API',
     },
     API_PARAM1: {
       type: Number,
@@ -34,7 +34,10 @@ export const USERS_INTRANET_APPROVAL: SwaggerMethod = {
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
         },
       },
     },

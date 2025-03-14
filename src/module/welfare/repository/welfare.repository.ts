@@ -286,14 +286,14 @@ export class WelfareRepository {
   }
 
   async getWelfareStats(year: number, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareStats> {
-    const result: WelfareStats = await this.welfareStatsModel
+    const statsInfo = await this.welfareStatsModel
       .createQueryBuilder('welfareStatsEntity')
       .select([
         'welfareStatsEntity.year AS year',
         'welfareStatsEntity.halfYear AS halfYear',
         'welfareStatsEntity.welfareBudget AS welfareBudget',
         'welfareStatsEntity.welfareExpense AS welfareExpense',
-        'welfareStatsEntity.welfareBalance AS welfareBalance',
+        '(welfareStatsEntity.welfareBudget - welfareStatsEntity.welfareExpense) AS welfareBalance',
         'userEntity.userName AS userName',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareStatsEntity.userIdx')
@@ -301,6 +301,8 @@ export class WelfareRepository {
       .andWhere('welfareStatsEntity.year = :year', { year })
       .andWhere('welfareStatsEntity.halfYear = :halfYear', { halfYear })
       .getRawOne();
+
+    const result: WelfareStats = { ...statsInfo, welfareBalance: Number(statsInfo.welfareBalance) };
 
     return result;
   }
@@ -563,7 +565,7 @@ export class WelfareRepository {
         'gradeEntity.gradeName AS gradeName',
         'welfareStatsEntity.welfareBudget AS welfareBudget',
         'welfareStatsEntity.welfareExpense AS welfareExpense',
-        'welfareStatsEntity.welfareBalance AS welfareBalance',
+        '(welfareStatsEntity.welfareBudget - welfareStatsEntity.welfareExpense) AS welfareBalance',
         'welfareStatsEntity.totalOverpay AS totalOverpay',
         'welfareStatsEntity.note AS note',
         'welfareStatsEntity.clearStatus AS clearStatus',
@@ -578,7 +580,11 @@ export class WelfareRepository {
 
     query.orderBy('userEntity.gradeIdx', 'ASC').addOrderBy('welfareStatsEntity.halfYear', 'ASC');
 
-    const result: WelfareStatsAdminInfo[] = await query.getRawMany();
+    const userStatsInfo = await query.getRawMany();
+    const result: WelfareStatsAdminInfo[] = userStatsInfo.map((stats) => ({
+      ...stats,
+      welfareBalance: Number(stats.welfareBalance),
+    }));
 
     return result;
   }
@@ -621,5 +627,48 @@ export class WelfareRepository {
       .getRawOne();
 
     return result.welfareBudget;
+  }
+
+  async updateWelfareExpense(
+    year: string,
+    month: string,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    if (Number(month) > 7) {
+      const query = `(
+          SELECT COALESCE(SUM(welfare_month_expense), 0) 
+          FROM welfare_monthly_stats  
+          WHERE welfare_monthly_stats.user_idx = welfare_stats.user_idx 
+          AND welfare_monthly_stats.year = welfare_stats.year
+          AND welfare_monthly_stats.month IN ('7','8','9','10','11','12')
+        )`;
+
+      return await manager
+        .createQueryBuilder()
+        .update(WelfareStatsEntity)
+        .set({ welfareExpense: () => query })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .andWhere('halfYear = :halfYear', { halfYear: HalfYearEnum.H2 })
+        .execute();
+    } else {
+      const query = `(
+          SELECT COALESCE(SUM(welfare_month_expense), 0) 
+          FROM welfare_monthly_stats  
+          WHERE welfare_monthly_stats.user_idx = welfare_stats.user_idx 
+          AND welfare_monthly_stats.year = welfare_stats.year
+          AND welfare_monthly_stats.month IN ('1','2','3','4','5','6')
+        )`;
+
+      return await manager
+        .createQueryBuilder()
+        .update(WelfareStatsEntity)
+        .set({ welfareExpense: () => query })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .andWhere('halfYear = :halfYear', { halfYear: HalfYearEnum.H1 })
+        .execute();
+    }
   }
 }

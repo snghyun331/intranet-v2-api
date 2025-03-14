@@ -4,13 +4,21 @@ import { LeaveRepository } from './repository/leave.repository';
 import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum, UserGradeEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo, LeaveSummary } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
-import { addConfirmStatusField } from '../../../common/utils/utility';
+import { addConfirmStatusField, getOneYearAfterJoin, getYearsSinceJoin } from '../../../common/utils/utility';
+import {
+  ALTERNATIVE_LEAVE_LISTS,
+  HALF_ANNUAL_LEAVE_LISTS,
+  QUARTER_ANNUAL_LEAVE_LISTS,
+  SPECIAL_LEAVE_LISTS,
+  TRAINING_LEAVE_LISTS,
+} from '../../../common/constant/constant';
+import { UserPayload } from '../../../common/interface/payload.interface';
 
 @Injectable()
 export class LeaveService {
@@ -22,22 +30,58 @@ export class LeaveService {
 
   async createLeave(
     dto: LeaveRequestDto,
-    userIdx: number,
+    user: UserPayload,
     manager: EntityManager,
     leaveImage?: Express.Multer.File,
   ): Promise<void> {
-    console.log(dto);
+    const userIdx: number = user.userIdx;
     const { leaveInfo, approverIdxs, note } = dto;
     const nowYear: number = moment().utcOffset(9).year();
     const nowMonth: number = moment().utcOffset(9).month() + 1;
-    // 보건 휴가 월 사용 개수 조회
-    const { healthMonthlyUsage } = await this.leaveRepository.getHealthMonthlyUsage(
-      userIdx,
-      nowYear.toString(),
-      nowMonth.toString(),
-    );
-    // 연차 잔여 개수 조회
-    const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(userIdx, nowYear.toString());
+
+    // CEO이면, 아무 조건 없이 휴가 등록 및 자동승인
+    if (user.gradeName === UserGradeEnum.CEO) {
+      await Promise.all(
+        leaveInfo.map(async (leave) => {
+          const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
+          if (!dateStringFormat.test(leave.commuteDate)) {
+            throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
+          }
+          if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leave.leaveTypeIdx)) {
+            throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
+          }
+
+          // 휴가등록
+          const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
+          if (leaveImage) {
+            const env: string = this.configService.get<string>('NODE_ENV');
+            const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
+            // 1. S3에 저장
+            const { buffer, mimetype } = leaveImage;
+            const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+            const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
+            const uploadS3FilePath: string = `${rootDir}/LEAVE/${commuteIdx}/${fileName}`;
+            const imageUrl: string = await this.awsService.uploadImageToS3(
+              bucketName,
+              uploadS3FilePath,
+              buffer,
+              mimetype,
+            );
+            const imageInfo: LeaveImageInfo = {
+              imageName: fileName,
+              imageSize: leaveImage.size,
+              imageUrl,
+            };
+            // 2. DB에 저장
+            await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
+          }
+          // 자동승인
+          await this.leaveRepository.autoApprove(commuteIdx, userIdx, manager);
+        }),
+      );
+
+      return;
+    }
 
     await Promise.all(
       leaveInfo.map(async (leave) => {
@@ -50,16 +94,57 @@ export class LeaveService {
         }
 
         // 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가
-        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE && healthMonthlyUsage !== 0) {
-          throw new BadRequestException(
-            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
+          // 보건 휴가 월 사용 개수 조회
+          const { healthMonthlyUseCount } = await this.leaveRepository.getHealthMonthlyUseCount(
+            userIdx,
+            nowYear.toString(),
+            nowMonth.toString(),
           );
+          if (healthMonthlyUseCount !== 0) {
+            throw new BadRequestException(
+              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+            );
+          }
         }
-        // 잔여 연차가 0개이면 연차 사용 불가
-        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE && totalAnnualLeaveBalance === 0) {
-          throw new BadRequestException(
-            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-          );
+
+        // 연차 잔여 개수 조회
+        const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(
+          userIdx,
+          nowYear.toString(),
+        );
+
+        // 잔여 연차가 1미만이면 연차 사용 불가
+        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE) {
+          if (totalAnnualLeaveBalance < 1) {
+            throw new BadRequestException(
+              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+            );
+          }
+        }
+
+        // 잔여 연차가 0.5미만이면 반차 사용 불가
+        if (
+          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_HALF ||
+          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF
+        ) {
+          if (totalAnnualLeaveBalance < 0.5) {
+            throw new BadRequestException(
+              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+            );
+          }
+        }
+
+        // 잔여 연차가 0.25미만이면 반반차 사용 불가
+        if (
+          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_QUARTER ||
+          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER
+        ) {
+          if (totalAnnualLeaveBalance < 0.25) {
+            throw new BadRequestException(
+              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+            );
+          }
         }
 
         const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
@@ -131,42 +216,109 @@ export class LeaveService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    /* 사용자 휴가 요약정보와 휴가 종류별 사용현황 조회 */
-    const {
-      userName,
-      joinDate,
-      hqName,
-      teamName,
-      gradeName,
-      totalReceivedAnnualLeave,
-      totalAnnualLeaveUsage,
-      totalAnnualLeaveBalance,
-      midJoinReceivedAnnualLeave,
-      yearsSinceJoin,
-      oneYearAfterJoin,
-      proRatedAnnualLeave,
-      ...leaveUsageStats
-    } = await this.leaveRepository.getUserLeaveStats(year, userIdx);
-
-    const leaveSummary: LeaveSummary = {
-      userIdx,
-      userName,
-      year,
-      joinDate,
-      hqName,
-      teamName,
-      gradeName,
-      totalReceivedAnnualLeave,
-      totalAnnualLeaveUsage,
-      totalAnnualLeaveBalance,
-      yearsSinceJoin,
-      oneYearAfterJoin,
-      proRatedAnnualLeave,
-    };
-    // 근속년수가 3년 미만인 경우 중도입사 연차 개수를 추가
-    if (yearsSinceJoin < 3) {
-      leaveSummary.midJoinReceivedAnnualLeave = midJoinReceivedAnnualLeave;
+    // 사용자 휴가 요약정보 조회
+    const leaveStats = await this.leaveRepository.getUserLeaveStats(year, userIdx);
+    if (!leaveStats) {
+      throw new BadRequestException('사용자의 연차정보가 존재하지 않습니다. P&C팀에게 문의해주세요');
     }
+    const leaveSummary: LeaveSummary = {
+      ...leaveStats,
+      yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
+      oneYearAfterJoin: getOneYearAfterJoin(leaveStats.joinDate), // 만 1년 날짜
+      totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
+    };
+
+    // 근속년수가 3년 미만인 경우 중도입사 연차 개수를 추가
+    if (leaveSummary.yearsSinceJoin < 3) {
+      leaveSummary.midJoinReceivedAnnualLeave = leaveSummary.midJoinReceivedAnnualLeave;
+    }
+
+    // 휴가 종류별 사용현황 조회
+    const leaveUsageInfo = await this.leaveRepository.getUserLeaveUsageInfo(year, userIdx);
+
+    const leaveUsageStats = {
+      fullLeaveUsage: 0,
+      halfLeaveUsage: 0,
+      quarterLeaveUsage: 0,
+      specialLeaveUsage: 0,
+      alternativeLeaveUsage: 0,
+      sickLeaveUsage: 0,
+      trainingLeaveUsage: 0,
+      familyEventLeaveUsage: 0,
+      healthLeaveUsage: 0,
+    };
+
+    leaveUsageInfo.forEach((row) => {
+      if (HALF_ANNUAL_LEAVE_LISTS.has(row.leaveTypeIdx)) {
+        leaveUsageStats.halfLeaveUsage += row.annualUseCount;
+      } else if (QUARTER_ANNUAL_LEAVE_LISTS.has(row.leaveTypeIdx)) {
+        leaveUsageStats.quarterLeaveUsage += row.annualUseCount;
+      } else if (SPECIAL_LEAVE_LISTS.has(row.leaveTypeIdx)) {
+        switch (row.leaveTypeIdx) {
+          case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
+            leaveUsageStats.specialLeaveUsage += row.annualUseCount;
+            break;
+          case IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE:
+            leaveUsageStats.specialLeaveUsage += row.annualUseCount * 0.5;
+            break;
+          case IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE:
+            leaveUsageStats.specialLeaveUsage += row.annualUseCount * 0.5;
+            break;
+          case IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE:
+            leaveUsageStats.specialLeaveUsage += row.annualUseCount * 0.25;
+            break;
+          case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
+            leaveUsageStats.specialLeaveUsage += row.annualUseCount * 0.25;
+            break;
+          default:
+            break;
+        }
+      } else if (ALTERNATIVE_LEAVE_LISTS.has(row.leaveTypeIdx)) {
+        switch (row.leaveTypeIdx) {
+          case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
+            leaveUsageStats.alternativeLeaveUsage += row.annualUseCount;
+            break;
+          case IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE:
+            leaveUsageStats.alternativeLeaveUsage += row.annualUseCount * 0.5;
+            break;
+          case IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE:
+            leaveUsageStats.alternativeLeaveUsage += row.annualUseCount * 0.5;
+            break;
+          default:
+            break;
+        }
+      } else if (TRAINING_LEAVE_LISTS.has(row.leaveTypeIdx)) {
+        switch (row.leaveTypeIdx) {
+          case IntranetLeaveTypeIdxEnum.TRAINING:
+            leaveUsageStats.trainingLeaveUsage += row.annualUseCount;
+            break;
+          case IntranetLeaveTypeIdxEnum.AM_TRAINING:
+            leaveUsageStats.trainingLeaveUsage += row.annualUseCount * 0.5;
+            break;
+          case IntranetLeaveTypeIdxEnum.PM_TRAINING:
+            leaveUsageStats.trainingLeaveUsage += row.annualUseCount * 0.5;
+            break;
+          default:
+            break;
+        }
+      } else {
+        // 기타 휴무 유형 처리
+        switch (row.leaveTypeIdx) {
+          case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
+            leaveUsageStats.fullLeaveUsage += row.annualUseCount;
+            break;
+          case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
+            leaveUsageStats.familyEventLeaveUsage += row.annualUseCount;
+            break;
+          case IntranetLeaveTypeIdxEnum.HEALTH_LEAVE:
+            leaveUsageStats.healthLeaveUsage += row.annualUseCount;
+            break;
+          case IntranetLeaveTypeIdxEnum.SICK_LEAVE:
+            leaveUsageStats.sickLeaveUsage += row.annualUseCount;
+            break;
+        }
+      }
+    });
 
     const result = {
       leaveSummary,

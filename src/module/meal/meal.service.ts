@@ -267,6 +267,9 @@ export class MealService {
     const dinnerOverpay: number = totalD - cntD * DEFAULT_DINNER_RATE;
     await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx, manager);
 
+    // 마지막: 각종 업데이트에 따른 사용가능금액 업데이트
+    await this.mealRepository.updateMealBudget(year.toString(), month.toString(), manager);
+
     return newMealInfo.targetDay;
   }
 
@@ -321,6 +324,9 @@ export class MealService {
     );
     const dinnerOverpay: number = totalD - cntD * DEFAULT_DINNER_RATE;
     await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx, manager);
+
+    // 마지막: 각종 업데이트에 따른 사용가능금액 업데이트
+    await this.mealRepository.updateMealBudget(year.toString(), month.toString(), manager);
   }
 
   /* 필드 중 하나라도 값이 있으면 true 반환 */
@@ -382,6 +388,9 @@ export class MealService {
         }),
       );
     }
+
+    // 마지막: 각종 업데이트에 따른 사용가능금액 업데이트
+    await this.mealRepository.updateMealBudget(mealBudgetInfo.year, mealBudgetInfo.month, manager);
   }
 
   async getMealBudget(pageNoInfo: PageNoDto, filterInfo: AdminMealBudgetFilterDto): Promise<MealBudgetAdminResult> {

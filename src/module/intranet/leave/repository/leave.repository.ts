@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
@@ -12,32 +12,30 @@ import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
-import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
-import {
-  getOneYearAfterJoin,
-  getStartAndEndDateByMonth,
-  getYearsSinceJoin,
-  removeAllWhiteSpace,
-} from '../../../../common/utils/utility';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
+import { getStartAndEndDateByMonth, removeAllWhiteSpace } from '../../../../common/utils/utility';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
-import { LeaveMontlyStatsEntity } from '../../../../entity/intranet/leave/leaveMonthlyStats.entity';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
+import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
+import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
+import * as moment from 'moment';
 
 @Injectable()
 export class LeaveRepository {
   constructor(
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
-    @InjectRepository(LeaveMontlyStatsEntity)
-    private readonly leaveMonthlyStatsModel: Repository<LeaveMontlyStatsEntity>,
+    @InjectRepository(LeaveMonthlyUsageEntity)
+    private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
+    @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
   ) {}
 
   async getCommuteCountByIdx(commuteIdx: number): Promise<number> {
     const result: number = await this.commuteModel
       .createQueryBuilder('commuteEntity')
-      .where('commuteEntity.commuteIdx', { commuteIdx })
+      .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
       .getCount();
 
     return result;
@@ -68,6 +66,22 @@ export class LeaveRepository {
     const commuteIdx: number = result.identifiers[0].commuteIdx;
 
     return commuteIdx;
+  }
+
+  async autoApprove(commuteIdx: number, userIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    const updateInfo = {
+      confirmYN: ConfirmEnum.YES,
+      confirmDate: moment().utcOffset(9).format('YYYY-MM-DD'),
+      confirmPersonIdx: userIdx,
+    };
+
+    return await manager
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(updateInfo)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .andWhere('userIdx = :userIdx', { userIdx })
+      .execute();
   }
 
   async createLeaveImage(commuteIdx: number, imageInfo: LeaveImageInfo, manager: EntityManager): Promise<void> {
@@ -213,14 +227,6 @@ export class LeaveRepository {
         'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage', // 사용 연차 개수
         '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance', // 잔여 연차 개수
         'leaveStatsEntity.midJoinReceivedAnnualLeave AS midJoinReceivedAnnualLeave', // 중도입사 연차 부여개수
-        'leaveStatsEntity.fullLeaveUsage AS fullLeaveUsage',
-        'leaveStatsEntity.halfLeaveUsage AS halfLeaveUsage',
-        'leaveStatsEntity.quarterLeaveUsage AS quarterLeaveUsage',
-        'leaveStatsEntity.specialLeaveUsage AS specialLeaveUsage',
-        'leaveStatsEntity.alternativeLeaveUsage AS alternativeLeaveUsage',
-        'leaveStatsEntity.sickLeaveUsage AS sickLeaveUsage',
-        'leaveStatsEntity.trainingLeaveUsage AS trainingLeaveUsage',
-        'leaveStatsEntity.familyEventLeaveUsage AS familyEventLeaveUsage',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
@@ -230,12 +236,16 @@ export class LeaveRepository {
       .andWhere('leaveStatsEntity.year = :year', { year })
       .getRawOne();
 
-    const result = {
-      ...leaveStats,
-      yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
-      oneYearAfterJoin: getOneYearAfterJoin(leaveStats.joinDate), // 만 1년 날짜
-      totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
-    };
+    return leaveStats;
+  }
+
+  async getUserLeaveUsageInfo(year: string, userIdx: number) {
+    const result = await this.leaveUsageModel
+      .createQueryBuilder('leaveUsageEntity')
+      .select(['leaveUsageEntity.leaveTypeIdx AS leaveTypeIdx', 'leaveUsageEntity.annualUseCount AS annualUseCount'])
+      .where('leaveUsageEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveUsageEntity.year = :year', { year })
+      .getRawMany();
 
     return result;
   }
@@ -309,15 +319,21 @@ export class LeaveRepository {
     return result;
   }
 
-  async getHealthMonthlyUsage(userIdx: number, year: string, month: string) {
-    const result = await this.leaveMonthlyStatsModel
-      .createQueryBuilder('leaveMonthlyStatsEntity')
-      .select(['leaveMonthlyStatsEntity.healthMonthlyUsage AS healthMonthlyUsage'])
-      .where('leaveMonthlyStatsEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('leaveMonthlyStatsEntity.year = :year', { year })
-      .andWhere('leaveMonthlyStatsEntity.month = :month', { month })
+  async getHealthMonthlyUseCount(userIdx: number, year: string, month: string) {
+    const result = await this.leaveMonthlyUsageModel
+      .createQueryBuilder('leaveMonthlyUsageEntity')
+      .select(['leaveMonthlyUsageEntity.monthlyUseCount AS healthMonthlyUseCount'])
+      .where('leaveMonthlyUsageEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveMonthlyUsageEntity.year = :year', { year })
+      .andWhere('leaveMonthlyUsageEntity.month = :month', { month })
+      .andWhere('leaveMonthlyUsageEntity.leaveTypeIdx = :leaveTypeIdx', {
+        leaveTypeIdx: IntranetLeaveTypeIdxEnum.HEALTH_LEAVE,
+      })
       .getRawOne();
-    console.log(result);
+
+    if (!result) {
+      throw new BadRequestException('해당 사용자의 월별 보건휴가 사용량이 설정되어 있지 않습니다.');
+    }
     return result;
   }
 

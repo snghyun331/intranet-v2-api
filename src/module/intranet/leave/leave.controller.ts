@@ -46,12 +46,13 @@ import { EntityManager } from 'typeorm';
 import { CreateLeaveDto, LeaveRequestDto } from './dto/createLeave.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { leaveImageOptions } from '../../file/uploadMulter.options';
-import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
+import { CurrentUser, CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
 import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { UserPayload } from '../../../common/interface/payload.interface';
 
 @ApiTags('사용자')
 @Controller('users/intranet/leave')
@@ -69,12 +70,12 @@ export class UserLeaveController {
   @Post()
   async createLeave(
     @Body() { dto }: CreateLeaveDto,
-    @CurrentUserIdx() userIdx: number,
+    @CurrentUser() user: UserPayload,
     @TransactionManager() manager: EntityManager,
     @UploadedFile() leaveImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
     const parsedDto: LeaveRequestDto = dto as LeaveRequestDto;
-    await this.leaveService.createLeave(parsedDto, userIdx, manager, leaveImage);
+    await this.leaveService.createLeave(parsedDto, user, manager, leaveImage);
 
     const response: ResponseInterface = { message: 'success' };
 
