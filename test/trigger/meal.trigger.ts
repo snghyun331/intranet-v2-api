@@ -1,6 +1,8 @@
 import { DataSource } from 'typeorm';
 
 export const setupMealTriggers = async (dataSource: DataSource): Promise<void> => {
+  await dataSource.query(`DROP TRIGGER IF EXISTS meal_totaloverpay_before_update`);
+
   await dataSource.query(`CREATE TRIGGER meal_totaloverpay_before_update
     BEFORE UPDATE ON meal_stats
     FOR EACH ROW

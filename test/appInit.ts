@@ -8,6 +8,7 @@ import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AdminGradeEnum, GenderEnum, UserGradeEnum, YNEnum } from '../src/common/constant/enum';
 import { MealModule } from '../src/module/meal/meal.module';
+import { CommuteModule } from '../src/module/intranet/commute/commute.module';
 
 const createTestApp = async (modules: any[]) => {
   const module: TestingModule = await Test.createTestingModule({
@@ -54,5 +55,6 @@ const createTestApp = async (modules: any[]) => {
 };
 
 export const createTestAppWithMeal = async () => createTestApp([MealModule]);
+export const createTestAppWithCommute = async () => createTestApp([CommuteModule]);
 
 export const closeTestApp = async (app: INestApplication): Promise<void> => await app.close();
