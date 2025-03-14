@@ -23,7 +23,7 @@ services:
       - './.env'
     environment:
       - TZ=Asia/Seoul
-      - DB_HOST=host.docker.internal
+      # - DB_HOST=host.docker.internal
     depends_on:
       - mongo-benefit
 

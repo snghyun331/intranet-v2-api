@@ -9,7 +9,7 @@ export class ApprovalService {
 
   async confirmLeave(
     commuteIdx: number,
-    userIdx: number,
+    confirmPersonIdx: number,
     confirmYN: ConfirmEnum,
     manager: EntityManager,
   ): Promise<void> {
@@ -20,7 +20,7 @@ export class ApprovalService {
     if (!commuteInfoWithApprover) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
-    const existing = commuteInfoWithApprover.find((info: any) => info.approverIdx === userIdx);
+    const existing = commuteInfoWithApprover.find((info: any) => info.approverIdx === confirmPersonIdx);
     if (!existing) {
       throw new BadRequestException('승인 가능한 대상자로 등록되지 않았습니다.');
     }
@@ -32,8 +32,10 @@ export class ApprovalService {
     }
 
     /* 승인여부 업데이트 */
-    await this.approvalRepository.updateConfirm(commuteIdx, userIdx, confirmYN, manager);
+    await this.approvalRepository.updateConfirm(commuteIdx, confirmPersonIdx, confirmYN, manager);
+
     /* 승인여부 업데이트에 따른 휴가 산정 변경 */
+    const userIdx: number = existing.userIdx; // 휴가를 올린 사용자 IDX
 
     if (confirmYN === ConfirmEnum.YES) {
       const year: number = Number(existing.commuteDate.substring(0, 4));
