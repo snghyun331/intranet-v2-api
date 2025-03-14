@@ -35,7 +35,7 @@ export class LeaveRepository {
   async getCommuteCountByIdx(commuteIdx: number): Promise<number> {
     const result: number = await this.commuteModel
       .createQueryBuilder('commuteEntity')
-      .where('commuteEntity.commuteIdx', { commuteIdx })
+      .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
       .getCount();
 
     return result;
