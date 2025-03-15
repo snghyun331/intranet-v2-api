@@ -361,4 +361,17 @@ export class LeaveRepository {
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
+
+  async createLeaveForE2ETest(leaveInfo: LeaveDetailDto, userIdx: number, note: string | null): Promise<number> {
+    const result: InsertResult = await this.commuteModel
+      .createQueryBuilder()
+      .insert()
+      .into(CommuteEntity)
+      .values({ ...leaveInfo, note, userIdx })
+      .execute();
+
+    const commuteIdx: number = result.identifiers[0].commuteIdx;
+
+    return commuteIdx;
+  }
 }
