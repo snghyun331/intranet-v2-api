@@ -16,7 +16,7 @@ import {
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField } from '../../../../common/utils/utility';
-import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
+import { FULL_DAY_REST_LISTS } from '../../../../common/constant/constant';
 
 @Injectable()
 export class CommuteRepository {
@@ -241,7 +241,10 @@ export class CommuteRepository {
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .andWhere('commuteEntity.leaveTypeIdx NOT IN (:...leaveTypeIdx)', {
+        leaveTypeIdx: [...FULL_DAY_REST_LISTS],
+      })
+
       .andWhere('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,

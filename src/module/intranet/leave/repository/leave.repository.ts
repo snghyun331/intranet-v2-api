@@ -313,6 +313,7 @@ export class LeaveRepository {
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .where('commuteEntity.commuteDate = :date', { date })
+      .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.YES })
       .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
       .getRawMany();
 
@@ -359,5 +360,18 @@ export class LeaveRepository {
       .from(CommuteEntity)
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
+  }
+
+  async createLeaveForE2ETest(leaveInfo: LeaveDetailDto, userIdx: number, note: string | null): Promise<number> {
+    const result: InsertResult = await this.commuteModel
+      .createQueryBuilder()
+      .insert()
+      .into(CommuteEntity)
+      .values({ ...leaveInfo, note, userIdx })
+      .execute();
+
+    const commuteIdx: number = result.identifiers[0].commuteIdx;
+
+    return commuteIdx;
   }
 }

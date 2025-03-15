@@ -1,6 +1,8 @@
 import { DataSource } from 'typeorm';
 
 export const setupWelfareTriggers = async (dataSource: DataSource): Promise<void> => {
+  await dataSource.query(`DROP TRIGGER IF EXISTS welfare_totaloverpay_before_update`);
+
   await dataSource.query(`CREATE TRIGGER welfare_totaloverpay_before_update
     BEFORE UPDATE ON welfare_stats 
     FOR EACH ROW 
