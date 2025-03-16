@@ -100,6 +100,8 @@ export class LeaveRepository {
   }
 
   async getAnnualLeaveSummary(userIdx: number, year: string) {
+    const defaultResult = {};
+
     const result = await this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')
       .select([
@@ -112,6 +114,10 @@ export class LeaveRepository {
       .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
       .andWhere('leaveStatsEntity.year = :year', { year })
       .getRawOne();
+
+    if (!result) {
+      return defaultResult;
+    }
 
     result.totalAnnualLeaveBalance = Number(result.totalAnnualLeaveBalance);
 
@@ -215,7 +221,7 @@ export class LeaveRepository {
   }
 
   async getUserLeaveStats(year: string, userIdx: number) {
-    const leaveStats = await this.leaveStatsModel
+    const result = await this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')
       .select([
         'userEntity.userName AS userName',
@@ -236,7 +242,7 @@ export class LeaveRepository {
       .andWhere('leaveStatsEntity.year = :year', { year })
       .getRawOne();
 
-    return leaveStats;
+    return result;
   }
 
   async getUserLeaveUsageInfo(year: string, userIdx: number) {
