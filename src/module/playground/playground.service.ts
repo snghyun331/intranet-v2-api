@@ -1,60 +1,68 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Redis } from 'ioredis';
+import { BadRequestException, Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { CreateLunchGroupDto } from './dto/createLunchGroup.dto';
 import { PlayGroundModel } from './model/playground.model';
 import { SetLunchGroup } from './interface/lunchGroup.interface';
 import * as moment from 'moment';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class PlaygroundService {
   constructor(
     private readonly playgroupundModel: PlayGroundModel,
-    @InjectRedis() private redis: Redis,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async pickLunchGroup(userName: string): Promise<number> {
-    const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
-    const lunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
-    if (!lunchGroupConfig) {
-      throw new BadRequestException('지금은 뽑기 가능 시간이 아닙니다.');
-    }
-    const { _id: configId, maxGroup, perGroup, extraGroupCount } = lunchGroupConfig;
-    // 이미 배정되었는지 확인
-    const isExistingAssignment = await this.playgroupundModel.checkUserAssignedToLunchGroup(configId, userName);
-    if (isExistingAssignment) {
-      throw new BadRequestException('이미 조에 배정되었습니다.');
-    }
-    // 모든 그룹의 현재 멤버 수 조회
-    const groupCounts = await this.playgroupundModel.getUserCountByLunchGroup(configId);
-
-    // 그룹별 멤버 수를 객체로 변환
-    const groupSizeMap = new Map<number, number>();
-    groupCounts.forEach((group) => groupSizeMap.set(group._id, group.count));
-
-    // 랜덤 그룹 배정 시작
-    let groupToAssign: number | null = null;
-    while (true) {
-      const groupNo: number = Math.floor(Math.random() * maxGroup) + 1;
-      const currentSize = groupSizeMap.get(groupNo) || 0;
-
-      // 기본 그룹 배정
-      if (currentSize < perGroup && groupToAssign === null) {
-        groupToAssign = groupNo;
-        break;
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
+      // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
+      const lunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
+      if (!lunchGroupConfig) {
+        throw new BadRequestException('지금은 뽑기 가능 시간이 아닙니다.');
       }
-      // 초과 인원 그룹 배정 (여유가 있을 경우)
-      if (currentSize < perGroup + 1 && extraGroupCount > 0) {
-        groupToAssign = groupNo;
-        break;
+      const { _id: configId, maxGroup, perGroup, extraGroupCount } = lunchGroupConfig;
+      // 이미 배정되었는지 확인
+      const isExistingAssignment = await this.playgroupundModel.checkUserAssignedToLunchGroup(configId, userName);
+      if (isExistingAssignment) {
+        throw new BadRequestException('이미 조에 배정되었습니다.');
       }
+      // 모든 그룹의 현재 멤버 수 조회
+      const groupCounts = await this.playgroupundModel.getUserCountByLunchGroup(configId);
+
+      // 그룹별 멤버 수를 객체로 변환
+      const groupSizeMap = new Map<number, number>();
+      groupCounts.forEach((group) => groupSizeMap.set(group._id, group.count));
+
+      // 랜덤 그룹 배정 시작
+      let groupToAssign: number | null = null;
+      while (true) {
+        const groupNo: number = Math.floor(Math.random() * maxGroup) + 1;
+        const currentSize = groupSizeMap.get(groupNo) || 0;
+
+        // 기본 그룹 배정
+        if (currentSize < perGroup && groupToAssign === null) {
+          groupToAssign = groupNo;
+          break;
+        }
+        // 초과 인원 그룹 배정 (여유가 있을 경우)
+        if (currentSize < perGroup + 1 && extraGroupCount > 0) {
+          groupToAssign = groupNo;
+          break;
+        }
+      }
+
+      // 배정된 그룹에 멤버 추가
+      await this.playgroupundModel.addUserInLunchGroup(configId, groupToAssign, userName, session);
+
+      return groupToAssign;
+    } catch (err) {
+      await session.abortTransaction();
+      this.logger.error(err);
+    } finally {
+      session.endSession();
     }
-
-    // 배정된 그룹에 멤버 추가
-    await this.playgroupundModel.addUserInLunchGroup(configId, groupToAssign, userName);
-
-    return groupToAssign;
   }
 
   async setLunchGroup({ total, perGroup, sDate, eDate, notice }: CreateLunchGroupDto): Promise<void> {

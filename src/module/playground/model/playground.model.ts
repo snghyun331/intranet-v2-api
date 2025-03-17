@@ -41,8 +41,8 @@ export class PlayGroundModel {
     return result;
   }
 
-  async addUserInLunchGroup(configId: object, groupToAssign: number, userName: string) {
-    await this.lunchGroupMemberModel.create({ configId, groupNo: groupToAssign, userName });
+  async addUserInLunchGroup(configId: object, groupToAssign: number, userName: string, session: any) {
+    await this.lunchGroupMemberModel.create({ configId, groupNo: groupToAssign, userName }, { session });
 
     return;
   }
