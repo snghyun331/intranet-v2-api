@@ -81,10 +81,6 @@ export class ApprovalRepository {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    console.log(startDate);
-    console.log(endDate);
-    console.log(userIdx);
-    console.log(leaveTypeIdx);
     const result: number = await manager
       .createQueryBuilder(CommuteEntity, 'commuteEntity')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
@@ -92,8 +88,6 @@ export class ApprovalRepository {
       .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate })
       .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.YES })
       .getCount();
-
-    console.log(result);
 
     return result;
   }

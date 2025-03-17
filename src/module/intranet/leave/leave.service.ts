@@ -218,9 +218,11 @@ export class LeaveService {
 
     // 사용자 휴가 요약정보 조회
     const leaveStats = await this.leaveRepository.getUserLeaveStats(year, userIdx);
+
     if (!leaveStats) {
-      throw new BadRequestException('사용자의 연차정보가 존재하지 않습니다. P&C팀에게 문의해주세요');
+      return { leaveSummary: {}, leaveUsageStats: {} };
     }
+
     const leaveSummary: LeaveSummary = {
       ...leaveStats,
       yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
