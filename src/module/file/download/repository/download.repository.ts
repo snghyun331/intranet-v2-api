@@ -29,7 +29,7 @@ export class DownloadRepository {
     return result;
   }
 
-  async getMealList(year: number, month: number, userIdx: number) {
+  async getMealList(year: string, month: string, userIdx: number) {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');

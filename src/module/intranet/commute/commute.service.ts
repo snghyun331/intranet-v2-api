@@ -219,7 +219,7 @@ export class CommuteService {
     if (!filterInfo.sDate || !filterInfo.eDate) {
       const nowYear: number = moment().utcOffset(9).year();
       const nowMonth: number = moment().utcOffset(9).month() + 1;
-      const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(nowYear, nowMonth);
+      const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(nowYear.toString(), nowMonth.toString());
       filterInfo.sDate = firstDayOfMonth.format('YYYY-MM-DD');
       filterInfo.eDate = lastDayOfMonth.format('YYYY-MM-DD');
     }

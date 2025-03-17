@@ -258,7 +258,7 @@ export class LeaveRepository {
 
   async getUserLeaveDetail({ year, month, ...filter }: AdminLeaveDetailFilterDto, userIdx: number) {
     // 해당 월의 첫 번째 날과 마지막 날을 구함
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(Number(year), Number(month));
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
     const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
 

@@ -72,8 +72,8 @@ export class ApprovalRepository {
   }
 
   async getTotalLeaveCountForMonth(
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     leaveTypeIdx: number,
     manager: EntityManager,

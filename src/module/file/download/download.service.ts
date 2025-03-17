@@ -40,9 +40,7 @@ export class DownloadService {
         }
 
         /* 식대 내역 시트 */
-        const yearToNum: number = Number(year);
-        const monthToNum: number = Number(month);
-        const mealList = await this.downloadRepository.getMealList(yearToNum, monthToNum, userIdx);
+        const mealList = await this.downloadRepository.getMealList(year, parseInt(month, 10).toString(), userIdx);
         const xlsxData = mealExcelAdminTemplate(mealList);
         const workbook = XLSX.utils.book_new();
         const worksheet = XLSX.utils.aoa_to_sheet(xlsxData);
