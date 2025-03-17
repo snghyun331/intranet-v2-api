@@ -11,8 +11,9 @@ import { seedAdminGrade } from './seed/admin/adminGrade.seeder';
 import { seedTeam } from './seed/user/team.seeder';
 import { seedHeadquarter } from './seed/user/headquarter.seeder';
 import { setupMealTriggers } from './trigger/meal.trigger';
-import { setupWelfareTriggers } from './trigger/werlfare.trigger';
+import { setupWelfareTriggers } from './trigger/welfare.trigger';
 import { setupActivityTriggers } from './trigger/activity.trigger';
+import { seedLeaveType } from './seed/leave/leaveType.seeder';
 
 let dataSource: DataSource;
 
@@ -34,6 +35,7 @@ beforeAll(async () => {
   await seedUser(dataSource);
   await seedAdminGrade(dataSource);
   await seedAdmin(dataSource);
+  await seedLeaveType(dataSource);
 
   // 트리거 설정
   await setupMealTriggers(dataSource);

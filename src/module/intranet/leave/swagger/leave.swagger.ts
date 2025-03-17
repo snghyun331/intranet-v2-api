@@ -140,34 +140,50 @@ export const USERS_INTRANET_LEAVE_STATS: SwaggerMethod = {
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          example: {
-            statusCode: 200,
-            message: 'success',
-            data: {
-              leaveSummary: {
-                userIdx: 1,
-                userName: '김현민',
-                year: '2025',
-                joinDate: '2023-03-04',
-                hqName: 'HR솔루션본부',
-                teamName: 'HR Tech',
-                gradeName: '선임',
-                totalReceivedAnnualLeave: 15,
-                totalAnnualLeaveUsage: 1,
-                totalAnnualLeaveBalance: 14,
-                yearsSinceJoin: 1,
-                oneYearAfterJoin: '2024-03-03',
-                midJoinReceivedAnnualLeave: 0,
+          examples: {
+            a: {
+              summary: '정상',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  leaveSummary: {
+                    userIdx: 1,
+                    userName: '김현민',
+                    year: '2025',
+                    joinDate: '2023-03-04',
+                    hqName: 'HR솔루션본부',
+                    teamName: 'HR Tech',
+                    gradeName: '선임',
+                    totalReceivedAnnualLeave: 15,
+                    totalAnnualLeaveUsage: 1,
+                    totalAnnualLeaveBalance: 14,
+                    yearsSinceJoin: 1,
+                    oneYearAfterJoin: '2024-03-03',
+                    midJoinReceivedAnnualLeave: 0,
+                  },
+                  leaveUsageStats: {
+                    fullLeaveUsage: 0,
+                    halfLeaveUsage: 0,
+                    quarterLeaveUsage: 0,
+                    specialLeaveUsage: 0,
+                    alternativeLeaveUsage: 0,
+                    sickLeaveUsage: 0,
+                    trainingLeaveUsage: 0,
+                    familyEventLeaveUsage: 0,
+                  },
+                },
               },
-              leaveUsageStats: {
-                fullLeaveUsage: 0,
-                halfLeaveUsage: 0,
-                quarterLeaveUsage: 0,
-                specialLeaveUsage: 0,
-                alternativeLeaveUsage: 0,
-                sickLeaveUsage: 0,
-                trainingLeaveUsage: 0,
-                familyEventLeaveUsage: 0,
+            },
+            b: {
+              summary: '정보가 없을 떄',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  leaveSummary: {},
+                  leaveUsageStats: {},
+                },
               },
             },
           },

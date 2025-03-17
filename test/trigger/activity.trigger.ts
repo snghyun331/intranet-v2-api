@@ -1,6 +1,8 @@
 import { DataSource } from 'typeorm';
 
 export const setupActivityTriggers = async (dataSource: DataSource): Promise<void> => {
+  await dataSource.query(`DROP TRIGGER IF EXISTS activity_totaloverpay_before_update`);
+
   await dataSource.query(`CREATE TRIGGER activity_totaloverpay_before_update
     BEFORE UPDATE ON activity_stats 
     FOR EACH ROW 
