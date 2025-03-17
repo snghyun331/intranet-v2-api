@@ -50,6 +50,7 @@ export class CommuteService {
     const commuteDate: string = moment(checkInDto.checkInTime).utcOffset(9).format('YYYY-MM-DD');
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
+    // commuteInfo가 존재하면, 이전에 등록된 휴가정보가 있음
     if (commuteInfo) {
       if (commuteInfo.checkInTime) {
         throw new BadRequestException('이미 출근이 등록되었습니다.');
@@ -93,6 +94,7 @@ export class CommuteService {
         await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo, manager);
       }
     } else {
+      // commuteInfo가 존재하지 않면, 일반 근무
       /* 지각 판별 */
       const isNormalLate: boolean =
         new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
@@ -157,15 +159,20 @@ export class CommuteService {
     ) {
       finalCheckInTime = getAmQuarterEarlyBoundary(new Date(checkInTime));
     } else if (
-      leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL &&
+      (leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL ||
+        leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF ||
+        leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER) &&
       checkInTime < getNormalEarlyBoundary(new Date(checkInTime))
     ) {
       finalCheckInTime = getNormalEarlyBoundary(new Date(checkInTime));
     } else {
       finalCheckInTime = new Date(checkInTime);
     }
+    console.log(checkInTime);
+    console.log(finalCheckInTime);
 
     const workingMinutes: number = (finalCheckOutTime.getTime() - finalCheckInTime.getTime()) / (1000 * 60);
+    console.log(workingMinutes);
     const overtimeWorkingMinutes: number =
       workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
 
