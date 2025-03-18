@@ -26,6 +26,7 @@ describe('MealController(e2e)', () => {
   });
 
   describe('[POST] /admin/meals/budget', () => {
+    console.log('@@@@@@@@@@@@@@@@@@@@@');
     const createMealBudgetDto: CreateMealBudgetDto = {
       baseAmount: 10000,
       mealBudget: 23000,
