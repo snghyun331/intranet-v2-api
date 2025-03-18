@@ -168,11 +168,8 @@ export class CommuteService {
     } else {
       finalCheckInTime = new Date(checkInTime);
     }
-    console.log(checkInTime);
-    console.log(finalCheckInTime);
 
     const workingMinutes: number = (finalCheckOutTime.getTime() - finalCheckInTime.getTime()) / (1000 * 60);
-    console.log(workingMinutes);
     const overtimeWorkingMinutes: number =
       workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
 
