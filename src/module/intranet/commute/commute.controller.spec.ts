@@ -50,7 +50,7 @@ describe('CommuteController(e2e)', () => {
   /**
    * ✅ 퇴근 요청 & 검증 함수
    */
-  async function checkOutAndVertify(
+  async function checkOutAndVerify(
     checkOutDto: CheckOutDto,
     expectedAttendance: IntranetAttendanceEnum,
     commuteDate: string,
@@ -97,12 +97,14 @@ describe('CommuteController(e2e)', () => {
       earlyLeaveReason: null,
     };
 
-    it("'정상 출근'으로 잘 표시되었는가?", async () => {
-      await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN, commuteDate);
-    });
+    beforeEach(async () => await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN, commuteDate));
+
+    // it("'정상 출근'으로 잘 표시되었는가?", async () => {
+    //   await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN, commuteDate);
+    // });
 
     it("'정상 퇴근'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVertify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT, commuteDate);
+      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT, commuteDate);
     });
   });
 
@@ -123,7 +125,7 @@ describe('CommuteController(e2e)', () => {
     });
 
     it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVertify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
+      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
     });
   });
 
@@ -148,7 +150,7 @@ describe('CommuteController(e2e)', () => {
     });
 
     it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVertify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
+      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
     });
   });
 
@@ -173,7 +175,7 @@ describe('CommuteController(e2e)', () => {
     });
 
     it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVertify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
+      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
     });
   });
 
@@ -197,7 +199,7 @@ describe('CommuteController(e2e)', () => {
     });
 
     it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVertify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
+      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
     });
   });
 
@@ -222,7 +224,7 @@ describe('CommuteController(e2e)', () => {
     });
 
     it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVertify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
+      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
     });
   });
 });
