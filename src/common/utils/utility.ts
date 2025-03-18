@@ -174,7 +174,7 @@ export const getOneYearAfterJoin = (joinDateString: string): string => {
 export const addConfirmStatusField = (confirmYN: ConfirmEnum, confirmDate: string, rejectDate: string): string => {
   switch (confirmYN) {
     case ConfirmEnum.NO:
-      return '미승인';
+      return '승인 대기';
     case ConfirmEnum.YES:
       return `${confirmDate}`;
     case ConfirmEnum.REJECT:

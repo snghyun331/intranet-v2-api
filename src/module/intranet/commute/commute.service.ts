@@ -214,11 +214,12 @@ export class CommuteService {
 
   async getUserCommuteRecords(userIdx: number, { pageNo, perPage }: PageNoDto, filterInfo: UserCommuteFilterDto) {
     if (!filterInfo.sDate || !filterInfo.eDate) {
-      const nowYear: number = moment().utcOffset(9).year();
-      const nowMonth: number = moment().utcOffset(9).month() + 1;
-      const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(nowYear.toString(), nowMonth.toString());
+      const nowDate = moment().utcOffset(9);
+      const nowYear: number = nowDate.year();
+      const nowMonth: number = nowDate.month() + 1;
+      const { firstDayOfMonth } = getStartAndEndDateByMonth(nowYear.toString(), nowMonth.toString());
       filterInfo.sDate = firstDayOfMonth.format('YYYY-MM-DD');
-      filterInfo.eDate = lastDayOfMonth.format('YYYY-MM-DD');
+      filterInfo.eDate = nowDate.format('YYYY-MM-DD');
     }
 
     const userCnt: number = await this.commuteRepository.getUserCountByIdx(userIdx);
