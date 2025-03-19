@@ -111,52 +111,81 @@ export const decryptPassword = (encryptedValue: string): string => {
   }
 };
 
-export const getNormalLateBoundary = (timestamp: Date): Date => {
-  // 정상, 오후 반반차
-  const boundary: Date = new Date(new Date(timestamp).setHours(10, 0, 0, 0));
+// export const getNormalLateBoundary = (timestamp: Date): Date => {
+//   // 정상, 오후 반반차
+//   const boundary: Date = new Date(new Date(timestamp).setHours(10, 0, 0, 0));
 
+//   return boundary;
+// };
+
+// export const getAmQuarterLateBoundary = (timestamp: Date): Date => {
+//   const boundary: Date = new Date(timestamp.setHours(11, 0, 0, 0));
+
+//   return boundary;
+// };
+
+// export const getAmHalfLateBoundary = (timestamp: Date): Date => {
+//   const boundary: Date = new Date(timestamp.setHours(14, 30, 0, 0));
+
+//   return boundary;
+// };
+
+// export const getPmHalfLateBoundary = (timestamp: Date): Date => {
+//   const boundary: Date = new Date(timestamp.setHours(9, 30, 0, 0));
+
+//   return boundary;
+// };
+
+// export const getAmHalfEarlyBoundary = (timestamp: Date): Date => {
+//   const boundary: Date = new Date(timestamp.setHours(13, 30, 0, 0));
+
+//   return boundary;
+// };
+
+// export const getAmQuarterEarlyBoundary = (timestamp: Date): Date => {
+//   const boundary: Date = new Date(timestamp.setHours(10, 0, 0, 0));
+
+//   return boundary;
+// };
+export const getNormalLateBoundary = (timestamp: Date): Date => {
+  const boundary: Date = new Date(timestamp);
+  boundary.setUTCHours(10 - 9, 0, 0, 0); // KST 10:00 → UTC 01:00
   return boundary;
 };
 
 export const getAmQuarterLateBoundary = (timestamp: Date): Date => {
-  const boundary: Date = new Date(timestamp.setHours(11, 0, 0, 0));
-
+  const boundary: Date = new Date(timestamp);
+  boundary.setUTCHours(11 - 9, 0, 0, 0); // KST 11:00 → UTC 02:00
   return boundary;
 };
 
 export const getAmHalfLateBoundary = (timestamp: Date): Date => {
-  const boundary: Date = new Date(timestamp.setHours(14, 30, 0, 0));
-
+  const boundary: Date = new Date(timestamp);
+  boundary.setUTCHours(14 - 9, 30, 0, 0); // KST 14:30 → UTC 05:30
   return boundary;
 };
 
 export const getPmHalfLateBoundary = (timestamp: Date): Date => {
-  const boundary: Date = new Date(timestamp.setHours(9, 30, 0, 0));
-
+  const boundary: Date = new Date(timestamp);
+  boundary.setUTCHours(9 - 9, 30, 0, 0); // KST 09:30 → UTC 00:30
   return boundary;
 };
 
 export const getAmHalfEarlyBoundary = (timestamp: Date): Date => {
-  const boundary: Date = new Date(timestamp.setHours(13, 30, 0, 0));
-
+  const boundary: Date = new Date(timestamp);
+  boundary.setUTCHours(13 - 9, 30, 0, 0); // KST 13:30 → UTC 04:30
   return boundary;
 };
 
 export const getAmQuarterEarlyBoundary = (timestamp: Date): Date => {
-  const boundary: Date = new Date(timestamp.setHours(10, 0, 0, 0));
-
+  const boundary: Date = new Date(timestamp);
+  boundary.setUTCHours(10 - 9, 0, 0, 0); // KST 10:00 → UTC 01:00
   return boundary;
 };
 
-// export const getNormalEarlyBoundary = (timestamp: Date): Date => {
-//   const boundary: Date = new Date(timestamp);
-//   boundary.setUTCHours(8, 0, 0, 0);
-
-//   return boundary;
-// };
 export const getNormalEarlyBoundary = (timestamp: Date): Date => {
   const boundary: Date = new Date(timestamp);
-  boundary.setUTCHours(8 - 9, 0, 0, 0); // UTC 기준으로 8 - 9 = 23시 설정
+  boundary.setUTCHours(8 - 9, 0, 0, 0); // KST 08:00 → UTC 23:00
 
   return boundary;
 };
