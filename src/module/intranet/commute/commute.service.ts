@@ -48,6 +48,11 @@ export class CommuteService {
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkInDto.checkInTime).utcOffset(9).format('YYYY-MM-DD');
+    console.log('출근!!!!!!!!!!!!');
+    console.log(checkInDto.checkInTime);
+    console.log(moment(checkInDto.checkInTime));
+    console.log(moment(checkInDto.checkInTime).utcOffset(9));
+    console.log(commuteDate);
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
     // commuteInfo가 존재하면, 이전에 등록된 휴가정보가 있음
@@ -109,10 +114,6 @@ export class CommuteService {
         checkInIpAddr,
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
       };
-      console.log('@@@@@@@@@@@@@@@@@');
-      console.log(userIdx);
-      console.log(insertCheckInInfo);
-      console.log('@@@@@@@@@@@@@@@@@');
 
       /* 근태 생성 */
       await this.commuteRepository.createCheckInWork(userIdx, insertCheckInInfo, manager);
@@ -128,14 +129,14 @@ export class CommuteService {
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkOutDto.checkOutTime).utcOffset(9).format('YYYY-MM-DD');
-    console.log('%%%%%%%%%%%%%%%%%%');
-    console.log('commuteDate', commuteDate);
-    console.log('userIdx', userIdx);
+    console.log('퇴근!!!!!!!!!!!!');
+    console.log(checkOutDto.checkOutTime);
+    console.log(moment(checkOutDto.checkOutTime));
+    console.log(moment(checkOutDto.checkOutTime).utcOffset(9));
+    console.log(commuteDate);
 
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
-    console.log(commuteInfo);
-    console.log('%%%%%%%%%%%%%%%%%%');
     if (!commuteInfo) {
       throw new BadRequestException('출근을 먼저 등록해주세요');
     }
@@ -174,21 +175,13 @@ export class CommuteService {
         leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER) &&
       checkInTime < getNormalEarlyBoundary(new Date(checkInTime))
     ) {
-      console.log('###');
       finalCheckInTime = getNormalEarlyBoundary(new Date(checkInTime));
     } else {
-      console.log('@@@');
       finalCheckInTime = new Date(checkInTime);
     }
 
     const workingMinutes: number = (finalCheckOutTime.getTime() - finalCheckInTime.getTime()) / (1000 * 60);
-    // console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-    // console.log(checkInTime);
-    // console.log(new Date(checkInTime));
-    // console.log('getNormalEarlyBoundary', getNormalEarlyBoundary(new Date(checkInTime)));
-    // console.log('finalCheckOutTime', finalCheckOutTime);
-    // console.log('finalCheckInTime', finalCheckInTime);
-    // console.log(workingMinutes);
+
     const overtimeWorkingMinutes: number =
       workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
 

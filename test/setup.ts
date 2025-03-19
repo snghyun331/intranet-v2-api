@@ -18,7 +18,6 @@ import { seedLeaveType } from './seed/leave/leaveType.seeder';
 let dataSource: DataSource;
 
 beforeAll(async () => {
-  console.log('beforeAll!!!!!!!!!!!!!!!!!');
   // TypeORM 초기화
   const configService = new ConfigService();
   const typeOrmModuleOptions = await TEST_TYPEORM_CONFIG.useFactory(configService);
@@ -26,8 +25,6 @@ beforeAll(async () => {
   dataSource = new DataSource(typeOrmModuleOptions as DataSourceOptions);
 
   await dataSource.initialize();
-
-  console.log('✅ 테스트 컨테이너 TypeORM 초기화 성공');
 
   // 데이터 시딩
   await seedTeam(dataSource);
