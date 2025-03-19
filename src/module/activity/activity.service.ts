@@ -20,6 +20,7 @@ import { AdminActivityBalanceFilterDto, AdminActivityBudgetFilterDto, AdminActiv
 import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
+import { substringYearMonth } from '../../common/utils/utility';
 
 @Injectable()
 export class ActivityService {
@@ -39,13 +40,9 @@ export class ActivityService {
       throw new BadRequestException('결제자 란에는 본부장 혹은 P&C 팀장만 기입할 수 있습니다.');
     }
 
-    const year: string = newActivityInfo.targetDay.substring(0, 4);
-    const month: string = newActivityInfo.targetDay.substring(5, 7);
+    const { year, month } = substringYearMonth(newActivityInfo.targetDay);
 
-    const yearToNum: number = Number(year);
-    const monthToNum: number = Number(month);
-
-    const statsCnt: number = await this.activityRepository.getActivityMonthStatsCnt(userIdx, year, monthToNum);
+    const statsCnt: number = await this.activityRepository.getActivityMonthStatsCnt(userIdx, year, month);
     if (statsCnt < 1) {
       throw new BadRequestException('아직 활동비를 작성할 수 없습니다.');
     }
@@ -55,12 +52,12 @@ export class ActivityService {
     // 활동비 월별 사용금액 업데이트
     const { userIdx: payerIdx } = payerIdxInfo; // 결제자 IDX
     const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
-      yearToNum,
-      monthToNum,
+      year,
+      month,
       newActivityInfo.payerName,
       manager,
     );
-    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, monthToNum, payerIdx, manager);
+    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerIdx, manager);
 
     // 활동비 반기별 사용금액 업데이트
     await this.activityRepository.updateActivityExpense(year, month, payerIdx, manager);
@@ -94,11 +91,7 @@ export class ActivityService {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
-    const year: string = activityInfo.targetDay.substring(0, 4);
-    const month: string = activityInfo.targetDay.substring(5, 7);
-
-    const yearToNum: number = Number(year);
-    const monthToNum: number = Number(month);
+    const { year, month } = substringYearMonth(activityInfo.targetDay);
 
     // 본인 결제자의 내역 업데이트
     await this.activityRepository.updateActivity(activityIdx, updateActivityInfo, manager);
@@ -106,12 +99,12 @@ export class ActivityService {
     // 활동비 사용금액 업데이트
     const { userIdx: payerIdx } = payerIdxInfo; // 결제자 IDX
     const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
-      yearToNum,
-      monthToNum,
+      year,
+      month,
       updateActivityInfo.payerName,
       manager,
     );
-    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, monthToNum, payerIdx, manager);
+    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerIdx, manager);
 
     // 활동비 반기별 사용금액 업데이트
     await this.activityRepository.updateActivityExpense(year, month, payerIdx, manager);
@@ -132,23 +125,19 @@ export class ActivityService {
 
     const payerIdxInfo: { userIdx: number } = await this.activityRepository.getUserIdxByName(activityInfo.payerName);
 
-    const year: string = activityInfo.targetDay.substring(0, 4);
-    const month: string = activityInfo.targetDay.substring(5, 7);
-
-    const yearToNum: number = Number(year);
-    const monthToNum: number = Number(month);
+    const { year, month } = substringYearMonth(activityInfo.targetDay);
 
     await this.activityRepository.deleteActivity(activityIdx, manager);
 
     // 활동비 사용금액 업데이트
     const { userIdx: payerIdx } = payerIdxInfo; // 결제자 IDX
     const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
-      yearToNum,
-      monthToNum,
+      year,
+      month,
       activityInfo.payerName,
       manager,
     );
-    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, monthToNum, payerIdx, manager);
+    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerIdx, manager);
 
     // 활동비 반기별 사용금액 업데이트
     await this.activityRepository.updateActivityExpense(year, month, payerIdx, manager);
@@ -160,8 +149,7 @@ export class ActivityService {
     let activityInfo: Activities[] = [];
 
     if (year && month) {
-      const yearToNum: number = Number(year);
-      activityInfo = await this.activityRepository.getMonthActivities(yearToNum, month, user);
+      activityInfo = await this.activityRepository.getMonthActivities(year, month, user);
     } else if (!year && !month) {
       activityInfo = await this.activityRepository.getAllActivities(user);
     } else {
@@ -169,7 +157,7 @@ export class ActivityService {
     }
 
     const nowDate: Date = new Date();
-    const nowYear: number = nowDate.getFullYear();
+    const nowYear: string = nowDate.getFullYear().toString();
     const nowMonth: number = nowDate.getMonth() + 1;
     const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
     const activityStats: ActivityStats = await this.activityRepository.getActivityStats(nowYear, halfYear, user);
@@ -190,11 +178,10 @@ export class ActivityService {
 
   async createActivityBudget(budgetInfo: CreateActivityBudgetDto, manager: EntityManager): Promise<void> {
     const date: Date = new Date();
-    const year: number = date.getFullYear();
-    const yearToString: string = year.toString();
+    const year: string = date.getFullYear().toString();
     const halfYear: HalfYearEnum = budgetInfo.period;
     const activityBudget: number = budgetInfo.activityBudget;
-    const activityStatsCnt: number = await this.activityRepository.getActivityStatsCount(budgetInfo, yearToString);
+    const activityStatsCnt: number = await this.activityRepository.getActivityStatsCount(budgetInfo, year);
 
     /** 기록이 없다면 통계 create (기록이 있다면 통계 업데이트) **/
     if (activityStatsCnt < 1) {
@@ -204,7 +191,7 @@ export class ActivityService {
         for (let i = 1; i < 7; i++) {
           const newActivityMonthStatsInfo: NewActivityMonthStats = {
             userIdx: budgetInfo.userIdx,
-            year: yearToString,
+            year,
             month: i.toString(),
             activityMonthExpense: 0,
           };
@@ -215,7 +202,7 @@ export class ActivityService {
         for (let i = 7; i < 13; i++) {
           const newActivityMonthStatsInfo: NewActivityMonthStats = {
             userIdx: budgetInfo.userIdx,
-            year: yearToString,
+            year,
             month: i.toString(),
             activityMonthExpense: 0,
           };
@@ -225,7 +212,7 @@ export class ActivityService {
       /* 반기별 통계 create */
       const newActivityStatsInfo: NewActivityStats = {
         userIdx: budgetInfo.userIdx,
-        year: yearToString,
+        year,
         halfYear,
         activityBudget,
         memberCount: budgetInfo.memberCount,
@@ -233,7 +220,7 @@ export class ActivityService {
       };
       await this.activityRepository.createActivityStats(newActivityStatsInfo, manager);
     } else {
-      /** 기록이 있다면 409에러 **/
+      /** 기록이 있다면 409 에러 **/
       throw new ConflictException('이미 새로 등록하였습니다.');
     }
 
@@ -242,8 +229,7 @@ export class ActivityService {
 
   async getActivityBudget(filterInfo: AdminActivityBudgetFilterDto): Promise<ActivityBudgetAdminResult[]> {
     const date: Date = new Date();
-    const year: number = date.getFullYear();
-    const yearToString: string = year.toString();
+    const year: string = date.getFullYear().toString();
 
     let halfYear: HalfYearEnum;
     if (!filterInfo.halfYear) {
@@ -253,10 +239,7 @@ export class ActivityService {
       halfYear = filterInfo.halfYear;
     }
 
-    const result: ActivityBudgetAdminResult[] = await this.activityRepository.getAdminActivityBudget(
-      yearToString,
-      halfYear,
-    );
+    const result: ActivityBudgetAdminResult[] = await this.activityRepository.getAdminActivityBudget(year, halfYear);
 
     return result;
   }

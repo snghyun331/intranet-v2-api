@@ -14,8 +14,6 @@ import { UserModule } from './user/user.module';
 import { ActivityModule } from './activity/activity.module';
 import { QnaModule } from './qna/qna.module';
 import { AdminModule } from './admin/admin.module';
-import { RedisModule } from '@nestjs-modules/ioredis';
-import { REDIS_CONFIG } from '../config/redis.config';
 import { PlaygroundModule } from './playground/playground.module';
 import { FileModule } from './file/file.module';
 import { NoticeModule } from './notice/notice.module';
@@ -29,7 +27,6 @@ import { MongooseModule } from '@nestjs/mongoose';
     WinstonModule.forRoot(WINSTON_CONFIG),
     TypeOrmModule.forRootAsync(TYPEORM_CONFIG),
     MongooseModule.forRootAsync(MONGOOSE_CONFIG),
-    RedisModule.forRootAsync(REDIS_CONFIG),
     SchedulerModule,
     AuthModule,
     MealModule,

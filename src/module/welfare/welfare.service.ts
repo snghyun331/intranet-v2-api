@@ -17,6 +17,7 @@ import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 import { AdminWelfareBalanceFilterDto, AdminWelfareBudgetFilterDto, AdminWelfareFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { substringYearMonth } from '../../common/utils/utility';
 
 @Injectable()
 export class WelfareService {
@@ -33,13 +34,9 @@ export class WelfareService {
       throw new BadRequestException('결제자는 본인 이름만 입력 가능합니다.');
     }
 
-    const year: string = newWelfareInfo.targetDay.substring(0, 4);
-    const month: string = newWelfareInfo.targetDay.substring(5, 7);
+    const { year, month } = substringYearMonth(newWelfareInfo.targetDay);
 
-    const yearToNum: number = Number(year);
-    const monthToNum: number = Number(month);
-
-    const statsCnt: number = await this.welfareRepository.getWelfareMonthStatsCnt(userIdx, year, monthToNum);
+    const statsCnt: number = await this.welfareRepository.getWelfareMonthStatsCnt(userIdx, year, month);
     if (statsCnt < 1) {
       throw new BadRequestException('아직 복포를 작성할 수 없습니다.');
     }
@@ -58,15 +55,15 @@ export class WelfareService {
 
     // 복지포인트 사용금액 업데이트
     const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-      yearToNum,
-      monthToNum,
+      year,
+      month,
       userIdx,
       manager,
     );
     await this.welfareRepository.updateMonthlyWelfareStats(
       welfareMonthExpense,
       year,
-      monthToNum.toString(),
+      month.toString(),
       userIdx,
       manager,
     );
@@ -92,11 +89,7 @@ export class WelfareService {
       throw new ForbiddenException('복포 삭제 권한이 없습니다');
     }
 
-    const year: string = welfareInfo.targetDay.substring(0, 4);
-    const month: string = welfareInfo.targetDay.substring(5, 7);
-
-    const yearToNum: number = Number(year);
-    const monthToNum: number = Number(month);
+    const { year, month } = substringYearMonth(welfareInfo.targetDay);
 
     // 동반 결제자 목록 불러오기
     const payeeIdxList: number[] = await this.welfareRepository.getUserIdxFromPayerWelfareIdx(welfareIdx);
@@ -105,18 +98,12 @@ export class WelfareService {
 
     // 본인의 복지포인트 사용금액 업데이트
     const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-      yearToNum,
-      monthToNum,
-      userIdx,
-      manager,
-    );
-    await this.welfareRepository.updateMonthlyWelfareStats(
-      welfareMonthExpense,
       year,
-      monthToNum.toString(),
+      month,
       userIdx,
       manager,
     );
+    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
 
     // 본인의 복지포인트 반기별 사용금액 업데이트
     await this.welfareRepository.updateWelfareExpense(year, month, userIdx, manager);
@@ -125,19 +112,13 @@ export class WelfareService {
       await Promise.all(
         payeeIdxList.map(async (payeeIdx) => {
           const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-            yearToNum,
-            monthToNum,
+            year,
+            month,
             payeeIdx,
             manager,
           );
           // 동반결제자의 복지포인트 월별 사용금액 업데이트
-          await this.welfareRepository.updateMonthlyWelfareStats(
-            welfareMonthExpense,
-            year,
-            monthToNum.toString(),
-            payeeIdx,
-            manager,
-          );
+          await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, payeeIdx, manager);
 
           // 동반 결제자의 복지포인트 반기별 사용금액 업데이트
           await this.welfareRepository.updateWelfareExpense(year, month, payeeIdx, manager);
@@ -173,11 +154,7 @@ export class WelfareService {
       throw new ForbiddenException('복포 수정 권한이 없습니다');
     }
 
-    const year: string = welfareInfo.targetDay.substring(0, 4);
-    const month: string = welfareInfo.targetDay.substring(5, 7);
-
-    const yearToNum: number = Number(year);
-    const monthToNum: number = Number(month);
+    const { year, month } = substringYearMonth(welfareInfo.targetDay);
 
     // 본인 결제자의 내역 업데이트
     await this.welfareRepository.updateWelfare(welfareIdx, updateWelfareInfo, manager);
@@ -213,18 +190,12 @@ export class WelfareService {
 
     // 복지포인트 사용금액 업데이트
     const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-      yearToNum,
-      monthToNum,
-      userIdx,
-      manager,
-    );
-    await this.welfareRepository.updateMonthlyWelfareStats(
-      welfareMonthExpense,
       year,
-      monthToNum.toString(),
+      month,
       userIdx,
       manager,
     );
+    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
 
     // 복지포인트 반기별 사용금액 업데이트
     await this.welfareRepository.updateWelfareExpense(year, month, userIdx, manager);
@@ -241,15 +212,14 @@ export class WelfareService {
     let welfareInfo: Welfares[] = [];
 
     if (year && month) {
-      const yearToNum: number = Number(year);
-      welfareInfo = await this.welfareRepository.getUserMonthWelfares(yearToNum, month, userIdx);
+      welfareInfo = await this.welfareRepository.getUserMonthWelfares(year, month, userIdx);
     } else if (!year && !month) {
       welfareInfo = await this.welfareRepository.getAllUserWelfares(userIdx);
     } else {
       throw new BadRequestException('연도와 월은 모두 입력하거나, 모두 입력하지 않아야 합니다');
     }
     const nowDate: Date = new Date();
-    const nowYear: number = nowDate.getFullYear();
+    const nowYear: string = nowDate.getFullYear().toString();
     const nowMonth: number = nowDate.getMonth() + 1;
     const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
 
@@ -340,8 +310,7 @@ export class WelfareService {
 
   async getWelfareBudget(filterInfo: AdminWelfareBudgetFilterDto): Promise<WelfareBudgetAdminResult[]> {
     const date: Date = new Date();
-    const year: number = date.getFullYear();
-    const yearToString: string = year.toString();
+    const year: string = date.getFullYear().toString();
 
     let halfYear: HalfYearEnum;
     if (!filterInfo.halfYear) {
@@ -351,10 +320,7 @@ export class WelfareService {
       halfYear = filterInfo.halfYear;
     }
 
-    const result: WelfareBudgetAdminResult[] = await this.welfareRepository.getAdminWelfareBudget(
-      yearToString,
-      halfYear,
-    );
+    const result: WelfareBudgetAdminResult[] = await this.welfareRepository.getAdminWelfareBudget(year, halfYear);
 
     return result;
   }

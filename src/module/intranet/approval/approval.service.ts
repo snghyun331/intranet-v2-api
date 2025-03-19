@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ApprovalRepository } from './repository/approval.repository';
 import { EntityManager } from 'typeorm';
 import { ConfirmEnum } from '../../../common/constant/enum';
+import { substringYearMonth } from '../../../common/utils/utility';
 
 @Injectable()
 export class ApprovalService {
@@ -38,8 +39,8 @@ export class ApprovalService {
     const userIdx: number = existing.userIdx; // 휴가를 올린 사용자 IDX
 
     if (confirmYN === ConfirmEnum.YES) {
-      const year: number = Number(existing.commuteDate.substring(0, 4));
-      const month: number = Number(existing.commuteDate.substring(5, 7));
+      const { year, month } = substringYearMonth(existing.commuteDate);
+
       const leaveTypeIdx: number = existing.leaveTypeIdx;
       const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
         year,
@@ -50,20 +51,13 @@ export class ApprovalService {
       );
 
       // 월별 사용개수 업데이트
-      await this.approvalRepository.updateLeaveMonthlyUseCount(
-        year.toString(),
-        month.toString(),
-        userIdx,
-        leaveTypeIdx,
-        useCount,
-        manager,
-      );
+      await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount, manager);
 
       // 연도별 사용개수 업데이트
-      await this.approvalRepository.updateLeaveAnnualUseCount(year.toString(), userIdx, leaveTypeIdx, manager);
+      await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx, manager);
 
       // 연도별 연차 총 사용량 업데이트
-      await this.approvalRepository.updateTotalAnnualLeaveUsage(year.toString(), userIdx, manager);
+      await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx, manager);
     }
   }
 }
