@@ -70,7 +70,10 @@ describe('CommuteController(e2e)', () => {
       .set('Authorization', `Bearer ${userAccessToken}`);
 
     const record = getResponse.body.data.records[0];
-    expect(record.attendance).toBe(expectedAttendance);
+    expect(record).toBe('');
+
+    // const record = getResponse.body.data.records[0];
+    // expect(record.attendance).toBe(expectedAttendance);
   }
 
   /**
@@ -106,14 +109,10 @@ describe('CommuteController(e2e)', () => {
     });
 
     it("'정상 출근'으로 잘 표시되었는가?", async () => {
-      console.log('@@@@@@@@@@@@@');
-      console.log(checkInDto);
       await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN, commuteDate);
     });
 
     it("'정상 퇴근'으로 잘 표시되었는가?", async () => {
-      console.log('%%%%%%%%%%%%%');
-      console.log(checkOutDto);
       await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT, commuteDate);
     });
   });
