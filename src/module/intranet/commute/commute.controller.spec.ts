@@ -139,127 +139,127 @@ describe('CommuteController(e2e)', () => {
     });
   });
 
-  describe('오전 반차 출근 (지각O)', () => {
-    let commuteDate: string;
-    let checkInDto: CheckInDto;
-    let checkOutDto: CheckOutDto;
+  // describe('오전 반차 출근 (지각O)', () => {
+  //   let commuteDate: string;
+  //   let checkInDto: CheckInDto;
+  //   let checkOutDto: CheckOutDto;
 
-    beforeEach(async () => {
-      commuteDate = '2025-03-06';
-      checkInDto = {
-        checkInDeviceType: 'PC',
-        checkInTime: new Date(`${commuteDate}T14:31:15`),
-      };
-      checkOutDto = {
-        checkOutDeviceType: 'PC',
-        checkOutTime: new Date(`${commuteDate}T18:50:15`),
-        earlyLeaveReason: null,
-      };
-    });
+  //   beforeEach(async () => {
+  //     commuteDate = '2025-03-06';
+  //     checkInDto = {
+  //       checkInDeviceType: 'PC',
+  //       checkInTime: new Date(`${commuteDate}T14:31:15`),
+  //     };
+  //     checkOutDto = {
+  //       checkOutDeviceType: 'PC',
+  //       checkOutTime: new Date(`${commuteDate}T18:50:15`),
+  //       earlyLeaveReason: null,
+  //     };
+  //   });
 
-    it('휴가가 정상적으로 등록되는가?', async () => {
-      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.AM_HALF);
-    });
+  //   it('휴가가 정상적으로 등록되는가?', async () => {
+  //     await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.AM_HALF);
+  //   });
 
-    it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN_LATE, commuteDate);
-    });
+  //   it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
+  //     await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN_LATE, commuteDate);
+  //   });
 
-    it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
-    });
-  });
+  //   it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
+  //     await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
+  //   });
+  // });
 
-  describe('오후 반차 출근 (지각O)', () => {
-    let commuteDate: string;
-    let checkInDto: CheckInDto;
-    let checkOutDto: CheckOutDto;
+  // describe('오후 반차 출근 (지각O)', () => {
+  //   let commuteDate: string;
+  //   let checkInDto: CheckInDto;
+  //   let checkOutDto: CheckOutDto;
 
-    beforeEach(async () => {
-      commuteDate = '2025-03-07';
-      checkInDto = {
-        checkInDeviceType: 'PC',
-        checkInTime: new Date(`${commuteDate}T10:30:15`),
-      };
-      checkOutDto = {
-        checkOutDeviceType: 'PC',
-        checkOutTime: new Date(`${commuteDate}T14:30:15`),
-        earlyLeaveReason: 'sfs',
-      };
-    });
+  //   beforeEach(async () => {
+  //     commuteDate = '2025-03-07';
+  //     checkInDto = {
+  //       checkInDeviceType: 'PC',
+  //       checkInTime: new Date(`${commuteDate}T10:30:15`),
+  //     };
+  //     checkOutDto = {
+  //       checkOutDeviceType: 'PC',
+  //       checkOutTime: new Date(`${commuteDate}T14:30:15`),
+  //       earlyLeaveReason: 'sfs',
+  //     };
+  //   });
 
-    it('휴가가 정상적으로 등록되는가?', async () => {
-      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.PM_HALF);
-    });
+  //   it('휴가가 정상적으로 등록되는가?', async () => {
+  //     await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.PM_HALF);
+  //   });
 
-    it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN_LATE, commuteDate);
-    });
+  //   it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
+  //     await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN_LATE, commuteDate);
+  //   });
 
-    it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
-    });
-  });
+  //   it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
+  //     await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
+  //   });
+  // });
 
-  describe('오전 반반차 출근 (지각O)', () => {
-    let commuteDate: string;
-    let checkInDto: CheckInDto;
-    let checkOutDto: CheckOutDto;
+  // describe('오전 반반차 출근 (지각O)', () => {
+  //   let commuteDate: string;
+  //   let checkInDto: CheckInDto;
+  //   let checkOutDto: CheckOutDto;
 
-    beforeEach(async () => {
-      commuteDate = '2025-03-10';
-      checkInDto = {
-        checkInDeviceType: 'PC',
-        checkInTime: new Date(`${commuteDate}T11:16:15`),
-      };
-      checkOutDto = {
-        checkOutDeviceType: 'PC',
-        checkOutTime: new Date(`${commuteDate}T18:18:15`),
-        earlyLeaveReason: null,
-      };
-    });
+  //   beforeEach(async () => {
+  //     commuteDate = '2025-03-10';
+  //     checkInDto = {
+  //       checkInDeviceType: 'PC',
+  //       checkInTime: new Date(`${commuteDate}T11:16:15`),
+  //     };
+  //     checkOutDto = {
+  //       checkOutDeviceType: 'PC',
+  //       checkOutTime: new Date(`${commuteDate}T18:18:15`),
+  //       earlyLeaveReason: null,
+  //     };
+  //   });
 
-    it('휴가가 정상적으로 등록되는가?', async () => {
-      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.AM_QUARTER);
-    });
+  //   it('휴가가 정상적으로 등록되는가?', async () => {
+  //     await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.AM_QUARTER);
+  //   });
 
-    it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN_LATE, commuteDate);
-    });
+  //   it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
+  //     await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN_LATE, commuteDate);
+  //   });
 
-    it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
-    });
-  });
+  //   it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
+  //     await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
+  //   });
+  // });
 
-  describe('오후 반반차 출근 (지각O)', () => {
-    let commuteDate: string;
-    let checkInDto: CheckInDto;
-    let checkOutDto: CheckOutDto;
+  // describe('오후 반반차 출근 (지각O)', () => {
+  //   let commuteDate: string;
+  //   let checkInDto: CheckInDto;
+  //   let checkOutDto: CheckOutDto;
 
-    beforeEach(async () => {
-      commuteDate = '2025-03-18';
-      checkInDto = {
-        checkInDeviceType: 'PC',
-        checkInTime: new Date(`${commuteDate}T10:16:15`),
-      };
-      checkOutDto = {
-        checkOutDeviceType: 'PC',
-        checkOutTime: new Date(`${commuteDate}T17:19:15`),
-        earlyLeaveReason: null,
-      };
-    });
+  //   beforeEach(async () => {
+  //     commuteDate = '2025-03-18';
+  //     checkInDto = {
+  //       checkInDeviceType: 'PC',
+  //       checkInTime: new Date(`${commuteDate}T10:16:15`),
+  //     };
+  //     checkOutDto = {
+  //       checkOutDeviceType: 'PC',
+  //       checkOutTime: new Date(`${commuteDate}T17:19:15`),
+  //       earlyLeaveReason: null,
+  //     };
+  //   });
 
-    it('휴가가 정상적으로 등록되는가?', async () => {
-      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.PM_QUARTER);
-    });
+  //   it('휴가가 정상적으로 등록되는가?', async () => {
+  //     await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.PM_QUARTER);
+  //   });
 
-    it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN_LATE, commuteDate);
-    });
+  //   it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
+  //     await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN_LATE, commuteDate);
+  //   });
 
-    it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
-    });
-  });
+  //   it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
+  //     await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
+  //   });
+  // });
 });

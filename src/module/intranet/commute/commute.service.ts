@@ -109,6 +109,10 @@ export class CommuteService {
         checkInIpAddr,
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
       };
+      console.log('@@@@@@@@@@@@@@@@@');
+      console.log(userIdx);
+      console.log(insertCheckInInfo);
+      console.log('@@@@@@@@@@@@@@@@@');
 
       /* 근태 생성 */
       await this.commuteRepository.createCheckInWork(userIdx, insertCheckInInfo, manager);
@@ -124,10 +128,14 @@ export class CommuteService {
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkOutDto.checkOutTime).utcOffset(9).format('YYYY-MM-DD');
+    console.log('%%%%%%%%%%%%%%%%%%');
     console.log('commuteDate', commuteDate);
     console.log('userIdx', userIdx);
+
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
+    console.log(commuteInfo);
+    console.log('%%%%%%%%%%%%%%%%%%');
     if (!commuteInfo) {
       throw new BadRequestException('출근을 먼저 등록해주세요');
     }
