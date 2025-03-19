@@ -113,6 +113,12 @@ describe('CommuteController(e2e)', () => {
     });
 
     it("'정상 퇴근'으로 잘 표시되었는가?", async () => {
+      const workingMinutes = (checkOutDto.checkOutTime.getTime() - checkInDto.checkInTime.getTime()) / (1000 * 60);
+      console.log(checkInDto.checkInTime.getTime());
+      console.log(checkInDto.checkInTime.getTime());
+      console.log(checkOutDto.checkOutTime);
+      console.log(checkOutDto.checkOutTime.getTime());
+      console.log(workingMinutes);
       await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT, commuteDate);
     });
   });
