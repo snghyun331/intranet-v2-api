@@ -9,6 +9,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Set up Timezone to GMT+9
+        run: sudo timedatectl set-timezone Asia/Seoul
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
