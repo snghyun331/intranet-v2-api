@@ -172,13 +172,13 @@ export class CommuteService {
     }
 
     const workingMinutes: number = (finalCheckOutTime.getTime() - finalCheckInTime.getTime()) / (1000 * 60);
-    console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-    console.log(checkInTime);
-    console.log(new Date(checkInTime));
-    console.log('getNormalEarlyBoundary', getNormalEarlyBoundary(new Date(checkInTime)));
-    console.log('finalCheckOutTime', finalCheckOutTime);
-    console.log('finalCheckInTime', finalCheckInTime);
-    console.log(workingMinutes);
+    // console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+    // console.log(checkInTime);
+    // console.log(new Date(checkInTime));
+    // console.log('getNormalEarlyBoundary', getNormalEarlyBoundary(new Date(checkInTime)));
+    // console.log('finalCheckOutTime', finalCheckOutTime);
+    // console.log('finalCheckInTime', finalCheckInTime);
+    // console.log(workingMinutes);
     const overtimeWorkingMinutes: number =
       workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
 
