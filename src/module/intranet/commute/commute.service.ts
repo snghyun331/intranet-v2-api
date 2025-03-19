@@ -124,6 +124,7 @@ export class CommuteService {
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkOutDto.checkOutTime).utcOffset(9).format('YYYY-MM-DD');
+
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
     if (!commuteInfo) {
@@ -170,6 +171,7 @@ export class CommuteService {
     }
 
     const workingMinutes: number = (finalCheckOutTime.getTime() - finalCheckInTime.getTime()) / (1000 * 60);
+
     const overtimeWorkingMinutes: number =
       workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
 
