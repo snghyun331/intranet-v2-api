@@ -149,7 +149,8 @@ export const getAmQuarterEarlyBoundary = (timestamp: Date): Date => {
 };
 
 export const getNormalEarlyBoundary = (timestamp: Date): Date => {
-  const boundary: Date = new Date(timestamp.setHours(8, 0, 0, 0));
+  const boundary: Date = new Date(timestamp);
+  boundary.setUTCHours(8, 0, 0, 0);
 
   return boundary;
 };
