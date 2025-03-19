@@ -48,11 +48,6 @@ export class CommuteService {
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkInDto.checkInTime).utcOffset(9).format('YYYY-MM-DD');
-    console.log('출근!!!!!!!!!!!!');
-    console.log(checkInDto.checkInTime);
-    console.log(moment(checkInDto.checkInTime));
-    console.log(moment(checkInDto.checkInTime).utcOffset(9));
-    console.log(commuteDate);
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
     // commuteInfo가 존재하면, 이전에 등록된 휴가정보가 있음
@@ -129,11 +124,6 @@ export class CommuteService {
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkOutDto.checkOutTime).utcOffset(9).format('YYYY-MM-DD');
-    console.log('퇴근!!!!!!!!!!!!');
-    console.log(checkOutDto.checkOutTime);
-    console.log(moment(checkOutDto.checkOutTime));
-    console.log(moment(checkOutDto.checkOutTime).utcOffset(9));
-    console.log(commuteDate);
 
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
