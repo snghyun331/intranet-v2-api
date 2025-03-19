@@ -148,9 +148,15 @@ export const getAmQuarterEarlyBoundary = (timestamp: Date): Date => {
   return boundary;
 };
 
+// export const getNormalEarlyBoundary = (timestamp: Date): Date => {
+//   const boundary: Date = new Date(timestamp);
+//   boundary.setUTCHours(8, 0, 0, 0);
+
+//   return boundary;
+// };
 export const getNormalEarlyBoundary = (timestamp: Date): Date => {
   const boundary: Date = new Date(timestamp);
-  boundary.setUTCHours(8, 0, 0, 0);
+  boundary.setUTCHours(8 - 9, 0, 0, 0); // UTC 기준으로 8 - 9 = 23시 설정
 
   return boundary;
 };

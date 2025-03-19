@@ -43,10 +43,10 @@ describe('CommuteController(e2e)', () => {
       .query({ pageNo: 1, perPage: 1, sDate: commuteDate, eDate: commuteDate })
       .set('Authorization', `Bearer ${userAccessToken}`);
 
-    const record = getResponse.body.data.records[0];
-    expect(record).toBe('');
     // const record = getResponse.body.data.records[0];
-    // expect(record.attendance).toBe(expectedAttendance);
+    // expect(record).toBe('');
+    const record = getResponse.body.data.records[0];
+    expect(record.attendance).toBe(expectedAttendance);
   }
 
   /**
