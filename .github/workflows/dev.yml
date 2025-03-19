@@ -20,7 +20,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: create .env.test
+      - name: Create .env.test
         run: |
           touch .env.test
           echo "TEST_DB_NAME=${{ secrets.TEST_DB_NAME }}" >> .env.test
@@ -47,6 +47,22 @@ jobs:
 
       - name: Run E2E Tests
         run: npm run test
+
+      - name: Merge and Close PR if Tests Pass
+        if: success()
+        run: |
+          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+
+          echo "✅ E2E 테스트 성공! PR #$PR_NUMBER을 dev 브랜치에 병합합니다."
+
+          gh pr merge $PR_NUMBER --auto --squash --repo ${{ github.repository }}
+
+          echo "✅ PR #$PR_NUMBER 병합 완료. PR을 닫습니다."
+
+          curl -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER \
+              -d '{"state":"closed"}'
 
       - name: Close PR if Tests Fail
         if: failure()
