@@ -124,6 +124,8 @@ export class CommuteService {
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkOutDto.checkOutTime).utcOffset(9).format('YYYY-MM-DD');
+    console.log('commuteDate', commuteDate);
+    console.log('userIdx', userIdx);
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
     if (!commuteInfo) {

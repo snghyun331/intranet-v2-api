@@ -118,7 +118,6 @@ describe('CommuteController(e2e)', () => {
     let checkOutDto: CheckOutDto;
 
     beforeEach(async () => {
-      console.log('$$$$$$$$$$$$$$$$$$$');
       commuteDate = '2025-03-05';
       checkInDto = {
         checkInDeviceType: 'PC',
@@ -132,14 +131,10 @@ describe('CommuteController(e2e)', () => {
     });
 
     it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
-      console.log('&&&&&&&&&&&&&&&&&&&&&');
-      console.log(commuteDate);
       await checkInAndVerify(checkInDto, IntranetAttendanceEnum.CHECK_IN_LATE, commuteDate);
     });
 
     it("'정상 퇴근(지각)'으로 잘 표시되었는가?", async () => {
-      console.log('%%%%%%%%%%%%%%%%%%%%%%');
-      console.log(commuteDate);
       await checkOutAndVerify(checkOutDto, IntranetAttendanceEnum.CHECK_OUT_LATE, commuteDate);
     });
   });
