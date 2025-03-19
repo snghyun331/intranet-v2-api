@@ -149,7 +149,9 @@ export class CommuteService {
 
     /* 최종 근무시간 혹은 초과근무시간 저장 */
     const finalCheckOutTime: Date = new Date(checkOutDto.checkOutTime);
-
+    console.log('checkInTime', checkInTime);
+    console.log('new Date(checkInTime)', new Date(checkInTime));
+    console.log('getNormalEarlyBoundary', getNormalEarlyBoundary(new Date(checkInTime)));
     let finalCheckInTime: Date;
     if (AM_REST_LISTS.has(leaveTypeIdx) && checkInTime < getAmHalfEarlyBoundary(new Date(checkInTime))) {
       finalCheckInTime = getAmHalfEarlyBoundary(new Date(checkInTime));
@@ -171,9 +173,9 @@ export class CommuteService {
 
     const workingMinutes: number = (finalCheckOutTime.getTime() - finalCheckInTime.getTime()) / (1000 * 60);
     console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-    console.log(finalCheckOutTime);
+    console.log('finalCheckOutTime', finalCheckOutTime);
     console.log(finalCheckOutTime.getTime());
-    console.log(finalCheckOutTime);
+    console.log('finalCheckInTime', finalCheckInTime);
     console.log(finalCheckInTime.getTime());
     console.log(workingMinutes);
     const overtimeWorkingMinutes: number =
