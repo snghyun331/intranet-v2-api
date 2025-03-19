@@ -174,9 +174,9 @@ export class CommuteService {
       workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
 
     /* 최종 근무시간이 기준시간 미만이면 사유를 필수 입력 */
-    if (workingMinutes < standardWorkingMinutes && !checkOutDto.earlyLeaveReason) {
-      throw new BadRequestException('조기퇴근 시, 사유 입력은 필수입니다.');
-    }
+    // if (workingMinutes < standardWorkingMinutes && !checkOutDto.earlyLeaveReason) {
+    //   throw new BadRequestException('조기퇴근 시, 사유 입력은 필수입니다.');
+    // }
 
     /* 근태 상태 설정 */
     let attendance: IntranetAttendanceEnum;
