@@ -351,4 +351,47 @@ export class CommuteService {
 
     return;
   }
+
+  async getUserWeelyWorkHours(userIdx: number, year: string, month: string) {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+
+    const dailyWorkData = await this.commuteRepository.getUserWorkHoursByMonth(userIdx, startDate, endDate);
+
+    const startWeekNumOfYear: number = moment(startDate).isoWeek(); // 올해 기준 몇 주차
+    const lastWeekNumOfYear: number = moment(endDate).isoWeek(); // 올해 기준 몇 주차
+    const weeklyWorkMap: Record<number, { start: string; end: string; hours: number }> = {};
+
+    // 주차별 데이터를 저장할 객체 초기화
+    for (let i = startWeekNumOfYear; i <= lastWeekNumOfYear; i++) {
+      const weekStartDate: string = moment(startDate).isoWeek(i).startOf('isoWeek').format('YYYY-MM-DD');
+      const weekEndDate: string = moment(weekStartDate).endOf('isoWeek').format('YYYY-MM-DD');
+
+      weeklyWorkMap[i - startWeekNumOfYear + 1] = { start: weekStartDate, end: weekEndDate, hours: 0 };
+    }
+
+    // 출근 데이터를 주차별로 그룹화하여 합산
+    dailyWorkData.forEach(({ commuteDate, workingMinutes }) => {
+      const week = moment(commuteDate).isoWeek() - startWeekNumOfYear + 1;
+      if (weeklyWorkMap[week]) {
+        weeklyWorkMap[week].hours += Math.round((workingMinutes / 60) * 100) / 100;
+      }
+    });
+
+    const weeklyWorkHours = Object.entries(weeklyWorkMap).map(([week, { start, end, hours }]) => ({
+      week: Number(week),
+      start,
+      end,
+      hours,
+    }));
+
+    const result = {
+      year,
+      month,
+      weeklyWorkHours,
+    };
+
+    return result;
+  }
 }

@@ -190,6 +190,66 @@ export const USERS_INTRAENT_COMMUTE: SwaggerMethod = {
   },
 };
 
+export const USERS_INTRANET_COMMUTE_WORK_HOURS: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 이번달 업무시간 조회(차트)',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              year: '2025',
+              month: '3',
+              weeklyWorkHours: [
+                {
+                  week: 1,
+                  start: '2025-02-24',
+                  end: '2025-03-02',
+                  hours: 0,
+                },
+                {
+                  week: 2,
+                  start: '2025-03-03',
+                  end: '2025-03-09',
+                  hours: 9.98,
+                },
+                {
+                  week: 3,
+                  start: '2025-03-10',
+                  end: '2025-03-16',
+                  hours: 9.22,
+                },
+                {
+                  week: 4,
+                  start: '2025-03-17',
+                  end: '2025-03-23',
+                  hours: 9.22,
+                },
+                {
+                  week: 5,
+                  start: '2025-03-24',
+                  end: '2025-03-30',
+                  hours: 18.97,
+                },
+                {
+                  week: 6,
+                  start: '2025-03-31',
+                  end: '2025-04-06',
+                  hours: 0,
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const ADMIN_INTRANET_COMMUTE: SwaggerMethod = {
   DELETE: {
     API_OPERATION: {
