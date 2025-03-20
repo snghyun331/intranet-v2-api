@@ -115,8 +115,8 @@ export class CommuteRepository {
         'commuteEntity.note AS note',
         'commuteEntity.checkInIpAddr AS checkInIpAddr',
         'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
-        'commuteEntity.checkInDeviceType AS checkInDeviceType',
-        'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
+        'commuteEntity.checkInLogAgent AS checkInLogAgent',
+        'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
@@ -174,8 +174,8 @@ export class CommuteRepository {
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
-        'commuteEntity.checkInDeviceType AS checkInDeviceType',
-        'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
+        'commuteEntity.checkInLogAgent AS checkInLogAgent',
+        'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
       ])
       .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
       .getRawOne();
@@ -233,8 +233,8 @@ export class CommuteRepository {
         'commuteEntity.note AS note',
         'commuteEntity.checkInIpAddr AS checkInIpAddr',
         'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
-        'commuteEntity.checkInDeviceType AS checkInDeviceType',
-        'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
+        'commuteEntity.checkInLogAgent AS checkInLogAgent',
+        'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
         'commuteEntity.createdAt AS createdAt',
         'commuteEntity.updatedAt AS updatedAt',
       ])

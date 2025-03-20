@@ -44,17 +44,17 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'note', comment: '내용', type: 'text', nullable: true })
   note: string;
 
-  @Column({ name: 'check_in_device_type', comment: '출근 기기', nullable: true })
-  checkInDeviceType: string;
-
   @Column({ name: 'check_in_ip_addr', comment: '출근 등록 IP', nullable: true })
   checkInIpAddr: string;
 
-  @Column({ name: 'check_out_device_type', comment: '퇴근 기기', nullable: true })
-  checkOutDeviceType: string;
-
   @Column({ name: 'check_out_ip_addr', comment: '퇴근 등록 IP', nullable: true })
   checkOutIpAddr: string;
+
+  @Column({ name: 'check_in_log_agent', length: 500, comment: '출근 시 찍은 브라우저 종류', nullable: true })
+  checkInLogAgent: string;
+
+  @Column({ name: 'check_out_log_agent', length: 500, comment: '퇴근 시 찍은 브라우저 종류', nullable: true })
+  checkOutLogAgent: string;
 
   @Column({
     name: 'confirm_yn',

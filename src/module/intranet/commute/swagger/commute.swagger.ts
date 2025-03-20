@@ -77,7 +77,6 @@ export const USERS_INTRANET_CHECK_OUT: SwaggerMethod = {
         a: {
           summary: '정상 퇴근',
           value: {
-            checkOutDeviceType: 'PC',
             checkOutTime: '2025-01-13T09:16:15.759Z',
             earlyLeaveReason: null,
           },
@@ -85,7 +84,6 @@ export const USERS_INTRANET_CHECK_OUT: SwaggerMethod = {
         b: {
           summary: '조기 퇴근',
           value: {
-            checkOutDeviceType: 'PC',
             checkOutTime: '2025-01-13T04:16:15.759Z',
             earlyLeaveReason: '워크샵 조기퇴근',
           },
@@ -178,8 +176,8 @@ export const USERS_INTRAENT_COMMUTE: SwaggerMethod = {
                   note: null,
                   checkInIpAddr: '172.18.0.1',
                   checkOutIpAddr: null,
-                  checkInDeviceType: 'PC',
-                  checkOutDeviceType: null,
+                  checkInLogAgent: 'PC',
+                  checkOutLogAgent: null,
                   createdAt: '2025-03-04T08:45:49.692Z',
                   updatedAt: '2025-03-04T08:45:49.692Z',
                 },
@@ -254,8 +252,10 @@ export const ADMIN_INTRANET_COMMUTE: SwaggerMethod = {
                   note: null,
                   checkInIpAddr: '172.18.0.1',
                   checkOutIpAddr: '172.18.0.1',
-                  checkInDeviceType: 'PC',
-                  checkOutDeviåceType: 'PC',
+                  checkInLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+                  checkOutLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                   confirmYN: 'N',
                   confirmDate: null,
                   createdAt: '2025-02-26T06:48:28.615Z',
@@ -281,8 +281,10 @@ export const ADMIN_INTRANET_COMMUTE: SwaggerMethod = {
                   note: null,
                   checkInIpAddr: '172.18.0.1',
                   checkOutIpAddr: '172.18.0.1',
-                  checkInDeviceType: 'PC',
-                  checkOutDeviåceType: 'PC',
+                  checkInLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+                  checkOutLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                   confirmYN: 'N',
                   confirmDate: null,
                   createdAt: '2025-02-26T06:48:00.439Z',

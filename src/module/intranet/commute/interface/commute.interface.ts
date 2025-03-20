@@ -4,7 +4,7 @@ export interface InsertCheckInInfo {
   leaveTypeIdx: IntranetLeaveTypeIdxEnum;
   checkInIpAddr: string;
   commuteDate: string;
-  checkInDeviceType: string;
+  checkInLogAgent: string;
   attendance: IntranetAttendanceEnum;
   checkInTime: Date;
 }
@@ -12,14 +12,14 @@ export interface InsertCheckInInfo {
 export interface UpdateCheckInInfo {
   checkInIpAddr: string;
   commuteDate: string;
-  checkInDeviceType: string;
+  checkInLogAgent: string;
   attendance: IntranetAttendanceEnum;
   checkInTime: Date;
 }
 
 export interface UpdateCheckOutInfo {
   commuteDate: string;
-  checkOutDeviceType: string;
+  checkOutLogAgent: string;
   checkOutTime: Date;
   earlyLeaveReason: string | null;
   workingMinutes: number;
@@ -35,8 +35,4 @@ export interface UpdateCommuteTimeInfo {
   attendance: IntranetAttendanceEnum;
   workingMinutes: number;
   overtimeWorkingMinutes: number;
-  checkInIpAddr: string | null;
-  checkOutIpAddr: string | null;
-  checkInDeviceType: string;
-  checkOutDeviceType: string;
 }

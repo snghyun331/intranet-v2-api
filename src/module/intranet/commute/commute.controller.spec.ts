@@ -93,11 +93,9 @@ describe('CommuteController(e2e)', () => {
     beforeEach(async () => {
       commuteDate = '2025-03-04';
       checkInDto = {
-        checkInDeviceType: 'PC',
         checkInTime: new Date(`${commuteDate}T00:16:15.000Z`),
       };
       checkOutDto = {
-        checkOutDeviceType: 'PC',
         checkOutTime: new Date(`${commuteDate}T09:18:15.000Z`),
         earlyLeaveReason: null,
       };
@@ -120,11 +118,9 @@ describe('CommuteController(e2e)', () => {
     beforeEach(async () => {
       commuteDate = '2025-03-05';
       checkInDto = {
-        checkInDeviceType: 'PC',
         checkInTime: new Date(`${commuteDate}T10:16:15`),
       };
       checkOutDto = {
-        checkOutDeviceType: 'PC',
         checkOutTime: new Date(`${commuteDate}T19:18:15`),
         earlyLeaveReason: null,
       };
@@ -147,11 +143,9 @@ describe('CommuteController(e2e)', () => {
     beforeEach(async () => {
       commuteDate = '2025-03-06';
       checkInDto = {
-        checkInDeviceType: 'PC',
         checkInTime: new Date(`${commuteDate}T14:31:15`),
       };
       checkOutDto = {
-        checkOutDeviceType: 'PC',
         checkOutTime: new Date(`${commuteDate}T18:50:15`),
         earlyLeaveReason: null,
       };
@@ -178,11 +172,9 @@ describe('CommuteController(e2e)', () => {
     beforeEach(async () => {
       commuteDate = '2025-03-07';
       checkInDto = {
-        checkInDeviceType: 'PC',
         checkInTime: new Date(`${commuteDate}T10:30:15`),
       };
       checkOutDto = {
-        checkOutDeviceType: 'PC',
         checkOutTime: new Date(`${commuteDate}T14:30:15`),
         earlyLeaveReason: 'sfs',
       };
@@ -209,11 +201,9 @@ describe('CommuteController(e2e)', () => {
     beforeEach(async () => {
       commuteDate = '2025-03-10';
       checkInDto = {
-        checkInDeviceType: 'PC',
         checkInTime: new Date(`${commuteDate}T11:16:15`),
       };
       checkOutDto = {
-        checkOutDeviceType: 'PC',
         checkOutTime: new Date(`${commuteDate}T18:18:15`),
         earlyLeaveReason: null,
       };
@@ -240,11 +230,9 @@ describe('CommuteController(e2e)', () => {
     beforeEach(async () => {
       commuteDate = '2025-03-18';
       checkInDto = {
-        checkInDeviceType: 'PC',
         checkInTime: new Date(`${commuteDate}T10:16:15`),
       };
       checkOutDto = {
-        checkOutDeviceType: 'PC',
         checkOutTime: new Date(`${commuteDate}T17:19:15`),
         earlyLeaveReason: null,
       };
