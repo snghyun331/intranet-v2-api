@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Ip,
   Param,
   ParseIntPipe,
@@ -67,11 +68,13 @@ export class UserCommuteController {
   @Post('check-in')
   async checkInWork(
     @Ip() checkInIpAddr: string,
+    @Headers() headers: object,
     @CurrentUserIdx() userIdx: number,
     @Body() checkInDto: CheckInDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.commuteService.checkInWork(userIdx, checkInDto, checkInIpAddr, manager);
+    const checkInLogAgent: string = headers['user-agent'];
+    await this.commuteService.checkInWork(userIdx, checkInDto, checkInLogAgent, checkInIpAddr, manager);
 
     const response: ResponseInterface = { message: 'success', data: { checkInTime: checkInDto.checkInTime } };
 
@@ -89,11 +92,13 @@ export class UserCommuteController {
   @Put('check-out')
   async checkOutWork(
     @Ip() checkOutIpAddr: string,
+    @Headers() headers: object,
     @CurrentUserIdx() userIdx: number,
     @Body() checkOutDto: CheckOutDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.commuteService.checkOutWork(userIdx, checkOutDto, checkOutIpAddr, manager);
+    const checkOutLogAgent: string = headers['user-agent'];
+    await this.commuteService.checkOutWork(userIdx, checkOutDto, checkOutIpAddr, checkOutLogAgent, manager);
 
     const response: ResponseInterface = { message: 'success' };
 

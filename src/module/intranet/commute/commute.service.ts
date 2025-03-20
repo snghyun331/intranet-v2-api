@@ -17,7 +17,7 @@ import {
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
-import { DeviceTypeEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
+import { IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
 import {
   InsertCheckInInfo,
   UpdateCheckInInfo,
@@ -44,6 +44,7 @@ export class CommuteService {
   async checkInWork(
     userIdx: number,
     checkInDto: CheckInDto,
+    checkInLogAgent: string,
     checkInIpAddr: string,
     manager: EntityManager,
   ): Promise<void> {
@@ -88,6 +89,7 @@ export class CommuteService {
           attendance,
           commuteDate,
           checkInIpAddr,
+          checkInLogAgent,
         };
 
         /* 근태 업데이트 */
@@ -107,6 +109,7 @@ export class CommuteService {
         attendance,
         commuteDate,
         checkInIpAddr,
+        checkInLogAgent,
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
       };
 
@@ -121,6 +124,7 @@ export class CommuteService {
     userIdx: number,
     checkOutDto: CheckOutDto,
     checkOutIpAddr: string,
+    checkOutLogAgent: string,
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkOutDto.checkOutTime).utcOffset(9).format('YYYY-MM-DD');
@@ -171,7 +175,6 @@ export class CommuteService {
     }
 
     const workingMinutes: number = (finalCheckOutTime.getTime() - finalCheckInTime.getTime()) / (1000 * 60);
-
     const overtimeWorkingMinutes: number =
       workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
 
@@ -200,6 +203,7 @@ export class CommuteService {
       workingMinutes,
       overtimeWorkingMinutes,
       checkOutIpAddr,
+      checkOutLogAgent,
       attendance,
     };
 
@@ -313,26 +317,22 @@ export class CommuteService {
       }
     }
 
-    /* 출퇴근 IP 및 디바이스 업데이트 */
-    const { checkInIpAddr, checkInDeviceType } =
-      commuteInfo.checkInTime !== updateDto.checkInTime
-        ? { checkInIpAddr: null, checkInDeviceType: DeviceTypeEnum.MAUNAL }
-        : { checkInIpAddr: commuteInfo.checkInIpAddr, checkInDeviceType: commuteInfo.checkInDeviceType };
+    // /* 출퇴근 IP 및 디바이스 업데이트 */
+    // const { checkInIpAddr, checkInDeviceType } =
+    //   commuteInfo.checkInTime !== updateDto.checkInTime
+    //     ? { checkInIpAddr: null, checkInDeviceType: DeviceTypeEnum.MAUNAL }
+    //     : { checkInIpAddr: commuteInfo.checkInIpAddr, checkInDeviceType: commuteInfo.checkInDeviceType };
 
-    const { checkOutIpAddr, checkOutDeviceType } = !updateDto.checkOutTime
-      ? { checkOutIpAddr: null, checkOutDeviceType: null }
-      : commuteInfo.checkOutTime !== updateDto.checkOutTime
-        ? { checkOutIpAddr: null, checkOutDeviceType: DeviceTypeEnum.MAUNAL }
-        : { checkOutIpAddr: commuteInfo.checkOutIpAddr, checkOutDeviceType: commuteInfo.checkOutDeviceType };
+    // const { checkOutIpAddr, checkOutDeviceType } = !updateDto.checkOutTime
+    //   ? { checkOutIpAddr: null, checkOutDeviceType: null }
+    //   : commuteInfo.checkOutTime !== updateDto.checkOutTime
+    //     ? { checkOutIpAddr: null, checkOutDeviceType: DeviceTypeEnum.MAUNAL }
+    //     : { checkOutIpAddr: commuteInfo.checkOutIpAddr, checkOutDeviceType: commuteInfo.checkOutDeviceType };
 
     const updateInfo: UpdateCommuteTimeInfo = {
       ...updateDto,
       workingMinutes,
       overtimeWorkingMinutes,
-      checkInIpAddr,
-      checkOutIpAddr,
-      checkInDeviceType,
-      checkOutDeviceType,
       attendance,
     };
 
