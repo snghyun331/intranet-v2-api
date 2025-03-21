@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Ip,
   Param,
   ParseIntPipe,
@@ -34,6 +35,7 @@ import {
   USERS_INTRAENT_COMMUTE,
   USERS_INTRANET_CHECK_IN,
   USERS_INTRANET_CHECK_OUT,
+  USERS_INTRANET_COMMUTE_WORK_HOURS,
 } from './swagger/commute.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
@@ -67,11 +69,13 @@ export class UserCommuteController {
   @Post('check-in')
   async checkInWork(
     @Ip() checkInIpAddr: string,
+    @Headers() headers: object,
     @CurrentUserIdx() userIdx: number,
     @Body() checkInDto: CheckInDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.commuteService.checkInWork(userIdx, checkInDto, checkInIpAddr, manager);
+    const checkInLogAgent: string = headers['user-agent'];
+    await this.commuteService.checkInWork(userIdx, checkInDto, checkInLogAgent, checkInIpAddr, manager);
 
     const response: ResponseInterface = { message: 'success', data: { checkInTime: checkInDto.checkInTime } };
 
@@ -89,11 +93,13 @@ export class UserCommuteController {
   @Put('check-out')
   async checkOutWork(
     @Ip() checkOutIpAddr: string,
+    @Headers() headers: object,
     @CurrentUserIdx() userIdx: number,
     @Body() checkOutDto: CheckOutDto,
     @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.commuteService.checkOutWork(userIdx, checkOutDto, checkOutIpAddr, manager);
+    const checkOutLogAgent: string = headers['user-agent'];
+    await this.commuteService.checkOutWork(userIdx, checkOutDto, checkOutIpAddr, checkOutLogAgent, manager);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -113,6 +119,24 @@ export class UserCommuteController {
     @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseInterface> {
     const data = await this.commuteService.getUserCommuteRecords(userIdx, pageNoInfo, filterInfo);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_COMMUTE_WORK_HOURS.GET.API_OPERATION)
+  @ApiOkResponse(USERS_INTRANET_COMMUTE_WORK_HOURS.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('commute/work-hours')
+  async getWeelyWorkHours(
+    @Query('year') year: string,
+    @Query('month') month: string,
+    @CurrentUserIdx() userIdx: number,
+  ) {
+    const data = await this.commuteService.getUserWeelyWorkHours(userIdx, year, month);
 
     const response: ResponseInterface = { message: 'success', data };
 

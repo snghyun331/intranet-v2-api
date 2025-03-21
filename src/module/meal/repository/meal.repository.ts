@@ -75,7 +75,7 @@ export class MealRepository {
     return userIdxList;
   }
 
-  async getHolidayDates(year: number, month: number): Promise<string[]> {
+  async getHolidayDates(year: string, month: string): Promise<string[]> {
     // 해당 월의 첫 번째 날과 마지막 날을 구함
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
@@ -98,7 +98,7 @@ export class MealRepository {
     return holidayDates;
   }
 
-  async getMyMealCalender(year: number, month: number, userIdx: number): Promise<MealEntity[]> {
+  async getMyMealCalender(year: string, month: string, userIdx: number): Promise<MealEntity[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -126,7 +126,7 @@ export class MealRepository {
     return result;
   }
 
-  async getMyMealStats(year: number, month: number, userIdx: number): Promise<MealStats> {
+  async getMyMealStats(year: string, month: string, userIdx: number): Promise<MealStats> {
     const myStatsInfo = await this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([
@@ -163,7 +163,7 @@ export class MealRepository {
       .execute();
   }
 
-  async getMonthHolidays(year: number, month: number): Promise<string[]> {
+  async getMonthHolidays(year: string, month: string): Promise<string[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -185,7 +185,7 @@ export class MealRepository {
     return monthHolidays;
   }
 
-  async getMyTotalTimeoffDays(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
+  async getMyTotalTimeoffDays(year: string, month: string, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -207,8 +207,8 @@ export class MealRepository {
 
   async updateMyTimeOffDaysInStats(
     timeoffDays: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
@@ -222,7 +222,7 @@ export class MealRepository {
       .execute();
   }
 
-  async getMyTotalMealExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
+  async getMyTotalMealExpense(year: string, month: string, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -242,8 +242,8 @@ export class MealRepository {
 
   async updateMyMealExpenseInStats(
     mealExpense: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ) {
@@ -258,8 +258,8 @@ export class MealRepository {
   }
 
   async getMyTotalHolidayWorkdays(
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<number> {
@@ -285,8 +285,8 @@ export class MealRepository {
 
   async updateMyHolidayWorkdaysInStats(
     holidayWorkdays: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
@@ -320,8 +320,8 @@ export class MealRepository {
   }
 
   async getMyTotalBreakfastExpense(
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<number> {
@@ -344,8 +344,8 @@ export class MealRepository {
 
   async updateMyBreakfastExpenseInStats(
     breakfastExpense: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
@@ -359,7 +359,7 @@ export class MealRepository {
       .execute();
   }
 
-  async getMyTotalDinnerExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
+  async getMyTotalDinnerExpense(year: string, month: string, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -379,8 +379,8 @@ export class MealRepository {
 
   async updateMyDinnerExpenseInStats(
     dinnerExpense: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
@@ -617,8 +617,8 @@ export class MealRepository {
   }
 
   async getMyBreakfastOverpay(
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<{ total: number; cnt: number }> {
@@ -642,8 +642,8 @@ export class MealRepository {
 
   async updateMyBreakfastOverpayInStats(
     breakfastOverpay: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
@@ -658,8 +658,8 @@ export class MealRepository {
   }
 
   async getMyDinnerOverpay(
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<{ total: number; cnt: number }> {
@@ -683,8 +683,8 @@ export class MealRepository {
 
   async updateMyDinnerOverpayInStats(
     dinnerOverpay: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
@@ -708,7 +708,7 @@ export class MealRepository {
     return result;
   }
 
-  async getMealDetail(year: number, month: number, userIdx: number): Promise<MealEntity[]> {
+  async getMealDetail(year: string, month: string, userIdx: number): Promise<MealEntity[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');

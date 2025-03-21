@@ -40,7 +40,7 @@ export const getWeekendDates = (year: number, month: number): string[] => {
   return weekends;
 };
 
-export const getStartAndEndDateByMonth = (year: number, month: number) => {
+export const getStartAndEndDateByMonth = (year: string, month: string) => {
   // 월의 첫 날과 마지막 날 계산
   const firstDayOfMonth: moment.Moment = moment({ year: Number(year), month: Number(month) - 1 })
     .startOf('month')
@@ -51,27 +51,34 @@ export const getStartAndEndDateByMonth = (year: number, month: number) => {
   return { firstDayOfMonth, lastDayOfMonth };
 };
 
-export const getStartAndEndDateByMonths = (year: number, monthArray: string[]) => {
+export const getStartAndEndDateByMonths = (year: string, monthArray: string[]) => {
   // 배열로 입력된 월 기준으로 시작일과 종료일 계산
   const minMonth: number = Math.min(...monthArray.map(Number));
   const maxMonth: number = Math.max(...monthArray.map(Number));
 
-  const firstDayOfMonth: moment.Moment = moment({ year: year, month: minMonth - 1 })
+  const firstDayOfMonth: moment.Moment = moment({ year: Number(year), month: minMonth - 1 })
     .startOf('month')
     .utcOffset(9);
 
-  const lastDayOfMonth: moment.Moment = moment({ year: year, month: maxMonth - 1 })
+  const lastDayOfMonth: moment.Moment = moment({ year: Number(year), month: maxMonth - 1 })
     .endOf('month')
     .utcOffset(9);
 
   return { firstDayOfMonth, lastDayOfMonth };
 };
 
-export const getTotalDaysInMonth = (year: number, month: number): number => {
+export const getTotalDaysInMonth = (year: string, month: string): number => {
   const { lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
   const totalDays: number = lastDayOfMonth.date();
 
   return totalDays;
+};
+
+export const substringYearMonth = (dateString: string): { year: string; month: string } => {
+  const year: string = dateString.substring(0, 4);
+  const month: string = parseInt(dateString.substring(5, 7), 10).toString();
+
+  return { year, month };
 };
 
 // 검색어 양 끝 및 중간 공백 제거
@@ -167,7 +174,7 @@ export const getOneYearAfterJoin = (joinDateString: string): string => {
 export const addConfirmStatusField = (confirmYN: ConfirmEnum, confirmDate: string, rejectDate: string): string => {
   switch (confirmYN) {
     case ConfirmEnum.NO:
-      return '미승인';
+      return '승인 대기';
     case ConfirmEnum.YES:
       return `${confirmDate}`;
     case ConfirmEnum.REJECT:

@@ -113,7 +113,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getTotalWelfareExpense(year: number, month: number, userIdx: number, manager: EntityManager): Promise<number> {
+  async getTotalWelfareExpense(year: string, month: string, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -196,7 +196,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getUserMonthWelfares(year: number, month: string[], userIdx: number): Promise<Welfares[]> {
+  async getUserMonthWelfares(year: string, month: string[], userIdx: number): Promise<Welfares[]> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonths(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -285,7 +285,7 @@ export class WelfareRepository {
     return transformedResult;
   }
 
-  async getWelfareStats(year: number, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareStats> {
+  async getWelfareStats(year: string, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareStats> {
     const statsInfo = await this.welfareStatsModel
       .createQueryBuilder('welfareStatsEntity')
       .select([
@@ -607,7 +607,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getWelfareMonthStatsCnt(userIdx: number, year: string, month: number): Promise<number> {
+  async getWelfareMonthStatsCnt(userIdx: number, year: string, month: string): Promise<number> {
     const refinedMonth: string = month.toString();
     const statsCnt: number = await this.welfareMonthStatsModel
       .createQueryBuilder('welfareMonthStatsEntity')

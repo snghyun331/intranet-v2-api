@@ -17,7 +17,7 @@ import {
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
-import { DeviceTypeEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
+import { IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
 import {
   InsertCheckInInfo,
   UpdateCheckInInfo,
@@ -44,12 +44,14 @@ export class CommuteService {
   async checkInWork(
     userIdx: number,
     checkInDto: CheckInDto,
+    checkInLogAgent: string,
     checkInIpAddr: string,
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkInDto.checkInTime).utcOffset(9).format('YYYY-MM-DD');
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
+    // commuteInfo가 존재하면, 이전에 등록된 휴가정보가 있음
     if (commuteInfo) {
       if (commuteInfo.checkInTime) {
         throw new BadRequestException('이미 출근이 등록되었습니다.');
@@ -87,12 +89,14 @@ export class CommuteService {
           attendance,
           commuteDate,
           checkInIpAddr,
+          checkInLogAgent,
         };
 
         /* 근태 업데이트 */
         await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo, manager);
       }
     } else {
+      // commuteInfo가 존재하지 않면, 일반 근무
       /* 지각 판별 */
       const isNormalLate: boolean =
         new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
@@ -105,6 +109,7 @@ export class CommuteService {
         attendance,
         commuteDate,
         checkInIpAddr,
+        checkInLogAgent,
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
       };
 
@@ -119,9 +124,11 @@ export class CommuteService {
     userIdx: number,
     checkOutDto: CheckOutDto,
     checkOutIpAddr: string,
+    checkOutLogAgent: string,
     manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkOutDto.checkOutTime).utcOffset(9).format('YYYY-MM-DD');
+
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
     if (!commuteInfo) {
@@ -157,7 +164,9 @@ export class CommuteService {
     ) {
       finalCheckInTime = getAmQuarterEarlyBoundary(new Date(checkInTime));
     } else if (
-      leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL &&
+      (leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL ||
+        leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF ||
+        leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER) &&
       checkInTime < getNormalEarlyBoundary(new Date(checkInTime))
     ) {
       finalCheckInTime = getNormalEarlyBoundary(new Date(checkInTime));
@@ -194,6 +203,7 @@ export class CommuteService {
       workingMinutes,
       overtimeWorkingMinutes,
       checkOutIpAddr,
+      checkOutLogAgent,
       attendance,
     };
 
@@ -210,11 +220,12 @@ export class CommuteService {
 
   async getUserCommuteRecords(userIdx: number, { pageNo, perPage }: PageNoDto, filterInfo: UserCommuteFilterDto) {
     if (!filterInfo.sDate || !filterInfo.eDate) {
-      const nowYear: number = moment().utcOffset(9).year();
-      const nowMonth: number = moment().utcOffset(9).month() + 1;
-      const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(nowYear, nowMonth);
+      const nowDate = moment().utcOffset(9);
+      const nowYear: number = nowDate.year();
+      const nowMonth: number = nowDate.month() + 1;
+      const { firstDayOfMonth } = getStartAndEndDateByMonth(nowYear.toString(), nowMonth.toString());
       filterInfo.sDate = firstDayOfMonth.format('YYYY-MM-DD');
-      filterInfo.eDate = lastDayOfMonth.format('YYYY-MM-DD');
+      filterInfo.eDate = nowDate.format('YYYY-MM-DD');
     }
 
     const userCnt: number = await this.commuteRepository.getUserCountByIdx(userIdx);
@@ -306,26 +317,22 @@ export class CommuteService {
       }
     }
 
-    /* 출퇴근 IP 및 디바이스 업데이트 */
-    const { checkInIpAddr, checkInDeviceType } =
-      commuteInfo.checkInTime !== updateDto.checkInTime
-        ? { checkInIpAddr: null, checkInDeviceType: DeviceTypeEnum.MAUNAL }
-        : { checkInIpAddr: commuteInfo.checkInIpAddr, checkInDeviceType: commuteInfo.checkInDeviceType };
+    // /* 출퇴근 IP 및 디바이스 업데이트 */
+    // const { checkInIpAddr, checkInDeviceType } =
+    //   commuteInfo.checkInTime !== updateDto.checkInTime
+    //     ? { checkInIpAddr: null, checkInDeviceType: DeviceTypeEnum.MAUNAL }
+    //     : { checkInIpAddr: commuteInfo.checkInIpAddr, checkInDeviceType: commuteInfo.checkInDeviceType };
 
-    const { checkOutIpAddr, checkOutDeviceType } = !updateDto.checkOutTime
-      ? { checkOutIpAddr: null, checkOutDeviceType: null }
-      : commuteInfo.checkOutTime !== updateDto.checkOutTime
-        ? { checkOutIpAddr: null, checkOutDeviceType: DeviceTypeEnum.MAUNAL }
-        : { checkOutIpAddr: commuteInfo.checkOutIpAddr, checkOutDeviceType: commuteInfo.checkOutDeviceType };
+    // const { checkOutIpAddr, checkOutDeviceType } = !updateDto.checkOutTime
+    //   ? { checkOutIpAddr: null, checkOutDeviceType: null }
+    //   : commuteInfo.checkOutTime !== updateDto.checkOutTime
+    //     ? { checkOutIpAddr: null, checkOutDeviceType: DeviceTypeEnum.MAUNAL }
+    //     : { checkOutIpAddr: commuteInfo.checkOutIpAddr, checkOutDeviceType: commuteInfo.checkOutDeviceType };
 
     const updateInfo: UpdateCommuteTimeInfo = {
       ...updateDto,
       workingMinutes,
       overtimeWorkingMinutes,
-      checkInIpAddr,
-      checkOutIpAddr,
-      checkInDeviceType,
-      checkOutDeviceType,
       attendance,
     };
 
@@ -343,5 +350,48 @@ export class CommuteService {
     await this.commuteRepository.updateCommuteNote(commuteIdx, noteInfo, manager);
 
     return;
+  }
+
+  async getUserWeelyWorkHours(userIdx: number, year: string, month: string) {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+
+    const dailyWorkData = await this.commuteRepository.getUserWorkHoursByMonth(userIdx, startDate, endDate);
+
+    const startWeekNumOfYear: number = moment(startDate).isoWeek(); // 올해 기준 몇 주차
+    const lastWeekNumOfYear: number = moment(endDate).isoWeek(); // 올해 기준 몇 주차
+    const weeklyWorkMap: Record<number, { start: string; end: string; hours: number }> = {};
+
+    // 주차별 데이터를 저장할 객체 초기화
+    for (let i = startWeekNumOfYear; i <= lastWeekNumOfYear; i++) {
+      const weekStartDate: string = moment(startDate).isoWeek(i).startOf('isoWeek').format('YYYY-MM-DD');
+      const weekEndDate: string = moment(weekStartDate).endOf('isoWeek').format('YYYY-MM-DD');
+
+      weeklyWorkMap[i - startWeekNumOfYear + 1] = { start: weekStartDate, end: weekEndDate, hours: 0 };
+    }
+
+    // 출근 데이터를 주차별로 그룹화하여 합산
+    dailyWorkData.forEach(({ commuteDate, workingMinutes }) => {
+      const week = moment(commuteDate).isoWeek() - startWeekNumOfYear + 1;
+      if (weeklyWorkMap[week]) {
+        weeklyWorkMap[week].hours += Math.round((workingMinutes / 60) * 100) / 100;
+      }
+    });
+
+    const weeklyWorkHours = Object.entries(weeklyWorkMap).map(([week, { start, end, hours }]) => ({
+      week: Number(week),
+      start,
+      end,
+      hours,
+    }));
+
+    const result = {
+      year,
+      month,
+      weeklyWorkHours,
+    };
+
+    return result;
   }
 }

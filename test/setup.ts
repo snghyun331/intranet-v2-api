@@ -26,8 +26,6 @@ beforeAll(async () => {
 
   await dataSource.initialize();
 
-  console.log('✅ 테스트 컨테이너 TypeORM 초기화 성공');
-
   // 데이터 시딩
   await seedTeam(dataSource);
   await seedHeadquarter(dataSource);

@@ -77,7 +77,6 @@ export const USERS_INTRANET_CHECK_OUT: SwaggerMethod = {
         a: {
           summary: '정상 퇴근',
           value: {
-            checkOutDeviceType: 'PC',
             checkOutTime: '2025-01-13T09:16:15.759Z',
             earlyLeaveReason: null,
           },
@@ -85,7 +84,6 @@ export const USERS_INTRANET_CHECK_OUT: SwaggerMethod = {
         b: {
           summary: '조기 퇴근',
           value: {
-            checkOutDeviceType: 'PC',
             checkOutTime: '2025-01-13T04:16:15.759Z',
             earlyLeaveReason: '워크샵 조기퇴근',
           },
@@ -178,10 +176,72 @@ export const USERS_INTRAENT_COMMUTE: SwaggerMethod = {
                   note: null,
                   checkInIpAddr: '172.18.0.1',
                   checkOutIpAddr: null,
-                  checkInDeviceType: 'PC',
-                  checkOutDeviceType: null,
+                  checkInLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+                  checkOutLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                   createdAt: '2025-03-04T08:45:49.692Z',
                   updatedAt: '2025-03-04T08:45:49.692Z',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const USERS_INTRANET_COMMUTE_WORK_HOURS: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 이번달 업무시간 조회(차트)',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              year: '2025',
+              month: '3',
+              weeklyWorkHours: [
+                {
+                  week: 1,
+                  start: '2025-02-24',
+                  end: '2025-03-02',
+                  hours: 0,
+                },
+                {
+                  week: 2,
+                  start: '2025-03-03',
+                  end: '2025-03-09',
+                  hours: 9.98,
+                },
+                {
+                  week: 3,
+                  start: '2025-03-10',
+                  end: '2025-03-16',
+                  hours: 9.22,
+                },
+                {
+                  week: 4,
+                  start: '2025-03-17',
+                  end: '2025-03-23',
+                  hours: 9.22,
+                },
+                {
+                  week: 5,
+                  start: '2025-03-24',
+                  end: '2025-03-30',
+                  hours: 18.97,
+                },
+                {
+                  week: 6,
+                  start: '2025-03-31',
+                  end: '2025-04-06',
+                  hours: 0,
                 },
               ],
             },
@@ -254,8 +314,10 @@ export const ADMIN_INTRANET_COMMUTE: SwaggerMethod = {
                   note: null,
                   checkInIpAddr: '172.18.0.1',
                   checkOutIpAddr: '172.18.0.1',
-                  checkInDeviceType: 'PC',
-                  checkOutDeviåceType: 'PC',
+                  checkInLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+                  checkOutLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                   confirmYN: 'N',
                   confirmDate: null,
                   createdAt: '2025-02-26T06:48:28.615Z',
@@ -281,8 +343,10 @@ export const ADMIN_INTRANET_COMMUTE: SwaggerMethod = {
                   note: null,
                   checkInIpAddr: '172.18.0.1',
                   checkOutIpAddr: '172.18.0.1',
-                  checkInDeviceType: 'PC',
-                  checkOutDeviåceType: 'PC',
+                  checkInLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+                  checkOutLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                   confirmYN: 'N',
                   confirmDate: null,
                   createdAt: '2025-02-26T06:48:00.439Z',

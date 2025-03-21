@@ -16,6 +16,7 @@ import {
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField } from '../../../../common/utils/utility';
+import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
 
 @Injectable()
 export class CommuteRepository {
@@ -115,8 +116,8 @@ export class CommuteRepository {
         'commuteEntity.note AS note',
         'commuteEntity.checkInIpAddr AS checkInIpAddr',
         'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
-        'commuteEntity.checkInDeviceType AS checkInDeviceType',
-        'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
+        'commuteEntity.checkInLogAgent AS checkInLogAgent',
+        'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
@@ -174,8 +175,8 @@ export class CommuteRepository {
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
-        'commuteEntity.checkInDeviceType AS checkInDeviceType',
-        'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
+        'commuteEntity.checkInLogAgent AS checkInLogAgent',
+        'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
       ])
       .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
       .getRawOne();
@@ -233,8 +234,8 @@ export class CommuteRepository {
         'commuteEntity.note AS note',
         'commuteEntity.checkInIpAddr AS checkInIpAddr',
         'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
-        'commuteEntity.checkInDeviceType AS checkInDeviceType',
-        'commuteEntity.checkOutDeviceType AS checkOutDeviceType',
+        'commuteEntity.checkInLogAgent AS checkInLogAgent',
+        'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
         'commuteEntity.createdAt AS createdAt',
         'commuteEntity.updatedAt AS updatedAt',
       ])
@@ -268,5 +269,20 @@ export class CommuteRepository {
     );
 
     return { totalPage, total, records: result };
+  }
+
+  async getUserWorkHoursByMonth(userIdx: number, startDate: string, endDate: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['commuteEntity.commuteDate AS commuteDate', `commuteEntity.working_minutes AS workingMinutes`])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .getRawMany();
+
+    return result;
   }
 }

@@ -72,9 +72,7 @@ export class UserMealController {
     @Query('month') month: string = moment().utcOffset(9).format('MM'),
     @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseInterface> {
-    const yearToNum: number = Number(year);
-    const monthToNum: number = Number(month);
-    const meals: MealCalenderResult = await this.mealService.getMyMeal(yearToNum, monthToNum, userIdx);
+    const meals: MealCalenderResult = await this.mealService.getMyMeal(year, month, userIdx);
 
     const response: ResponseInterface = { message: '식대 사용내역 조회 성공', data: meals };
 

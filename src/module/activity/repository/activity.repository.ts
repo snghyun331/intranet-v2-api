@@ -88,8 +88,8 @@ export class ActivityRepository {
   }
 
   async getTotalActivityExpense(
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     payerName: string,
     manager: EntityManager,
   ): Promise<number> {
@@ -112,19 +112,17 @@ export class ActivityRepository {
   async updateMonthlyActivityStats(
     activityMonthExpense: number,
     year: string,
-    month: number,
+    month: string,
     userIdx: number,
     manager: EntityManager,
   ): Promise<UpdateResult> {
-    const refinedMonth: string = month.toString();
-
     return await manager
       .createQueryBuilder()
       .update(ActivityMonthlyStatsEntity)
       .set({ activityMonthExpense })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('year = :year', { year })
-      .andWhere('month = :month', { month: refinedMonth })
+      .andWhere('month = :month', { month })
       .execute();
   }
 
@@ -165,7 +163,7 @@ export class ActivityRepository {
       .execute();
   }
 
-  async getMonthActivities(year: number, month: string[], user: UserPayload) {
+  async getMonthActivities(year: string, month: string[], user: UserPayload) {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonths(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -230,7 +228,7 @@ export class ActivityRepository {
     return result;
   }
 
-  async getActivityStats(year: number, halfYear: HalfYearEnum, user: UserPayload): Promise<ActivityStats> {
+  async getActivityStats(year: string, halfYear: HalfYearEnum, user: UserPayload): Promise<ActivityStats> {
     const query: SelectQueryBuilder<ActivityStatsEntity> = this.activityStatsModel
       .createQueryBuilder('activityStatsEntity')
       .select([
@@ -464,13 +462,12 @@ export class ActivityRepository {
       .execute();
   }
 
-  async getActivityMonthStatsCnt(userIdx: number, year: string, month: number): Promise<number> {
-    const refinedMonth: string = month.toString();
+  async getActivityMonthStatsCnt(userIdx: number, year: string, month: string): Promise<number> {
     const statsCnt: number = await this.activityMonthStatsModel
       .createQueryBuilder('activityMonthStatsEntity')
       .where('activityMonthStatsEntity.userIdx = :userIdx', { userIdx })
       .andWhere('activityMonthStatsEntity.year = :year', { year })
-      .andWhere('activityMonthStatsEntity.month = :month', { month: refinedMonth })
+      .andWhere('activityMonthStatsEntity.month = :month', { month })
       .getCount();
 
     return statsCnt;

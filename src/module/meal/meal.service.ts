@@ -13,7 +13,7 @@ import {
 } from './interface/result.interface';
 import { AdminMealBalanceFilterDto, AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
-import { getTotalDaysInMonth } from '../../common/utils/utility';
+import { getTotalDaysInMonth, substringYearMonth } from '../../common/utils/utility';
 import { NewMealStats } from '../scheduler/interface/meal.interface';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
@@ -23,7 +23,7 @@ import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '../../common/consta
 export class MealService {
   constructor(private readonly mealRepository: MealRepository) {}
 
-  async getMyMeal(year: number, month: number, userIdx: number): Promise<MealCalenderResult> {
+  async getMyMeal(year: string, month: string, userIdx: number): Promise<MealCalenderResult> {
     const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -93,8 +93,7 @@ export class MealService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const year: number = Number(newMealInfo.targetDay.substring(0, 4));
-    const month: number = Number(newMealInfo.targetDay.substring(5, 7));
+    const { year, month } = substringYearMonth(newMealInfo.targetDay);
 
     // 아직 해당 월에 대한 meal_stats가 등록되지 않았다면 등록 불가 처리
     const mealStats: MealStats = await this.mealRepository.getMyMealStats(year, month, userIdx);
@@ -279,8 +278,7 @@ export class MealService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const year: number = Number(targetDay.substring(0, 4));
-    const month: number = Number(targetDay.substring(5, 7));
+    const { year, month } = substringYearMonth(targetDay);
 
     await this.mealRepository.deleteMyMeal(userIdx, targetDay, manager);
 
@@ -366,13 +364,13 @@ export class MealService {
     const mealStatsCnt: number = await this.mealRepository.getMealStatsCount(mealBudgetInfo.year, mealBudgetInfo.month);
     /* 기록이 없다면 통계 create (기록이 있다면 mealBudget은 트리거에 의해 자동 업데이트)*/
     if (mealStatsCnt < 1) {
-      const yearToNum = Number(mealBudgetInfo.year);
-      const monthToNum = Number(mealBudgetInfo.month);
+      const year: string = mealBudgetInfo.year;
+      const month = parseInt(mealBudgetInfo.month, 10).toString();
       // holidays 불러오기
-      const holidayDates: string[] = await this.mealRepository.getHolidayDates(yearToNum, monthToNum);
+      const holidayDates: string[] = await this.mealRepository.getHolidayDates(year, month);
       // workdays 불러오기
       const holidays: number = holidayDates.length;
-      const totalDays: number = getTotalDaysInMonth(yearToNum, monthToNum);
+      const totalDays: number = getTotalDaysInMonth(year, month);
       const workdays: number = totalDays - holidays;
       // 식대 사용가능한 모든 유저의 IDX 불러오기
       const userIdxList: number[] = await this.mealRepository.getAllUserIdxExceptCEO();
@@ -398,13 +396,13 @@ export class MealService {
       pageNoInfo,
       filterInfo,
     );
-    const yearToNum = Number(filterInfo.year);
-    const monthToNum = Number(filterInfo.month);
+    const year: string = filterInfo.year;
+    const month: string = parseInt(filterInfo.month, 10).toString();
     // holidays 불러오기
-    const holidayDates: string[] = await this.mealRepository.getHolidayDates(yearToNum, monthToNum);
+    const holidayDates: string[] = await this.mealRepository.getHolidayDates(year, month);
     // workdays 불러오기
     const holidays: number = holidayDates.length;
-    const totalDays: number = getTotalDaysInMonth(yearToNum, monthToNum);
+    const totalDays: number = getTotalDaysInMonth(year, month);
     const workdays: number = totalDays - holidays;
 
     return { totalPage, total, workdays, mealBudget };
@@ -456,10 +454,7 @@ export class MealService {
       throw new BadRequestException('해당 IDX에 대한 정보가 존재하지 않습니다.');
     }
     const { userIdx, year, month } = mealStatsInfo;
-    const yearToNum: number = Number(year);
-    const monthToNum: number = Number(month);
-
-    const mealDetailInfo: MealEntity[] = await this.mealRepository.getMealDetail(yearToNum, monthToNum, userIdx);
+    const mealDetailInfo: MealEntity[] = await this.mealRepository.getMealDetail(year, month, userIdx);
 
     return mealDetailInfo;
   }
