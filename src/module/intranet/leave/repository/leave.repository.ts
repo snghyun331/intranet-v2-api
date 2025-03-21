@@ -20,6 +20,7 @@ import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commu
 import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 import * as moment from 'moment';
+import { ComuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
 
 @Injectable()
 export class LeaveRepository {
@@ -256,6 +257,7 @@ export class LeaveRepository {
     return result;
   }
 
+  // 추후 쿼리 튜닝 필요,,
   async getUserLeaveDetail({ year, month, ...filter }: AdminLeaveDetailFilterDto, userIdx: number) {
     // 해당 월의 첫 번째 날과 마지막 날을 구함
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
@@ -282,8 +284,12 @@ export class LeaveRepository {
         'commuteEntity.updatedAt AS updatedAt',
 
         // 추가: 승인 가능자 정보 가져오기
-        'commuteApproverEntity.userIdx AS approverIdx',
+        'commuteApproverEntity.approverIdx AS approverIdx',
         'approverUserEntity.userName AS approverName',
+
+        // 추가: 참조자 정보 가져오기
+        'commuteCCUserEntity.ccUserIdx AS ccUserIdx',
+        'ccUserEntity.userName AS ccUserName',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .leftJoin(UserEntity, 'confirmUserEntity', 'confirmUserEntity.userIdx = commuteEntity.confirmPersonIdx')
@@ -292,7 +298,9 @@ export class LeaveRepository {
         'commuteApproverEntity',
         'commuteApproverEntity.commuteIdx = commuteEntity.commuteIdx',
       )
-      .leftJoin(UserEntity, 'approverUserEntity', 'approverUserEntity.userIdx = commuteApproverEntity.userIdx')
+      .leftJoin(UserEntity, 'approverUserEntity', 'approverUserEntity.userIdx = commuteApproverEntity.approverIdx')
+      .leftJoin(ComuteCCUserEntity, 'commuteCCUserEntity', 'commuteCCUserEntity.commuteIdx = commuteEntity.commuteIdx')
+      .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = commuteCCUserEntity.ccUserIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
         firstDayOfMonthToString,
@@ -344,14 +352,29 @@ export class LeaveRepository {
     return result;
   }
 
-  async createLeaveApproverList(commuteIdx: number, userIdxs: number[], manager: EntityManager) {
+  async createLeaveApproverList(commuteIdx: number, approverIdxs: number[], manager: EntityManager): Promise<void> {
     await Promise.all(
-      userIdxs.map(async (userIdx) => {
+      approverIdxs.map(async (approverIdx) => {
         await manager
           .createQueryBuilder()
           .insert()
           .into(CommuteApproverEntity)
-          .values({ commuteIdx, userIdx })
+          .values({ commuteIdx, approverIdx })
+          .execute();
+      }),
+    );
+
+    return;
+  }
+
+  async createLeaveCCUserList(commuteIdx: number, ccUserIdxs: number[], manager: EntityManager): Promise<void> {
+    await Promise.all(
+      ccUserIdxs.map(async (ccUserIdx) => {
+        await manager
+          .createQueryBuilder()
+          .insert()
+          .into(ComuteCCUserEntity)
+          .values({ commuteIdx, ccUserIdx })
           .execute();
       }),
     );

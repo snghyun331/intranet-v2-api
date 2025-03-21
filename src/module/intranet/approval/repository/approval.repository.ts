@@ -30,7 +30,7 @@ export class ApprovalRepository {
         'commuteEntity.commuteIdx AS commuteIdx',
         'commuteEntity.userIdx AS userIdx',
         'commuteEntity.commuteDate AS commuteDate',
-        'commuteApproverEntity.userIdx AS approverIdx',
+        'commuteApproverEntity.approverIdx AS approverIdx',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
       ])

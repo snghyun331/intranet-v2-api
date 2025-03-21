@@ -16,6 +16,7 @@ import {
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField } from '../../../../common/utils/utility';
+import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
 
 @Injectable()
 export class CommuteRepository {
@@ -268,5 +269,20 @@ export class CommuteRepository {
     );
 
     return { totalPage, total, records: result };
+  }
+
+  async getUserWorkHoursByMonth(userIdx: number, startDate: string, endDate: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['commuteEntity.commuteDate AS commuteDate', `commuteEntity.working_minutes AS workingMinutes`])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .getRawMany();
+
+    return result;
   }
 }

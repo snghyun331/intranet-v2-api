@@ -149,7 +149,7 @@ export class UserLeaveController {
   }
 
   @ApiOperation(USERS_INTRANET_LEAVE_DETAIL.GET.API_OPERATION)
-  @ApiOkResponse(USERS_INTRANET_LEAVE_DETAIL.GET.API_OPERATION)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_DETAIL.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
