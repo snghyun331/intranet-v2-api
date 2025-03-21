@@ -35,11 +35,11 @@ export class LeaveService {
     leaveImage?: Express.Multer.File,
   ): Promise<void> {
     const userIdx: number = user.userIdx;
-    const { leaveInfo, approverIdxs, note } = dto;
+    const { leaveInfo, approverIdxs, ccUserIdxs, note } = dto;
     const nowYear: number = moment().utcOffset(9).year();
     const nowMonth: number = moment().utcOffset(9).month() + 1;
 
-    // CEO이면, 아무 조건 없이 휴가 등록 및 자동승인
+    /* CEO이면, 아무 조건 없이 휴가 등록 및 자동승인 */
     if (user.gradeName === UserGradeEnum.CEO) {
       await Promise.all(
         leaveInfo.map(async (leave) => {
@@ -148,8 +148,13 @@ export class LeaveService {
         }
 
         const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
+        // 승인 가능자 모두 저장
         if (approverIdxs !== null) {
           await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs, manager);
+        }
+        // 참조자 모두 저장
+        if (ccUserIdxs !== null) {
+          await this.leaveRepository.createLeaveCCUserList(commuteIdx, ccUserIdxs, manager);
         }
 
         if (leaveImage) {
@@ -344,14 +349,31 @@ export class LeaveService {
     const leaveDetailsWithApprovers = leaveDetails.reduce((acc, row) => {
       // 기존 commuteIdx가 있는지 확인
       const existing = acc.find((item: any) => item.commuteIdx === row.commuteIdx);
+      console.log(row);
       const approverInfo = {
         approverIdx: row.approverIdx,
         approverName: row.approverName,
       };
+      const ccUserInfo = {
+        ccUserIdx: row.ccUserIdx,
+        ccUserName: row.ccUserName,
+      };
+      console.log('approverInfo', approverInfo);
+      console.log('ccUserInfo', ccUserInfo);
       if (existing) {
         // 같은 commuteIdx이면 approverInfo 리스트에 추가
         if (row.approverIdx) {
-          existing.approverInfo.push(approverInfo);
+          const isIdxAlreadyExists = existing.approverInfo.some((user: any) => user.approverIdx === row.approverIdx);
+          if (!isIdxAlreadyExists) {
+            existing.approverInfo.push(approverInfo);
+          }
+        }
+        // 같은 commuteIdx이면 ccUserInfo 리스트에 추가
+        if (row.ccUserIdx) {
+          const isIdxAlreadyExists = existing.ccUserInfo.some((user: any) => user.ccUserIdx === row.ccUserIdx);
+          if (!isIdxAlreadyExists) {
+            existing.ccUserInfo.push(ccUserInfo);
+          }
         }
       } else {
         // 새로운 commuteIdx이면 새로운 객체 생성
@@ -372,6 +394,7 @@ export class LeaveService {
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
           approverInfo: row.approverIdx ? [approverInfo] : [],
+          ccUserInfo: row.ccUserIdx ? [ccUserInfo] : [],
         });
       }
       return acc;

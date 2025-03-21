@@ -19,6 +19,7 @@ import { CommuteApproverEntity } from '../intranet/commute/commuteApprover.entit
 import { LeaveMonthlyUsageEntity } from '../intranet/leave/leaveMonthlyUsage.entity';
 import { LeaveUsageEntity } from '../intranet/leave/leaveUsage.entity';
 import { LeaveStatsEntity } from '../intranet/leave/leaveStats.entity';
+import { ComuteCCUserEntity } from '../intranet/commute/commuteCCUser.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -136,6 +137,9 @@ export class UserEntity extends CommonEntity {
 
   @OneToMany(() => CommuteApproverEntity, (commuteApprover) => commuteApprover.userIdxRelation)
   commuteApproverRelation: CommuteApproverEntity[];
+
+  @OneToMany(() => ComuteCCUserEntity, (commuteCCUser) => commuteCCUser.userIdxRelation)
+  commuteCCUserRelation: ComuteCCUserEntity[];
 
   @OneToMany(() => LeaveMonthlyUsageEntity, (monthlyUseCount) => monthlyUseCount.userIdxRelation)
   monthlyUseCountRelation: LeaveMonthlyUsageEntity[];
