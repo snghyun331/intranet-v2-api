@@ -69,6 +69,7 @@ export class ActivityRepository {
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx'])
       .where('userEntity.userName = :userName', { userName })
+      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     return result;
@@ -278,7 +279,8 @@ export class ActivityRepository {
       .where('activityEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
-      });
+      })
+      .andWhere('userEntity.userAvail IS NULL');
 
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
@@ -346,6 +348,7 @@ export class ActivityRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('activityStatsEntity.year = :year', { year })
       .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear })
+      .andWhere('userEntity.userAvail IS NULL')
       .orderBy('userEntity.gradeIdx', 'ASC')
       .addOrderBy('userEntity.userName', 'ASC')
       .getRawMany();
@@ -426,7 +429,8 @@ export class ActivityRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .where('activityStatsEntity.year = :year', { year });
+      .where('activityStatsEntity.year = :year', { year })
+      .andWhere('userEntity.userAvail IS NULL');
 
     if (halfYear) {
       query.andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear });

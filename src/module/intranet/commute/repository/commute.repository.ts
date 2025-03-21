@@ -132,7 +132,8 @@ export class CommuteRepository {
       .where('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
-      });
+      })
+      .andWhere('userEntity.userAvail IS NULL');
 
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);

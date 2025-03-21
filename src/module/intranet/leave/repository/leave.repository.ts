@@ -241,6 +241,7 @@ export class LeaveRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
       .andWhere('leaveStatsEntity.year = :year', { year })
+      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     return result;

@@ -86,6 +86,7 @@ export class UserRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     const commuteInfo = await this.commuteModel
@@ -145,7 +146,8 @@ export class UserRepository {
       .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .leftJoin(AdminEntity, 'adminEntity', 'adminEntity.userIdx = userEntity.userIdx');
+      .leftJoin(AdminEntity, 'adminEntity', 'adminEntity.userIdx = userEntity.userIdx')
+      .where('userEntity.userAvail IS NULL');
 
     if (filterInfo.gradeIdx) {
       query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
@@ -238,6 +240,7 @@ export class UserRepository {
       .createQueryBuilder('userEntity')
       .select(['userEntity.password AS password'])
       .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     const { password } = result;

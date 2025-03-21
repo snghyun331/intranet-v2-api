@@ -15,7 +15,6 @@ export const USERS_INTRANET_CHECK_IN: SwaggerMethod = {
         a: {
           summary: '예시',
           value: {
-            checkInDeviceType: 'PC',
             checkInTime: '2025-01-13T00:16:15.759Z',
           },
         },
