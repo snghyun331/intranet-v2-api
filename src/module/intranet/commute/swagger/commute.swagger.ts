@@ -176,8 +176,10 @@ export const USERS_INTRAENT_COMMUTE: SwaggerMethod = {
                   note: null,
                   checkInIpAddr: '172.18.0.1',
                   checkOutIpAddr: null,
-                  checkInLogAgent: 'PC',
-                  checkOutLogAgent: null,
+                  checkInLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+                  checkOutLogAgent:
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                   createdAt: '2025-03-04T08:45:49.692Z',
                   updatedAt: '2025-03-04T08:45:49.692Z',
                 },
