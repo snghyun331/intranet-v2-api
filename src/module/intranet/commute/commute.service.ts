@@ -317,18 +317,6 @@ export class CommuteService {
       }
     }
 
-    // /* 출퇴근 IP 및 디바이스 업데이트 */
-    // const { checkInIpAddr, checkInDeviceType } =
-    //   commuteInfo.checkInTime !== updateDto.checkInTime
-    //     ? { checkInIpAddr: null, checkInDeviceType: DeviceTypeEnum.MAUNAL }
-    //     : { checkInIpAddr: commuteInfo.checkInIpAddr, checkInDeviceType: commuteInfo.checkInDeviceType };
-
-    // const { checkOutIpAddr, checkOutDeviceType } = !updateDto.checkOutTime
-    //   ? { checkOutIpAddr: null, checkOutDeviceType: null }
-    //   : commuteInfo.checkOutTime !== updateDto.checkOutTime
-    //     ? { checkOutIpAddr: null, checkOutDeviceType: DeviceTypeEnum.MAUNAL }
-    //     : { checkOutIpAddr: commuteInfo.checkOutIpAddr, checkOutDeviceType: commuteInfo.checkOutDeviceType };
-
     const updateInfo: UpdateCommuteTimeInfo = {
       ...updateDto,
       workingMinutes,

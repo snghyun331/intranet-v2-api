@@ -20,6 +20,8 @@ import { NoticeModule } from './notice/notice.module';
 import { AwsModule } from './aws/aws.module';
 import { IntranetModule } from './intranet/intranet.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { REDIS_CONFIG } from '../config/redis.config';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     WinstonModule.forRoot(WINSTON_CONFIG),
     TypeOrmModule.forRootAsync(TYPEORM_CONFIG),
     MongooseModule.forRootAsync(MONGOOSE_CONFIG),
+    RedisModule.forRootAsync(REDIS_CONFIG),
     SchedulerModule,
     AuthModule,
     MealModule,
