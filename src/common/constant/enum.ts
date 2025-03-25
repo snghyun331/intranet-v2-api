@@ -117,9 +117,3 @@ export enum AdminGradeEnum {
   HIGH_ADMIN = '상위 관리자',
   NORMAL_ADMIN = '일반 관리자',
 }
-
-export enum DeviceTypeEnum {
-  PC = 'PC',
-  MOBILE = 'MOBILE',
-  MAUNAL = 'MANUAL',
-}
