@@ -7,6 +7,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { LunchGroupConfig, LunchGroupConfigSchema } from '../../schema/lunchGroup/lunchGroupConfig.schema';
 import { LunchGroupMember, LunchGroupMemberSchema } from '../../schema/lunchGroup/lunchGroupMember.schema';
 import { PlayGroundModel } from './model/playground.model';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { RedisService } from '../redis/redis.service';
 
 @Module({
   imports: [
@@ -15,8 +17,9 @@ import { PlayGroundModel } from './model/playground.model';
       { name: LunchGroupConfig.name, schema: LunchGroupConfigSchema },
       { name: LunchGroupMember.name, schema: LunchGroupMemberSchema },
     ]),
+    RedisModule,
   ],
-  providers: [PlaygroundService, PlayGroundModel, Logger],
+  providers: [PlaygroundService, RedisService, PlayGroundModel, Logger],
   controllers: [UserPlaygroundController, AdminPlaygroundController],
 })
 export class PlaygroundModule {}

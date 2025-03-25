@@ -6,4 +6,5 @@ export interface SetLunchGroup {
   sDate: string;
   eDate: string;
   notice: string;
+  expireAt: Date;
 }

@@ -349,7 +349,7 @@ export class LeaveService {
     const leaveDetailsWithApprovers = leaveDetails.reduce((acc, row) => {
       // 기존 commuteIdx가 있는지 확인
       const existing = acc.find((item: any) => item.commuteIdx === row.commuteIdx);
-      console.log(row);
+
       const approverInfo = {
         approverIdx: row.approverIdx,
         approverName: row.approverName,
@@ -358,8 +358,7 @@ export class LeaveService {
         ccUserIdx: row.ccUserIdx,
         ccUserName: row.ccUserName,
       };
-      console.log('approverInfo', approverInfo);
-      console.log('ccUserInfo', ccUserInfo);
+
       if (existing) {
         // 같은 commuteIdx이면 approverInfo 리스트에 추가
         if (row.approverIdx) {
