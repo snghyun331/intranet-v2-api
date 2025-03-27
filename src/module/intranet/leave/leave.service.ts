@@ -418,14 +418,17 @@ export class LeaveService {
 
     // 누적 잔여 연차 수 계산
     let remainingAnnualLeaveQuota: number = totalReceivedAnnualLeave;
-    const result = updatedLeaveDetails.map((leaveDetail) => {
+    const calculatedLeaveDetails = updatedLeaveDetails.map((leaveDetail) => {
       remainingAnnualLeaveQuota -= leaveDetail.annualLeaveReduceUnit;
-
       return {
         ...leaveDetail,
         remainingAnnualLeaveQuota,
       };
     });
+
+    const result = calculatedLeaveDetails.sort(
+      (a, b) => new Date(b.commuteDate).getTime() - new Date(a.commuteDate).getTime(),
+    );
 
     return result;
   }
