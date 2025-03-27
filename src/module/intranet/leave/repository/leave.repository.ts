@@ -33,6 +33,26 @@ export class LeaveRepository {
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
   ) {}
 
+  async getUserInfoByIdx(userIdx: number) {
+    const result = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select([
+        'userEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'userEntity.joinDate AS joinDate',
+        'hqEntity.hqName AS hqName',
+        'teamEntity.teamName AS teamName',
+        'gradeEntity.gradeName AS gradeName',
+      ])
+      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .getRawOne();
+
+    return result;
+  }
+
   async getCommuteCountByIdx(commuteIdx: number): Promise<number> {
     const result: number = await this.commuteModel
       .createQueryBuilder('commuteEntity')
@@ -316,7 +336,7 @@ export class LeaveRepository {
       });
     }
 
-    query.orderBy('commuteEntity.createdAt', 'ASC');
+    query.orderBy('commuteEntity.createdAt', 'ASC'); // 누적 잔여 연차 수 계산을 위한 createdAt 기준 오름차순 정렬
 
     const result = await query.getRawMany();
 

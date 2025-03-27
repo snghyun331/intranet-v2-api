@@ -219,11 +219,37 @@ export class LeaveService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
+    // 사용 휴가 수 초기화
+    const leaveUsageStats = {
+      fullLeaveUsage: 0,
+      halfLeaveUsage: 0,
+      quarterLeaveUsage: 0,
+      specialLeaveUsage: 0,
+      alternativeLeaveUsage: 0,
+      sickLeaveUsage: 0,
+      trainingLeaveUsage: 0,
+      familyEventLeaveUsage: 0,
+      healthLeaveUsage: 0,
+    };
+
     // 사용자 휴가 요약정보 조회
     const leaveStats = await this.leaveRepository.getUserLeaveStats(year, userIdx);
 
     if (!leaveStats) {
-      return { leaveSummary: {}, leaveUsageStats: {} };
+      const userInfo = await this.leaveRepository.getUserInfoByIdx(userIdx);
+      return {
+        leaveSummary: {
+          ...userInfo,
+          year,
+          totalReceivedAnnualLeave: 0,
+          totalAnnualLeaveUsage: 0,
+          totalAnnualLeaveBalance: 0,
+          yearsSinceJoin: 0,
+          oneYearAfterJoin: 0,
+          midJoinReceivedAnnualLeave: 0,
+        },
+        leaveUsageStats,
+      };
     }
 
     const leaveSummary: LeaveSummary = {
@@ -240,18 +266,6 @@ export class LeaveService {
 
     // 휴가 종류별 사용현황 조회
     const leaveUsageInfo = await this.leaveRepository.getUserLeaveUsageInfo(year, userIdx);
-
-    const leaveUsageStats = {
-      fullLeaveUsage: 0,
-      halfLeaveUsage: 0,
-      quarterLeaveUsage: 0,
-      specialLeaveUsage: 0,
-      alternativeLeaveUsage: 0,
-      sickLeaveUsage: 0,
-      trainingLeaveUsage: 0,
-      familyEventLeaveUsage: 0,
-      healthLeaveUsage: 0,
-    };
 
     leaveUsageInfo.forEach((row) => {
       if (HALF_ANNUAL_LEAVE_LISTS.has(row.leaveTypeIdx)) {
@@ -426,6 +440,7 @@ export class LeaveService {
       };
     });
 
+    // commuteDate 기준으로 다시 내림차순 정렬
     const result = calculatedLeaveDetails.sort(
       (a, b) => new Date(b.commuteDate).getTime() - new Date(a.commuteDate).getTime(),
     );
