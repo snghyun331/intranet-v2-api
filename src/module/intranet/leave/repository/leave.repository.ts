@@ -316,6 +316,8 @@ export class LeaveRepository {
       });
     }
 
+    query.orderBy('commuteEntity.commuteDate', 'DESC');
+
     const result = await query.getRawMany();
 
     return result;
