@@ -61,7 +61,7 @@ export class LeaveRepository {
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ ...leaveInfo, note, userIdx })
+      .values({ leaveTypeIdx: Number(leaveInfo.leaveTypeIdx), ...leaveInfo, note, userIdx })
       .execute();
 
     const commuteIdx: number = result.identifiers[0].commuteIdx;
@@ -360,7 +360,7 @@ export class LeaveRepository {
           .createQueryBuilder()
           .insert()
           .into(CommuteApproverEntity)
-          .values({ commuteIdx, approverIdx })
+          .values({ commuteIdx, approverIdx: Number(approverIdx) })
           .execute();
       }),
     );
@@ -375,7 +375,7 @@ export class LeaveRepository {
           .createQueryBuilder()
           .insert()
           .into(ComuteCCUserEntity)
-          .values({ commuteIdx, ccUserIdx })
+          .values({ commuteIdx, ccUserIdx: Number(ccUserIdx) })
           .execute();
       }),
     );

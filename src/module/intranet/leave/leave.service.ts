@@ -47,10 +47,10 @@ export class LeaveService {
           if (!dateStringFormat.test(leave.commuteDate)) {
             throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
           }
-          if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leave.leaveTypeIdx)) {
+          const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
+          if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
             throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
           }
-
           // 휴가등록
           const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
           if (leaveImage) {
@@ -75,7 +75,7 @@ export class LeaveService {
             // 2. DB에 저장
             await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
           }
-          // 자동승인
+          // 3. 자동승인
           await this.leaveRepository.autoApprove(commuteIdx, userIdx, manager);
         }),
       );
@@ -89,12 +89,13 @@ export class LeaveService {
         if (!dateStringFormat.test(leave.commuteDate)) {
           throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
         }
-        if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leave.leaveTypeIdx)) {
+        const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
+        if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
           throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
         }
 
         // 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가
-        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
+        if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
           // 보건 휴가 월 사용 개수 조회
           const { healthMonthlyUseCount } = await this.leaveRepository.getHealthMonthlyUseCount(
             userIdx,
@@ -115,7 +116,7 @@ export class LeaveService {
         );
 
         // 잔여 연차가 1미만이면 연차 사용 불가
-        if (leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE) {
+        if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE) {
           if (totalAnnualLeaveBalance < 1) {
             throw new BadRequestException(
               '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
@@ -124,10 +125,7 @@ export class LeaveService {
         }
 
         // 잔여 연차가 0.5미만이면 반차 사용 불가
-        if (
-          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_HALF ||
-          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF
-        ) {
+        if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_HALF || leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF) {
           if (totalAnnualLeaveBalance < 0.5) {
             throw new BadRequestException(
               '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
@@ -137,8 +135,8 @@ export class LeaveService {
 
         // 잔여 연차가 0.25미만이면 반반차 사용 불가
         if (
-          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_QUARTER ||
-          leave.leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER
+          leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_QUARTER ||
+          leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER
         ) {
           if (totalAnnualLeaveBalance < 0.25) {
             throw new BadRequestException(
