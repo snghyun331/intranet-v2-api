@@ -145,22 +145,9 @@ export class ActivityService {
     return activityInfo.targetDay;
   }
 
-  async getActivity(year: string, month: string[], user: UserPayload) {
-    let activityInfo: Activities[] = [];
-
-    if (year && month) {
-      activityInfo = await this.activityRepository.getMonthActivities(year, month, user);
-    } else if (!year && !month) {
-      activityInfo = await this.activityRepository.getAllActivities(user);
-    } else {
-      throw new BadRequestException('연도와 월은 모두 입력하거나, 모두 입력하지 않아야 합니다');
-    }
-
-    const nowDate: Date = new Date();
-    const nowYear: string = nowDate.getFullYear().toString();
-    const nowMonth: number = nowDate.getMonth() + 1;
-    const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
-    const activityStats: ActivityStats = await this.activityRepository.getActivityStats(nowYear, halfYear, user);
+  async getActivity(year: string, halfYear: HalfYearEnum, user: UserPayload) {
+    const activityInfo: Activities[] = await this.activityRepository.getHalfYearActivities(year, halfYear, user);
+    const activityStats: ActivityStats = await this.activityRepository.getActivityStats(year, halfYear, user);
 
     const result: ActivityResult = {
       activityStats,

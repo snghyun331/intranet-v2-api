@@ -210,11 +210,7 @@ export class WelfareService {
     }
 
     const welfareInfo: Welfares[] = await this.welfareRepository.getUserHalfYearWelfares(year, halfYear, userIdx);
-
-    let welfareStats: WelfareStats | null = await this.welfareRepository.getWelfareStats(year, halfYear, userIdx);
-    if (!welfareStats) {
-      welfareStats = {} as WelfareStats;
-    }
+    const welfareStats: WelfareStats = await this.welfareRepository.getWelfareStats(year, halfYear, userIdx);
 
     const result: WelfareResult = {
       welfareStats,

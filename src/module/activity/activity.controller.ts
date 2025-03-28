@@ -145,8 +145,11 @@ export class UserActivityController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
-  async getActivity(@Query() query: ActivityFilterDto, @CurrentUser() user: UserPayload): Promise<ResponseInterface> {
-    const activities: ActivityResult = await this.activityService.getActivity(query.year, query.month, user);
+  async getActivity(
+    @Query() { year, halfYear }: ActivityFilterDto,
+    @CurrentUser() user: UserPayload,
+  ): Promise<ResponseInterface> {
+    const activities: ActivityResult = await this.activityService.getActivity(year, halfYear, user);
 
     const response: ResponseInterface = { message: '활동비 사용내역 조회 성공', data: activities };
 
