@@ -203,30 +203,14 @@ export class WelfareService {
     return updateWelfareInfo.targetDay;
   }
 
-  async getMyWelfare(year: string, month: string[], userIdx: number): Promise<WelfareResult> {
+  async getMyWelfare(year: string, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareResult> {
     const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    let welfareInfo: Welfares[] = [];
-
-    if (year && month) {
-      welfareInfo = await this.welfareRepository.getUserMonthWelfares(year, month, userIdx);
-    } else if (!year && !month) {
-      welfareInfo = await this.welfareRepository.getAllUserWelfares(userIdx);
-    } else {
-      throw new BadRequestException('연도와 월은 모두 입력하거나, 모두 입력하지 않아야 합니다');
-    }
-    const nowDate: Date = new Date();
-    const nowYear: string = nowDate.getFullYear().toString();
-    const nowMonth: number = nowDate.getMonth() + 1;
-    const halfYear: HalfYearEnum = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
-
-    let welfareStats: WelfareStats | null = await this.welfareRepository.getWelfareStats(nowYear, halfYear, userIdx);
-    if (!welfareStats) {
-      welfareStats = {} as WelfareStats;
-    }
+    const welfareInfo: Welfares[] = await this.welfareRepository.getUserHalfYearWelfares(year, halfYear, userIdx);
+    const welfareStats: WelfareStats = await this.welfareRepository.getWelfareStats(year, halfYear, userIdx);
 
     const result: WelfareResult = {
       welfareStats,

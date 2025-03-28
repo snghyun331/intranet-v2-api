@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
 import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
 
@@ -9,10 +8,10 @@ export class ActivityFilterDto {
   @IsString()
   year?: string;
 
-  @ApiProperty({ name: 'month', description: '검색 월(개별 및 복수)', example: '10,11', type: String, required: false })
-  @IsOptional()
-  @Transform(({ value }) => decodeURIComponent(value).split(',')) // 쉼표로 구분된 문자열을 배열로 변환
-  month?: string[];
+  @ApiProperty({ name: 'halfYear', description: '검색 반기', type: 'enum', enum: HalfYearEnum, required: true })
+  @IsNotEmpty()
+  @IsEnum(HalfYearEnum)
+  halfYear: HalfYearEnum;
 }
 
 export class AdminActivityFilterDto {
