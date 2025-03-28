@@ -3,7 +3,7 @@ import { CommuteEntity } from './commute.entity';
 import { UserEntity } from '../../user/user.entity';
 
 @Entity({ name: 'commute_cc_user', comment: '근태 참조 사용자 목록 tb' })
-export class ComuteCCUserEntity {
+export class CommuteCCUserEntity {
   @PrimaryColumn({ name: 'commute_idx', comment: '근태내역IDX' })
   commuteIdx: number;
 

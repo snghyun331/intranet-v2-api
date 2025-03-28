@@ -20,7 +20,7 @@ import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commu
 import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 import * as moment from 'moment';
-import { ComuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
+import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
 
 @Injectable()
 export class LeaveRepository {
@@ -320,7 +320,7 @@ export class LeaveRepository {
         'commuteApproverEntity.commuteIdx = commuteEntity.commuteIdx',
       )
       .leftJoin(UserEntity, 'approverUserEntity', 'approverUserEntity.userIdx = commuteApproverEntity.approverIdx')
-      .leftJoin(ComuteCCUserEntity, 'commuteCCUserEntity', 'commuteCCUserEntity.commuteIdx = commuteEntity.commuteIdx')
+      .leftJoin(CommuteCCUserEntity, 'commuteCCUserEntity', 'commuteCCUserEntity.commuteIdx = commuteEntity.commuteIdx')
       .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = commuteCCUserEntity.ccUserIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
@@ -396,7 +396,7 @@ export class LeaveRepository {
         await manager
           .createQueryBuilder()
           .insert()
-          .into(ComuteCCUserEntity)
+          .into(CommuteCCUserEntity)
           .values({ commuteIdx, ccUserIdx: Number(ccUserIdx) })
           .execute();
       }),
