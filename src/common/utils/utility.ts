@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment';
 import { AES, enc } from 'crypto-js';
-import { ConfirmEnum } from '../constant/enum';
+import { ConfirmEnum, HalfYearEnum } from '../constant/enum';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (dateString: string): string => {
@@ -63,6 +63,33 @@ export const getStartAndEndDateByMonths = (year: string, monthArray: string[]) =
   const lastDayOfMonth: moment.Moment = moment({ year: Number(year), month: maxMonth - 1 })
     .endOf('month')
     .utcOffset(9);
+
+  return { firstDayOfMonth, lastDayOfMonth };
+};
+
+export const getStartAndEndDateByHalfYear = (year: string, halfYear: HalfYearEnum) => {
+  let firstDayOfMonth: moment.Moment;
+  let lastDayOfMonth: moment.Moment;
+
+  // 상반기의 첫날과 마지막 날 계산
+  if (halfYear === HalfYearEnum.H1) {
+    firstDayOfMonth = moment({ year: Number(year), month: 0 })
+      .startOf('month')
+      .utcOffset(9);
+
+    lastDayOfMonth = moment({ year: Number(year), month: 5 })
+      .endOf('month')
+      .utcOffset(9);
+  } else {
+    // 하반기의 첫날과 마지막 날 계산
+    firstDayOfMonth = moment({ year: Number(year), month: 6 })
+      .startOf('month')
+      .utcOffset(9);
+
+    lastDayOfMonth = moment({ year: Number(year), month: 11 })
+      .endOf('month')
+      .utcOffset(9);
+  }
 
   return { firstDayOfMonth, lastDayOfMonth };
 };
