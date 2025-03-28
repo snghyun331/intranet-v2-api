@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
-import { EntityManager, Repository, UpdateResult } from 'typeorm';
+import { Brackets, EntityManager, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
 import { ConfirmEnum } from '../../../../common/constant/enum';
 import * as moment from 'moment';
@@ -9,6 +9,9 @@ import { getStartAndEndDateByMonth } from '../../../../common/utils/utility';
 import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 import { LeaveStatsEntity } from '../../../../entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
+import { UserApprovalFilter } from '../dto/query.dto';
+import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
+import { UserEntity } from '../../../../entity/user/user.entity';
 
 @Injectable()
 export class ApprovalRepository {
@@ -159,5 +162,109 @@ export class ApprovalRepository {
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('year = :year', { year })
       .execute();
+  }
+
+  async getApprovalHistory(userIdx: number, filterInfo: UserApprovalFilter) {
+    const { year, month } = filterInfo;
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+
+    // const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
+    //   .createQueryBuilder('commuteEntity')
+    //   .select([
+    //     'commuteEntity.commuteIdx AS commuteIdx',
+    //     'commuteEntity.commuteDate AS commuteDate',
+    //     'commuteEntity.userIdx AS userIdx',
+    //     'userEntity.userName AS userName',
+    //     'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+    //     'leaveTypeEntity.leaveType AS leaveType',
+    //     'commuteEntity.note AS note',
+    //     'commuteEntity.confirmYN AS confirmYN',
+    //     'commuteEntity.confirmDate AS confirmDate',
+    //     'commuteEntity.rejectDate AS rejectDate',
+    //     'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
+    //     'commuteEntity.createdAt AS createdAt',
+    //     `
+    //       CASE
+    //         WHEN approverEntity.approverIdx = ${userIdx} THEN 'APPROVER'
+    //         WHEN ccUserEntity.ccUserIdx = ${userIdx} THEN 'CC'
+    //         ELSE '-'
+    //       END AS relationType
+    //     `,
+    //   ])
+    //   .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
+    //   .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+    //   .leftJoin(CommuteCCUserEntity, 'ccUserEntity', 'ccUserEntity.commuteIdx = commuteEntity.commuteIdx')
+    //   .leftJoin(CommuteApproverEntity, 'approverEntity', 'approverEntity.commuteIdx = commuteEntity.commuteIdx')
+    //   .where('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate });
+
+    // query.andWhere(
+    //   new Brackets((qb) => {
+    //     qb.where('ccUserEntity.ccUserIdx = :ccUserIdx', { ccUserIdx: userIdx }).orWhere(
+    //       'approverEntity.approverIdx = :approverIdx',
+    //       { approverIdx: userIdx },
+    //     );
+    //   }),
+    // );
+    const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.commuteDate AS commuteDate',
+        'commuteEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'leaveTypeEntity.leaveType AS leaveType',
+        'commuteEntity.note AS note',
+        'commuteEntity.confirmYN AS confirmYN',
+        'commuteEntity.confirmDate AS confirmDate',
+        'commuteEntity.rejectDate AS rejectDate',
+        'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
+        'commuteEntity.createdAt AS createdAt',
+        `
+          CASE 
+            WHEN EXISTS (
+              SELECT 1 FROM commute_approver approverEntity 
+              WHERE approverEntity.commute_idx = commuteEntity.commute_idx AND approverEntity.approver_idx = ${userIdx}
+            ) THEN 'APPROVER'
+            WHEN EXISTS (
+              SELECT 1 FROM commute_cc_user ccUserEntity 
+              WHERE ccUserEntity.commute_idx = commuteEntity.commute_idx AND ccUserEntity.cc_user_idx = ${userIdx}
+            ) THEN 'CC'
+            ELSE '-' 
+          END AS relationType
+        `,
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .where('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where(`
+            EXISTS (
+              SELECT 1 FROM commute_cc_user ccUserEntity 
+              WHERE ccUserEntity.commute_idx = commuteEntity.commute_idx AND ccUserEntity.cc_user_idx = ${userIdx}
+            )
+        `).orWhere(`
+            EXISTS (
+              SELECT 1 FROM commute_approver approverEntity 
+              WHERE approverEntity.commute_idx = commuteEntity.commute_idx AND approverEntity.approver_idx = ${userIdx}
+            )
+        `);
+        }),
+      );
+
+    if (filterInfo.userIdx) {
+      query.andWhere('commuteEntity.userIdx = :userIdx', { userIdx: filterInfo.userIdx });
+    }
+
+    query
+      .orderBy(`CASE WHEN commuteEntity.confirmYN = '${ConfirmEnum.YES}' THEN 1 ELSE 0 END`, 'ASC')
+      .addOrderBy('commuteEntity.createdAt', 'ASC');
+
+    const result = await query.getRawMany();
+
+    return result;
   }
 }
