@@ -27,7 +27,6 @@ export interface WelfareStats {
   welfareBudget: number;
   welfareExpense: number;
   welfareBalance: number;
-  userName: string;
 }
 
 export interface NewWelfareStats {

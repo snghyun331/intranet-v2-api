@@ -72,8 +72,11 @@ export class UserWelfareController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
-  async getWelfare(@Query() query: WelfareFilterDto, @CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
-    const welfares: WelfareResult = await this.welfareService.getMyWelfare(query.year, query.month, userIdx);
+  async getWelfare(
+    @Query() { year, halfYear }: WelfareFilterDto,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    const welfares: WelfareResult = await this.welfareService.getMyWelfare(year, halfYear, userIdx);
 
     const response: ResponseInterface = { message: '복포 사용내역 조회 성공', data: welfares };
 

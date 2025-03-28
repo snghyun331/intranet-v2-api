@@ -5,8 +5,8 @@ import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuild
 import { CreateActivityDto } from '../dto/createActivity.dto';
 import { ActivityEntity } from '../../../entity/activity/activity.entity';
 import {
+  getStartAndEndDateByHalfYear,
   getStartAndEndDateByMonth,
-  getStartAndEndDateByMonths,
   removeAllWhiteSpace,
 } from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
@@ -164,8 +164,8 @@ export class ActivityRepository {
       .execute();
   }
 
-  async getMonthActivities(year: string, month: string[], user: UserPayload) {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonths(year, month);
+  async getHalfYearActivities(year: string, halfYear: HalfYearEnum, user: UserPayload) {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByHalfYear(year, halfYear);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
 
@@ -199,37 +199,17 @@ export class ActivityRepository {
     return result;
   }
 
-  async getAllActivities(user: UserPayload): Promise<Activities[]> {
-    const query: SelectQueryBuilder<ActivityEntity> = this.activityModel
-      .createQueryBuilder('activityEntity')
-      .select([
-        'activityEntity.activityIdx AS activityIdx',
-        'activityEntity.userIdx AS userIdx',
-        'userEntity.userName AS userName',
-        'activityEntity.targetDay AS targetDay',
-        'activityEntity.content AS content',
-        'activityEntity.amount AS amount',
-        'activityEntity.payerName AS payerName',
-        'activityEntity.confirmYN AS confirmYN',
-      ])
-      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityEntity.userIdx')
-      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
-      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx');
-
-    if (user.hqName) {
-      query.where('hqEntity.hqName = :hqName', { hqName: user.hqName });
-    } else if (user.teamName) {
-      query.where('teamEntity.teamName = :teamName', { teamName: user.teamName });
-    }
-
-    query.orderBy('activityEntity.targetDay', 'DESC').addOrderBy('activityEntity.createdAt', 'DESC');
-
-    const result: Activities[] = await query.getRawMany();
-
-    return result;
-  }
-
   async getActivityStats(year: string, halfYear: HalfYearEnum, user: UserPayload): Promise<ActivityStats> {
+    const defaultResult: ActivityStats = {
+      year,
+      halfYear,
+      activityBudget: 0,
+      activityExpense: 0,
+      activityBalance: 0,
+      hqName: user.hqName,
+      teamName: user.teamName,
+    };
+
     const query: SelectQueryBuilder<ActivityStatsEntity> = this.activityStatsModel
       .createQueryBuilder('activityStatsEntity')
       .select([
@@ -253,6 +233,10 @@ export class ActivityRepository {
       query.andWhere('teamEntity.teamName = :teamName', { teamName: user.teamName });
     }
     const statsInfo = await query.getRawOne();
+
+    if (!statsInfo) {
+      return defaultResult;
+    }
 
     const result: ActivityStats = { ...statsInfo, activityBalance: Number(statsInfo.activityBalance) };
 
