@@ -1,4 +1,4 @@
-import { Body, Controller, Param, ParseIntPipe, Patch, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApprovalService } from './approval.service';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { USERS_INTRANET_APPROVAL } from './swagger/approval.swagger';
@@ -12,6 +12,7 @@ import { TransactionManager } from '../../../common/decorator/transaction.decora
 import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../../common/interface/response.interface';
 import { UpdateConfirmDto } from './dto/updateConfirm.dto';
+import { UserApprovalFilter } from './dto/query.dto';
 
 @ApiTags('사용자')
 @Controller('users/intranet/approval')
@@ -36,6 +37,23 @@ export class ApprovalController {
     await this.approvalService.confirmLeave(commuteIdx, confirmPersonIdx, confirmYN, manager);
 
     const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_APPROVAL.GET.API_OPERATION)
+  @ApiOkResponse(USERS_INTRANET_APPROVAL.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get()
+  async getApprovalHistory(
+    @Query() filterInfo: UserApprovalFilter,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    const data = await this.approvalService.getApprovalHistory(userIdx, filterInfo);
+
+    const response: ResponseInterface = { message: 'success', data };
 
     return response;
   }

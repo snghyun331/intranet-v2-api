@@ -2,7 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ApprovalRepository } from './repository/approval.repository';
 import { EntityManager } from 'typeorm';
 import { ConfirmEnum } from '../../../common/constant/enum';
-import { substringYearMonth } from '../../../common/utils/utility';
+import { addConfirmStatusField, substringYearMonth } from '../../../common/utils/utility';
+import { UserApprovalFilter } from './dto/query.dto';
 
 @Injectable()
 export class ApprovalService {
@@ -59,5 +60,24 @@ export class ApprovalService {
       // 연도별 연차 총 사용량 업데이트
       await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx, manager);
     }
+  }
+
+  async getApprovalHistory(userIdx: number, filterInfo: UserApprovalFilter) {
+    const histories = await this.approvalRepository.getApprovalHistory(userIdx, filterInfo);
+
+    const result = await Promise.all(
+      histories.map(async (history) => {
+        const confirmStatus: string = addConfirmStatusField(history.confirmYN, history.confirmDate, history.rejectDate);
+
+        return {
+          ...history,
+          confirmStatus,
+        };
+      }),
+    );
+
+    console.log('length:', result.length);
+
+    return result;
   }
 }
