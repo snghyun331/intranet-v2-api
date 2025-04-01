@@ -208,3 +208,7 @@ export const addConfirmStatusField = (confirmYN: ConfirmEnum, confirmDate: strin
       return `반려 ${rejectDate}`;
   }
 };
+
+export const removeDuplicateIdxs = (array: any[], originalArray: any[]): any[] => {
+  return originalArray.filter((item) => !array.includes(item));
+};

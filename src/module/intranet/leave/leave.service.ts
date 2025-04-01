@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveRepository } from './repository/leave.repository';
 import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
@@ -10,7 +10,12 @@ import { LeaveImageInfo, LeaveSummary } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
-import { addConfirmStatusField, getOneYearAfterJoin, getYearsSinceJoin } from '../../../common/utils/utility';
+import {
+  addConfirmStatusField,
+  getOneYearAfterJoin,
+  getYearsSinceJoin,
+  removeDuplicateIdxs,
+} from '../../../common/utils/utility';
 import {
   ALTERNATIVE_LEAVE_LISTS,
   HALF_ANNUAL_LEAVE_LISTS,
@@ -51,7 +56,12 @@ export class LeaveService {
           if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
             throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
           }
-          // 휴가등록
+          /* 휴가등록 */
+          const commuteCount: number = await this.leaveRepository.getCommuteCountByDate(userIdx, leave.commuteDate);
+          if (commuteCount !== 0) {
+            throw new ConflictException(`이미 해당 날짜에 등록한 휴가 정보가 있습니다: ${leave.commuteDate}`);
+          }
+
           const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
           if (leaveImage) {
             const env: string = this.configService.get<string>('NODE_ENV');
@@ -83,6 +93,7 @@ export class LeaveService {
       return;
     }
 
+    /* CEO 제외한 사용자의 휴가 등록 */
     await Promise.all(
       leaveInfo.map(async (leave) => {
         const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
@@ -145,6 +156,12 @@ export class LeaveService {
           }
         }
 
+        // 트랜잭션 처리 필요.......
+        const commuteCount: number = await this.leaveRepository.getCommuteCountByDate(userIdx, leave.commuteDate);
+        if (commuteCount !== 0) {
+          throw new ConflictException(`이미 해당 날짜에 등록한 휴가 정보가 있습니다: ${leave.commuteDate}`);
+        }
+
         const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
         // 승인 가능자 모두 저장
         if (approverIdxs !== null) {
@@ -152,7 +169,9 @@ export class LeaveService {
         }
         // 참조자 모두 저장
         if (ccUserIdxs !== null) {
-          await this.leaveRepository.createLeaveCCUserList(commuteIdx, ccUserIdxs, manager);
+          // 승인가능자는 참조자로 등록 X
+          const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(approverIdxs, ccUserIdxs);
+          await this.leaveRepository.createLeaveCCUserList(commuteIdx, removeDuplicateCCUserIdxs, manager);
         }
 
         if (leaveImage) {

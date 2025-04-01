@@ -24,7 +24,6 @@ export interface MealStats {
   mealBudget: number;
   mealExpense: number;
   mealBalance: number;
-  userName: string;
 }
 
 export interface MealAdminInfo {

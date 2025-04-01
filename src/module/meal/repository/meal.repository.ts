@@ -127,6 +127,14 @@ export class MealRepository {
   }
 
   async getMyMealStats(year: string, month: string, userIdx: number): Promise<MealStats> {
+    const defaultResult: MealStats = {
+      year,
+      month,
+      mealBudget: 0,
+      mealExpense: 0,
+      mealBalance: 0,
+    };
+
     const myStatsInfo = await this.mealStatsModel
       .createQueryBuilder('mealStatsEntity')
       .select([
@@ -142,6 +150,10 @@ export class MealRepository {
       .andWhere('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
       .getRawOne();
+
+    if (!myStatsInfo) {
+      return defaultResult;
+    }
 
     const result: MealStats = myStatsInfo ? { ...myStatsInfo, mealBalance: Number(myStatsInfo.mealBalance) } : {};
 
