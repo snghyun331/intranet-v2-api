@@ -64,10 +64,10 @@ export class ActivityRepository {
     return allNames;
   }
 
-  async getUserIdxByName(userName: string): Promise<{ userIdx: number }> {
-    const result: { userIdx: number } = await this.userModel
+  async getUserIdxByName(userName: string): Promise<any> {
+    const result: any = await this.userModel
       .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx'])
+      .select(['userEntity.userIdx AS userIdx', 'userEntity.gradeIdx AS gradeIdx', 'userEntity.teamIdx AS teamIdx'])
       .where('userEntity.userName = :userName', { userName })
       .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
