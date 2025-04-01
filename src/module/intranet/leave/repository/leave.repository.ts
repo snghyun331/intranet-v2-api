@@ -62,6 +62,16 @@ export class LeaveRepository {
     return result;
   }
 
+  async getCommuteCountByDate(userIdx: number, commuteDate: string): Promise<number> {
+    const result: number = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .getCount();
+
+    return result;
+  }
+
   async getLeaveStatsCountByIdx(leaveStatsIdx: number): Promise<number> {
     const result: number = await this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')

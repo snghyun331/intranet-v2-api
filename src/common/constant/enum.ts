@@ -79,6 +79,20 @@ export enum UserGradeIdxEnum {
   INTERN = 7,
 }
 
+export enum TeamIdxEnum {
+  CEO = 1,
+  PC = 2,
+  ASSESSMENT1 = 3,
+  ASSESSMENT2 = 4,
+  ASSESSMENT3 = 5,
+  HR_CONSULT = 6,
+  HR_OPS = 7,
+  HR_TECH = 8,
+  PA = 9,
+  INTERVIEW_OPS = 10,
+  ETC = 11,
+}
+
 export enum HalfYearEnum {
   H1 = 'H1',
   H2 = 'H2',
