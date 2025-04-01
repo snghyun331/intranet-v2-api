@@ -10,7 +10,12 @@ import { LeaveImageInfo, LeaveSummary } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
-import { addConfirmStatusField, getOneYearAfterJoin, getYearsSinceJoin } from '../../../common/utils/utility';
+import {
+  addConfirmStatusField,
+  getOneYearAfterJoin,
+  getYearsSinceJoin,
+  removeDuplicateIdxs,
+} from '../../../common/utils/utility';
 import {
   ALTERNATIVE_LEAVE_LISTS,
   HALF_ANNUAL_LEAVE_LISTS,
@@ -164,7 +169,9 @@ export class LeaveService {
         }
         // 참조자 모두 저장
         if (ccUserIdxs !== null) {
-          await this.leaveRepository.createLeaveCCUserList(commuteIdx, ccUserIdxs, manager);
+          // 승인가능자는 참조자로 등록 X
+          const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(approverIdxs, ccUserIdxs);
+          await this.leaveRepository.createLeaveCCUserList(commuteIdx, removeDuplicateCCUserIdxs, manager);
         }
 
         if (leaveImage) {
