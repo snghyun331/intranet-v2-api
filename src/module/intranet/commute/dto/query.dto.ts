@@ -1,15 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class UserCommuteFilterDto {
   @ApiProperty({
     name: 'sDate',
-    required: false,
+    required: true,
     type: String,
     description: '시작 일자(기본: 현재 달의 1일)',
     example: '2025-01-01',
   })
-  @IsOptional()
+  @IsNotEmpty()
   sDate: string;
 
   @ApiProperty({
@@ -19,7 +19,7 @@ export class UserCommuteFilterDto {
     description: '종료 일자(기본: 현재 달의 마지막일)',
     example: '2025-01-31',
   })
-  @IsOptional()
+  @IsNotEmpty()
   eDate: string;
 }
 

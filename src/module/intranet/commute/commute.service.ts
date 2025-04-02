@@ -219,13 +219,10 @@ export class CommuteService {
   }
 
   async getUserCommuteRecords(userIdx: number, { pageNo, perPage }: PageNoDto, filterInfo: UserCommuteFilterDto) {
-    if (!filterInfo.sDate || !filterInfo.eDate) {
-      const nowDate = moment().utcOffset(9);
-      const nowYear: number = nowDate.year();
-      const nowMonth: number = nowDate.month() + 1;
-      const { firstDayOfMonth } = getStartAndEndDateByMonth(nowYear.toString(), nowMonth.toString());
-      filterInfo.sDate = firstDayOfMonth.format('YYYY-MM-DD');
-      filterInfo.eDate = nowDate.format('YYYY-MM-DD');
+    // 마감 날짜가 현재 날짜보다 미래라면, 현재 날짜까지 조회
+    const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
+    if (filterInfo.eDate > nowDate) {
+      filterInfo.eDate = nowDate;
     }
 
     const userCnt: number = await this.commuteRepository.getUserCountByIdx(userIdx);
