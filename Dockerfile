@@ -1,14 +1,12 @@
-FROM node:22.4.1
+FROM node:22.4.1-alpine
 
-RUN apt-get clean && apt-get update 
+WORKDIR /myfolder
 
-WORKDIR /myfolder/
+COPY package*.json ./
 
-COPY ./package.json /myfolder/
-COPY ./package-lock.json /myfolder/
-RUN npm install
+RUN apk add --no-cache tzdata && npm ci --prefer-offline
 
-COPY . /myfolder
+COPY . .
 
 ENV TZ Asia/Seoul
 
@@ -16,4 +14,4 @@ ENV PORT=${SERVER_PORT}
 
 EXPOSE ${PORT}
 
-CMD npm run start:dev
+CMD ["npm", "run", "start:dev"]
