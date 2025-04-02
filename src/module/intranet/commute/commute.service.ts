@@ -244,16 +244,14 @@ export class CommuteService {
   }
 
   async deleteUserCommuteRecord(commuteIdxList: number[], manager: EntityManager): Promise<void> {
-    await Promise.all(
-      commuteIdxList.map(async (commuteIdx) => {
-        const commuteCnt: number = await this.commuteRepository.getCommuteCountByIdx(commuteIdx);
-        if (commuteCnt === 0) {
-          throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
-        }
+    for (const commuteIdx of commuteIdxList) {
+      const commuteCnt: number = await this.commuteRepository.getCommuteCountByIdx(commuteIdx);
+      if (commuteCnt === 0) {
+        throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+      }
 
-        await this.commuteRepository.deleteCommute(commuteIdx, manager);
-      }),
-    );
+      await this.commuteRepository.deleteCommute(commuteIdx, manager);
+    }
   }
 
   async updateCommuteTime(commuteIdx: number, updateDto: UpdateCommuteTimeDto, manager: EntityManager): Promise<void> {
