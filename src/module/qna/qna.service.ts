@@ -49,15 +49,13 @@ export class QnaService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    await Promise.all(
-      qnaIdxList.map(async (qnaIdx) => {
-        const qnaInfo: QnaInfo = await this.qnaRepository.getQnaInfoByIdx(qnaIdx);
-        if (!qnaInfo) {
-          throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
-        }
-        await this.qnaRepository.deleteMyQna(qnaIdx, manager);
-      }),
-    );
+    for (const qnaIdx of qnaIdxList) {
+      const qnaInfo: QnaInfo = await this.qnaRepository.getQnaInfoByIdx(qnaIdx);
+      if (!qnaInfo) {
+        throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+      }
+      await this.qnaRepository.deleteMyQna(qnaIdx, manager);
+    }
 
     return;
   }

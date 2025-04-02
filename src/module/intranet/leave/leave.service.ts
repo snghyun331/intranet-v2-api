@@ -46,56 +46,7 @@ export class LeaveService {
 
     /* CEO이면, 아무 조건 없이 휴가 등록 및 자동승인 */
     if (user.gradeName === UserGradeEnum.CEO) {
-      await Promise.all(
-        leaveInfo.map(async (leave) => {
-          const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
-          if (!dateStringFormat.test(leave.commuteDate)) {
-            throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
-          }
-          const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
-          if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
-            throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
-          }
-          /* 휴가등록 */
-          const commuteCount: number = await this.leaveRepository.getCommuteCountByDate(userIdx, leave.commuteDate);
-          if (commuteCount !== 0) {
-            throw new ConflictException(`이미 해당 날짜에 등록한 휴가 정보가 있습니다: ${leave.commuteDate}`);
-          }
-
-          const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
-          if (leaveImage) {
-            const env: string = this.configService.get<string>('NODE_ENV');
-            const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
-            // 1. S3에 저장
-            const { buffer, mimetype } = leaveImage;
-            const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
-            const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
-            const uploadS3FilePath: string = `${rootDir}/LEAVE/${commuteIdx}/${fileName}`;
-            const imageUrl: string = await this.awsService.uploadImageToS3(
-              bucketName,
-              uploadS3FilePath,
-              buffer,
-              mimetype,
-            );
-            const imageInfo: LeaveImageInfo = {
-              imageName: fileName,
-              imageSize: leaveImage.size,
-              imageUrl,
-            };
-            // 2. DB에 저장
-            await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
-          }
-          // 3. 자동승인
-          await this.leaveRepository.autoApprove(commuteIdx, userIdx, manager);
-        }),
-      );
-
-      return;
-    }
-
-    /* CEO 제외한 사용자의 휴가 등록 */
-    await Promise.all(
-      leaveInfo.map(async (leave) => {
+      for (const leave of leaveInfo) {
         const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateStringFormat.test(leave.commuteDate)) {
           throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
@@ -104,76 +55,13 @@ export class LeaveService {
         if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
           throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
         }
-
-        // 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가
-        if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
-          // 보건 휴가 월 사용 개수 조회
-          const { healthMonthlyUseCount } = await this.leaveRepository.getHealthMonthlyUseCount(
-            userIdx,
-            nowYear.toString(),
-            nowMonth.toString(),
-          );
-          if (healthMonthlyUseCount !== 0) {
-            throw new BadRequestException(
-              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-            );
-          }
-        }
-
-        // 연차 잔여 개수 조회
-        const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(
-          userIdx,
-          nowYear.toString(),
-        );
-
-        // 잔여 연차가 1미만이면 연차 사용 불가
-        if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE) {
-          if (totalAnnualLeaveBalance < 1) {
-            throw new BadRequestException(
-              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-            );
-          }
-        }
-
-        // 잔여 연차가 0.5미만이면 반차 사용 불가
-        if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_HALF || leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF) {
-          if (totalAnnualLeaveBalance < 0.5) {
-            throw new BadRequestException(
-              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-            );
-          }
-        }
-
-        // 잔여 연차가 0.25미만이면 반반차 사용 불가
-        if (
-          leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_QUARTER ||
-          leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER
-        ) {
-          if (totalAnnualLeaveBalance < 0.25) {
-            throw new BadRequestException(
-              '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-            );
-          }
-        }
-
-        // 트랜잭션 처리 필요.......
+        /* 휴가등록 */
         const commuteCount: number = await this.leaveRepository.getCommuteCountByDate(userIdx, leave.commuteDate);
         if (commuteCount !== 0) {
           throw new ConflictException(`이미 해당 날짜에 등록한 휴가 정보가 있습니다: ${leave.commuteDate}`);
         }
 
         const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
-        // 승인 가능자 모두 저장
-        if (approverIdxs !== null) {
-          await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs, manager);
-        }
-        // 참조자 모두 저장
-        if (ccUserIdxs !== null) {
-          // 승인가능자는 참조자로 등록 X
-          const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(approverIdxs, ccUserIdxs);
-          await this.leaveRepository.createLeaveCCUserList(commuteIdx, removeDuplicateCCUserIdxs, manager);
-        }
-
         if (leaveImage) {
           const env: string = this.configService.get<string>('NODE_ENV');
           const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
@@ -196,8 +84,107 @@ export class LeaveService {
           // 2. DB에 저장
           await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
         }
-      }),
-    );
+        // 3. 자동승인
+        await this.leaveRepository.autoApprove(commuteIdx, userIdx, manager);
+      }
+
+      return;
+    }
+
+    /* CEO 제외한 사용자의 휴가 등록 */
+    for (const leave of leaveInfo) {
+      const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateStringFormat.test(leave.commuteDate)) {
+        throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
+      }
+      const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
+      if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
+        throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
+      }
+
+      // 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가
+      if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
+        // 보건 휴가 월 사용 개수 조회
+        const { healthMonthlyUseCount } = await this.leaveRepository.getHealthMonthlyUseCount(
+          userIdx,
+          nowYear.toString(),
+          nowMonth.toString(),
+        );
+        if (healthMonthlyUseCount !== 0) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
+        }
+      }
+
+      // 연차 잔여 개수 조회
+      const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(userIdx, nowYear.toString());
+
+      // 잔여 연차가 1미만이면 연차 사용 불가
+      if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE) {
+        if (totalAnnualLeaveBalance < 1) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
+        }
+      }
+
+      // 잔여 연차가 0.5미만이면 반차 사용 불가
+      if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_HALF || leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF) {
+        if (totalAnnualLeaveBalance < 0.5) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
+        }
+      }
+
+      // 잔여 연차가 0.25미만이면 반반차 사용 불가
+      if (
+        leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_QUARTER ||
+        leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER
+      ) {
+        if (totalAnnualLeaveBalance < 0.25) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
+        }
+      }
+
+      const commuteCount: number = await this.leaveRepository.getCommuteCountByDate(userIdx, leave.commuteDate);
+      if (commuteCount !== 0) {
+        throw new ConflictException(`이미 해당 날짜에 등록한 휴가 정보가 있습니다: ${leave.commuteDate}`);
+      }
+
+      const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
+      // 승인 가능자 모두 저장
+      if (approverIdxs !== null) {
+        await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs, manager);
+      }
+      // 참조자 모두 저장
+      if (ccUserIdxs !== null) {
+        // 승인가능자는 참조자로 등록 X
+        const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(approverIdxs, ccUserIdxs);
+        await this.leaveRepository.createLeaveCCUserList(commuteIdx, removeDuplicateCCUserIdxs, manager);
+      }
+
+      if (leaveImage) {
+        const env: string = this.configService.get<string>('NODE_ENV');
+        const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
+        // 1. S3에 저장
+        const { buffer, mimetype } = leaveImage;
+        const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+        const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
+        const uploadS3FilePath: string = `${rootDir}/LEAVE/${commuteIdx}/${fileName}`;
+        const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, uploadS3FilePath, buffer, mimetype);
+        const imageInfo: LeaveImageInfo = {
+          imageName: fileName,
+          imageSize: leaveImage.size,
+          imageUrl,
+        };
+        // 2. DB에 저장
+        await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
+      }
+    }
 
     return;
   }

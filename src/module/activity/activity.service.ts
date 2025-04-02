@@ -272,15 +272,13 @@ export class ActivityService {
     confirmYN: ConfirmEnum,
     manager: EntityManager,
   ): Promise<void> {
-    await Promise.all(
-      activityIdxList.map(async (activityIdx) => {
-        const activityInfo: ActivityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
-        if (!activityInfo) {
-          throw new NotFoundException(`해당 내역은 존재하지 않거나 삭제되었습니다: activityIdx: ${activityIdx}`);
-        }
-        await this.activityRepository.updateConfirmActivity(activityIdx, confirmYN, manager);
-      }),
-    );
+    for (const activityIdx of activityIdxList) {
+      const activityInfo: ActivityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
+      if (!activityInfo) {
+        throw new NotFoundException(`해당 내역은 존재하지 않거나 삭제되었습니다: activityIdx: ${activityIdx}`);
+      }
+      await this.activityRepository.updateConfirmActivity(activityIdx, confirmYN, manager);
+    }
 
     return;
   }
@@ -292,26 +290,22 @@ export class ActivityService {
   }
 
   async updateClearStatusComplete(activityStatsIdxList: number[], manager: EntityManager): Promise<void> {
-    await Promise.all(
-      activityStatsIdxList.map(async (activityStatsIdx) => {
-        const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
-        if (activityStatsCnt < 1) {
-          throw new NotFoundException(`존재하지 않는 통계 내역입니다: activityStatsIdx: ${activityStatsIdx}`);
-        }
-        await this.activityRepository.updateClearStatusComplete(activityStatsIdx, manager);
-      }),
-    );
+    for (const activityStatsIdx of activityStatsIdxList) {
+      const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
+      if (activityStatsCnt < 1) {
+        throw new NotFoundException(`존재하지 않는 통계 내역입니다: activityStatsIdx: ${activityStatsIdx}`);
+      }
+      await this.activityRepository.updateClearStatusComplete(activityStatsIdx, manager);
+    }
   }
 
   async updateClearStatusNotYet(activityStatsIdxList: number[], manager: EntityManager): Promise<void> {
-    await Promise.all(
-      activityStatsIdxList.map(async (activityStatsIdx) => {
-        const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
-        if (activityStatsCnt < 1) {
-          throw new NotFoundException('존재하지 않는 통계 내역입니다.');
-        }
-        await this.activityRepository.updateClearStatusNotYet(activityStatsIdx, manager);
-      }),
-    );
+    for (const activityStatsIdx of activityStatsIdxList) {
+      const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
+      if (activityStatsCnt < 1) {
+        throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+      }
+      await this.activityRepository.updateClearStatusNotYet(activityStatsIdx, manager);
+    }
   }
 }
