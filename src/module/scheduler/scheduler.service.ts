@@ -48,11 +48,10 @@ export class SchedulerService {
           mergedHolidayInfoList.push(weekend);
         }
       });
-      await Promise.all(
-        mergedHolidayInfoList.map(async (holidayInfo) => {
-          await this.schedulerRepository.insertHolidayInfo(holidayInfo);
-        }),
-      );
+      for (const holidayInfo of mergedHolidayInfoList) {
+        await this.schedulerRepository.insertHolidayInfo(holidayInfo);
+      }
+
       nextMonth++;
     }
 

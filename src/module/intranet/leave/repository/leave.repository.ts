@@ -386,31 +386,27 @@ export class LeaveRepository {
   }
 
   async createLeaveApproverList(commuteIdx: number, approverIdxs: number[], manager: EntityManager): Promise<void> {
-    await Promise.all(
-      approverIdxs.map(async (approverIdx) => {
-        await manager
-          .createQueryBuilder()
-          .insert()
-          .into(CommuteApproverEntity)
-          .values({ commuteIdx, approverIdx: Number(approverIdx) })
-          .execute();
-      }),
-    );
+    for (const approverIdx of approverIdxs) {
+      await manager
+        .createQueryBuilder()
+        .insert()
+        .into(CommuteApproverEntity)
+        .values({ commuteIdx, approverIdx: Number(approverIdx) })
+        .execute();
+    }
 
     return;
   }
 
-  async createLeaveCCUserList(commuteIdx: number, ccUserIdxs: number[], manager: EntityManager): Promise<void> {
-    await Promise.all(
-      ccUserIdxs.map(async (ccUserIdx) => {
-        await manager
-          .createQueryBuilder()
-          .insert()
-          .into(CommuteCCUserEntity)
-          .values({ commuteIdx, ccUserIdx: Number(ccUserIdx) })
-          .execute();
-      }),
-    );
+  async createLeaveCCUserList(commuteIdx: number, ccUserIdxList: number[], manager: EntityManager): Promise<void> {
+    for (const ccUserIdx of ccUserIdxList) {
+      await manager
+        .createQueryBuilder()
+        .insert()
+        .into(CommuteCCUserEntity)
+        .values({ commuteIdx, ccUserIdx: Number(ccUserIdx) })
+        .execute();
+    }
 
     return;
   }

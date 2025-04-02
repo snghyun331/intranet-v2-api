@@ -374,17 +374,15 @@ export class MealService {
       const workdays: number = totalDays - holidays;
       // 식대 사용가능한 모든 유저의 IDX 불러오기
       const userIdxList: number[] = await this.mealRepository.getAllUserIdxExceptCEO();
-      await Promise.all(
-        userIdxList.map(async (userIdx) => {
-          const newMealStatsInfo: NewMealStats = {
-            userIdx,
-            workdays,
-            holidays,
-            mealBalance: 0,
-          };
-          await this.mealRepository.createMealBudget(mealBudgetInfo, newMealStatsInfo, manager);
-        }),
-      );
+      for (const userIdx of userIdxList) {
+        const newMealStatsInfo: NewMealStats = {
+          userIdx,
+          workdays,
+          holidays,
+          mealBalance: 0,
+        };
+        await this.mealRepository.createMealBudget(mealBudgetInfo, newMealStatsInfo, manager);
+      }
     }
 
     // 마지막: 각종 업데이트에 따른 사용가능금액 업데이트
@@ -425,27 +423,23 @@ export class MealService {
   }
 
   async updateClearStatusComplete(mealStatsIdxList: number[], manager: EntityManager): Promise<void> {
-    await Promise.all(
-      mealStatsIdxList.map(async (mealStatsIdx) => {
-        const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
-        if (mealStatsCnt < 1) {
-          throw new NotFoundException('존재하지 않는 통계 내역입니다.');
-        }
-        await this.mealRepository.updateClearStatusComplete(mealStatsIdx, manager);
-      }),
-    );
+    for (const mealStatsIdx of mealStatsIdxList) {
+      const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
+      if (mealStatsCnt < 1) {
+        throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+      }
+      await this.mealRepository.updateClearStatusComplete(mealStatsIdx, manager);
+    }
   }
 
   async updateClearStatusNotYet(mealStatsIdxList: number[], manager: EntityManager): Promise<void> {
-    await Promise.all(
-      mealStatsIdxList.map(async (mealStatsIdx) => {
-        const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
-        if (mealStatsCnt < 1) {
-          throw new NotFoundException('존재하지 않는 통계 내역입니다.');
-        }
-        await this.mealRepository.updateClearStatusNotYet(mealStatsIdx, manager);
-      }),
-    );
+    for (const mealStatsIdx of mealStatsIdxList) {
+      const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
+      if (mealStatsCnt < 1) {
+        throw new NotFoundException('존재하지 않는 통계 내역입니다.');
+      }
+      await this.mealRepository.updateClearStatusNotYet(mealStatsIdx, manager);
+    }
   }
 
   async getMealBalanceDetail(mealStatsIdx: number): Promise<MealEntity[]> {
