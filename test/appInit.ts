@@ -10,6 +10,7 @@ import { AdminGradeEnum, GenderEnum, UserGradeEnum, YNEnum } from '../src/common
 import { MealModule } from '../src/module/meal/meal.module';
 import { CommuteModule } from '../src/module/intranet/commute/commute.module';
 import { LeaveModule } from '../src/module/intranet/leave/leave.module';
+import { WelfareModule } from '../src/module/welfare/welfare.module';
 
 const createTestApp = async (modules: any[]) => {
   const module: TestingModule = await Test.createTestingModule({
@@ -56,6 +57,7 @@ const createTestApp = async (modules: any[]) => {
 };
 
 export const createTestAppWithMeal = async () => createTestApp([MealModule]);
+export const createTestAppWithWelfare = async () => createTestApp([WelfareModule]);
 export const createTestAppWithCommute = async () => createTestApp([CommuteModule, LeaveModule]);
 
 export const closeTestApp = async (app: INestApplication): Promise<void> => await app.close();
