@@ -94,6 +94,14 @@ export const getStartAndEndDateByHalfYear = (year: string, halfYear: HalfYearEnu
   return { firstDayOfMonth, lastDayOfMonth };
 };
 
+export const getStartAndEndDateByYear = (year: string) => {
+  // 월의 첫 날과 마지막 날 계산
+  const firstDayOfYear: string = `${year}-01-01`;
+  const lastDayOfYear: string = `${year}-12-31`;
+
+  return { firstDayOfYear, lastDayOfYear };
+};
+
 export const getTotalDaysInMonth = (year: string, month: string): number => {
   const { lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
   const totalDays: number = lastDayOfMonth.date();

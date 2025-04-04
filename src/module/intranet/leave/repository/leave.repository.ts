@@ -13,7 +13,11 @@ import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
 import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
-import { getStartAndEndDateByMonth, removeAllWhiteSpace } from '../../../../common/utils/utility';
+import {
+  getStartAndEndDateByMonth,
+  getStartAndEndDateByYear,
+  removeAllWhiteSpace,
+} from '../../../../common/utils/utility';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
@@ -273,6 +277,25 @@ export class LeaveRepository {
       .andWhere('leaveStatsEntity.year = :year', { year })
       .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
+
+    return result;
+  }
+
+  async getNotConfirmLeaveCount(userIdx: number, year: string): Promise<number> {
+    const { firstDayOfYear, lastDayOfYear } = getStartAndEndDateByYear(year);
+    const result: number = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['commuteEntity.commuteIdx AS commuteIdx'])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.NO })
+      .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
+        leaveTypeIdx: [IntranetLeaveTypeIdxEnum.NORMAL],
+      })
+      .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfYear AND :lastDayOfYear', {
+        firstDayOfYear,
+        lastDayOfYear,
+      })
+      .getCount();
 
     return result;
   }

@@ -253,16 +253,20 @@ export class LeaveService {
           yearsSinceJoin: 0,
           oneYearAfterJoin: 0,
           midJoinReceivedAnnualLeave: 0,
+          notConfirmLeaveCount: 0,
         },
         leaveUsageStats,
       };
     }
+
+    const notConfirmLeaveCount: number = await this.leaveRepository.getNotConfirmLeaveCount(userIdx, year);
 
     const leaveSummary: LeaveSummary = {
       ...leaveStats,
       yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
       oneYearAfterJoin: getOneYearAfterJoin(leaveStats.joinDate), // 만 1년 날짜
       totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
+      notConfirmLeaveCount, // 대기중인 휴가 개수
     };
 
     // 근속년수가 3년 미만인 경우 중도입사 연차 개수를 추가
