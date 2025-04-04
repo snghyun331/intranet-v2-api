@@ -629,3 +629,36 @@ export const ADMIN_USERS_IDXS: SwaggerMethod = {
     },
   },
 };
+
+export const USERS_BIRTH: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '생일자 조회 API',
+    },
+    API_QUERY1: {
+      name: 'month',
+      type: String,
+      required: true,
+      example: '3',
+      description: '조회할 월',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: [
+              {
+                userIdx: 2,
+                userName: '이승현',
+                gradeName: '본부장',
+                userBirth: '2000-03-31',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
