@@ -76,8 +76,6 @@ export class ApprovalService {
       }),
     );
 
-    console.log('length:', result.length);
-
     return result;
   }
 }

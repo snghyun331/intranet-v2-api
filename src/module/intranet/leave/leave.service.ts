@@ -473,4 +473,62 @@ export class LeaveService {
 
     return { date, leaveByType };
   }
+
+  async updateLeaveImage(
+    commuteIdx: number,
+    leaveImage: Express.Multer.File | undefined,
+    manager: EntityManager,
+  ): Promise<void> {
+    const env: string = this.configService.get<string>('NODE_ENV');
+    const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
+    const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+    const s3FolderPath: string = `${rootDir}/LEAVE/${commuteIdx}`;
+    const leaveInfo = await this.leaveRepository.getLeaveInfoByIdx(commuteIdx);
+    if (!leaveInfo) {
+      throw new BadRequestException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+
+    /* 이미지 추가 */
+    if (leaveImage && !leaveInfo.imageIdx) {
+      const { buffer, mimetype } = leaveImage;
+      const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
+      const s3FilePath: string = `${s3FolderPath}/${fileName}`;
+      const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, s3FilePath, buffer, mimetype);
+      const imageInfo: LeaveImageInfo = {
+        imageName: fileName,
+        imageSize: leaveImage.size,
+        imageUrl,
+      };
+
+      await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
+    }
+
+    /* 이미지 수정 */
+    if (leaveImage && leaveInfo.imageIdx) {
+      const existingFileName: string = leaveInfo.imageName.split('/').pop();
+      await this.awsService.deleteS3Image(bucketName, `${s3FolderPath}/${existingFileName}`);
+
+      const { buffer, mimetype } = leaveImage;
+      const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
+      const s3FilePath: string = `${s3FolderPath}/${fileName}`;
+      const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, s3FilePath, buffer, mimetype);
+      const imageInfo: LeaveImageInfo = {
+        imageName: fileName,
+        imageSize: leaveImage.size,
+        imageUrl,
+      };
+
+      await this.leaveRepository.updateLeaveImage(leaveInfo.imageIdx, imageInfo, manager);
+    }
+
+    /* 이미지 삭제 */
+    if (!leaveImage && leaveInfo.imageIdx) {
+      const existingFileName: string = leaveInfo.imageName.split('/').pop();
+      await this.awsService.deleteS3Image(bucketName, `${s3FolderPath}/${existingFileName}`);
+
+      await this.leaveRepository.deleteLeaveImage(leaveInfo.imageIdx, manager);
+    }
+
+    return;
+  }
 }

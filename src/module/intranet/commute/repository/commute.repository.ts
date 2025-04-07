@@ -17,8 +17,6 @@ import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField } from '../../../../common/utils/utility';
 import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
-import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
-import { ImageEntity } from '../../../../entity/image/image.entity';
 
 @Injectable()
 export class CommuteRepository {

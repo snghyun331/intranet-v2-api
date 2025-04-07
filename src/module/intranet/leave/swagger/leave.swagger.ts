@@ -1,3 +1,4 @@
+import { ApiBody } from '@nestjs/swagger';
 import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
 
 export const USERS_INTRANET_LEAVE: SwaggerMethod = {
@@ -277,6 +278,47 @@ export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
     },
   },
 };
+
+export const USERS_INTRANET_LEAVE_IMAGE: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가 이미지 수정 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'commuteIdx',
+      required: true,
+      description: '휴가 신청 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};
+
+export const UploadLeaveImage =
+  (fileName = 'leaveImage'): MethodDecorator =>
+  (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    ApiBody({
+      schema: {
+        type: 'object',
+        properties: {
+          [fileName]: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+      required: false,
+    })(target, propertyKey, descriptor);
+  };
 
 export const ADMIN_INTRANET_LEAVE: SwaggerMethod = {
   GET: {

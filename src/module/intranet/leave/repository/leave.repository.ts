@@ -66,6 +66,18 @@ export class LeaveRepository {
     return result;
   }
 
+  async getLeaveInfoByIdx(commuteIdx: number): Promise<any> {
+    const result: any = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['commuteImageEntity.imageIdx AS imageIdx', 'imageEntity.imageName AS imageName'])
+      .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
+      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
+      .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
+      .getRawOne();
+
+    return result;
+  }
+
   async getCommuteCountByDate(userIdx: number, commuteDate: string): Promise<number> {
     const result: number = await this.commuteModel
       .createQueryBuilder('commuteEntity')
@@ -130,8 +142,30 @@ export class LeaveRepository {
 
     const imageIdx: number = result.identifiers[0].imageIdx;
 
-    /* leave_has_image entity */
+    /* commute_has_image entity */
     await manager.createQueryBuilder().insert().into(CommuteHasImageEntity).values({ commuteIdx, imageIdx }).execute();
+  }
+
+  async updateLeaveImage(imageIdx: number, imageInfo: LeaveImageInfo, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ImageEntity)
+      .set(imageInfo)
+      .where('imageIdx = :imageIdx', { imageIdx })
+      .execute();
+  }
+
+  async deleteLeaveImage(imageIdx: number, manager: EntityManager): Promise<void> {
+    /* image entity */
+    await manager.createQueryBuilder().delete().from(ImageEntity).where('imageIdx = :imageIdx', { imageIdx }).execute();
+
+    /* commute_has_image entity */
+    await manager
+      .createQueryBuilder()
+      .delete()
+      .from(CommuteHasImageEntity)
+      .where('imageIdx = :imageIdx', { imageIdx })
+      .execute();
   }
 
   async getAnnualLeaveSummary(userIdx: number, year: string) {
