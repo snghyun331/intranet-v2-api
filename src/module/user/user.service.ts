@@ -190,4 +190,10 @@ export class UserService {
 
     return;
   }
+
+  async getBirthdayUsers(date: string) {
+    const result = await this.userRepository.getBirthdayUsersByDate(date);
+
+    return result;
+  }
 }

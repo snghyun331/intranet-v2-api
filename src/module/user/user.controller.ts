@@ -22,6 +22,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import {
@@ -34,6 +35,7 @@ import {
   USERS_HQ_IDX,
   USERS_TEAM_IDX,
   ADMIN_USERS_IDXS,
+  USERS_BIRTH,
 } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
@@ -174,6 +176,21 @@ export class UserController {
     await this.userService.updateMyPassword(userIdx, updateInfo, manager);
 
     const response: ResponseInterface = { message: '내 비밀번호 변경 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_BIRTH.GET.API_OPERATION)
+  @ApiQuery(USERS_BIRTH.GET.API_QUERY1)
+  @ApiOkResponse(USERS_BIRTH.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('birth')
+  async getBirthdayUsers(@Query('month') month: string): Promise<ResponseInterface> {
+    const birthdayUsers = await this.userService.getBirthdayUsers(month);
+
+    const response: ResponseInterface = { message: 'success', data: birthdayUsers };
 
     return response;
   }

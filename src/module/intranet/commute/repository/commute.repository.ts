@@ -17,8 +17,6 @@ import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField } from '../../../../common/utils/utility';
 import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
-import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
-import { ImageEntity } from '../../../../entity/image/image.entity';
 
 @Injectable()
 export class CommuteRepository {
@@ -232,10 +230,6 @@ export class CommuteRepository {
         'commuteEntity.attendance AS attendance',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
-        'commuteImageEntity.imageIdx AS imageIdx',
-        'imageEntity.imageName AS imageName',
-        'imageEntity.imageSize AS imageSize',
-        'imageEntity.imageUrl AS imageUrl',
         'commuteEntity.updateReason AS updateReason',
         'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
         'commuteEntity.note AS note',
@@ -247,8 +241,6 @@ export class CommuteRepository {
         'commuteEntity.updatedAt AS updatedAt',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
-      .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
-      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,

@@ -55,12 +55,12 @@ describe('CommuteController(e2e)', () => {
     expectedAttendance: IntranetAttendanceEnum,
     commuteDate: string,
   ) {
-    const postResponse = await request(app.getHttpServer())
+    const putResponse = await request(app.getHttpServer())
       .put('/users/intranet/check-out')
       .set('Authorization', `Bearer ${userAccessToken}`)
       .send(checkOutDto);
 
-    expect(postResponse.body.message).toBe('success');
+    expect(putResponse.body.message).toBe('success');
 
     const getResponse = await request(app.getHttpServer())
       .get('/users/intranet/commute')

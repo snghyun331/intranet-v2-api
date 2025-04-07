@@ -372,4 +372,23 @@ export class UserRepository {
       .where('adminIdx = adminIdx', { adminIdx })
       .execute();
   }
+
+  async getBirthdayUsersByDate(month: string) {
+    const result = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select([
+        'userEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'userEntity.userBirth AS userBirth',
+      ])
+      .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('month(userEntity.userBirth) = :month', { month })
+      .andWhere('userEntity.userAvail IS NULL')
+      .orderBy('userEntity.userBirth', 'ASC')
+
+      .getRawMany();
+
+    return result;
+  }
 }

@@ -17,7 +17,7 @@ export class CreateMealBudgetDto {
   @IsString()
   year: string;
 
-  @ApiProperty({ type: String, description: '월', example: '8', required: true })
+  @ApiProperty({ type: String, description: '월(한자리수)', example: '8', required: true })
   @IsNotEmpty({ message: '월을 입력해주세요.' })
   @IsString()
   month: string;

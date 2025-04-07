@@ -13,7 +13,11 @@ import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
 import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
-import { getStartAndEndDateByMonth, removeAllWhiteSpace } from '../../../../common/utils/utility';
+import {
+  getStartAndEndDateByMonth,
+  getStartAndEndDateByYear,
+  removeAllWhiteSpace,
+} from '../../../../common/utils/utility';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
@@ -58,6 +62,18 @@ export class LeaveRepository {
       .createQueryBuilder('commuteEntity')
       .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
       .getCount();
+
+    return result;
+  }
+
+  async getLeaveInfoByIdx(commuteIdx: number): Promise<any> {
+    const result: any = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['commuteImageEntity.imageIdx AS imageIdx', 'imageEntity.imageName AS imageName'])
+      .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
+      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
+      .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
+      .getRawOne();
 
     return result;
   }
@@ -126,8 +142,30 @@ export class LeaveRepository {
 
     const imageIdx: number = result.identifiers[0].imageIdx;
 
-    /* leave_has_image entity */
+    /* commute_has_image entity */
     await manager.createQueryBuilder().insert().into(CommuteHasImageEntity).values({ commuteIdx, imageIdx }).execute();
+  }
+
+  async updateLeaveImage(imageIdx: number, imageInfo: LeaveImageInfo, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(ImageEntity)
+      .set(imageInfo)
+      .where('imageIdx = :imageIdx', { imageIdx })
+      .execute();
+  }
+
+  async deleteLeaveImage(imageIdx: number, manager: EntityManager): Promise<void> {
+    /* image entity */
+    await manager.createQueryBuilder().delete().from(ImageEntity).where('imageIdx = :imageIdx', { imageIdx }).execute();
+
+    /* commute_has_image entity */
+    await manager
+      .createQueryBuilder()
+      .delete()
+      .from(CommuteHasImageEntity)
+      .where('imageIdx = :imageIdx', { imageIdx })
+      .execute();
   }
 
   async getAnnualLeaveSummary(userIdx: number, year: string) {
@@ -277,6 +315,25 @@ export class LeaveRepository {
     return result;
   }
 
+  async getNotConfirmLeaveCount(userIdx: number, year: string): Promise<number> {
+    const { firstDayOfYear, lastDayOfYear } = getStartAndEndDateByYear(year);
+    const result: number = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['commuteEntity.commuteIdx AS commuteIdx'])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.NO })
+      .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
+        leaveTypeIdx: [IntranetLeaveTypeIdxEnum.NORMAL],
+      })
+      .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfYear AND :lastDayOfYear', {
+        firstDayOfYear,
+        lastDayOfYear,
+      })
+      .getCount();
+
+    return result;
+  }
+
   async getUserLeaveUsageInfo(year: string, userIdx: number) {
     const result = await this.leaveUsageModel
       .createQueryBuilder('leaveUsageEntity')
@@ -304,6 +361,10 @@ export class LeaveRepository {
         'DAYNAME(commuteEntity.commuteDate) AS commuteDayName',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
+        'commuteImageEntity.imageIdx AS imageIdx',
+        'imageEntity.imageName AS imageName',
+        'imageEntity.imageSize AS imageSize',
+        'imageEntity.imageUrl AS imageUrl',
         'leaveTypeEntity.leaveReduceUnit AS annualLeaveReduceUnit',
         'commuteEntity.note AS note',
         'commuteEntity.confirmYN AS confirmYN',
@@ -323,6 +384,8 @@ export class LeaveRepository {
         'ccUserEntity.userName AS ccUserName',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
+      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
       .leftJoin(UserEntity, 'confirmUserEntity', 'confirmUserEntity.userIdx = commuteEntity.confirmPersonIdx')
       .leftJoin(
         CommuteApproverEntity,

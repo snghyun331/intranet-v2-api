@@ -253,16 +253,20 @@ export class LeaveService {
           yearsSinceJoin: 0,
           oneYearAfterJoin: 0,
           midJoinReceivedAnnualLeave: 0,
+          notConfirmLeaveCount: 0,
         },
         leaveUsageStats,
       };
     }
+
+    const notConfirmLeaveCount: number = await this.leaveRepository.getNotConfirmLeaveCount(userIdx, year);
 
     const leaveSummary: LeaveSummary = {
       ...leaveStats,
       yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
       oneYearAfterJoin: getOneYearAfterJoin(leaveStats.joinDate), // 만 1년 날짜
       totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
+      notConfirmLeaveCount, // 대기중인 휴가 개수
     };
 
     // 근속년수가 3년 미만인 경우 중도입사 연차 개수를 추가
@@ -401,6 +405,10 @@ export class LeaveService {
           commuteDayName: row.commuteDayName,
           leaveTypeIdx: row.leaveTypeIdx,
           leaveType: row.leaveType,
+          imageIdx: row.imageIdx,
+          imageName: row.imageName,
+          imageSize: row.imageSize,
+          imageUrl: row.imageUrl,
           annualLeaveReduceUnit: row.annualLeaveReduceUnit,
           note: row.note,
           confirmYN: row.confirmYN,
@@ -464,5 +472,63 @@ export class LeaveService {
     });
 
     return { date, leaveByType };
+  }
+
+  async updateLeaveImage(
+    commuteIdx: number,
+    leaveImage: Express.Multer.File | undefined,
+    manager: EntityManager,
+  ): Promise<void> {
+    const env: string = this.configService.get<string>('NODE_ENV');
+    const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
+    const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+    const s3FolderPath: string = `${rootDir}/LEAVE/${commuteIdx}`;
+    const leaveInfo = await this.leaveRepository.getLeaveInfoByIdx(commuteIdx);
+    if (!leaveInfo) {
+      throw new BadRequestException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+
+    /* 이미지 추가 */
+    if (leaveImage && !leaveInfo.imageIdx) {
+      const { buffer, mimetype } = leaveImage;
+      const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
+      const s3FilePath: string = `${s3FolderPath}/${fileName}`;
+      const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, s3FilePath, buffer, mimetype);
+      const imageInfo: LeaveImageInfo = {
+        imageName: fileName,
+        imageSize: leaveImage.size,
+        imageUrl,
+      };
+
+      await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
+    }
+
+    /* 이미지 수정 */
+    if (leaveImage && leaveInfo.imageIdx) {
+      const existingFileName: string = leaveInfo.imageName.split('/').pop();
+      await this.awsService.deleteS3Image(bucketName, `${s3FolderPath}/${existingFileName}`);
+
+      const { buffer, mimetype } = leaveImage;
+      const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
+      const s3FilePath: string = `${s3FolderPath}/${fileName}`;
+      const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, s3FilePath, buffer, mimetype);
+      const imageInfo: LeaveImageInfo = {
+        imageName: fileName,
+        imageSize: leaveImage.size,
+        imageUrl,
+      };
+
+      await this.leaveRepository.updateLeaveImage(leaveInfo.imageIdx, imageInfo, manager);
+    }
+
+    /* 이미지 삭제 */
+    if (!leaveImage && leaveInfo.imageIdx) {
+      const existingFileName: string = leaveInfo.imageName.split('/').pop();
+      await this.awsService.deleteS3Image(bucketName, `${s3FolderPath}/${existingFileName}`);
+
+      await this.leaveRepository.deleteLeaveImage(leaveInfo.imageIdx, manager);
+    }
+
+    return;
   }
 }
