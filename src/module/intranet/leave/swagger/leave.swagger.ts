@@ -1,3 +1,4 @@
+import { ApiBody } from '@nestjs/swagger';
 import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
 
 export const USERS_INTRANET_LEAVE: SwaggerMethod = {
@@ -148,22 +149,21 @@ export const USERS_INTRANET_LEAVE_STATS: SwaggerMethod = {
                 message: 'success',
                 data: {
                   leaveSummary: {
-                    userIdx: 1,
                     userName: '김현민',
-                    year: '2025',
                     joinDate: '2023-03-04',
                     hqName: 'HR솔루션본부',
                     teamName: 'HR Tech',
-                    gradeName: '선임',
-                    totalReceivedAnnualLeave: 15,
+                    gradeName: '본부장',
+                    totalReceivedAnnualLeave: 30,
                     totalAnnualLeaveUsage: 1,
-                    totalAnnualLeaveBalance: 14,
-                    yearsSinceJoin: 1,
-                    oneYearAfterJoin: '2024-03-03',
+                    totalAnnualLeaveBalance: 29,
                     midJoinReceivedAnnualLeave: 0,
+                    yearsSinceJoin: 2,
+                    oneYearAfterJoin: '2024-03-03',
+                    notConfirmLeaveCount: 21,
                   },
                   leaveUsageStats: {
-                    fullLeaveUsage: 0,
+                    fullLeaveUsage: 1,
                     halfLeaveUsage: 0,
                     quarterLeaveUsage: 0,
                     specialLeaveUsage: 0,
@@ -171,6 +171,7 @@ export const USERS_INTRANET_LEAVE_STATS: SwaggerMethod = {
                     sickLeaveUsage: 0,
                     trainingLeaveUsage: 0,
                     familyEventLeaveUsage: 0,
+                    healthLeaveUsage: 0,
                   },
                 },
               },
@@ -195,6 +196,7 @@ export const USERS_INTRANET_LEAVE_STATS: SwaggerMethod = {
                     yearsSinceJoin: 0,
                     oneYearAfterJoin: 0,
                     midJoinReceivedAnnualLeave: 0,
+                    notConfirmLeaveCount: 0,
                   },
                   leaveUsageStats: {
                     fullLeaveUsage: 0,
@@ -230,43 +232,44 @@ export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
             message: 'success',
             data: [
               {
-                commuteIdx: 130,
-                userIdx: 2,
-                commuteDate: '2025-03-18',
-                commuteDayName: 'Tuesday',
-                leaveTypeIdx: 6,
-                leaveType: '연차',
-                annualLeaveReduceUnit: 0,
-                note: null,
-                confirmYN: 'N',
-                confirmDate: null,
-                rejectDate: null,
-                confirmPersonIdx: null,
-                confirmPersonName: null,
-                createdAt: '2025-03-21T00:22:28.254Z',
-                updatedAt: '2025-03-21T00:22:28.254Z',
-                approverInfo: [
+                statusCode: 200,
+                message: 'success',
+                data: [
                   {
-                    approverIdx: 5,
-                    approverName: '김현근',
-                  },
-                  {
-                    approverIdx: 6,
-                    approverName: '박민수',
+                    commuteIdx: 157,
+                    userIdx: 2,
+                    commuteDate: '2025-01-12',
+                    commuteDayName: 'Sunday',
+                    leaveTypeIdx: 3,
+                    leaveType: '오후 반차',
+                    imageIdx: 18,
+                    imageName: 'proof.png',
+                    imageSize: 12303,
+                    imageUrl: 'https://acg-benefit.s3.ap-northeast-2.amazonaws.com/TEST/LEAVE/157/proof.png',
+                    annualLeaveReduceUnit: 0.5,
+                    note: null,
+                    confirmYN: 'Y',
+                    confirmDate: '2025-03-14',
+                    rejectDate: null,
+                    confirmPersonIdx: 5,
+                    confirmPersonName: '김현근',
+                    createdAt: '2025-03-14T06:24:45.256Z',
+                    updatedAt: '2025-03-14T06:57:59.000Z',
+                    approverInfo: [
+                      {
+                        approverIdx: 5,
+                        approverName: '김현근',
+                      },
+                      {
+                        approverIdx: 6,
+                        approverName: '박민수',
+                      },
+                    ],
+                    ccUserInfo: [],
+                    confirmStatus: '2025-03-14',
+                    remainingAnnualLeaveQuota: 29.5,
                   },
                 ],
-                ccUserInfo: [
-                  {
-                    ccUserIdx: 2,
-                    ccUserName: '이승현',
-                  },
-                  {
-                    ccUserIdx: 9,
-                    ccUserName: '김정현',
-                  },
-                ],
-                confirmStatus: '승인 대기',
-                remainingAnnualLeaveQuota: 14,
               },
             ],
           },
@@ -275,6 +278,47 @@ export const USERS_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
     },
   },
 };
+
+export const USERS_INTRANET_LEAVE_IMAGE: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '사용자 개인 휴가 이미지 수정 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'commuteIdx',
+      required: true,
+      description: '휴가 신청 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};
+
+export const UploadLeaveImage =
+  (fileName = 'leaveImage'): MethodDecorator =>
+  (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    ApiBody({
+      schema: {
+        type: 'object',
+        properties: {
+          [fileName]: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+      required: false,
+    })(target, propertyKey, descriptor);
+  };
 
 export const ADMIN_INTRANET_LEAVE: SwaggerMethod = {
   GET: {

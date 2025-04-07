@@ -14,7 +14,7 @@ export class UserCommuteFilterDto {
 
   @ApiProperty({
     name: 'eDate',
-    required: false,
+    required: true,
     type: String,
     description: '종료 일자(기본: 현재 달의 마지막일)',
     example: '2025-01-31',

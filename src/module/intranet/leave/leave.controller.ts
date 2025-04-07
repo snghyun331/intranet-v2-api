@@ -31,9 +31,11 @@ import {
   ADMIN_INTRANET_LEAVE_DETAIL,
   ADMIN_INTRANET_LEAVE_NOTE,
   ADMIN_INTRANET_LEAVE_STATS,
+  UploadLeaveImage,
   USERS_INTRANET_LEAVE,
   USERS_INTRANET_LEAVE_ALL,
   USERS_INTRANET_LEAVE_DETAIL,
+  USERS_INTRANET_LEAVE_IMAGE,
   USERS_INTRANET_LEAVE_STATS,
 } from './swagger/leave.swagger';
 import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
@@ -161,6 +163,28 @@ export class UserLeaveController {
     const data = await this.leaveService.getUserLeaveInfo(filterInfo, userIdx);
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_IMAGE.PATCH.API_OPERATION)
+  @ApiConsumes('multipart/form-data')
+  @ApiParam(USERS_INTRANET_LEAVE_IMAGE.PATCH.API_PARAM1)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_IMAGE.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @UseInterceptors(TransactionInterceptor, FileInterceptor('leaveImage', leaveImageOptions))
+  @UploadLeaveImage()
+  @Patch(':commuteIdx/image')
+  async updateLeaveImage(
+    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
+    @TransactionManager() manager: EntityManager,
+    @UploadedFile() leaveImage: Express.Multer.File,
+  ): Promise<ResponseInterface> {
+    await this.leaveService.updateLeaveImage(commuteIdx, leaveImage, manager);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

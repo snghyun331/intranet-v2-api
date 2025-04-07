@@ -339,33 +339,20 @@ export class MealService {
   }
 
   async createMealBudget(mealBudgetInfo: CreateMealBudgetDto, manager: EntityManager): Promise<void> {
+    const { year, month, baseAmount } = mealBudgetInfo;
+
     /* 기본 식대 저장 */
-    const mealBaseInfo: { baseAmount: number } = await this.mealRepository.getMealBaseInfo(
-      mealBudgetInfo.year,
-      mealBudgetInfo.month,
-    );
+    const mealBaseInfo: { baseAmount: number } = await this.mealRepository.getMealBaseInfo(year, month);
     if (!mealBaseInfo) {
       // 기본 식대 정보가 없다면 create
-      await this.mealRepository.createMealBase(
-        mealBudgetInfo.year,
-        mealBudgetInfo.month,
-        mealBudgetInfo.baseAmount,
-        manager,
-      );
-    } else if (mealBaseInfo.baseAmount !== mealBudgetInfo.baseAmount) {
+      await this.mealRepository.createMealBase(year, month, baseAmount, manager);
+    } else if (mealBaseInfo.baseAmount !== baseAmount) {
       // 기본 식대 정보가 있고, 기존 정보랑 상이하다면 update
-      await this.mealRepository.updateMealBase(
-        mealBudgetInfo.year,
-        mealBudgetInfo.month,
-        mealBudgetInfo.baseAmount,
-        manager,
-      );
+      await this.mealRepository.updateMealBase(year, month, baseAmount, manager);
     }
-    const mealStatsCnt: number = await this.mealRepository.getMealStatsCount(mealBudgetInfo.year, mealBudgetInfo.month);
+    const mealStatsCnt: number = await this.mealRepository.getMealStatsCount(year, month);
     /* 기록이 없다면 통계 create (기록이 있다면 mealBudget은 트리거에 의해 자동 업데이트)*/
     if (mealStatsCnt < 1) {
-      const year: string = mealBudgetInfo.year;
-      const month = parseInt(mealBudgetInfo.month, 10).toString();
       // holidays 불러오기
       const holidayDates: string[] = await this.mealRepository.getHolidayDates(year, month);
       // workdays 불러오기
@@ -386,7 +373,7 @@ export class MealService {
     }
 
     // 마지막: 각종 업데이트에 따른 사용가능금액 업데이트
-    await this.mealRepository.updateMealBudget(mealBudgetInfo.year, mealBudgetInfo.month, manager);
+    await this.mealRepository.updateMealBudget(year, month, manager);
   }
 
   async getMealBudget(pageNoInfo: PageNoDto, filterInfo: AdminMealBudgetFilterDto): Promise<MealBudgetAdminResult> {
@@ -394,8 +381,7 @@ export class MealService {
       pageNoInfo,
       filterInfo,
     );
-    const year: string = filterInfo.year;
-    const month: string = parseInt(filterInfo.month, 10).toString();
+    const { year, month } = filterInfo;
     // holidays 불러오기
     const holidayDates: string[] = await this.mealRepository.getHolidayDates(year, month);
     // workdays 불러오기

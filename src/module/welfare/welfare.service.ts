@@ -215,9 +215,7 @@ export class WelfareService {
   }
 
   async createWelfareBudget(welfareBudgetInfo: CreateWelfareBudgetDto, manager: EntityManager) {
-    const year: string = welfareBudgetInfo.year;
-    const halfYear: HalfYearEnum = welfareBudgetInfo.period;
-    const welfareBudget: number = welfareBudgetInfo.welfareBudget;
+    const { year, period: halfYear, welfareBudget } = welfareBudgetInfo;
     const userIdxList: number[] = await this.welfareRepository.getAllUserIdxExceptCEO();
     const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCount(welfareBudgetInfo, year);
 

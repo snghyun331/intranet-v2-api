@@ -25,6 +25,10 @@ describe('MealController(e2e)', () => {
     }
   });
 
+  /**
+   * ✅ 테스트 케이스 작성
+   */
+
   describe('[POST] /admin/meals/budget', () => {
     const createMealBudgetDto: CreateMealBudgetDto = {
       baseAmount: 10000,
