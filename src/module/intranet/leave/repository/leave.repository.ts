@@ -327,6 +327,10 @@ export class LeaveRepository {
         'DAYNAME(commuteEntity.commuteDate) AS commuteDayName',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
+        'commuteImageEntity.imageIdx AS imageIdx',
+        'imageEntity.imageName AS imageName',
+        'imageEntity.imageSize AS imageSize',
+        'imageEntity.imageUrl AS imageUrl',
         'leaveTypeEntity.leaveReduceUnit AS annualLeaveReduceUnit',
         'commuteEntity.note AS note',
         'commuteEntity.confirmYN AS confirmYN',
@@ -346,6 +350,8 @@ export class LeaveRepository {
         'ccUserEntity.userName AS ccUserName',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
+      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
       .leftJoin(UserEntity, 'confirmUserEntity', 'confirmUserEntity.userIdx = commuteEntity.confirmPersonIdx')
       .leftJoin(
         CommuteApproverEntity,

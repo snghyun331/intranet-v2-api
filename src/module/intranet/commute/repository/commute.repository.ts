@@ -232,10 +232,6 @@ export class CommuteRepository {
         'commuteEntity.attendance AS attendance',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
-        'commuteImageEntity.imageIdx AS imageIdx',
-        'imageEntity.imageName AS imageName',
-        'imageEntity.imageSize AS imageSize',
-        'imageEntity.imageUrl AS imageUrl',
         'commuteEntity.updateReason AS updateReason',
         'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
         'commuteEntity.note AS note',
@@ -247,8 +243,6 @@ export class CommuteRepository {
         'commuteEntity.updatedAt AS updatedAt',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
-      .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
-      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
