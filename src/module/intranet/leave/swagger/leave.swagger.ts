@@ -320,6 +320,106 @@ export const UploadLeaveImage =
     })(target, propertyKey, descriptor);
   };
 
+export const USERS_INTRANET_LEAVE_ALL_CALENDER: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '월별 전직원 휴가현황 조회 API',
+    },
+    API_QUERY1: {
+      type: String,
+      name: 'year',
+      required: true,
+    },
+    API_QUERY2: {
+      type: String,
+      name: 'month',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              '2025-02-04': [
+                {
+                  commuteIdx: 182,
+                  userIdx: 1,
+                  userName: '김현민',
+                  commuteDate: '2025-02-04',
+                  leaveTypeIdx: 6,
+                  leaveType: '연차',
+                  checkInTime: null,
+                  checkOutTime: null,
+                  confirmYN: 'N',
+                  createdAt: '2025-03-27T01:52:43.160Z',
+                },
+              ],
+              '2025-02-14': [
+                {
+                  commuteIdx: 142,
+                  userIdx: 2,
+                  userName: '이승현',
+                  commuteDate: '2025-02-14',
+                  leaveTypeIdx: 6,
+                  leaveType: '연차',
+                  checkInTime: null,
+                  checkOutTime: null,
+                  confirmYN: 'Y',
+                  createdAt: '2025-03-14T05:44:52.331Z',
+                },
+              ],
+              '2025-02-19': [
+                {
+                  commuteIdx: 150,
+                  userIdx: 9,
+                  userName: '김정현',
+                  commuteDate: '2025-02-19',
+                  leaveTypeIdx: 7,
+                  leaveType: '특별 휴무',
+                  checkInTime: null,
+                  checkOutTime: null,
+                  confirmYN: 'N',
+                  createdAt: '2025-03-14T05:47:15.737Z',
+                },
+              ],
+              '2025-02-23': [
+                {
+                  commuteIdx: 146,
+                  userIdx: 1,
+                  userName: '김현민',
+                  commuteDate: '2025-02-23',
+                  leaveTypeIdx: 20,
+                  leaveType: '병가',
+                  checkInTime: null,
+                  checkOutTime: null,
+                  confirmYN: 'Y',
+                  createdAt: '2025-03-14T05:45:41.165Z',
+                },
+              ],
+              '2025-02-24': [
+                {
+                  commuteIdx: 148,
+                  userIdx: 1,
+                  userName: '김현민',
+                  commuteDate: '2025-02-24',
+                  leaveTypeIdx: 20,
+                  leaveType: '병가',
+                  checkInTime: null,
+                  checkOutTime: null,
+                  confirmYN: 'Y',
+                  createdAt: '2025-03-14T05:45:49.119Z',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 export const ADMIN_INTRANET_LEAVE: SwaggerMethod = {
   GET: {
     API_OPERATION: {

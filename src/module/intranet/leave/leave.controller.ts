@@ -34,6 +34,7 @@ import {
   UploadLeaveImage,
   USERS_INTRANET_LEAVE,
   USERS_INTRANET_LEAVE_ALL,
+  USERS_INTRANET_LEAVE_ALL_CALENDER,
   USERS_INTRANET_LEAVE_DETAIL,
   USERS_INTRANET_LEAVE_IMAGE,
   USERS_INTRANET_LEAVE_STATS,
@@ -130,6 +131,25 @@ export class UserLeaveController {
   @Get('all')
   async getAllUsersLeaveByDate(@Query('date') date: string): Promise<ResponseInterface> {
     const data = await this.leaveService.getAllUsersLeaveByDate(date);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_LEAVE_ALL_CALENDER.GET.API_OPERATION)
+  @ApiQuery(USERS_INTRANET_LEAVE_ALL_CALENDER.GET.API_QUERY1)
+  @ApiOkResponse(USERS_INTRANET_LEAVE_ALL_CALENDER.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('all/calender')
+  async getAllUsersLeaveByCalender(
+    @Query('year') year: string,
+    @Query('month') month: string,
+  ): Promise<ResponseInterface> {
+    const data = await this.leaveService.getAllUsersLeaveByMonth(year, month);
+    console.log(data);
 
     const response: ResponseInterface = { message: 'success', data };
 
