@@ -474,6 +474,22 @@ export class LeaveService {
     return { date, leaveByType };
   }
 
+  async getAllUsersLeaveByMonth(year: string, month: string) {
+    const leaveInfo = await this.leaveRepository.getAllLeaveCalender(year, month);
+
+    // 날짜별로 그룹화하여 leaves를 구성
+    const leaves: any[] = leaveInfo.reduce((acc, item) => {
+      const date: string = item.commuteDate;
+
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(item);
+
+      return acc;
+    }, {});
+
+    return leaves;
+  }
+
   async updateLeaveImage(
     commuteIdx: number,
     leaveImage: Express.Multer.File | undefined,

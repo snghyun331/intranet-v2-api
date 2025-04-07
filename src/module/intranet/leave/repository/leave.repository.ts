@@ -349,8 +349,8 @@ export class LeaveRepository {
   async getUserLeaveDetail({ year, month, ...filter }: AdminLeaveDetailFilterDto, userIdx: number) {
     // 해당 월의 첫 번째 날과 마지막 날을 구함
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
-    const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
-    const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
 
     const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
       .createQueryBuilder('commuteEntity')
@@ -396,9 +396,9 @@ export class LeaveRepository {
       .leftJoin(CommuteCCUserEntity, 'commuteCCUserEntity', 'commuteCCUserEntity.commuteIdx = commuteEntity.commuteIdx')
       .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = commuteCCUserEntity.ccUserIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
-        firstDayOfMonthToString,
-        lastDayOfMonthToString,
+      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
       });
 
     if (filter.leaveTypeIdx) {
@@ -445,6 +445,38 @@ export class LeaveRepository {
     if (!result) {
       throw new BadRequestException('해당 사용자의 월별 보건휴가 사용량이 설정되어 있지 않습니다.');
     }
+    return result;
+  }
+
+  async getAllLeaveCalender(year: string, month: string) {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'commuteEntity.commuteDate AS commuteDate',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'leaveTypeEntity.leaveType AS leaveType',
+        'commuteEntity.checkInTime AS checkInTime',
+        'commuteEntity.checkOutTime AS checkOutTime',
+        'commuteEntity.confirmYN AS confirmYN',
+        'commuteEntity.createdAt AS createdAt',
+      ])
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
+      .where('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .orderBy('commuteEntity.commuteDate', 'ASC')
+      .getRawMany();
+
     return result;
   }
 
