@@ -482,4 +482,17 @@ export class LeaveRepository {
 
     return commuteIdx;
   }
+
+  async updateUserTotalReceivedAnnualLeave(
+    leaveStatsIdx: number,
+    totalReceivedAnnualLeave: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(LeaveStatsEntity)
+      .set({ totalReceivedAnnualLeave })
+      .where('leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
+      .execute();
+  }
 }
