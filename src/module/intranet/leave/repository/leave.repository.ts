@@ -200,9 +200,8 @@ export class LeaveRepository {
       .select([
         'leaveStatsEntity.leaveStatsIdx AS leaveStatsIdx',
         'leaveStatsEntity.userIdx AS userIdx',
-        'userEntity.joinDate AS joinDate',
         'userEntity.userName AS userName',
-        'userEntity.userEmail AS userEmail',
+        'userEntity.id AS id',
         'hqEntity.hqName AS hqName',
         'teamEntity.teamName AS teamName',
         'gradeEntity.gradeName AS gradeName',
@@ -234,33 +233,9 @@ export class LeaveRepository {
 
     const leaveStatsList = await query.getRawMany();
 
-    // 쿼리 2: 사용자별 최근 연차사용일 데이터 함께 조회
-    const lastLeaveDates = await this.commuteModel
-      .createQueryBuilder('commuteEntity')
-      .select(['commuteEntity.userIdx AS userIdx', 'MAX(commuteEntity.commuteDate) AS lastLeaveDate'])
-      .where('commuteEntity.leaveTypeIdx IN (:leaveTypeIdx)', {
-        leaveTypeIdx: [
-          IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE,
-          IntranetLeaveTypeIdxEnum.PM_HALF,
-          IntranetLeaveTypeIdxEnum.PM_QUARTER,
-          IntranetLeaveTypeIdxEnum.AM_HALF,
-          IntranetLeaveTypeIdxEnum.AM_QUARTER,
-        ],
-      })
-      .groupBy('commuteEntity.userIdx')
-      .getRawMany();
-
-    const recentLeaveMap = new Map<number, string>();
-
-    lastLeaveDates.forEach(({ userIdx, lastLeaveDate }) => {
-      recentLeaveMap.set(userIdx, lastLeaveDate);
-    });
-
     const result = leaveStatsList.map((leaveStats) => ({
-      userIdx: leaveStats.userIdx,
       ...leaveStats,
       totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance),
-      lastLeaveDate: recentLeaveMap.has(leaveStats.userIdx) ? recentLeaveMap.get(leaveStats.userIdx) : null,
     }));
 
     return { totalPage, total, summaries: result };
