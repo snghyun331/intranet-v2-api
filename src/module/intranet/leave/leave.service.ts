@@ -506,12 +506,12 @@ export class LeaveService {
 
     /* 이미지 추가 */
     if (leaveImage && !leaveInfo.imageIdx) {
-      const { buffer, mimetype } = leaveImage;
-      const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
-      const s3FilePath: string = `${s3FolderPath}/${fileName}`;
+      leaveImage.originalname = Buffer.from(leaveImage.originalname, 'ascii').toString('utf8');
+      const { buffer, mimetype, originalname } = leaveImage;
+      const s3FilePath: string = `${s3FolderPath}/${originalname}`;
       const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, s3FilePath, buffer, mimetype);
       const imageInfo: LeaveImageInfo = {
-        imageName: fileName,
+        imageName: originalname,
         imageSize: leaveImage.size,
         imageUrl,
       };
@@ -524,12 +524,12 @@ export class LeaveService {
       const existingFileName: string = leaveInfo.imageName.split('/').pop();
       await this.awsService.deleteS3Image(bucketName, `${s3FolderPath}/${existingFileName}`);
 
-      const { buffer, mimetype } = leaveImage;
-      const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
-      const s3FilePath: string = `${s3FolderPath}/${fileName}`;
+      leaveImage.originalname = Buffer.from(leaveImage.originalname, 'ascii').toString('utf8');
+      const { buffer, mimetype, originalname } = leaveImage;
+      const s3FilePath: string = `${s3FolderPath}/${originalname}`;
       const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, s3FilePath, buffer, mimetype);
       const imageInfo: LeaveImageInfo = {
-        imageName: fileName,
+        imageName: originalname,
         imageSize: leaveImage.size,
         imageUrl,
       };
