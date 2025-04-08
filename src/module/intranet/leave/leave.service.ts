@@ -240,9 +240,8 @@ export class LeaveService {
 
     // 사용자 휴가 요약정보 조회
     const leaveStats = await this.leaveRepository.getUserLeaveStats(year, userIdx);
-
+    const userInfo = await this.leaveRepository.getUserInfoByIdx(userIdx);
     if (!leaveStats) {
-      const userInfo = await this.leaveRepository.getUserInfoByIdx(userIdx);
       return {
         leaveSummary: {
           ...userInfo,
@@ -250,6 +249,8 @@ export class LeaveService {
           totalReceivedAnnualLeave: 0,
           totalAnnualLeaveUsage: 0,
           totalAnnualLeaveBalance: 0,
+          totalReceivedSpecialLeave: 0,
+          totalReceivedAlternativeLeave: 0,
           yearsSinceJoin: 0,
           oneYearAfterJoin: 0,
           midJoinReceivedAnnualLeave: 0,
@@ -262,7 +263,12 @@ export class LeaveService {
     const notConfirmLeaveCount: number = await this.leaveRepository.getNotConfirmLeaveCount(userIdx, year);
 
     const leaveSummary: LeaveSummary = {
-      ...leaveStats,
+      ...userInfo,
+      year,
+      totalReceivedAnnualLeave: leaveStats.totalReceivedAnnualLeave,
+      totalAnnualLeaveUsage: leaveStats.totalAnnualLeaveUsage,
+      totalReceivedSpecialLeave: leaveStats.totalReceivedSpecialLeave,
+      totalReceivedAlternativeLeave: leaveStats.totalReceivedAlternativeLeave,
       yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
       oneYearAfterJoin: getOneYearAfterJoin(leaveStats.joinDate), // 만 1년 날짜
       totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
@@ -283,39 +289,9 @@ export class LeaveService {
       } else if (QUARTER_ANNUAL_LEAVE_LISTS.has(row.leaveTypeIdx)) {
         leaveUsageStats.quarterLeaveUsage += row.annualUseCount;
       } else if (SPECIAL_LEAVE_LISTS.has(row.leaveTypeIdx)) {
-        switch (row.leaveTypeIdx) {
-          case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
-            leaveUsageStats.specialLeaveUsage += row.annualUseCount;
-            break;
-          case IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE:
-            leaveUsageStats.specialLeaveUsage += row.annualUseCount * 0.5;
-            break;
-          case IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE:
-            leaveUsageStats.specialLeaveUsage += row.annualUseCount * 0.5;
-            break;
-          case IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE:
-            leaveUsageStats.specialLeaveUsage += row.annualUseCount * 0.25;
-            break;
-          case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
-            leaveUsageStats.specialLeaveUsage += row.annualUseCount * 0.25;
-            break;
-          default:
-            break;
-        }
+        leaveUsageStats.specialLeaveUsage = leaveStats.totalSpecialLeaveUsage;
       } else if (ALTERNATIVE_LEAVE_LISTS.has(row.leaveTypeIdx)) {
-        switch (row.leaveTypeIdx) {
-          case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
-            leaveUsageStats.alternativeLeaveUsage += row.annualUseCount;
-            break;
-          case IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE:
-            leaveUsageStats.alternativeLeaveUsage += row.annualUseCount * 0.5;
-            break;
-          case IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE:
-            leaveUsageStats.alternativeLeaveUsage += row.annualUseCount * 0.5;
-            break;
-          default:
-            break;
-        }
+        leaveUsageStats.alternativeLeaveUsage = leaveStats.totalAlternativeLeaveUsage;
       } else if (TRAINING_LEAVE_LISTS.has(row.leaveTypeIdx)) {
         switch (row.leaveTypeIdx) {
           case IntranetLeaveTypeIdxEnum.TRAINING:

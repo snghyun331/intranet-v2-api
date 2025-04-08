@@ -164,6 +164,57 @@ export class ApprovalRepository {
       .execute();
   }
 
+  async updateTotalSpecialLeaveUsage(year: string, userIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    const query = `(
+      SELECT SUM(
+        CASE 
+          WHEN leave_usage.leave_type_idx IN (8, 9) THEN leave_usage.annual_use_count * 0.5
+          WHEN leave_usage.leave_type_idx IN (10, 11) THEN leave_usage.annual_use_count * 0.25
+          WHEN leave_usage.leave_type_idx = 7 THEN leave_usage.annual_use_count
+          ELSE 0
+        END
+      )
+      FROM leave_usage
+      WHERE leave_usage.user_idx = leave_stats.user_idx 
+      AND leave_usage.year = leave_stats.year
+    )`;
+
+    return await manager
+      .createQueryBuilder()
+      .update(LeaveStatsEntity)
+      .set({
+        totalSpecialLeaveUsage: () => query,
+      })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .execute();
+  }
+
+  async updateTotalAlternativeLeaveUsage(year: string, userIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    const query = `(
+      SELECT SUM(
+        CASE 
+          WHEN leave_usage.leave_type_idx IN (13, 14) THEN leave_usage.annual_use_count * 0.5
+          WHEN leave_usage.leave_type_idx = 12 THEN leave_usage.annual_use_count
+          ELSE 0
+        END
+      )
+      FROM leave_usage
+      WHERE leave_usage.user_idx = leave_stats.user_idx 
+      AND leave_usage.year = leave_stats.year
+    )`;
+
+    return await manager
+      .createQueryBuilder()
+      .update(LeaveStatsEntity)
+      .set({
+        totalAlternativeLeaveUsage: () => query,
+      })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .execute();
+  }
+
   async getApprovalHistory(userIdx: number, filterInfo: UserApprovalFilter) {
     const { year, month } = filterInfo;
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
