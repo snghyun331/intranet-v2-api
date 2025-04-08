@@ -16,6 +16,8 @@ export interface LeaveSummary {
   totalAnnualLeaveUsage: any;
   totalAnnualLeaveBalance: any;
   midJoinReceivedAnnualLeave?: any;
+  totalReceivedSpecialLeave: any;
+  totalReceivedAlternativeLeave: any;
   yearsSinceJoin: any;
   oneYearAfterJoin: any;
   proRatedAnnualLeave: any;

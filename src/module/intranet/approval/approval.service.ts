@@ -4,6 +4,7 @@ import { EntityManager } from 'typeorm';
 import { ConfirmEnum } from '../../../common/constant/enum';
 import { addConfirmStatusField, substringYearMonth } from '../../../common/utils/utility';
 import { UserApprovalFilter } from './dto/query.dto';
+import { ALTERNATIVE_LEAVE_LISTS, ANNUAL_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from '../../../common/constant/constant';
 
 @Injectable()
 export class ApprovalService {
@@ -58,7 +59,17 @@ export class ApprovalService {
       await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx, manager);
 
       // 연도별 연차 총 사용량 업데이트
-      await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx, manager);
+      if (ANNUAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
+        await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx, manager);
+      }
+      // 연도별 특별휴무 총 사용량 업데이트
+      if (SPECIAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
+        await this.approvalRepository.updateTotalSpecialLeaveUsage(year, userIdx, manager);
+      }
+      // 연도별 대체휴무 총 사용량 업데이트
+      if (ALTERNATIVE_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
+        await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx, manager);
+      }
     }
   }
 

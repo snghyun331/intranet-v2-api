@@ -293,23 +293,17 @@ export class LeaveRepository {
     const result = await this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')
       .select([
-        'userEntity.userName AS userName',
-        'userEntity.joinDate AS joinDate',
-        'hqEntity.hqName AS hqName',
-        'teamEntity.teamName AS teamName',
-        'gradeEntity.gradeName AS gradeName',
-        'leaveStatsEntity.totalReceivedAnnualLeave AS totalReceivedAnnualLeave', // 총 연차 개수
-        'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage', // 사용 연차 개수
+        'leaveStatsEntity.totalReceivedAnnualLeave AS totalReceivedAnnualLeave',
+        'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage',
         '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance', // 잔여 연차 개수
-        'leaveStatsEntity.midJoinReceivedAnnualLeave AS midJoinReceivedAnnualLeave', // 중도입사 연차 부여개수
+        'leaveStatsEntity.midJoinReceivedAnnualLeave AS midJoinReceivedAnnualLeave',
+        'leaveStatsEntity.totalReceivedSpecialLeave AS totalReceivedSpecialLeave',
+        'leaveStatsEntity.totalSpecialLeaveUsage AS totalSpecialLeaveUsage',
+        'leaveStatsEntity.totalReceivedAlternativeLeave AS totalReceivedAlternativeLeave',
+        'leaveStatsEntity.totalAlternativeLeaveUsage AS totalAlternativeLeaveUsage',
       ])
-      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveStatsEntity.userIdx')
-      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
-      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
       .andWhere('leaveStatsEntity.year = :year', { year })
-      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     return result;
