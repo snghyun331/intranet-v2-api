@@ -6,7 +6,7 @@ import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
 import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum, UserGradeEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
-import { LeaveImageInfo, LeaveSummary } from './interface/leave.interface';
+import { LeaveImageInfo, LeaveSummary, LeaveUsageStats } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -226,7 +226,7 @@ export class LeaveService {
     }
 
     // 사용 휴가 수 초기화
-    const leaveUsageStats = {
+    const leaveUsageStats: LeaveUsageStats = {
       fullLeaveUsage: 0,
       halfLeaveUsage: 0,
       quarterLeaveUsage: 0,
@@ -236,6 +236,8 @@ export class LeaveService {
       trainingLeaveUsage: 0,
       familyEventLeaveUsage: 0,
       healthLeaveUsage: 0,
+      totalReceivedSpecialLeave: 0,
+      totalReceivedAlternativeLeave: 0,
     };
 
     // 사용자 휴가 요약정보 조회
@@ -249,8 +251,6 @@ export class LeaveService {
           totalReceivedAnnualLeave: 0,
           totalAnnualLeaveUsage: 0,
           totalAnnualLeaveBalance: 0,
-          totalReceivedSpecialLeave: 0,
-          totalReceivedAlternativeLeave: 0,
           yearsSinceJoin: 0,
           oneYearAfterJoin: 0,
           midJoinReceivedAnnualLeave: 0,
@@ -267,8 +267,6 @@ export class LeaveService {
       year,
       totalReceivedAnnualLeave: leaveStats.totalReceivedAnnualLeave,
       totalAnnualLeaveUsage: leaveStats.totalAnnualLeaveUsage,
-      totalReceivedSpecialLeave: leaveStats.totalReceivedSpecialLeave,
-      totalReceivedAlternativeLeave: leaveStats.totalReceivedAlternativeLeave,
       yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
       oneYearAfterJoin: getOneYearAfterJoin(leaveStats.joinDate), // 만 1년 날짜
       totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
@@ -279,6 +277,10 @@ export class LeaveService {
     if (leaveSummary.yearsSinceJoin < 3) {
       leaveSummary.midJoinReceivedAnnualLeave = leaveSummary.midJoinReceivedAnnualLeave;
     }
+
+    // 총 특별휴무 수, 총 대체휴무 수 추가 (요구사항)
+    leaveUsageStats.totalReceivedSpecialLeave = leaveStats.totalReceivedSpecialLeave;
+    leaveUsageStats.totalReceivedSpecialLeave = leaveStats.totalReceivedSpecialLeave;
 
     // 휴가 종류별 사용현황 조회
     const leaveUsageInfo = await this.leaveRepository.getUserLeaveUsageInfo(year, userIdx);
@@ -436,18 +438,6 @@ export class LeaveService {
     );
 
     return result;
-  }
-
-  async getAllUsersLeaveByDate(date: string) {
-    const leaveList = await this.leaveRepository.getAllUsersLeaveByDate(date);
-    const leaveByType = {};
-
-    leaveList.forEach(({ leaveType, userName }) => {
-      leaveByType[leaveType] = leaveByType[leaveType] || [];
-      leaveByType[leaveType].push(userName);
-    });
-
-    return { date, leaveByType };
   }
 
   async getAllUsersLeaveByMonth(year: string, month: string) {
