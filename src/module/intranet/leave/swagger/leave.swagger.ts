@@ -96,36 +96,6 @@ export const USERS_INTRANET_LEAVE: SwaggerMethod = {
   },
 };
 
-export const USERS_INTRANET_LEAVE_ALL: SwaggerMethod = {
-  GET: {
-    API_OPERATION: {
-      summary: '날짜별 전제 직원 휴무 현황 API',
-    },
-    API_QUERY1: {
-      type: String,
-      name: 'date',
-      description: 'yyyy-MM-dd',
-      required: true,
-    },
-    API_OK_RESPONSE: {
-      content: {
-        'application/json': {
-          example: {
-            statusCode: 200,
-            message: 'success',
-            data: {
-              date: '2025-02-04',
-              leaveByType: {
-                '오후 반차': ['이승현'],
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
-
 export const USERS_INTRANET_LEAVE_STATS: SwaggerMethod = {
   GET: {
     API_OPERATION: {
@@ -158,23 +128,23 @@ export const USERS_INTRANET_LEAVE_STATS: SwaggerMethod = {
                     year: '2025',
                     totalReceivedAnnualLeave: 30,
                     totalAnnualLeaveUsage: 1,
-                    totalReceivedSpecialLeave: 0,
-                    totalReceivedAlternativeLeave: 0,
                     yearsSinceJoin: 0,
                     oneYearAfterJoin: '2026-04-07',
                     totalAnnualLeaveBalance: 29,
-                    notConfirmLeaveCount: 15,
+                    notConfirmLeaveCount: 17,
                   },
                   leaveUsageStats: {
                     fullLeaveUsage: 1,
                     halfLeaveUsage: 0,
                     quarterLeaveUsage: 0,
-                    specialLeaveUsage: 0,
+                    specialLeaveUsage: 1.5,
                     alternativeLeaveUsage: 0,
                     sickLeaveUsage: 0,
                     trainingLeaveUsage: 0,
                     familyEventLeaveUsage: 0,
                     healthLeaveUsage: 0,
+                    totalReceivedSpecialLeave: 10,
+                    totalReceivedAlternativeLeave: 0,
                   },
                 },
               },

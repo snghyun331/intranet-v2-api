@@ -33,7 +33,6 @@ import {
   ADMIN_INTRANET_LEAVE_STATS,
   UploadLeaveImage,
   USERS_INTRANET_LEAVE,
-  USERS_INTRANET_LEAVE_ALL,
   USERS_INTRANET_LEAVE_ALL_CALENDER,
   USERS_INTRANET_LEAVE_DETAIL,
   USERS_INTRANET_LEAVE_IMAGE,
@@ -116,21 +115,6 @@ export class UserLeaveController {
     @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseInterface> {
     const data = await this.leaveService.getAnnualLeaveSummary(userIdx, year);
-
-    const response: ResponseInterface = { message: 'success', data };
-
-    return response;
-  }
-
-  @ApiOperation(USERS_INTRANET_LEAVE_ALL.GET.API_OPERATION)
-  @ApiQuery(USERS_INTRANET_LEAVE_ALL.GET.API_QUERY1)
-  @ApiOkResponse(USERS_INTRANET_LEAVE_ALL.GET.API_OK_RESPONSE)
-  @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRoleGuard)
-  @UserRole(UserGradeEnum.INTERN)
-  @Get('all')
-  async getAllUsersLeaveByDate(@Query('date') date: string): Promise<ResponseInterface> {
-    const data = await this.leaveService.getAllUsersLeaveByDate(date);
 
     const response: ResponseInterface = { message: 'success', data };
 

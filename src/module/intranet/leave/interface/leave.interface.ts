@@ -9,16 +9,28 @@ export interface LeaveSummary {
   userName: any;
   year: string;
   joinDate: any;
-  hqName: any;
-  teamName: any;
-  gradeName: any;
-  totalReceivedAnnualLeave: any;
-  totalAnnualLeaveUsage: any;
-  totalAnnualLeaveBalance: any;
-  midJoinReceivedAnnualLeave?: any;
-  totalReceivedSpecialLeave: any;
-  totalReceivedAlternativeLeave: any;
-  yearsSinceJoin: any;
-  oneYearAfterJoin: any;
-  proRatedAnnualLeave: any;
+  hqName: string | null;
+  teamName: string | null;
+  gradeName: string;
+  totalReceivedAnnualLeave: number;
+  totalAnnualLeaveUsage: number;
+  totalAnnualLeaveBalance: number;
+  midJoinReceivedAnnualLeave?: number;
+  yearsSinceJoin: number;
+  oneYearAfterJoin: number;
+  proRatedAnnualLeave: number;
+}
+
+export interface LeaveUsageStats {
+  fullLeaveUsage: number;
+  halfLeaveUsage: number;
+  quarterLeaveUsage: number;
+  specialLeaveUsage: number;
+  alternativeLeaveUsage: number;
+  sickLeaveUsage: number;
+  trainingLeaveUsage: number;
+  familyEventLeaveUsage: number;
+  healthLeaveUsage: number;
+  totalReceivedSpecialLeave: number;
+  totalReceivedAlternativeLeave: number;
 }
