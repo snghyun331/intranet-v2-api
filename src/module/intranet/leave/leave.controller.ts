@@ -28,6 +28,7 @@ import {
 } from '@nestjs/swagger';
 import {
   ADMIN_INTRANET_LEAVE,
+  ADMIN_INTRANET_LEAVE_ALL_CALENDER,
   ADMIN_INTRANET_LEAVE_DETAIL,
   ADMIN_INTRANET_LEAVE_NOTE,
   ADMIN_INTRANET_LEAVE_STATS,
@@ -133,7 +134,6 @@ export class UserLeaveController {
     @Query('month') month: string,
   ): Promise<ResponseInterface> {
     const data = await this.leaveService.getAllUsersLeaveByMonth(year, month);
-    console.log(data);
 
     const response: ResponseInterface = { message: 'success', data };
 
@@ -267,6 +267,24 @@ export class AdminLeaveController {
     @Query() filterInfo: AdminLeaveDetailFilterDto,
   ): Promise<ResponseInterface> {
     const data = await this.leaveService.getUserLeaveInfo(filterInfo, userIdx);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE_ALL_CALENDER.GET.API_OPERATION)
+  @ApiQuery(ADMIN_INTRANET_LEAVE_ALL_CALENDER.GET.API_QUERY1)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_ALL_CALENDER.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('all/calender')
+  async getAllUsersLeaveByCalender(
+    @Query('year') year: string,
+    @Query('month') month: string,
+  ): Promise<ResponseInterface> {
+    const data = await this.leaveService.getAllUsersLeaveByMonth(year, month);
 
     const response: ResponseInterface = { message: 'success', data };
 
