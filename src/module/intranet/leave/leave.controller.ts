@@ -56,6 +56,7 @@ import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { UserPayload } from '../../../common/interface/payload.interface';
+import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 
 @ApiTags('사용자')
 @Controller('users/intranet/leave')
@@ -212,6 +213,25 @@ export class AdminLeaveController {
     const data = await this.leaveService.getLeaveSummaries(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE.PATCH.API_OPERATION)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @UseInterceptors(TransactionInterceptor)
+  @Patch(':leaveStatsIdx')
+  async updateUserTotalReceivedAnnualLeave(
+    @Param('leaveStatsIdx', ParseIntPipe) leaveStatsIdx: number,
+    @Body() dto: UpdateAnnualLeaveDto,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.leaveService.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, dto, manager);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

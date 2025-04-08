@@ -24,6 +24,7 @@ import {
   TRAINING_LEAVE_LISTS,
 } from '../../../common/constant/constant';
 import { UserPayload } from '../../../common/interface/payload.interface';
+import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 
 @Injectable()
 export class LeaveService {
@@ -510,6 +511,16 @@ export class LeaveService {
 
       await this.leaveRepository.deleteLeaveImage(leaveInfo.imageIdx, manager);
     }
+
+    return;
+  }
+
+  async updateUserTotalReceivedAnnualLeave(
+    leaveStatsIdx: number,
+    { totalReceivedAnnualLeave }: UpdateAnnualLeaveDto,
+    manager: EntityManager,
+  ): Promise<void> {
+    await this.leaveRepository.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, totalReceivedAnnualLeave, manager);
 
     return;
   }

@@ -438,6 +438,8 @@ export const ADMIN_INTRANET_COMMUTE_NOTE: SwaggerMethod = {
           summary: '예시',
           value: {
             note: '특이사항입니다.',
+            earlyLeaveReason: '조기퇴근사유입니다.',
+            updateReason: '근태수정사유입니다..',
           },
         },
       },
