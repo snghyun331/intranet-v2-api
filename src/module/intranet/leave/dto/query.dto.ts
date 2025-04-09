@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ConfirmEnum } from '../../../../common/constant/enum';
 
 export class AdminLeaveFilterDto {
   @ApiProperty({ name: 'year', required: true, description: '회계연도', type: String, example: '2025' })
@@ -57,4 +58,7 @@ export class UserLeaveDetailFilterDto {
   @Type(() => Number)
   @IsNumber()
   leaveTypeIdx?: number;
+
+  @ApiProperty({ name: 'confirmYN', required: false, description: '결재여부', type: 'enum', enum: ConfirmEnum })
+  confirmYN?: ConfirmEnum;
 }

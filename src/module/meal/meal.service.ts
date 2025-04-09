@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { MealRepository } from './repository/meal.repository';
 import { CreateMealDto, MealInputDto } from './dto/createMeal.dto';
-import { MealAttendanceEnum, MealTypeEnum, YNEnum } from '../../common/constant/enum';
+import { MealTypeEnum, YNEnum } from '../../common/constant/enum';
 import { MealEntity } from '../../entity/meal/meal.entity';
 import { BasicMealData, DetailedMealData, MealStats, MealStatsAdminInfo } from './interface/meal.interface';
 import { EntityManager } from 'typeorm';
@@ -41,11 +41,6 @@ export class MealService {
         place: meal.place,
         amount: meal.amount,
       };
-      if (meal.mealType === MealTypeEnum.LUNCH && meal.attendance) {
-        mealData.attendance = meal.attendance; // attendance가 있을 때만 추가
-      } else if (meal.mealType === MealTypeEnum.LUNCH && !meal.attendance) {
-        mealData.attendance = '';
-      }
 
       if (existingDate) {
         // mealType에 따라 해당 식사 시간에 데이터를 할당
@@ -68,10 +63,7 @@ export class MealService {
           start: meal.targetDay,
           holidayYN: meal.holidayYN,
           breakfast: meal.mealType === MealTypeEnum.BREAKFAST ? mealData : { payerName: '', place: '', amount: null },
-          lunch:
-            meal.mealType === MealTypeEnum.LUNCH
-              ? mealData
-              : { payerName: '', place: '', amount: null, attendance: '' },
+          lunch: meal.mealType === MealTypeEnum.LUNCH ? mealData : { payerName: '', place: '', amount: null },
           dinner: meal.mealType === MealTypeEnum.DINNER ? mealData : { payerName: '', place: '', amount: null },
         });
       }
@@ -104,41 +96,7 @@ export class MealService {
     // 근무&휴일 (휴일근무)일 때 처리
     const monthHolidays: string[] = await this.mealRepository.getMonthHolidays(year, month);
     if (monthHolidays.includes(newMealInfo.targetDay)) {
-      const attendance: MealAttendanceEnum = newMealInfo.attendance;
-      if (attendance !== MealAttendanceEnum.WORKING) {
-        throw new BadRequestException('휴일에는 근무일 때만 등록할 수 있습니다.');
-      }
       newMealInfo.holidayYN = YNEnum.YES;
-    }
-
-    // 식대 등록 예외처리(연차/휴무 & 재택근무)
-    if (
-      newMealInfo.attendance === MealAttendanceEnum.REST ||
-      newMealInfo.attendance === MealAttendanceEnum.REMOTE_WORK
-    ) {
-      if (
-        this.isAnyFieldBlank(newMealInfo.breakfast) ||
-        this.isAnyFieldBlank(newMealInfo.lunch) ||
-        this.isAnyFieldBlank(newMealInfo.dinner)
-      ) {
-        throw new BadRequestException('연차/휴무 및 재택 근무는 식대 지원이 불가합니다.');
-      }
-    }
-    // 식대 등록 예외처리(오후반차)
-    if (newMealInfo.attendance === MealAttendanceEnum.PM_HALF) {
-      if (
-        this.isAnyFieldBlank(newMealInfo.breakfast) ||
-        this.isAnyFieldBlank(newMealInfo.lunch) ||
-        this.isAnyFieldBlank(newMealInfo.dinner)
-      ) {
-        throw new BadRequestException('오후 반차는 식대 지원이 불가합니다');
-      }
-    }
-    // 식대 등록 예외처리(오전반차)
-    if (newMealInfo.attendance === MealAttendanceEnum.AM_HALF) {
-      if (this.isAnyFieldBlank(newMealInfo.lunch) || this.isAnyFieldBlank(newMealInfo.breakfast)) {
-        throw new BadRequestException('오전 반차는 식대(조식, 중식) 지원이 불가합니다');
-      }
     }
 
     // 중식 저장
@@ -157,7 +115,7 @@ export class MealService {
     if (newMealInfo.holidayYN) {
       newLunch.holidayYN = newMealInfo.holidayYN;
     }
-    newLunch.attendance = newMealInfo.attendance;
+
     // 기존 정보가 있을 경우 업데이트
     if (lunchInfo) {
       await this.mealRepository.updateMyMeal(lunchInfo.mealIdx, newLunch, manager);
@@ -182,7 +140,6 @@ export class MealService {
     if (newMealInfo.holidayYN) {
       newBreakfast.holidayYN = newMealInfo.holidayYN;
     }
-    newBreakfast.attendance = newMealInfo.attendance;
 
     // 기존 정보가 있을 경우 업데이트
     if (breakfastInfo) {
@@ -215,7 +172,6 @@ export class MealService {
     if (newMealInfo.holidayYN) {
       newDinner.holidayYN = newMealInfo.holidayYN;
     }
-    newDinner.attendance = newMealInfo.attendance;
 
     // 기존 정보가 있을 경우 업데이트
     if (dinnerInfo) {
@@ -224,10 +180,6 @@ export class MealService {
       // 기존 정보가 없을 경우 새로 생성
       await this.mealRepository.createMyMeal(userIdx, newMealInfo.targetDay, newDinner, MealTypeEnum.DINNER, manager);
     }
-
-    // timeoffDays(반)연차/휴무일수) 업데이트
-    const timeoffDays: number = await this.mealRepository.getMyTotalTimeoffDays(year, month, userIdx, manager);
-    await this.mealRepository.updateMyTimeOffDaysInStats(timeoffDays, year, month, userIdx, manager);
 
     // holidayWorkdays(휴일근무일 수) 업데이트
     const holidayWorkdays: number = await this.mealRepository.getMyTotalHolidayWorkdays(year, month, userIdx, manager);
@@ -281,10 +233,6 @@ export class MealService {
     const { year, month } = substringYearMonth(targetDay);
 
     await this.mealRepository.deleteMyMeal(userIdx, targetDay, manager);
-
-    // timeoffDays(반)연차/휴무일수) 업데이트
-    const timeoffDays: number = await this.mealRepository.getMyTotalTimeoffDays(year, month, userIdx, manager);
-    await this.mealRepository.updateMyTimeOffDaysInStats(timeoffDays, year, month, userIdx, manager);
 
     // holidayWorkdays(휴일근무일 수) 업데이트
     const holidayWorkdays: number = await this.mealRepository.getMyTotalHolidayWorkdays(year, month, userIdx, manager);

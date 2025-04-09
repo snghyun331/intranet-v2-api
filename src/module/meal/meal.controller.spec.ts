@@ -1,5 +1,4 @@
 import { INestApplication } from '@nestjs/common';
-import { MealAttendanceEnum } from '../../common/constant/enum';
 import { CreateMealDto } from './dto/createMeal.dto';
 import * as request from 'supertest';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
@@ -82,7 +81,6 @@ describe('MealController(e2e)', () => {
       breakfast: { payerName: '', place: '', amount: null },
       lunch: { payerName: '관리자', place: '김가네', amount: 5000 },
       dinner: { payerName: '', place: '', amount: null },
-      attendance: MealAttendanceEnum.WORKING,
     };
 
     let response: any;
@@ -113,7 +111,6 @@ describe('MealController(e2e)', () => {
       expect(savedMeal.lunch.payerName).toBe(createMealDto.lunch.payerName);
       expect(savedMeal.lunch.place).toBe(createMealDto.lunch.place);
       expect(savedMeal.lunch.amount).toBe(createMealDto.lunch.amount);
-      expect(savedMeal.lunch.attendance).toBe(createMealDto.attendance);
       expect(savedMeal.dinner.payerName).toBe(createMealDto.dinner.payerName);
       expect(savedMeal.dinner.place).toBe(createMealDto.dinner.place);
       expect(savedMeal.dinner.amount).toBe(createMealDto.dinner.amount);

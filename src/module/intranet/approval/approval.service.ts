@@ -70,6 +70,9 @@ export class ApprovalService {
       if (ALTERNATIVE_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
         await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx, manager);
       }
+
+      // 식대 월별 timeoffDays 업데이트
+      await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx, manager);
     }
   }
 

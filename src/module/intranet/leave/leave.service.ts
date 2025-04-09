@@ -8,16 +8,17 @@ import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum, UserGradeEnum } fro
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo, LeaveSummary, LeaveUsageStats } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
-import { UpdateNoteDto } from './dto/updateNote.dto';
+import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import {
   addConfirmStatusField,
   getOneYearAfterJoin,
   getYearsSinceJoin,
   removeDuplicateIdxs,
+  substringYearMonth,
 } from '../../../common/utils/utility';
 import {
   ALTERNATIVE_LEAVE_LISTS,
+  ANNUAL_LEAVE_LISTS,
   HALF_ANNUAL_LEAVE_LISTS,
   QUARTER_ANNUAL_LEAVE_LISTS,
   SPECIAL_LEAVE_LISTS,
@@ -25,11 +26,13 @@ import {
 } from '../../../common/constant/constant';
 import { UserPayload } from '../../../common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
+import { ApprovalRepository } from '../approval/repository/approval.repository';
 
 @Injectable()
 export class LeaveService {
   constructor(
     private readonly leaveRepository: LeaveRepository,
+    private readonly approvalRepository: ApprovalRepository,
     private readonly awsService: AwsService,
     public readonly configService: ConfigService,
   ) {}
@@ -191,11 +194,42 @@ export class LeaveService {
   }
 
   async deleteLeave(commuteIdx: number, manager: EntityManager): Promise<void> {
-    const commuteCount: number = await this.leaveRepository.getCommuteCountByIdx(commuteIdx);
-    if (commuteCount !== 1) {
+    const leaveInfo = await this.leaveRepository.getLeaveInfoByIdx(commuteIdx);
+    if (!leaveInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
     await this.leaveRepository.deleteLeave(commuteIdx, manager);
+    const { userIdx, commuteDate, leaveTypeIdx } = leaveInfo;
+    const { year, month } = substringYearMonth(commuteDate);
+    const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
+      year,
+      month,
+      userIdx,
+      leaveTypeIdx,
+      manager,
+    );
+
+    // 월별 사용개수 업데이트
+    await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount, manager);
+
+    // 연도별 사용개수 업데이트
+    await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx, manager);
+
+    // 연도별 연차 총 사용량 업데이트
+    if (ANNUAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+      await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx, manager);
+    }
+    // 연도별 특별휴무 총 사용량 업데이트
+    if (SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+      await this.approvalRepository.updateTotalSpecialLeaveUsage(year, userIdx, manager);
+    }
+    // 연도별 대체휴무 총 사용량 업데이트
+    if (ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx)) {
+      await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx, manager);
+    }
+
+    // 식대 월별 timeoffDays 업데이트
+    await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx, manager);
   }
 
   async getLeaveSummaries({ pageNo, perPage }: PageNoDto, filterInfo: AdminLeaveFilterDto) {
@@ -208,16 +242,6 @@ export class LeaveService {
     const data = await this.leaveRepository.getAnnualLeaveSummary(userIdx, year);
 
     return data;
-  }
-
-  async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
-    const leaveStatsCnt: number = await this.leaveRepository.getLeaveStatsCountByIdx(leaveStatsIdx);
-    if (leaveStatsCnt < 1) {
-      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
-    }
-    await this.leaveRepository.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
-
-    return;
   }
 
   async getUserLeaveStats(year: string, userIdx: number) {
@@ -336,7 +360,7 @@ export class LeaveService {
     return result;
   }
 
-  async getUserLeaveInfo(filterInfo: AdminLeaveDetailFilterDto, userIdx: number) {
+  async getUserLeaveInfo(filterInfo: UserLeaveDetailFilterDto | AdminLeaveDetailFilterDto, userIdx: number) {
     if (filterInfo.leaveTypeIdx && !Object.values(IntranetLeaveTypeIdxEnum).includes(filterInfo.leaveTypeIdx)) {
       throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
     }
@@ -466,7 +490,7 @@ export class LeaveService {
     const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
     const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
     const s3FolderPath: string = `${rootDir}/LEAVE/${commuteIdx}`;
-    const leaveInfo = await this.leaveRepository.getLeaveInfoByIdx(commuteIdx);
+    const leaveInfo = await this.leaveRepository.getLeaveImageInfoByIdx(commuteIdx);
     if (!leaveInfo) {
       throw new BadRequestException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }

@@ -6,13 +6,7 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import {
-  MealAttendanceEnum,
-  ClearStatusEnum,
-  UserGradeIdxEnum,
-  MealTypeEnum,
-  YNEnum,
-} from '../../../common/constant/enum';
+import { ClearStatusEnum, UserGradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
 import {
   DetailedMealData,
   MealAdminInfo,
@@ -109,7 +103,6 @@ export class MealRepository {
         'mealEntity.userIdx AS userIdx',
         'mealEntity.targetDay AS targetDay',
         'mealEntity.holidayYN AS holidayYN',
-        'mealEntity.attendance AS attendance',
         'mealEntity.mealType AS mealType',
         'mealEntity.place AS place',
         'mealEntity.amount AS amount',
@@ -197,43 +190,6 @@ export class MealRepository {
     return monthHolidays;
   }
 
-  async getMyTotalTimeoffDays(year: string, month: string, userIdx: number, manager: EntityManager): Promise<number> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
-    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
-    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: any = await manager
-      .createQueryBuilder(MealEntity, 'mealEntity')
-      .select('COUNT(DISTINCT(mealEntity.targetDay))', 'count')
-      .where('mealEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('mealEntity.attendance NOT IN (:...attendance)', {
-        attendance: [MealAttendanceEnum.WORKING],
-      })
-      .andWhere('mealEntity.targetDay BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
-      .getRawOne();
-
-    return result.count;
-  }
-
-  async updateMyTimeOffDaysInStats(
-    timeoffDays: number,
-    year: string,
-    month: string,
-    userIdx: number,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
-      .createQueryBuilder()
-      .update(MealStatsEntity)
-      .set({ timeoffDays })
-      .where('userIdx = :userIdx', { userIdx })
-      .andWhere('year = :year', { year })
-      .andWhere('month = :month', { month })
-      .execute();
-  }
-
   async getMyTotalMealExpense(year: string, month: string, userIdx: number, manager: EntityManager): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
@@ -286,9 +242,9 @@ export class MealRepository {
         startDate,
         endDate,
       })
-      .andWhere('mealEntity.attendance IN (:...attendance)', {
-        attendance: [MealAttendanceEnum.WORKING],
-      })
+      // .andWhere('mealEntity.attendance IN (:...attendance)', {
+      //   attendance: [MealAttendanceEnum.WORKING],
+      // })
       .andWhere('mealEntity.holidayYN = :holidayYN', { holidayYN: YNEnum.YES })
       .getRawOne();
 
@@ -431,7 +387,6 @@ export class MealRepository {
         'mealEntity.mealType AS mealType',
         'mealEntity.amount AS amount',
         'mealEntity.payerName AS payerName',
-        'mealEntity.attendance AS attendance',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
