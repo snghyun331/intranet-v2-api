@@ -19,7 +19,6 @@ import {
   ApiBearerAuth,
   ApiConsumes,
   ApiCreatedResponse,
-  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -30,7 +29,6 @@ import {
   ADMIN_INTRANET_LEAVE,
   ADMIN_INTRANET_LEAVE_ALL_CALENDER,
   ADMIN_INTRANET_LEAVE_DETAIL,
-  ADMIN_INTRANET_LEAVE_NOTE,
   ADMIN_INTRANET_LEAVE_STATS,
   UploadLeaveImage,
   USERS_INTRANET_LEAVE,
@@ -54,7 +52,6 @@ import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
-import { UpdateNoteDto } from './dto/updateNote.dto';
 import { UserPayload } from '../../../common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 
@@ -232,27 +229,6 @@ export class AdminLeaveController {
     await this.leaveService.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, dto, manager);
 
     const response: ResponseInterface = { message: 'success' };
-
-    return response;
-  }
-
-  @ApiOperation(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_OPERATION)
-  @ApiParam(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_PARAM1)
-  @ApiOkResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_OK_RESPONSE)
-  @ApiNotFoundResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_NOT_FOUND_RESPONSE)
-  @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
-  @UseGuards(AdminAuthGuard, AdminRoleGuard)
-  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Patch(':leaveStatsIdx/note')
-  async updateLeaveStatsNote(
-    @Param('leaveStatsIdx', ParseIntPipe) leaveStatsIdx: number,
-    @Body() noteInfo: UpdateNoteDto,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.leaveService.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
-
-    const response: ResponseInterface = { message: '비고 수정 성공' };
 
     return response;
   }

@@ -18,7 +18,6 @@ import {
   getStartAndEndDateByYear,
   removeAllWhiteSpace,
 } from '../../../../common/utils/utility';
-import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
 import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
@@ -239,19 +238,6 @@ export class LeaveRepository {
     }));
 
     return { totalPage, total, summaries: result };
-  }
-
-  async updateLeaveStatsNote(
-    leaveStatsIdx: number,
-    { note }: UpdateNoteDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
-      .createQueryBuilder()
-      .update(LeaveStatsEntity)
-      .set({ note })
-      .where('leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
-      .execute();
   }
 
   async getUserCountByIdx(userIdx: number): Promise<number> {

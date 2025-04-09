@@ -9,7 +9,6 @@ import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo, LeaveSummary, LeaveUsageStats } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from './dto/query.dto';
-import { UpdateNoteDto } from './dto/updateNote.dto';
 import {
   addConfirmStatusField,
   getOneYearAfterJoin,
@@ -208,16 +207,6 @@ export class LeaveService {
     const data = await this.leaveRepository.getAnnualLeaveSummary(userIdx, year);
 
     return data;
-  }
-
-  async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
-    const leaveStatsCnt: number = await this.leaveRepository.getLeaveStatsCountByIdx(leaveStatsIdx);
-    if (leaveStatsCnt < 1) {
-      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
-    }
-    await this.leaveRepository.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
-
-    return;
   }
 
   async getUserLeaveStats(year: string, userIdx: number) {
