@@ -6,7 +6,7 @@ import { LeaveDetailDto } from '../dto/createLeave.dto';
 import { LeaveImageInfo } from '../interface/leave.interface';
 import { ImageEntity } from '../../../../entity/image/image.entity';
 import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
-import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto } from '../dto/query.dto';
+import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from '../dto/query.dto';
 import { LeaveStatsEntity } from '../../../../entity/intranet/leave/leaveStats.entity';
 import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
@@ -18,7 +18,6 @@ import {
   getStartAndEndDateByYear,
   removeAllWhiteSpace,
 } from '../../../../common/utils/utility';
-import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
 import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
@@ -57,16 +56,21 @@ export class LeaveRepository {
     return result;
   }
 
-  async getCommuteCountByIdx(commuteIdx: number): Promise<number> {
-    const result: number = await this.commuteModel
+  async getLeaveInfoByIdx(commuteIdx: number): Promise<any> {
+    const result: any = await this.commuteModel
       .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.userIdx AS userIdx',
+        'commuteEntity.commuteDate AS commuteDate',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+      ])
       .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
-      .getCount();
+      .getRawOne();
 
     return result;
   }
 
-  async getLeaveInfoByIdx(commuteIdx: number): Promise<any> {
+  async getLeaveImageInfoByIdx(commuteIdx: number): Promise<any> {
     const result: any = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select(['commuteImageEntity.imageIdx AS imageIdx', 'imageEntity.imageName AS imageName'])
@@ -241,19 +245,6 @@ export class LeaveRepository {
     return { totalPage, total, summaries: result };
   }
 
-  async updateLeaveStatsNote(
-    leaveStatsIdx: number,
-    { note }: UpdateNoteDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
-      .createQueryBuilder()
-      .update(LeaveStatsEntity)
-      .set({ note })
-      .where('leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
-      .execute();
-  }
-
   async getUserCountByIdx(userIdx: number): Promise<number> {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
@@ -315,7 +306,10 @@ export class LeaveRepository {
   }
 
   // 추후 쿼리 튜닝 필요,,
-  async getUserLeaveDetail({ year, month, ...filter }: AdminLeaveDetailFilterDto, userIdx: number) {
+  async getUserLeaveDetail(
+    { year, month, ...filter }: UserLeaveDetailFilterDto | AdminLeaveDetailFilterDto,
+    userIdx: number,
+  ) {
     // 해당 월의 첫 번째 날과 마지막 날을 구함
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
@@ -376,6 +370,10 @@ export class LeaveRepository {
       query.andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
       });
+    }
+
+    if ('confirmYN' in filter && filter.confirmYN) {
+      query.andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: filter.confirmYN });
     }
 
     query.orderBy('commuteEntity.createdAt', 'ASC'); // 누적 잔여 연차 수 계산을 위한 createdAt 기준 오름차순 정렬

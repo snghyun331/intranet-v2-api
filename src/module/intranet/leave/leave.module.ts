@@ -10,13 +10,14 @@ import { AwsService } from '../../aws/aws.service';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { LeaveMonthlyUsageEntity } from '../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 import { LeaveUsageEntity } from '../../../entity/intranet/leave/leaveUsage.entity';
+import { ApprovalRepository } from '../approval/repository/approval.repository';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([CommuteEntity, LeaveStatsEntity, LeaveMonthlyUsageEntity, LeaveUsageEntity, UserEntity]),
     AwsModule,
   ],
-  providers: [LeaveService, LeaveRepository, AwsService],
+  providers: [LeaveService, LeaveRepository, ApprovalRepository, AwsService],
   controllers: [UserLeaveController, AdminLeaveController],
 })
 export class LeaveModule {}

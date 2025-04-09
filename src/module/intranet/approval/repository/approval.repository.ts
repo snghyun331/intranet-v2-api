@@ -12,6 +12,7 @@ import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.e
 import { UserApprovalFilter } from '../dto/query.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { UserEntity } from '../../../../entity/user/user.entity';
+import { MealStatsEntity } from '../../../../entity/meal/mealStats.entity';
 
 @Injectable()
 export class ApprovalRepository {
@@ -215,49 +216,43 @@ export class ApprovalRepository {
       .execute();
   }
 
+  async updateMealTimeOffDays(
+    year: string,
+    month: string,
+    userIdx: number,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+
+    const query = `(
+      SELECT COUNT(DISTINCT(c.commute_date)) 
+      FROM commute c
+      WHERE c.user_idx = ${userIdx}
+      AND c.confirm_yn = '${ConfirmEnum.YES}'
+      AND c.commute_date BETWEEN '${startDate}' AND '${endDate}'
+      AND c.leave_type_idx NOT IN (1,4,5,10,11)
+    )`;
+
+    return await manager
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({
+        timeoffDays: () => query,
+      })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
+  }
+
   async getApprovalHistory(userIdx: number, filterInfo: UserApprovalFilter) {
     const { year, month } = filterInfo;
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
 
-    // const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
-    //   .createQueryBuilder('commuteEntity')
-    //   .select([
-    //     'commuteEntity.commuteIdx AS commuteIdx',
-    //     'commuteEntity.commuteDate AS commuteDate',
-    //     'commuteEntity.userIdx AS userIdx',
-    //     'userEntity.userName AS userName',
-    //     'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
-    //     'leaveTypeEntity.leaveType AS leaveType',
-    //     'commuteEntity.note AS note',
-    //     'commuteEntity.confirmYN AS confirmYN',
-    //     'commuteEntity.confirmDate AS confirmDate',
-    //     'commuteEntity.rejectDate AS rejectDate',
-    //     'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
-    //     'commuteEntity.createdAt AS createdAt',
-    //     `
-    //       CASE
-    //         WHEN approverEntity.approverIdx = ${userIdx} THEN 'APPROVER'
-    //         WHEN ccUserEntity.ccUserIdx = ${userIdx} THEN 'CC'
-    //         ELSE '-'
-    //       END AS relationType
-    //     `,
-    //   ])
-    //   .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
-    //   .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
-    //   .leftJoin(CommuteCCUserEntity, 'ccUserEntity', 'ccUserEntity.commuteIdx = commuteEntity.commuteIdx')
-    //   .leftJoin(CommuteApproverEntity, 'approverEntity', 'approverEntity.commuteIdx = commuteEntity.commuteIdx')
-    //   .where('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate });
-
-    // query.andWhere(
-    //   new Brackets((qb) => {
-    //     qb.where('ccUserEntity.ccUserIdx = :ccUserIdx', { ccUserIdx: userIdx }).orWhere(
-    //       'approverEntity.approverIdx = :approverIdx',
-    //       { approverIdx: userIdx },
-    //     );
-    //   }),
-    // );
     const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
