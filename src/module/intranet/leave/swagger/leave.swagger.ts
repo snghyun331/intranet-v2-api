@@ -567,6 +567,26 @@ export const ADMIN_INTRANET_LEAVE_STATS: SwaggerMethod = {
 };
 
 export const ADMIN_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
+  DELETE: {
+    API_OPERATION: {
+      summary: '어드민 개인 휴가 내역 삭제 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'commuteIdx',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
   GET: {
     API_OPERATION: {
       summary: '어드민 사용자 휴가관리 상세정보 조회 API',
@@ -580,7 +600,46 @@ export const ADMIN_INTRANET_LEAVE_DETAIL: SwaggerMethod = {
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: [
+              {
+                commuteIdx: 148,
+                userIdx: 1,
+                commuteDate: '2025-02-24',
+                commuteDayName: 'Monday',
+                leaveTypeIdx: 20,
+                leaveType: '병가',
+                imageIdx: 28,
+                imageName: 'proof.png',
+                imageSize: 6239,
+                imageUrl: 'https://acg-benefit.s3.ap-northeast-2.amazonaws.com/TEST/LEAVE/148/proof.png',
+                annualLeaveReduceUnit: 0,
+                note: null,
+                confirmYN: 'Y',
+                confirmDate: '2025-03-14',
+                rejectDate: null,
+                confirmPersonIdx: 5,
+                confirmPersonName: '김현근',
+                createdAt: '2025-03-14T05:45:49.119Z',
+                updatedAt: '2025-03-14T05:48:48.000Z',
+                approverInfo: [
+                  {
+                    approverIdx: 5,
+                    approverName: '김현근',
+                  },
+                  {
+                    approverIdx: 6,
+                    approverName: '박민수',
+                  },
+                ],
+                ccUserInfo: [],
+                confirmStatus: '2025-03-14',
+                remainingAnnualLeaveQuota: 30,
+              },
+            ],
+          },
         },
       },
     },
