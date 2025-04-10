@@ -17,7 +17,7 @@ import {
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
-import { IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
 import {
   InsertCheckInInfo,
   UpdateCheckInInfo,
@@ -48,20 +48,25 @@ export class CommuteService {
     checkInIpAddr: string,
     manager: EntityManager,
   ): Promise<void> {
+    /**
+     * ✅ 정상: 스케줄러로 당일 전 직원 근태가 생성되어있음
+     * ❌ 비정상: 서버 장애 등으로 스케줄러 미실행되어 근태 데이터 누락
+     */
+
     const commuteDate: string = moment(checkInDto.checkInTime).utcOffset(9).format('YYYY-MM-DD');
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
-    // commuteInfo가 존재하면, 이전에 등록된 휴가정보가 있음
+    /* commuteInfo가 존재: 일반적인 상황 */
     if (commuteInfo) {
       if (commuteInfo.checkInTime) {
         throw new BadRequestException('이미 출근이 등록되었습니다.');
       }
       /* 근태 상태가 휴무인지 확인 */
-      if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx)) {
+      if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
         throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
       }
-      /* 근태가 반/반반차이면 업데이트 */
-      if (PARTIAL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx)) {
+      /* 근태가 반/반반차 일 경우 */
+      if (PARTIAL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
         /* 지각 판별 */
         const isPmQuarterLate: boolean =
           PM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
@@ -94,10 +99,30 @@ export class CommuteService {
 
         /* 근태 업데이트 */
         await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo, manager);
+
+        return;
       }
+
+      /* 일반 근무에 대한 지각 판별 */
+      const isNormalLate: boolean =
+        new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
+      const attendance: IntranetAttendanceEnum = isNormalLate
+        ? IntranetAttendanceEnum.CHECK_IN_LATE
+        : IntranetAttendanceEnum.CHECK_IN;
+
+      const updateCheckInInfo: UpdateCheckInInfo = {
+        ...checkInDto,
+        attendance,
+        commuteDate,
+        checkInIpAddr,
+        checkInLogAgent,
+        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+      };
+
+      /* 일반 근무에 대한 근태 업데이트 */
+      await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo, manager);
     } else {
-      // commuteInfo가 존재하지 않면, 일반 근무
-      /* 지각 판별 */
+      /* commuteInfo가 없는 경우는 비정상적인 상황이며, 일반 근무로 간주됨 */
       const isNormalLate: boolean =
         new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
       const attendance: IntranetAttendanceEnum = isNormalLate
@@ -131,14 +156,14 @@ export class CommuteService {
 
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
-    if (!commuteInfo) {
+    if (!commuteInfo || !commuteInfo.checkInTime) {
       throw new BadRequestException('출근을 먼저 등록해주세요');
     }
     if (commuteInfo.checkOutTime) {
       throw new BadRequestException('이미 퇴근을 찍었습니다.');
     }
     /* 근태 상태가 휴무인지 확인 */
-    if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx)) {
+    if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
       throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
     }
     const { checkInTime, leaveTypeIdx } = commuteInfo;

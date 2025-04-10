@@ -82,14 +82,15 @@ export class LeaveRepository {
     return result;
   }
 
-  async getCommuteCountByDate(userIdx: number, commuteDate: string): Promise<number> {
-    const result: number = await this.commuteModel
+  async getCommuteIdxByDate(userIdx: number, commuteDate: string): Promise<number> {
+    const { commuteIdx } = await this.commuteModel
       .createQueryBuilder('commuteEntity')
+      .select(['commuteEntity.commuteIdx AS commuteIdx'])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
-      .getCount();
+      .getRawOne();
 
-    return result;
+    return commuteIdx;
   }
 
   async getLeaveStatsCountByIdx(leaveStatsIdx: number): Promise<number> {
@@ -117,6 +118,16 @@ export class LeaveRepository {
     const commuteIdx: number = result.identifiers[0].commuteIdx;
 
     return commuteIdx;
+  }
+
+  /* 당일에 휴가를 등록할 때 사용하는 함수 */
+  async updateLeave(commuteIdx: number, leaveTypeIdx: number, manager: EntityManager): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set({ leaveTypeIdx })
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
   }
 
   async autoApprove(commuteIdx: number, userIdx: number, manager: EntityManager): Promise<UpdateResult> {
