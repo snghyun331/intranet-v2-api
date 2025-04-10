@@ -95,6 +95,7 @@ export class UserRepository {
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.attendance AS attendance',
         'commuteEntity.workingMinutes AS workingMinutes',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
@@ -105,6 +106,7 @@ export class UserRepository {
       checkInTime: commuteInfo?.checkInTime ?? null,
       attendance: commuteInfo?.attendance ?? null,
       workingMinutes: commuteInfo?.workingMinutes ?? null,
+      leaveTypeIdx: commuteInfo?.leaveTypeIdx ?? null,
     };
 
     return result;

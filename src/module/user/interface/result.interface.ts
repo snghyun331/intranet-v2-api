@@ -27,6 +27,7 @@ export interface CurrentUserInfoResult extends CurrentUserInfo {
   checkInTime: Date;
   attendance: IntranetLeaveTypeIdxEnum;
   workingMinutes: number;
+  leaveTypeIdx: number;
 }
 
 export interface GradeIdxsResult {
