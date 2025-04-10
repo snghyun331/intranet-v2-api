@@ -286,4 +286,23 @@ export class AdminLeaveController {
 
     return response;
   }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE_DETAIL.DELETE.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_LEAVE_DETAIL.DELETE.API_PARAM1)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_DETAIL.DELETE.API_OK_RESPONSE)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @ApiBearerAuth('accessToken')
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @UseInterceptors(TransactionInterceptor)
+  @Delete('commute/:commuteIdx')
+  async deleteLeaveByAdmin(
+    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
+    @TransactionManager() manager: EntityManager,
+  ): Promise<ResponseInterface> {
+    await this.leaveService.deleteLeave(commuteIdx, manager);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
 }

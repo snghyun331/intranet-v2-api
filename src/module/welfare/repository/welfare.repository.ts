@@ -29,6 +29,7 @@ import { GradeEntity } from '../../../entity/user/grade.entity';
 import { WelfareAdminResult, WelfareBudgetAdminResult } from '../interface/result.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminWelfareFilterDto } from '../dto/query.dto';
+import { TeamEntity } from '../../../entity/user/team.entity';
 
 @Injectable()
 export class WelfareRepository {
@@ -439,6 +440,7 @@ export class WelfareRepository {
         'welfareEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
         'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
         'welfareEntity.targetDay AS targetDay',
         'welfareEntity.content AS content',
         'welfareEntity.amount AS amount',
@@ -450,6 +452,7 @@ export class WelfareRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('welfareEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
@@ -459,18 +462,13 @@ export class WelfareRepository {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
       query.andWhere('userEntity.userName = :userName', { userName });
     }
-    if (filterInfo.gradeIdx) {
-      query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
-    }
-    if (filterInfo.confirmYN) {
-      query.andWhere('welfareEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
-    }
 
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);
 
     query
       .orderBy('welfareEntity.targetDay', 'DESC')
+      .addOrderBy('userEntity.userName', 'ASC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
@@ -486,6 +484,7 @@ export class WelfareRepository {
           welfareIdx: welfare.welfareIdx,
           userIdx: welfare.userIdx,
           userName: welfare.userName,
+          teamName: welfare.teamName,
           gradeName: welfare.gradeName,
           targetDay: welfare.targetDay,
           content: welfare.content,

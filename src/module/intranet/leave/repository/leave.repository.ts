@@ -294,7 +294,7 @@ export class LeaveRepository {
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.NO })
       .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
-        leaveTypeIdx: [IntranetLeaveTypeIdxEnum.NORMAL],
+        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
       })
       .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfYear AND :lastDayOfYear', {
         firstDayOfYear,

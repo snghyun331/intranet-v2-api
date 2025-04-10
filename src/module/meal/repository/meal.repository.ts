@@ -23,6 +23,9 @@ import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '../../../common/constant/constant';
+import { TeamEntity } from '../../../entity/user/team.entity';
+import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
+import { LeaveTypeEntity } from '../../../entity/intranet/leave/leaveType.entity';
 
 @Injectable()
 export class MealRepository {
@@ -379,6 +382,7 @@ export class MealRepository {
       .createQueryBuilder('mealEntity')
       .select([
         'mealEntity.mealIdx AS mealIdx',
+        'teamEntity.teamName AS teamName',
         'gradeEntity.gradeName AS gradeName',
         'mealEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
@@ -387,9 +391,18 @@ export class MealRepository {
         'mealEntity.mealType AS mealType',
         'mealEntity.amount AS amount',
         'mealEntity.payerName AS payerName',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'leaveTypeEntity.leaveType AS leaveType',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealEntity.userIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .innerJoin(
+        CommuteEntity,
+        'commuteEntity',
+        'commuteEntity.userIdx = mealEntity.userIdx AND commuteEntity.commuteDate = mealEntity.targetDay',
+      )
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('mealEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: searchInfo.sDate,
         eDate: searchInfo.eDate,
@@ -479,6 +492,7 @@ export class MealRepository {
         'mealStatsEntity.mealStatsIdx AS mealStatsIdx',
         'mealStatsEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
+        'teamEntity.teamName AS teamName',
         'gradeEntity.gradeName AS gradeName',
         'mealStatsEntity.mealBudget AS mealBudget',
         'mealStatsEntity.note AS note',
@@ -487,6 +501,7 @@ export class MealRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
       .andWhere('userEntity.userAvail IS NULL');

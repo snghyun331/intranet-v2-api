@@ -2,6 +2,7 @@ import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
 import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { UpdateConfirmDto } from '../dto/updateConfirm.dto';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 
 export const USERS_WELFARES: SwaggerMethod = {
@@ -816,6 +817,15 @@ export const ADMIN_WELFARES_BUDGET_NOTE: SwaggerMethod = {
       type: Number,
       required: true,
       description: '통계 IDX',
+    },
+    API_BODY: {
+      type: UpdateNoteDto,
+      examples: {
+        a: {
+          summary: '예시',
+          value: { note: '적어주세요' },
+        },
+      },
     },
     API_OK_RESPONSE: {
       content: {
