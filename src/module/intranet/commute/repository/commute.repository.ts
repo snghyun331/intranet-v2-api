@@ -70,6 +70,7 @@ export class CommuteRepository {
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'commuteEntity.attendance AS attendance',
+        'commuteEntity.confirmYN AS confirmYN',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })

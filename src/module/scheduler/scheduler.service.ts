@@ -55,7 +55,7 @@ export class SchedulerService {
       nextMonth++;
     }
 
-    this.logger.log('🏁 Inserting Holiday Info Job Completed !');
+    this.logger.log('🏁 Finish Inserting Holiday Info Job !');
   }
 
   private async getPublicHolidayDatas(year: number, month: number): Promise<HolidayInfo[]> {
@@ -114,5 +114,15 @@ export class SchedulerService {
     );
 
     return weekendInfoList;
+  }
+
+  // 매일 자정마다 당일 전직원 근태 내역 저장
+  @Cron('5 9 * * *')
+  async insertAllCommutesForToday() {
+    this.logger.log('🚀 Start Inserting All Commutes For Today !');
+
+    await this.schedulerRepository.insertCommutesForToday();
+
+    this.logger.log('🏁 Finish Inserting All Commutes For Today !');
   }
 }

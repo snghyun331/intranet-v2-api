@@ -15,6 +15,7 @@ export interface UpdateCheckInInfo {
   checkInLogAgent: string;
   attendance: IntranetAttendanceEnum;
   checkInTime: Date;
+  leaveTypeIdx?: IntranetLeaveTypeIdxEnum;
 }
 
 export interface UpdateCheckOutInfo {
