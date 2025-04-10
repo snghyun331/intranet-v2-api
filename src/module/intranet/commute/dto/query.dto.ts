@@ -43,4 +43,8 @@ export class AdminCommuteFilterDto {
   })
   @IsOptional()
   eDate: string;
+
+  @ApiProperty({ type: String, required: false })
+  @IsOptional()
+  userName?: string;
 }

@@ -5,7 +5,6 @@ import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuild
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from '../dto/query.dto';
 import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
-import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
 import {
   InsertCheckInInfo,
@@ -15,8 +14,10 @@ import {
 } from '../interface/commute.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
-import { addConfirmStatusField } from '../../../../common/utils/utility';
+import { addConfirmStatusField, removeAllWhiteSpace } from '../../../../common/utils/utility';
 import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
+import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
+import { ImageEntity } from '../../../../entity/image/image.entity';
 
 @Injectable()
 export class CommuteRepository {
@@ -101,7 +102,6 @@ export class CommuteRepository {
         'commuteEntity.userIdx AS userIdx',
         'userEntity.id AS id',
         'userEntity.userName AS userName',
-        'hqEntity.hqName AS hqName',
         'teamEntity.teamName AS teamName',
         'gradeEntity.gradeName AS gradeName',
         'commuteEntity.commuteDate AS commuteDate',
@@ -112,6 +112,10 @@ export class CommuteRepository {
         'commuteEntity.attendance AS attendance',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
+        'commuteImageEntity.imageIdx AS imageIdx',
+        'imageEntity.imageName AS imageName',
+        'imageEntity.imageSize AS imageSize',
+        'imageEntity.imageUrl AS imageUrl',
         'commuteEntity.updateReason AS updateReason',
         'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
         'commuteEntity.note AS note',
@@ -128,19 +132,25 @@ export class CommuteRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
+      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
       .where('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
       })
       .andWhere('userEntity.userAvail IS NULL');
 
+    if (filterInfo.userName) {
+      const userName: string = removeAllWhiteSpace(filterInfo.userName);
+      query.andWhere('userEntity.userName = :userName', { userName });
+    }
+
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);
 
     query
-      .orderBy('commuteEntity.createdAt', 'DESC')
+      .orderBy('userEntity.userName', 'DESC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
