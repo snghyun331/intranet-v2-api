@@ -47,6 +47,7 @@ export interface AdminWelfares {
   welfareIdx: number;
   userIdx: number;
   userName: string;
+  teamName: string;
   gradeName: UserGradeEnum;
   targetDay: string;
   content: string;
@@ -63,6 +64,7 @@ export interface WelfareAdminInfo {
   userIdx: number;
   userName: string;
   gradeName: UserGradeEnum;
+  teamName: string;
   targetDay: string;
   content: string;
   amount: number;
