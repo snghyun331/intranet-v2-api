@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
+import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { HalfYearEnum } from '../../../common/constant/enum';
 
 export class WelfareFilterDto {
   @ApiProperty({ name: 'year', description: '검색 연도', type: String, required: true })
@@ -41,16 +41,6 @@ export class AdminWelfareFilterDto {
   @IsOptional()
   @IsString()
   userName?: string;
-
-  @ApiProperty({ type: Number, description: '직급IDX', required: false })
-  @IsOptional()
-  @IsNumber()
-  gradeIdx?: number;
-
-  @ApiProperty({ type: 'enum', enum: ConfirmEnum, description: '확정 여부', required: false })
-  @IsOptional()
-  @IsEnum(ConfirmEnum)
-  confirmYN: ConfirmEnum;
 }
 
 export class AdminWelfareBudgetFilterDto {
