@@ -46,6 +46,7 @@ export interface MealBudgetAdminInfo {
   mealStatsIdx: number;
   userIdx: number;
   userName: string;
+  teamName: string;
   gradeName: UserGradeEnum;
   mealBudget: number;
   note: string;
