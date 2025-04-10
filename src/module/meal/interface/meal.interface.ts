@@ -29,6 +29,7 @@ export interface MealStats {
 export interface MealAdminInfo {
   mealIdx: number;
   gradeName: string;
+  teamName: string;
   userIdx: number;
   userName: string;
   place: string;
@@ -37,6 +38,8 @@ export interface MealAdminInfo {
   amount: number;
   payerName: string;
   attendance: MealAttendanceEnum;
+  leaveTypeIdx: number;
+  leaveTypeName: string;
 }
 
 export interface MealBudgetAdminInfo {
