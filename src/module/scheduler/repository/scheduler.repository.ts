@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
@@ -17,6 +17,7 @@ export class SchedulerRepository {
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
     @InjectRepository(WelfareStatsEntity) private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async insertHolidayInfo(holidayInfo: HolidayInfo): Promise<void> {
@@ -58,5 +59,18 @@ export class SchedulerRepository {
         .values(newWelfareMonthStatsInfo)
         .execute();
     });
+  }
+
+  async insertCommutesForToday(): Promise<void> {
+    await this.dataSource.query(`INSERT INTO commute (user_idx, commute_date)
+      SELECT u.user_idx,  CURDATE()
+      FROM user u
+      WHERE NOT EXISTS (
+        SELECT 1 FROM commute c
+        WHERE c.user_idx = u.user_idx AND c.commute_date = CURDATE()
+      );
+    `);
+
+    return;
   }
 }

@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveRepository } from './repository/leave.repository';
 import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
@@ -59,13 +59,18 @@ export class LeaveService {
         if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
           throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
         }
+
         /* 휴가등록 */
-        const commuteCount: number = await this.leaveRepository.getCommuteCountByDate(userIdx, leave.commuteDate);
-        if (commuteCount !== 0) {
-          throw new ConflictException(`이미 해당 날짜에 등록한 휴가 정보가 있습니다: ${leave.commuteDate}`);
+        let commuteIdx: number;
+        const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+        // 당일에 등록할 경우
+        if (leave.commuteDate === today) {
+          commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, leave.commuteDate);
+          await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, manager);
+        } else {
+          commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
         }
 
-        const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
         if (leaveImage) {
           const env: string = this.configService.get<string>('NODE_ENV');
           const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
@@ -154,12 +159,17 @@ export class LeaveService {
         }
       }
 
-      const commuteCount: number = await this.leaveRepository.getCommuteCountByDate(userIdx, leave.commuteDate);
-      if (commuteCount !== 0) {
-        throw new ConflictException(`이미 해당 날짜에 등록한 휴가 정보가 있습니다: ${leave.commuteDate}`);
+      /* 휴가등록 */
+      let commuteIdx: number;
+      const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+      // 당일에 등록할 경우
+      if (leave.commuteDate === today) {
+        commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, leave.commuteDate);
+        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, manager);
+      } else {
+        commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
       }
 
-      const commuteIdx: number = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
       // 승인 가능자 모두 저장
       if (approverIdxs !== null) {
         await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs, manager);
