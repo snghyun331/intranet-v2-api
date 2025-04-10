@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
 import { Brackets, EntityManager, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
-import { ConfirmEnum } from '../../../../common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
 import * as moment from 'moment';
 import { getStartAndEndDateByMonth } from '../../../../common/utils/utility';
 import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
@@ -285,6 +285,7 @@ export class ApprovalRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
       .andWhere(
         new Brackets((qb) => {
           qb.where(`
