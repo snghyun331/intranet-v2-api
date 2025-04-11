@@ -24,6 +24,7 @@ import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.e
 import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 import * as moment from 'moment';
 import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
+import { UpdateNoteDto } from '../dto/updateNote.dto';
 
 @Injectable()
 export class LeaveRepository {
@@ -501,6 +502,19 @@ export class LeaveRepository {
       .createQueryBuilder()
       .update(LeaveStatsEntity)
       .set({ totalReceivedAnnualLeave })
+      .where('leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
+      .execute();
+  }
+
+  async updateLeaveStatsNote(
+    leaveStatsIdx: number,
+    { note }: UpdateNoteDto,
+    manager: EntityManager,
+  ): Promise<UpdateResult> {
+    return await manager
+      .createQueryBuilder()
+      .update(LeaveStatsEntity)
+      .set({ note })
       .where('leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
       .execute();
   }

@@ -27,6 +27,7 @@ import {
 import { UserPayload } from '../../../common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { ApprovalRepository } from '../approval/repository/approval.repository';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @Injectable()
 export class LeaveService {
@@ -255,8 +256,8 @@ export class LeaveService {
   }
 
   async getUserLeaveStats(year: string, userIdx: number) {
-    const userCnt: number = await this.leaveRepository.getUserCountByIdx(userIdx);
-    if (userCnt !== 1) {
+    const userInfo = await this.leaveRepository.getUserInfoByIdx(userIdx);
+    if (!userInfo) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
@@ -277,7 +278,7 @@ export class LeaveService {
 
     // 사용자 휴가 요약정보 조회
     const leaveStats = await this.leaveRepository.getUserLeaveStats(year, userIdx);
-    const userInfo = await this.leaveRepository.getUserInfoByIdx(userIdx);
+
     if (!leaveStats) {
       return {
         leaveSummary: {
@@ -287,8 +288,6 @@ export class LeaveService {
           totalAnnualLeaveUsage: 0,
           totalAnnualLeaveBalance: 0,
           yearsSinceJoin: 0,
-          oneYearAfterJoin: 0,
-          midJoinReceivedAnnualLeave: 0,
           notConfirmLeaveCount: 0,
         },
         leaveUsageStats,
@@ -302,15 +301,15 @@ export class LeaveService {
       year,
       totalReceivedAnnualLeave: leaveStats.totalReceivedAnnualLeave,
       totalAnnualLeaveUsage: leaveStats.totalAnnualLeaveUsage,
-      yearsSinceJoin: getYearsSinceJoin(leaveStats.joinDate), // 근속년수
-      oneYearAfterJoin: getOneYearAfterJoin(leaveStats.joinDate), // 만 1년 날짜
+      yearsSinceJoin: getYearsSinceJoin(userInfo.joinDate), // 근속년수
       totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
       notConfirmLeaveCount, // 대기중인 휴가 개수
     };
 
     // 근속년수가 3년 미만인 경우 중도입사 연차 개수를 추가
     if (leaveSummary.yearsSinceJoin < 3) {
-      leaveSummary.midJoinReceivedAnnualLeave = leaveSummary.midJoinReceivedAnnualLeave;
+      leaveSummary.midJoinReceivedAnnualLeave = leaveStats.midJoinReceivedAnnualLeave;
+      leaveSummary.oneYearAfterJoin = getOneYearAfterJoin(userInfo.joinDate); // 만 1년 날짜
     }
 
     // 총 특별휴무 수, 총 대체휴무 수 추가 (요구사항)
@@ -555,6 +554,16 @@ export class LeaveService {
     manager: EntityManager,
   ): Promise<void> {
     await this.leaveRepository.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, totalReceivedAnnualLeave, manager);
+
+    return;
+  }
+
+  async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
+    const leaveStatsCnt: number = await this.leaveRepository.getLeaveStatsCountByIdx(leaveStatsIdx);
+    if (leaveStatsCnt < 1) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+    await this.leaveRepository.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
 
     return;
   }
