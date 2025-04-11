@@ -8,7 +8,7 @@ import { LunchGroupConfig, LunchGroupConfigSchema } from '../../schema/lunchGrou
 import { LunchGroupMember, LunchGroupMemberSchema } from '../../schema/lunchGroup/lunchGroupMember.schema';
 import { PlayGroundModel } from './model/playground.model';
 import { RedisModule } from '@nestjs-modules/ioredis';
-import { RedisService } from '../redis/redis.service';
+import { RedisLockService } from '../redis/redisLock.service';
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import { RedisService } from '../redis/redis.service';
     ]),
     RedisModule,
   ],
-  providers: [PlaygroundService, RedisService, PlayGroundModel, Logger],
+  providers: [PlaygroundService, RedisLockService, PlayGroundModel, Logger],
   controllers: [UserPlaygroundController, AdminPlaygroundController],
 })
 export class PlaygroundModule {}

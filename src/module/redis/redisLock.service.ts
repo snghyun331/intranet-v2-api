@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 
 @Injectable()
-export class RedisService {
+export class RedisLockService {
   constructor(@InjectRedis() private redis: Redis) {}
 
   /* Lock을 습득하는 함수 */
