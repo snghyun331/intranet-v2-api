@@ -3,20 +3,20 @@ import { BadRequestException, Inject, Injectable, Logger, LoggerService } from '
 import { CreateLunchGroupDto } from './dto/createLunchGroup.dto';
 import { PlayGroundModel } from './model/playground.model';
 import { SetLunchGroup } from './interface/lunchGroup.interface';
-import { RedisService } from '../redis/redis.service';
+import { RedisLockService } from '../redis/redisLock.service';
 import { PICK_LUNCH_LOCK_DURATION } from '../../common/constant/constant';
 
 @Injectable()
 export class PlaygroundService {
   constructor(
     private readonly playgroupundModel: PlayGroundModel,
-    private readonly redisService: RedisService,
+    private readonly redisLockService: RedisLockService,
     @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async pickLunchGroup(userName: string): Promise<number> {
     const lockKey: string = 'PICK_LUNCH_GROUP';
-    const lock: boolean = await this.redisService.waitAndSetLock(lockKey, PICK_LUNCH_LOCK_DURATION);
+    const lock: boolean = await this.redisLockService.waitAndSetLock(lockKey, PICK_LUNCH_LOCK_DURATION);
 
     try {
       const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
@@ -63,11 +63,11 @@ export class PlaygroundService {
         // 배정된 그룹에 멤버 추가
         await this.playgroupundModel.addUserInLunchGroup(configId, groupToAssign, userName);
 
-        await this.redisService.delLock(lockKey);
+        await this.redisLockService.delLock(lockKey);
       }
       return groupToAssign;
     } catch (err) {
-      await this.redisService.delLock(lockKey);
+      await this.redisLockService.delLock(lockKey);
       this.logger.error(err);
       throw err;
     }

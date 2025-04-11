@@ -36,6 +36,7 @@ import {
   USERS_TEAM_IDX,
   ADMIN_USERS_IDXS,
   USERS_BIRTH,
+  ADMIN_SEARCH_PREFIX_USERNAME,
 } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
@@ -63,6 +64,7 @@ import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdateMyPwDto } from './dto/updateMyPw.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { UserDto } from './interface/user.interface';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -311,6 +313,31 @@ export class AdminUserController {
 
     const response: ResponseInterface = { message: '모든 사용자 IDX 조회 성공', data: userIdxInfo };
 
+    return response;
+  }
+
+  @ApiOperation(ADMIN_SEARCH_PREFIX_USERNAME.GET.API_OPERATION)
+  @ApiQuery(ADMIN_SEARCH_PREFIX_USERNAME.GET.API_QUERY1)
+  @ApiOkResponse(ADMIN_SEARCH_PREFIX_USERNAME.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('search-prefix/username')
+  async getAllUserName(@Query('searchWord') searchWord: string): Promise<ResponseInterface> {
+    const data = await this.userService.getAllUserName(searchWord);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_SEARCH_PREFIX_USERNAME.POST.API_OPERATION)
+  @ApiBody(ADMIN_SEARCH_PREFIX_USERNAME.POST.API_BODY)
+  @Post('search-prefix/username')
+  async test(@Body() user: UserDto): Promise<ResponseInterface> {
+    await this.userService.addUserInRedis(user);
+
+    const response: ResponseInterface = { message: 'success', data: user };
     return response;
   }
 }

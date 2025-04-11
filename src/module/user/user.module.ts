@@ -9,12 +9,15 @@ import { HeadquarterEntity } from '../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../entity/user/team.entity';
 import { AdminEntity } from '../../entity/admin/admin.entity';
 import { CommuteEntity } from '../../entity/intranet/commute/commute.entity';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { RedisSearchService } from '../redis/redisSearch.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity, GradeEntity, HeadquarterEntity, TeamEntity, AdminEntity, CommuteEntity]),
+    RedisModule,
   ],
-  providers: [UserService, UserRepository],
+  providers: [UserService, UserRepository, RedisSearchService],
   controllers: [UserController, AdminUserController],
 })
 export class UserModule {}
