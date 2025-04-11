@@ -2,6 +2,7 @@ import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 import { UpdateUserDto } from '../dto/updateUser.dto';
+import { UserDto } from '../interface/user.interface';
 
 export const USERS_IDXS: SwaggerMethod = {
   GET: {
@@ -657,6 +658,44 @@ export const USERS_BIRTH: SwaggerMethod = {
               },
             ],
           },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_SEARCH_PREFIX_USERNAME: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '백엔드 테스트용(나중에 삭제)',
+    },
+    API_BODY: {
+      type: UserDto,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            userIdx: 1,
+            userName: '김현민',
+          },
+        },
+      },
+    },
+  },
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 이름 검색 API',
+    },
+    API_QUERY1: {
+      type: String,
+      name: 'searchWord',
+      required: false,
+      description: 'prefix 단어',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {},
         },
       },
     },

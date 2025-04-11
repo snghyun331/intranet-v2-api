@@ -18,10 +18,14 @@ import { UpdateMyPwDto } from './dto/updateMyPw.dto';
 import { decryptPassword, encryptPassword } from '../../common/utils/utility';
 import { YNEnum } from '../../common/constant/enum';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { RedisSearchService } from '../redis/redisSearch.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly redisSearchService: RedisSearchService,
+  ) {}
 
   async getAllUserIdxInfo(): Promise<UserIdxsResult[]> {
     const result: UserIdxsResult[] = await this.userRepository.getAllUserIdxInfo();
@@ -79,6 +83,9 @@ export class UserService {
       }
       await this.userRepository.createAdmin(userIdx, userInfo, manager);
     }
+
+    /* Redis에 유저 등록(검색 자동완성) */
+    await this.redisSearchService.addUserInRedis(userIdx, userInfo.userName);
 
     return;
   }
@@ -139,8 +146,8 @@ export class UserService {
   }
 
   async updateUser(userIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<void> {
-    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
-    if (userCnt !== 1) {
+    const result: any = await this.userRepository.getUserInfoByIdx(userIdx);
+    if (!result) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
@@ -174,10 +181,16 @@ export class UserService {
         await this.userRepository.deleteAdmin(userIdx, manager);
       }
     }
+
+    /* 유저네임이 바뀌었다면, Redis 유저네임 업데이트 */
+    if (updateInfo.userName !== result.userName) {
+      await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
+      await this.redisSearchService.addUserInRedis(userIdx, updateInfo.userName);
+    }
   }
 
   async deleteUser(userIdx: number, manager: EntityManager): Promise<void> {
-    const result = await this.userRepository.getUserAdminYN(userIdx);
+    const result = await this.userRepository.getUserInfoByIdx(userIdx);
     if (!result) {
       throw new BadRequestException('이미 비활성된 유저이거나 올바른 유저가 아닙니다.');
     }
@@ -188,6 +201,9 @@ export class UserService {
       await this.userRepository.deleteAdmin(userIdx, manager);
     }
 
+    /* Redis에 등록된 유저네임 삭제 */
+    await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
+
     return;
   }
 
@@ -195,5 +211,17 @@ export class UserService {
     const result = await this.userRepository.getBirthdayUsersByDate(date);
 
     return result;
+  }
+
+  async getAllUserName(searchWord: string) {
+    const result = await this.redisSearchService.getUserNameByPrefix(searchWord);
+
+    return result;
+  }
+
+  async addUserInRedis({ userIdx, userName }) {
+    await this.redisSearchService.addUserInRedis(userIdx, userName);
+
+    return;
   }
 }

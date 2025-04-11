@@ -336,10 +336,10 @@ export class UserRepository {
       .execute();
   }
 
-  async getUserAdminYN(userIdx: number) {
-    const result = await this.userModel
+  async getUserInfoByIdx(userIdx: number): Promise<any> {
+    const result: any = await this.userModel
       .createQueryBuilder('userEntity')
-      .select(['userEntity.adminRole AS adminRole'])
+      .select(['userEntity.userName AS userName', 'userEntity.adminRole AS adminRole'])
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .getRawOne();
 

@@ -6,3 +6,8 @@ export interface AllUserInfo extends CurrentUserInfo {
   comment: string;
   userAvalil: Date;
 }
+
+export class UserDto {
+  userIdx: number;
+  userName: string;
+}
