@@ -690,12 +690,22 @@ export const ADMIN_SEARCH_PREFIX_USERNAME: SwaggerMethod = {
       type: String,
       name: 'searchWord',
       required: false,
+      example: '김현',
       description: 'prefix 단어',
     },
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: [
+              {
+                userName: '김현민',
+                userIdx: 1,
+              },
+            ],
+          },
         },
       },
     },

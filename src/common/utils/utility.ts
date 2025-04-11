@@ -200,6 +200,7 @@ export const getYearsSinceJoin = (joinDateString: string): number => {
 
 // 입사 후 만 1년 날짜 계산
 export const getOneYearAfterJoin = (joinDateString: string): string => {
+  console.log(joinDateString);
   const joinDate = moment(joinDateString).utcOffset(9);
   const oneYearAfterJoin: string = joinDate.add(1, 'years').subtract(1, 'days').format('YYYY-MM-DD');
 
