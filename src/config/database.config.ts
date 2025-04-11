@@ -16,6 +16,7 @@ export const TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
     charset: 'utf8mb4',
     entities: [join(__dirname, '../entity/**/*.entity{.ts,.js}')],
     synchronize: true,
+    logging: true,
   }),
 };
 
