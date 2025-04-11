@@ -27,6 +27,7 @@ import {
 import { UserPayload } from '../../../common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { ApprovalRepository } from '../approval/repository/approval.repository';
+import { UpdateNoteDto } from './dto/updateNote.dto';
 
 @Injectable()
 export class LeaveService {
@@ -553,6 +554,16 @@ export class LeaveService {
     manager: EntityManager,
   ): Promise<void> {
     await this.leaveRepository.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, totalReceivedAnnualLeave, manager);
+
+    return;
+  }
+
+  async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
+    const leaveStatsCnt: number = await this.leaveRepository.getLeaveStatsCountByIdx(leaveStatsIdx);
+    if (leaveStatsCnt < 1) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+    await this.leaveRepository.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
 
     return;
   }
