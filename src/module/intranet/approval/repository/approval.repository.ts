@@ -307,8 +307,8 @@ export class ApprovalRepository {
     }
 
     query
-      .orderBy(`CASE WHEN commuteEntity.confirmYN = '${ConfirmEnum.YES}' THEN 1 ELSE 0 END`, 'ASC')
-      .addOrderBy('commuteEntity.createdAt', 'ASC');
+      .orderBy(`CASE WHEN commuteEntity.confirmYN = '${ConfirmEnum.NO}' THEN 0 ELSE 1 END`, 'ASC')
+      .addOrderBy('commuteEntity.commuteDate', 'DESC');
 
     const result = await query.getRawMany();
 
