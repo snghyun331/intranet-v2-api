@@ -28,13 +28,12 @@ export interface AdminActivity {
   activityIdx: number;
   userIdx: number;
   userName: string;
-  gradeName: UserGradeEnum;
+  gradeName: string;
+  teamName: string;
   targetDay: string;
   content: string;
   amount: number;
   payerName: string;
-  confirmYN: ConfirmEnum;
-  confirmDate: string;
 }
 
 export interface NewActivityMonthStats {
