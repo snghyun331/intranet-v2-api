@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateNoticeDto } from '../dto/createNotice.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoticeEntity } from '../../../entity/notice/notice.entity';
@@ -11,10 +11,14 @@ import { NoticeHasImageEntity } from '../../../entity/image/noticeHasImage.entit
 
 @Injectable()
 export class NoticeRepostiory {
-  constructor(@InjectRepository(NoticeEntity) private readonly noticeModel: Repository<NoticeEntity>) {}
+  constructor(
+    @InjectRepository(NoticeEntity) private readonly noticeModel: Repository<NoticeEntity>,
+    @InjectRepository(ImageEntity) private readonly imageModel: Repository<ImageEntity>,
+    @InjectRepository(NoticeHasImageEntity) private readonly noticeImageModel: Repository<NoticeHasImageEntity>,
+  ) {}
 
-  async createNotice(noticeInfo: CreateNoticeDto, adminName: string, manager: EntityManager): Promise<number> {
-    const result: InsertResult = await manager
+  async createNotice(noticeInfo: CreateNoticeDto, adminName: string): Promise<number> {
+    const result: InsertResult = await this.noticeModel
       .createQueryBuilder()
       .insert()
       .into(NoticeEntity)
@@ -26,9 +30,9 @@ export class NoticeRepostiory {
     return noticeIdx;
   }
 
-  async createNoticeImage(noticeIdx: number, imageInfo: NoticeImageInfo, manager: EntityManager): Promise<void> {
+  async createNoticeImage(noticeIdx: number, imageInfo: NoticeImageInfo): Promise<void> {
     /* image entity */
-    const result: InsertResult = await manager
+    const result: InsertResult = await this.imageModel
       .createQueryBuilder()
       .insert()
       .into(ImageEntity)
@@ -38,11 +42,16 @@ export class NoticeRepostiory {
     const imageIdx: number = result.identifiers[0].imageIdx;
 
     /* notice_has_image entity */
-    await manager.createQueryBuilder().insert().into(NoticeHasImageEntity).values({ noticeIdx, imageIdx }).execute();
+    await this.noticeImageModel
+      .createQueryBuilder()
+      .insert()
+      .into(NoticeHasImageEntity)
+      .values({ noticeIdx, imageIdx })
+      .execute();
   }
 
-  async updateNoticeImage(imageIdx: number, imageInfo: NoticeImageInfo, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateNoticeImage(imageIdx: number, imageInfo: NoticeImageInfo): Promise<UpdateResult> {
+    return await this.imageModel
       .createQueryBuilder()
       .update(ImageEntity)
       .set(imageInfo)
@@ -50,13 +59,8 @@ export class NoticeRepostiory {
       .execute();
   }
 
-  async updateNotice(
-    adminName: string,
-    noticeIdx: number,
-    { title, content }: UpdateNoticeDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateNotice(adminName: string, noticeIdx: number, { title, content }: UpdateNoticeDto): Promise<UpdateResult> {
+    return await this.noticeModel
       .createQueryBuilder()
       .update(NoticeEntity)
       .set({ lastEditorName: adminName, title, content })
@@ -64,8 +68,8 @@ export class NoticeRepostiory {
       .execute();
   }
 
-  async updateImageDataToNull(imageIdx: number, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateImageDataToNull(imageIdx: number): Promise<UpdateResult> {
+    return await this.imageModel
       .createQueryBuilder()
       .update(ImageEntity)
       .set({ imageUrl: null, imageSize: null, imageName: null })
@@ -120,8 +124,8 @@ export class NoticeRepostiory {
     return result;
   }
 
-  async deleteNotice(noticeIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteNotice(noticeIdx: number): Promise<DeleteResult> {
+    return await this.noticeModel
       .createQueryBuilder()
       .delete()
       .from(NoticeEntity)
@@ -129,8 +133,8 @@ export class NoticeRepostiory {
       .execute();
   }
 
-  async deleteNoticeImage(imageIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteNoticeImage(imageIdx: number): Promise<DeleteResult> {
+    return await this.imageModel
       .createQueryBuilder()
       .delete()
       .from(ImageEntity)

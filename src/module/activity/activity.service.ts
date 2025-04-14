@@ -1,6 +1,11 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateActivityDto } from './dto/createActivity.dto';
-import { EntityManager } from 'typeorm';
 import { ActivityRepository } from './repository/activity.repository';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
 import {
@@ -20,12 +25,14 @@ import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { substringYearMonth } from '../../common/utils/utility';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class ActivityService {
   constructor(private readonly activityRepository: ActivityRepository) {}
 
-  async createActivity(userIdx: number, newActivityInfo: CreateActivityDto, manager: EntityManager): Promise<string> {
+  @Transactional()
+  async createActivity(userIdx: number, newActivityInfo: CreateActivityDto): Promise<string> {
     const { targetDay, payerName } = newActivityInfo;
     const userCnt: number = await this.activityRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
@@ -52,29 +59,22 @@ export class ActivityService {
       throw new BadRequestException('아직 활동비를 작성할 수 없습니다.');
     }
 
-    await this.activityRepository.createActivity(payerUserIdx, newActivityInfo, manager);
+    await this.activityRepository.createActivity(payerUserIdx, newActivityInfo);
 
     // 활동비 월별 사용금액 업데이트
-    const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
-      year,
-      month,
-      payerName,
-      manager,
-    );
-    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerUserIdx, manager);
+    const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(year, month, payerName);
+    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerUserIdx);
 
     // 활동비 반기별 사용금액 업데이트
-    await this.activityRepository.updateActivityExpense(year, month, payerUserIdx, manager);
+    await this.activityRepository.updateActivityExpense(year, month, payerUserIdx);
+
+    throw new InternalServerErrorException();
 
     return targetDay;
   }
 
-  async updateActivity(
-    userIdx: number,
-    activityIdx: number,
-    updateActivityInfo: UpdateActivityDto,
-    manager: EntityManager,
-  ): Promise<string> {
+  @Transactional()
+  async updateActivity(userIdx: number, activityIdx: number, updateActivityInfo: UpdateActivityDto): Promise<string> {
     const { targetDay, payerName } = updateActivityInfo;
     const userCnt: number = await this.activityRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
@@ -102,24 +102,20 @@ export class ActivityService {
     const { year, month } = substringYearMonth(targetDay);
 
     // 내역 업데이트
-    await this.activityRepository.updateActivity(activityIdx, updateActivityInfo, manager);
+    await this.activityRepository.updateActivity(activityIdx, updateActivityInfo);
 
     // 활동비 사용금액 업데이트
-    const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
-      year,
-      month,
-      payerName,
-      manager,
-    );
-    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerUserIdx, manager);
+    const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(year, month, payerName);
+    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerUserIdx);
 
     // 활동비 반기별 사용금액 업데이트
-    await this.activityRepository.updateActivityExpense(year, month, payerUserIdx, manager);
+    await this.activityRepository.updateActivityExpense(year, month, payerUserIdx);
 
     return targetDay;
   }
 
-  async deleteActivity(userIdx: number, activityIdx: number, manager: EntityManager): Promise<string> {
+  @Transactional()
+  async deleteActivity(userIdx: number, activityIdx: number): Promise<string> {
     const userCnt: number = await this.activityRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -136,19 +132,14 @@ export class ActivityService {
 
     const { year, month } = substringYearMonth(targetDay);
 
-    await this.activityRepository.deleteActivity(activityIdx, manager);
+    await this.activityRepository.deleteActivity(activityIdx);
 
     // 활동비 사용금액 업데이트
-    const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(
-      year,
-      month,
-      payerName,
-      manager,
-    );
-    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerUserIdx, manager);
+    const activityMonthExpense: number = await this.activityRepository.getTotalActivityExpense(year, month, payerName);
+    await this.activityRepository.updateMonthlyActivityStats(activityMonthExpense, year, month, payerUserIdx);
 
     // 활동비 반기별 사용금액 업데이트
-    await this.activityRepository.updateActivityExpense(year, month, payerUserIdx, manager);
+    await this.activityRepository.updateActivityExpense(year, month, payerUserIdx);
 
     return targetDay;
   }
@@ -171,7 +162,8 @@ export class ActivityService {
     return { totalPage, total, activity };
   }
 
-  async createActivityBudget(budgetInfo: CreateActivityBudgetDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async createActivityBudget(budgetInfo: CreateActivityBudgetDto): Promise<void> {
     const date: Date = new Date();
     const year: string = date.getFullYear().toString();
     const halfYear: HalfYearEnum = budgetInfo.period;
@@ -190,7 +182,7 @@ export class ActivityService {
             month: i.toString(),
             activityMonthExpense: 0,
           };
-          await this.activityRepository.createActivityMonthStats(newActivityMonthStatsInfo, manager);
+          await this.activityRepository.createActivityMonthStats(newActivityMonthStatsInfo);
         }
       } else {
         // 하반기일 경우
@@ -201,7 +193,7 @@ export class ActivityService {
             month: i.toString(),
             activityMonthExpense: 0,
           };
-          await this.activityRepository.createActivityMonthStats(newActivityMonthStatsInfo, manager);
+          await this.activityRepository.createActivityMonthStats(newActivityMonthStatsInfo);
         }
       }
       /* 반기별 통계 create */
@@ -213,7 +205,7 @@ export class ActivityService {
         memberCount: budgetInfo.memberCount,
         budgetPerMember: budgetInfo.budgetPerMember,
       };
-      await this.activityRepository.createActivityStats(newActivityStatsInfo, manager);
+      await this.activityRepository.createActivityStats(newActivityStatsInfo);
     } else {
       /** 기록이 있다면 409 에러 **/
       throw new ConflictException('이미 새로 등록하였습니다.');
@@ -239,45 +231,38 @@ export class ActivityService {
     return result;
   }
 
-  async updateActivityBudget(
-    activityStatsIdx: number,
-    budgetInfo: UpdateBudgetDto,
-    manager: EntityManager,
-  ): Promise<void> {
+  @Transactional()
+  async updateActivityBudget(activityStatsIdx: number, budgetInfo: UpdateBudgetDto): Promise<void> {
     const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
     if (activityStatsCnt < 1) {
       throw new NotFoundException('존재하지 않는 통계 내역입니다.');
     }
-    await this.activityRepository.updateActivityBudget(activityStatsIdx, budgetInfo, manager);
+    await this.activityRepository.updateActivityBudget(activityStatsIdx, budgetInfo);
 
     return;
   }
 
-  async updateActivityStatsNote(
-    activityStatsIdx: number,
-    noteInfo: UpdateNoteDto,
-    manager: EntityManager,
-  ): Promise<void> {
+  @Transactional()
+  async updateActivityStatsNote(activityStatsIdx: number, noteInfo: UpdateNoteDto): Promise<void> {
     const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
     if (activityStatsCnt < 1) {
       throw new NotFoundException('존재하지 않는 통계 내역입니다.');
     }
 
-    await this.activityRepository.updateActivityStatsNote(activityStatsIdx, noteInfo, manager);
+    await this.activityRepository.updateActivityStatsNote(activityStatsIdx, noteInfo);
+
     return;
   }
 
-  async updateConfirmActivity(
-    activityIdxList: number[],
-    confirmYN: ConfirmEnum,
-    manager: EntityManager,
-  ): Promise<void> {
+  @Transactional()
+  async updateConfirmActivity(activityIdxList: number[], confirmYN: ConfirmEnum): Promise<void> {
     for (const activityIdx of activityIdxList) {
       const activityInfo: ActivityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
       if (!activityInfo) {
         throw new NotFoundException(`해당 내역은 존재하지 않거나 삭제되었습니다: activityIdx: ${activityIdx}`);
       }
-      await this.activityRepository.updateConfirmActivity(activityIdx, confirmYN, manager);
+
+      await this.activityRepository.updateConfirmActivity(activityIdx, confirmYN);
     }
 
     return;
@@ -289,23 +274,25 @@ export class ActivityService {
     return result;
   }
 
-  async updateClearStatusComplete(activityStatsIdxList: number[], manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateClearStatusComplete(activityStatsIdxList: number[]): Promise<void> {
     for (const activityStatsIdx of activityStatsIdxList) {
       const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
       if (activityStatsCnt < 1) {
         throw new NotFoundException(`존재하지 않는 통계 내역입니다: activityStatsIdx: ${activityStatsIdx}`);
       }
-      await this.activityRepository.updateClearStatusComplete(activityStatsIdx, manager);
+      await this.activityRepository.updateClearStatusComplete(activityStatsIdx);
     }
   }
 
-  async updateClearStatusNotYet(activityStatsIdxList: number[], manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateClearStatusNotYet(activityStatsIdxList: number[]): Promise<void> {
     for (const activityStatsIdx of activityStatsIdxList) {
       const activityStatsCnt: number = await this.activityRepository.getActivityStatsCountByIdx(activityStatsIdx);
       if (activityStatsCnt < 1) {
         throw new NotFoundException('존재하지 않는 통계 내역입니다.');
       }
-      await this.activityRepository.updateClearStatusNotYet(activityStatsIdx, manager);
+      await this.activityRepository.updateClearStatusNotYet(activityStatsIdx);
     }
   }
 }

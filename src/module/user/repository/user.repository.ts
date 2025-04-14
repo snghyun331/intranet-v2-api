@@ -10,7 +10,7 @@ import {
   TeamIdxsResult,
   CurrentUserInfo,
 } from '../interface/result.interface';
-import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
@@ -215,10 +215,10 @@ export class UserRepository {
     return { totalPage, total, users: result };
   }
 
-  async createUser(newUserInfo: CreateUserDto, manager: EntityManager): Promise<number> {
+  async createUser(newUserInfo: CreateUserDto): Promise<number> {
     const password: string = encryptPassword(newUserInfo.id + '2467');
 
-    const result: InsertResult = await manager
+    const result: InsertResult = await this.userModel
       .createQueryBuilder()
       .insert()
       .into(UserEntity)
@@ -228,8 +228,8 @@ export class UserRepository {
     return result.identifiers[0].userIdx;
   }
 
-  async updateMyInfo(userIdx: number, updateInfo: UpdateMyInfoDto, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateMyInfo(userIdx: number, updateInfo: UpdateMyInfoDto): Promise<UpdateResult> {
+    return await this.userModel
       .createQueryBuilder()
       .update(UserEntity)
       .set(updateInfo)
@@ -250,8 +250,8 @@ export class UserRepository {
     return password;
   }
 
-  async updateUserPassword(userIdx: number, password: string, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateUserPassword(userIdx: number, password: string): Promise<UpdateResult> {
+    return await this.userModel
       .createQueryBuilder()
       .update(UserEntity)
       .set({ password })
@@ -277,16 +277,12 @@ export class UserRepository {
     return result;
   }
 
-  async createAdmin(
-    userIdx: number,
-    adminInfo: CreateUserDto | UpdateUserDto,
-    manager: EntityManager,
-  ): Promise<InsertResult> {
+  async createAdmin(userIdx: number, adminInfo: CreateUserDto | UpdateUserDto): Promise<InsertResult> {
     const password: string = encryptPassword(adminInfo.id + '2467');
     const adminName: string = adminInfo.userName;
     const adminEmail: string = adminInfo.userEmail;
 
-    return await manager
+    return await this.adminModel
       .createQueryBuilder()
       .insert()
       .into(AdminEntity)
@@ -294,10 +290,10 @@ export class UserRepository {
       .execute();
   }
 
-  async updateUserInfo(userIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
+  async updateUserInfo(userIdx: number, updateInfo: UpdateUserDto): Promise<UpdateResult> {
     const { adminGradeIdx, ...userInfo } = updateInfo;
 
-    return await manager
+    return await this.userModel
       .createQueryBuilder()
       .update(UserEntity)
       .set(userInfo)
@@ -305,13 +301,13 @@ export class UserRepository {
       .execute();
   }
 
-  async updateAdmin(adminIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
-    const { id, userName, gradeIdx, hqIdx, teamIdx, userEmail, adminGradeIdx } = updateInfo;
+  async updateAdmin(adminIdx: number, updateInfo: UpdateUserDto): Promise<UpdateResult> {
+    const { id, userName, userEmail, adminGradeIdx } = updateInfo;
 
-    return await manager
+    return await this.adminModel
       .createQueryBuilder()
       .update(AdminEntity)
-      .set({ id, adminName: userName, gradeIdx, hqIdx, teamIdx, adminEmail: userEmail, adminGradeIdx })
+      .set({ id, adminName: userName, adminEmail: userEmail, adminGradeIdx })
       .where('adminIdx = :adminIdx', { adminIdx })
       .execute();
   }
@@ -327,8 +323,8 @@ export class UserRepository {
     return result;
   }
 
-  async deleteUser(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteUser(userIdx: number): Promise<DeleteResult> {
+    return await this.userModel
       .createQueryBuilder()
       .softDelete()
       .from(UserEntity)
@@ -346,8 +342,8 @@ export class UserRepository {
     return result;
   }
 
-  async deleteAdmin(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteAdmin(userIdx: number): Promise<DeleteResult> {
+    return await this.adminModel
       .createQueryBuilder()
       .softDelete()
       .from(AdminEntity)
@@ -355,19 +351,16 @@ export class UserRepository {
       .execute();
   }
 
-  async restoreUpdateAdmin(adminIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
-    const { id, userName, gradeIdx, hqIdx, teamIdx, userEmail, adminGradeIdx } = updateInfo;
+  async restoreUpdateAdmin(adminIdx: number, updateInfo: UpdateUserDto): Promise<UpdateResult> {
+    const { id, userName, userEmail, adminGradeIdx } = updateInfo;
 
-    return await manager
+    return await this.adminModel
       .createQueryBuilder()
       .update(AdminEntity)
       .set({
         adminAvail: null,
         id,
         adminName: userName,
-        gradeIdx,
-        hqIdx,
-        teamIdx,
         adminEmail: userEmail,
         adminGradeIdx,
       })

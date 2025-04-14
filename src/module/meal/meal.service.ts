@@ -4,7 +4,6 @@ import { CreateMealDto, MealInputDto } from './dto/createMeal.dto';
 import { MealTypeEnum, YNEnum } from '../../common/constant/enum';
 import { MealEntity } from '../../entity/meal/meal.entity';
 import { BasicMealData, DetailedMealData, MealStats, MealStatsAdminInfo } from './interface/meal.interface';
-import { EntityManager } from 'typeorm';
 import {
   MealAdminResult,
   MealBudgetAdminResult,
@@ -18,6 +17,7 @@ import { NewMealStats } from '../scheduler/interface/meal.interface';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '../../common/constant/constant';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class MealService {
@@ -79,7 +79,8 @@ export class MealService {
     return result;
   }
 
-  async createMyMeal(userIdx: number, newMealInfo: CreateMealDto, manager: EntityManager): Promise<string> {
+  @Transactional()
+  async createMyMeal(userIdx: number, newMealInfo: CreateMealDto): Promise<string> {
     const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -118,10 +119,10 @@ export class MealService {
 
     // 기존 정보가 있을 경우 업데이트
     if (lunchInfo) {
-      await this.mealRepository.updateMyMeal(lunchInfo.mealIdx, newLunch, manager);
+      await this.mealRepository.updateMyMeal(lunchInfo.mealIdx, newLunch);
     } else {
       // 기존 정보가 없을 경우 새로 생성
-      await this.mealRepository.createMyMeal(userIdx, newMealInfo.targetDay, newLunch, MealTypeEnum.LUNCH, manager);
+      await this.mealRepository.createMyMeal(userIdx, newMealInfo.targetDay, newLunch, MealTypeEnum.LUNCH);
     }
 
     // 조식 저장
@@ -143,16 +144,10 @@ export class MealService {
 
     // 기존 정보가 있을 경우 업데이트
     if (breakfastInfo) {
-      await this.mealRepository.updateMyMeal(breakfastInfo.mealIdx, newBreakfast, manager);
+      await this.mealRepository.updateMyMeal(breakfastInfo.mealIdx, newBreakfast);
     } else {
       // 기존 정보가 없을 경우 새로 생성
-      await this.mealRepository.createMyMeal(
-        userIdx,
-        newMealInfo.targetDay,
-        newBreakfast,
-        MealTypeEnum.BREAKFAST,
-        manager,
-      );
+      await this.mealRepository.createMyMeal(userIdx, newMealInfo.targetDay, newBreakfast, MealTypeEnum.BREAKFAST);
     }
 
     // 석식 저장
@@ -175,56 +170,51 @@ export class MealService {
 
     // 기존 정보가 있을 경우 업데이트
     if (dinnerInfo) {
-      await this.mealRepository.updateMyMeal(dinnerInfo.mealIdx, newDinner, manager);
+      await this.mealRepository.updateMyMeal(dinnerInfo.mealIdx, newDinner);
     } else {
       // 기존 정보가 없을 경우 새로 생성
-      await this.mealRepository.createMyMeal(userIdx, newMealInfo.targetDay, newDinner, MealTypeEnum.DINNER, manager);
+      await this.mealRepository.createMyMeal(userIdx, newMealInfo.targetDay, newDinner, MealTypeEnum.DINNER);
     }
 
     // holidayWorkdays(휴일근무일 수) 업데이트
-    const holidayWorkdays: number = await this.mealRepository.getMyTotalHolidayWorkdays(year, month, userIdx, manager);
-    await this.mealRepository.updateMyHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx, manager);
+    const holidayWorkdays: number = await this.mealRepository.getMyTotalHolidayWorkdays(year, month, userIdx);
+    await this.mealRepository.updateMyHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx);
 
     // mealExpense(중식 사용금액) 업데이트
-    const mealExpense: number = await this.mealRepository.getMyTotalMealExpense(year, month, userIdx, manager);
-    await this.mealRepository.updateMyMealExpenseInStats(mealExpense, year, month, userIdx, manager);
+    const mealExpense: number = await this.mealRepository.getMyTotalMealExpense(year, month, userIdx);
+    await this.mealRepository.updateMyMealExpenseInStats(mealExpense, year, month, userIdx);
 
     // breakExpense(조식 사용금액) 업데이트
-    const breakfastExpense: number = await this.mealRepository.getMyTotalBreakfastExpense(
-      year,
-      month,
-      userIdx,
-      manager,
-    );
-    await this.mealRepository.updateMyBreakfastExpenseInStats(breakfastExpense, year, month, userIdx, manager);
+    const breakfastExpense: number = await this.mealRepository.getMyTotalBreakfastExpense(year, month, userIdx);
+    await this.mealRepository.updateMyBreakfastExpenseInStats(breakfastExpense, year, month, userIdx);
 
     // 조식 초과금 업데이트
     const { total: totalB, cnt: cntB }: { total: number; cnt: number } =
-      await this.mealRepository.getMyBreakfastOverpay(year, month, userIdx, manager);
+      await this.mealRepository.getMyBreakfastOverpay(year, month, userIdx);
     const breakfastOverpay: number = totalB - cntB * DEFAULT_BREAKFAST_RATE;
-    await this.mealRepository.updateMyBreakfastOverpayInStats(breakfastOverpay, year, month, userIdx, manager);
+    await this.mealRepository.updateMyBreakfastOverpayInStats(breakfastOverpay, year, month, userIdx);
 
     // dinnerExpense(석식 사용금액) 업데이트
-    const dinnerExpense: number = await this.mealRepository.getMyTotalDinnerExpense(year, month, userIdx, manager);
-    await this.mealRepository.updateMyDinnerExpenseInStats(dinnerExpense, year, month, userIdx, manager);
+    const dinnerExpense: number = await this.mealRepository.getMyTotalDinnerExpense(year, month, userIdx);
+    await this.mealRepository.updateMyDinnerExpenseInStats(dinnerExpense, year, month, userIdx);
 
     // 석식 초과금 업데이트
     const { total: totalD, cnt: cntD }: { total: number; cnt: number } = await this.mealRepository.getMyDinnerOverpay(
       year,
       month,
       userIdx,
-      manager,
     );
     const dinnerOverpay: number = totalD - cntD * DEFAULT_DINNER_RATE;
-    await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx, manager);
+    await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx);
 
     // 마지막: 각종 업데이트에 따른 사용가능금액 업데이트
-    await this.mealRepository.updateMealBudget(year.toString(), month.toString(), manager);
+    await this.mealRepository.updateMealBudget(year.toString(), month.toString());
 
     return newMealInfo.targetDay;
   }
 
-  async deleteMyMeal(userIdx: number, targetDay: string, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async deleteMyMeal(userIdx: number, targetDay: string): Promise<void> {
     const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -232,47 +222,41 @@ export class MealService {
 
     const { year, month } = substringYearMonth(targetDay);
 
-    await this.mealRepository.deleteMyMeal(userIdx, targetDay, manager);
+    await this.mealRepository.deleteMyMeal(userIdx, targetDay);
 
     // holidayWorkdays(휴일근무일 수) 업데이트
-    const holidayWorkdays: number = await this.mealRepository.getMyTotalHolidayWorkdays(year, month, userIdx, manager);
-    await this.mealRepository.updateMyHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx, manager);
+    const holidayWorkdays: number = await this.mealRepository.getMyTotalHolidayWorkdays(year, month, userIdx);
+    await this.mealRepository.updateMyHolidayWorkdaysInStats(holidayWorkdays, year, month, userIdx);
 
     // mealExpense(중식 사용금액) 업데이트
-    const mealExpense: number = await this.mealRepository.getMyTotalMealExpense(year, month, userIdx, manager);
-    await this.mealRepository.updateMyMealExpenseInStats(mealExpense, year, month, userIdx, manager);
+    const mealExpense: number = await this.mealRepository.getMyTotalMealExpense(year, month, userIdx);
+    await this.mealRepository.updateMyMealExpenseInStats(mealExpense, year, month, userIdx);
 
     // breakExpense(조식 사용금액) 업데이트
-    const breakfastExpense: number = await this.mealRepository.getMyTotalBreakfastExpense(
-      year,
-      month,
-      userIdx,
-      manager,
-    );
-    await this.mealRepository.updateMyBreakfastExpenseInStats(breakfastExpense, year, month, userIdx, manager);
+    const breakfastExpense: number = await this.mealRepository.getMyTotalBreakfastExpense(year, month, userIdx);
+    await this.mealRepository.updateMyBreakfastExpenseInStats(breakfastExpense, year, month, userIdx);
 
     // 조식 초과금 업데이트
     const { total: totalB, cnt: cntB }: { total: number; cnt: number } =
-      await this.mealRepository.getMyBreakfastOverpay(year, month, userIdx, manager);
+      await this.mealRepository.getMyBreakfastOverpay(year, month, userIdx);
     const breakfastOverpay: number = totalB - cntB * DEFAULT_BREAKFAST_RATE;
-    await this.mealRepository.updateMyBreakfastOverpayInStats(breakfastOverpay, year, month, userIdx, manager);
+    await this.mealRepository.updateMyBreakfastOverpayInStats(breakfastOverpay, year, month, userIdx);
 
     // dinnerExpense(조식 사용금액) 업데이트
-    const dinnerExpense: number = await this.mealRepository.getMyTotalDinnerExpense(year, month, userIdx, manager);
-    await this.mealRepository.updateMyDinnerExpenseInStats(dinnerExpense, year, month, userIdx, manager);
+    const dinnerExpense: number = await this.mealRepository.getMyTotalDinnerExpense(year, month, userIdx);
+    await this.mealRepository.updateMyDinnerExpenseInStats(dinnerExpense, year, month, userIdx);
 
     // 석식 초과금 업데이트
     const { total: totalD, cnt: cntD }: { total: number; cnt: number } = await this.mealRepository.getMyDinnerOverpay(
       year,
       month,
       userIdx,
-      manager,
     );
     const dinnerOverpay: number = totalD - cntD * DEFAULT_DINNER_RATE;
-    await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx, manager);
+    await this.mealRepository.updateMyDinnerOverpayInStats(dinnerOverpay, year, month, userIdx);
 
     // 마지막: 각종 업데이트에 따른 사용가능금액 업데이트
-    await this.mealRepository.updateMealBudget(year.toString(), month.toString(), manager);
+    await this.mealRepository.updateMealBudget(year.toString(), month.toString());
   }
 
   /* 필드 중 하나라도 값이 있으면 true 반환 */
@@ -286,17 +270,18 @@ export class MealService {
     return { totalPage, total, meal };
   }
 
-  async createMealBudget(mealBudgetInfo: CreateMealBudgetDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async createMealBudget(mealBudgetInfo: CreateMealBudgetDto): Promise<void> {
     const { year, month, baseAmount } = mealBudgetInfo;
 
     /* 기본 식대 저장 */
     const mealBaseInfo: { baseAmount: number } = await this.mealRepository.getMealBaseInfo(year, month);
     if (!mealBaseInfo) {
       // 기본 식대 정보가 없다면 create
-      await this.mealRepository.createMealBase(year, month, baseAmount, manager);
+      await this.mealRepository.createMealBase(year, month, baseAmount);
     } else if (mealBaseInfo.baseAmount !== baseAmount) {
       // 기본 식대 정보가 있고, 기존 정보랑 상이하다면 update
-      await this.mealRepository.updateMealBase(year, month, baseAmount, manager);
+      await this.mealRepository.updateMealBase(year, month, baseAmount);
     }
     const mealStatsCnt: number = await this.mealRepository.getMealStatsCount(year, month);
     /* 기록이 없다면 통계 create (기록이 있다면 mealBudget은 트리거에 의해 자동 업데이트)*/
@@ -316,12 +301,12 @@ export class MealService {
           holidays,
           mealBalance: 0,
         };
-        await this.mealRepository.createMealBudget(mealBudgetInfo, newMealStatsInfo, manager);
+        await this.mealRepository.createMealBudget(mealBudgetInfo, newMealStatsInfo);
       }
     }
 
     // 마지막: 각종 업데이트에 따른 사용가능금액 업데이트
-    await this.mealRepository.updateMealBudget(year, month, manager);
+    await this.mealRepository.updateMealBudget(year, month);
   }
 
   async getMealBudget(pageNoInfo: PageNoDto, filterInfo: AdminMealBudgetFilterDto): Promise<MealBudgetAdminResult> {
@@ -340,12 +325,13 @@ export class MealService {
     return { totalPage, total, workdays, mealBudget };
   }
 
-  async updateMealStatsNote(mealStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateMealStatsNote(mealStatsIdx: number, noteInfo: UpdateNoteDto): Promise<void> {
     const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
     if (mealStatsCnt < 1) {
       throw new NotFoundException('존재하지 않는 통계 내역입니다.');
     }
-    await this.mealRepository.updateMealStatsNote(mealStatsIdx, noteInfo, manager);
+    await this.mealRepository.updateMealStatsNote(mealStatsIdx, noteInfo);
 
     return;
   }
@@ -356,23 +342,25 @@ export class MealService {
     return result;
   }
 
-  async updateClearStatusComplete(mealStatsIdxList: number[], manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateClearStatusComplete(mealStatsIdxList: number[]): Promise<void> {
     for (const mealStatsIdx of mealStatsIdxList) {
       const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
       if (mealStatsCnt < 1) {
         throw new NotFoundException('존재하지 않는 통계 내역입니다.');
       }
-      await this.mealRepository.updateClearStatusComplete(mealStatsIdx, manager);
+      await this.mealRepository.updateClearStatusComplete(mealStatsIdx);
     }
   }
 
-  async updateClearStatusNotYet(mealStatsIdxList: number[], manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateClearStatusNotYet(mealStatsIdxList: number[]): Promise<void> {
     for (const mealStatsIdx of mealStatsIdxList) {
       const mealStatsCnt: number = await this.mealRepository.getMealStatsCountByIdx(mealStatsIdx);
       if (mealStatsCnt < 1) {
         throw new NotFoundException('존재하지 않는 통계 내역입니다.');
       }
-      await this.mealRepository.updateClearStatusNotYet(mealStatsIdx, manager);
+      await this.mealRepository.updateClearStatusNotYet(mealStatsIdx);
     }
   }
 

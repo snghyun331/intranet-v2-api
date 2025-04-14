@@ -1,21 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalRepository } from './repository/approval.repository';
-import { EntityManager } from 'typeorm';
 import { ConfirmEnum } from '../../../common/constant/enum';
 import { addConfirmStatusField, substringYearMonth } from '../../../common/utils/utility';
 import { UserApprovalFilter } from './dto/query.dto';
 import { ALTERNATIVE_LEAVE_LISTS, ANNUAL_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from '../../../common/constant/constant';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class ApprovalService {
   constructor(private readonly approvalRepository: ApprovalRepository) {}
 
-  async confirmLeave(
-    commuteIdx: number,
-    confirmPersonIdx: number,
-    confirmYN: ConfirmEnum,
-    manager: EntityManager,
-  ): Promise<void> {
+  @Transactional()
+  async confirmLeave(commuteIdx: number, confirmPersonIdx: number, confirmYN: ConfirmEnum): Promise<void> {
     if (confirmYN === ConfirmEnum.NO) {
       throw new BadRequestException('승인 취소 기능은 아직 제공하지 않습니다.');
     }
@@ -35,7 +31,7 @@ export class ApprovalService {
     }
 
     /* 승인여부 업데이트 */
-    await this.approvalRepository.updateConfirm(commuteIdx, confirmPersonIdx, confirmYN, manager);
+    await this.approvalRepository.updateConfirm(commuteIdx, confirmPersonIdx, confirmYN);
 
     /* 승인여부 업데이트에 따른 휴가 산정 변경 */
     const userIdx: number = existing.userIdx; // 휴가를 올린 사용자 IDX
@@ -49,30 +45,29 @@ export class ApprovalService {
         month,
         userIdx,
         leaveTypeIdx,
-        manager,
       );
 
       // 월별 사용개수 업데이트
-      await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount, manager);
+      await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount);
 
       // 연도별 사용개수 업데이트
-      await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx, manager);
+      await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx);
 
       // 연도별 연차 총 사용량 업데이트
       if (ANNUAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
-        await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx, manager);
+        await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx);
       }
       // 연도별 특별휴무 총 사용량 업데이트
       if (SPECIAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
-        await this.approvalRepository.updateTotalSpecialLeaveUsage(year, userIdx, manager);
+        await this.approvalRepository.updateTotalSpecialLeaveUsage(year, userIdx);
       }
       // 연도별 대체휴무 총 사용량 업데이트
       if (ALTERNATIVE_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
-        await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx, manager);
+        await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx);
       }
 
       // 식대 월별 timeoffDays 업데이트
-      await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx, manager);
+      await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx);
     }
   }
 

@@ -25,14 +25,11 @@ import {
 import { ADMIN_NOTICES, ADMIN_NOTICES_DETAIL, USERS_NOTICES, USERS_NOTICES_DETAIL } from './swagger/notice.swagger';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { NoticeService } from './notice.service';
-import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
 import { CreateNoticeDto } from './dto/createNotice.dto';
-import { TransactionManager } from '../../common/decorator/transaction.decorator';
-import { EntityManager } from 'typeorm';
 import { CurrentAdmin } from '../../common/decorator/currentAdmin.decorator';
 import { AdminPayload } from '../../common/interface/payload.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
@@ -91,15 +88,14 @@ export class AdminNoticeController {
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @UseInterceptors(TransactionInterceptor, FileInterceptor('noticeImage', noticeImageOptions))
+  @UseInterceptors(FileInterceptor('noticeImage', noticeImageOptions))
   @Post()
   async createNotice(
     @Body() noticeInfo: CreateNoticeDto,
     @CurrentAdmin() { adminName }: AdminPayload,
-    @TransactionManager() manager: EntityManager,
     @UploadedFile() noticeImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    await this.noticeService.createNotice(noticeInfo, adminName, manager, noticeImage);
+    await this.noticeService.createNotice(noticeInfo, adminName, noticeImage);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -144,16 +140,15 @@ export class AdminNoticeController {
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @UseInterceptors(TransactionInterceptor, FileInterceptor('noticeImage', noticeImageOptions))
+  @UseInterceptors(FileInterceptor('noticeImage', noticeImageOptions))
   @Put(':noticeIdx')
   async updateNotice(
     @Param('noticeIdx', ParseIntPipe) noticeIdx: number,
     @Body() noticeInfo: UpdateNoticeDto,
     @CurrentAdmin() { adminName }: AdminPayload,
-    @TransactionManager() manager: EntityManager,
     @UploadedFile() noticeImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    const imageInfo = await this.noticeService.updateNotice(adminName, noticeIdx, noticeInfo, manager, noticeImage);
+    const imageInfo = await this.noticeService.updateNotice(adminName, noticeIdx, noticeInfo, noticeImage);
 
     const response: ResponseInterface = { message: 'success', data: imageInfo };
 
@@ -168,12 +163,8 @@ export class AdminNoticeController {
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @UseInterceptors(TransactionInterceptor)
-  async deleteNotice(
-    @Param('noticeIdx', ParseIntPipe) noticeIdx: number,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.noticeService.deleteNotice(noticeIdx, manager);
+  async deleteNotice(@Param('noticeIdx', ParseIntPipe) noticeIdx: number): Promise<ResponseInterface> {
+    await this.noticeService.deleteNotice(noticeIdx);
 
     const response: ResponseInterface = { message: 'success' };
 

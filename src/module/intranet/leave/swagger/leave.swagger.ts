@@ -749,7 +749,7 @@ export const ADMIN_INTRANET_LEAVE_ALL_CALENDER: SwaggerMethod = {
 export const ADMIN_INTRANET_LEAVE_NOTE: SwaggerMethod = {
   PATCH: {
     API_OPERATION: {
-      summary: '어드민 연차 관리 총 연차일 수정 API',
+      summary: '어드민 휴가 특이사항 수정 API',
     },
     API_PARAM1: {
       name: 'leaveStatsIdx',
