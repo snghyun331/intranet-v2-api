@@ -494,7 +494,7 @@ export class WelfareRepository {
     }
   }
 
-  async getUserWelfareStats(year: string, halfYear?: HalfYearEnum): Promise<WelfareStatsAdminInfo[]> {
+  async getUserWelfareStats(year: string, halfYear?: HalfYearEnum) {
     const query: SelectQueryBuilder<WelfareStatsEntity> = this.welfareStatsModel
       .createQueryBuilder('welfareStatsEntity')
       .select([
@@ -504,6 +504,7 @@ export class WelfareRepository {
         'welfareStatsEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
         'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
         'welfareStatsEntity.welfareBudget AS welfareBudget',
         'welfareStatsEntity.welfareExpense AS welfareExpense',
         '(welfareStatsEntity.welfareBudget - welfareStatsEntity.welfareExpense) AS welfareBalance',
@@ -513,6 +514,7 @@ export class WelfareRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('welfareStatsEntity.year = :year', { year });
 
     if (halfYear) {
