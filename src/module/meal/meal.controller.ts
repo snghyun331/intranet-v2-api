@@ -1,16 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import * as moment from 'moment';
 import { MealService } from './meal.service';
 import {
@@ -39,9 +27,6 @@ import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
 import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
-import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
-import { EntityManager } from 'typeorm';
-import { TransactionManager } from '../../common/decorator/transaction.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { MealAdminResult, MealBudgetAdminResult, MealCalenderResult } from './interface/result.interface';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
@@ -84,16 +69,11 @@ export class UserMealController {
   @ApiCreatedResponse(USERS_MEALS.POST.API_CREATED_RESPONSE)
   @ApiBadRequestResponse(USERS_MEALS.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post()
-  async createMeal(
-    @Body() newMealInfo: CreateMealDto,
-    @CurrentUserIdx() userIdx: number,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    const targetDay: string = await this.mealService.createMyMeal(userIdx, newMealInfo, manager);
+  async createMeal(@Body() newMealInfo: CreateMealDto, @CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
+    const targetDay: string = await this.mealService.createMyMeal(userIdx, newMealInfo);
 
     const response: ResponseInterface = { message: '식대 사용내역 저장 성공', data: { targetDay } };
 
@@ -105,16 +85,14 @@ export class UserMealController {
   @ApiOkResponse(USERS_MEALS.DELETE.API_OK_RESPONSE)
   @ApiBadRequestResponse(USERS_MEALS.DELETE.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Delete(':targetDay')
   async deleteMeal(
     @Param('targetDay') targetDay: string,
     @CurrentUserIdx() userIdx: number,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.mealService.deleteMyMeal(userIdx, targetDay, manager);
+    await this.mealService.deleteMyMeal(userIdx, targetDay);
 
     const response: ResponseInterface = { message: '식대 사용내역 초기화 성공' };
 
@@ -148,15 +126,11 @@ export class AdminMealController {
   @ApiBody(ADMIN_MEALS_BUDGET.POST.API_BODY)
   @ApiCreatedResponse(ADMIN_MEALS_BUDGET.POST.API_CREATED_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Post('budget')
-  async createMealBudget(
-    @Body() mealBudgetInfo: CreateMealBudgetDto,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.mealService.createMealBudget(mealBudgetInfo, manager);
+  async createMealBudget(@Body() mealBudgetInfo: CreateMealBudgetDto): Promise<ResponseInterface> {
+    await this.mealService.createMealBudget(mealBudgetInfo);
 
     const response: ResponseInterface = {
       message: '어드민 식대 설정 등록 및 수정 성공',
@@ -195,16 +169,14 @@ export class AdminMealController {
   @ApiOkResponse(ADMIN_MEALS_BUDGET.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_MEALS_BUDGET.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('budget/:mealStatsIdx')
   async updateMealStatsNote(
     @Param('mealStatsIdx', ParseIntPipe) mealStatsIdx: number,
     @Body() noteInfo: UpdateNoteDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.mealService.updateMealStatsNote(mealStatsIdx, noteInfo, manager);
+    await this.mealService.updateMealStatsNote(mealStatsIdx, noteInfo);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
 
@@ -233,15 +205,11 @@ export class AdminMealController {
   @ApiOkResponse(ADMIN_MEALS_BALANCES.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_MEALS_BALANCES.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('balances')
-  async updateClearStatusComplete(
-    @Body('mealStatsIdxList') mealStatsIdxList: number[],
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.mealService.updateClearStatusComplete(mealStatsIdxList, manager);
+  async updateClearStatusComplete(@Body('mealStatsIdxList') mealStatsIdxList: number[]): Promise<ResponseInterface> {
+    await this.mealService.updateClearStatusComplete(mealStatsIdxList);
 
     const response: ResponseInterface = { message: '어드민 식대 정산완료 처리 성공' };
 
@@ -253,15 +221,11 @@ export class AdminMealController {
   @ApiOkResponse(ADMIN_MEALS_BALANCES_CANCEL.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_MEALS_BALANCES_CANCEL.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('balances/cancel')
-  async updateClearStatusNotYet(
-    @Body('mealStatsIdxList') mealStatsIdxList: number[],
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.mealService.updateClearStatusNotYet(mealStatsIdxList, manager);
+  async updateClearStatusNotYet(@Body('mealStatsIdxList') mealStatsIdxList: number[]): Promise<ResponseInterface> {
+    await this.mealService.updateClearStatusNotYet(mealStatsIdxList);
 
     const response: ResponseInterface = { message: '어드민 식대 정산완료 취소 처리 성공' };
 

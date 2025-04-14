@@ -13,7 +13,6 @@ import {
   Put,
   Query,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -37,13 +36,10 @@ import {
   USERS_INTRANET_CHECK_OUT,
   USERS_INTRANET_COMMUTE_WORK_HOURS,
 } from './swagger/commute.swagger';
-import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '../../../common/decorator/role.decorator';
 import { UserAuthGuard } from '../../auth/guard/authGuard/userAuth.guard';
 import { AdminGradeEnum, UserGradeEnum } from '../../../common/constant/enum';
-import { TransactionManager } from '../../../common/decorator/transaction.decorator';
-import { EntityManager } from 'typeorm';
 import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
 import { CheckOutDto } from './dto/checkOut.dto';
 import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
@@ -63,7 +59,6 @@ export class UserCommuteController {
   @ApiCreatedResponse(USERS_INTRANET_CHECK_IN.POST.API_CREATED_RESPONSE)
   @ApiBadRequestResponse(USERS_INTRANET_CHECK_IN.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post('check-in')
@@ -72,10 +67,9 @@ export class UserCommuteController {
     @Headers() headers: object,
     @CurrentUserIdx() userIdx: number,
     @Body() checkInDto: CheckInDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
     const checkInLogAgent: string = headers['user-agent'];
-    await this.commuteService.checkInWork(userIdx, checkInDto, checkInLogAgent, checkInIpAddr, manager);
+    await this.commuteService.checkInWork(userIdx, checkInDto, checkInLogAgent, checkInIpAddr);
 
     const response: ResponseInterface = { message: 'success', data: { checkInTime: checkInDto.checkInTime } };
 
@@ -87,7 +81,6 @@ export class UserCommuteController {
   @ApiOkResponse(USERS_INTRANET_CHECK_OUT.PUT.API_OK_RESPONSE)
   @ApiBadRequestResponse(USERS_INTRANET_CHECK_OUT.PUT.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Put('check-out')
@@ -96,10 +89,9 @@ export class UserCommuteController {
     @Headers() headers: object,
     @CurrentUserIdx() userIdx: number,
     @Body() checkOutDto: CheckOutDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
     const checkOutLogAgent: string = headers['user-agent'];
-    await this.commuteService.checkOutWork(userIdx, checkOutDto, checkOutIpAddr, checkOutLogAgent, manager);
+    await this.commuteService.checkOutWork(userIdx, checkOutDto, checkOutIpAddr, checkOutLogAgent);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -109,7 +101,6 @@ export class UserCommuteController {
   @ApiOperation(USERS_INTRAENT_COMMUTE.GET.API_OPERATION)
   @ApiOkResponse(USERS_INTRAENT_COMMUTE.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get('commute')
@@ -173,16 +164,12 @@ export class AdminCommuteController {
   @ApiOperation(ADMIN_INTRANET_COMMUTE.DELETE.API_OPERATION)
   @ApiBody(ADMIN_INTRANET_COMMUTE.DELETE.API_BODY)
   @ApiOkResponse(ADMIN_INTRANET_COMMUTE.DELETE.API_OPERATION)
-  @UseInterceptors(TransactionInterceptor)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Delete('commute')
-  async deleteUserCommuteRecord(
-    @Body('commuteIdxList') commuteIdxList: number[],
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.commuteService.deleteUserCommuteRecord(commuteIdxList, manager);
+  async deleteUserCommuteRecord(@Body('commuteIdxList') commuteIdxList: number[]): Promise<ResponseInterface> {
+    await this.commuteService.deleteUserCommuteRecord(commuteIdxList);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -193,7 +180,6 @@ export class AdminCommuteController {
   @ApiParam(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_PARAM1)
   @ApiBody(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_BODY)
   @ApiOkResponse(ADMIN_INTRANET_COMMUTE_TIME.PUT.API_OK_RESPONSE)
-  @UseInterceptors(TransactionInterceptor)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
@@ -201,9 +187,8 @@ export class AdminCommuteController {
   async updateCommuteTime(
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() updateInfo: UpdateCommuteTimeDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.commuteService.updateCommuteTime(commuteIdx, updateInfo, manager);
+    await this.commuteService.updateCommuteTime(commuteIdx, updateInfo);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -214,7 +199,6 @@ export class AdminCommuteController {
   @ApiParam(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_PARAM1)
   @ApiBody(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_BODY)
   @ApiOkResponse(ADMIN_INTRANET_COMMUTE_NOTE.PATCH.API_OK_RESPONSE)
-  @UseInterceptors(TransactionInterceptor)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
@@ -222,9 +206,8 @@ export class AdminCommuteController {
   async updateCommuteNote(
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() noteInfo: UpdateNoteDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.commuteService.updateCommuteNote(commuteIdx, noteInfo, manager);
+    await this.commuteService.updateCommuteNote(commuteIdx, noteInfo);
 
     const response: ResponseInterface = { message: 'success' };
 

@@ -2,7 +2,6 @@ import * as moment from 'moment';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CommuteRepository } from './repository/commute.repository';
 import { CheckInDto } from './dto/checkIn.dto';
-import { EntityManager } from 'typeorm';
 import { CheckOutDto } from './dto/checkOut.dto';
 import {
   NORMAL_WORKING_MINUTES,
@@ -36,17 +35,18 @@ import {
 } from '../../../common/utils/utility';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class CommuteService {
   constructor(private readonly commuteRepository: CommuteRepository) {}
 
+  @Transactional()
   async checkInWork(
     userIdx: number,
     checkInDto: CheckInDto,
     checkInLogAgent: string,
     checkInIpAddr: string,
-    manager: EntityManager,
   ): Promise<void> {
     /**
      * ✅ 정상: 스케줄러로 당일 전 직원 근태가 생성되어있음
@@ -98,7 +98,7 @@ export class CommuteService {
         };
 
         /* 근태 업데이트 */
-        await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo, manager);
+        await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
 
         return;
       }
@@ -120,7 +120,7 @@ export class CommuteService {
       };
 
       /* 일반 근무에 대한 근태 업데이트 */
-      await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo, manager);
+      await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
     } else {
       /* commuteInfo가 없는 경우는 비정상적인 상황이며, 일반 근무로 간주됨 */
       const isNormalLate: boolean =
@@ -139,18 +139,18 @@ export class CommuteService {
       };
 
       /* 근태 생성 */
-      await this.commuteRepository.createCheckInWork(userIdx, insertCheckInInfo, manager);
+      await this.commuteRepository.createCheckInWork(userIdx, insertCheckInInfo);
     }
 
     return;
   }
 
+  @Transactional()
   async checkOutWork(
     userIdx: number,
     checkOutDto: CheckOutDto,
     checkOutIpAddr: string,
     checkOutLogAgent: string,
-    manager: EntityManager,
   ): Promise<void> {
     const commuteDate: string = moment(checkOutDto.checkOutTime).utcOffset(9).format('YYYY-MM-DD');
 
@@ -232,7 +232,7 @@ export class CommuteService {
       attendance,
     };
 
-    await this.commuteRepository.checkOutWork(userIdx, updateCheckOutInfo, manager);
+    await this.commuteRepository.checkOutWork(userIdx, updateCheckOutInfo);
 
     return;
   }
@@ -265,18 +265,20 @@ export class CommuteService {
     return { totalPage, total, records };
   }
 
-  async deleteUserCommuteRecord(commuteIdxList: number[], manager: EntityManager): Promise<void> {
+  @Transactional()
+  async deleteUserCommuteRecord(commuteIdxList: number[]): Promise<void> {
     for (const commuteIdx of commuteIdxList) {
       const commuteCnt: number = await this.commuteRepository.getCommuteCountByIdx(commuteIdx);
       if (commuteCnt === 0) {
         throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
       }
 
-      await this.commuteRepository.deleteCommute(commuteIdx, manager);
+      await this.commuteRepository.deleteCommute(commuteIdx);
     }
   }
 
-  async updateCommuteTime(commuteIdx: number, updateDto: UpdateCommuteTimeDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateCommuteTime(commuteIdx: number, updateDto: UpdateCommuteTimeDto): Promise<void> {
     const commuteInfo = await this.commuteRepository.getCommuteInfoByIdx(commuteIdx);
     if (!commuteInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
@@ -344,18 +346,19 @@ export class CommuteService {
       attendance,
     };
 
-    await this.commuteRepository.updateCommuteTime(commuteIdx, updateInfo, manager);
+    await this.commuteRepository.updateCommuteTime(commuteIdx, updateInfo);
 
     return;
   }
 
-  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto): Promise<void> {
     const commuteCnt: number = await this.commuteRepository.getCommuteCountByIdx(commuteIdx);
     if (commuteCnt === 0) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
-    await this.commuteRepository.updateCommuteNote(commuteIdx, noteInfo, manager);
+    await this.commuteRepository.updateCommuteNote(commuteIdx, noteInfo);
 
     return;
   }

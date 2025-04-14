@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
-import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from '../dto/query.dto';
 import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
@@ -36,12 +36,8 @@ export class CommuteRepository {
     return userCnt;
   }
 
-  async createCheckInWork(
-    userIdx: number,
-    commuteInfo: InsertCheckInInfo,
-    manager: EntityManager,
-  ): Promise<InsertResult> {
-    return await manager
+  async createCheckInWork(userIdx: number, commuteInfo: InsertCheckInInfo): Promise<InsertResult> {
+    return await this.commuteModel
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
@@ -49,12 +45,8 @@ export class CommuteRepository {
       .execute();
   }
 
-  async updateCheckInWork(
-    userIdx: number,
-    { commuteDate, ...commuteInfo }: UpdateCheckInInfo,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateCheckInWork(userIdx: number, { commuteDate, ...commuteInfo }: UpdateCheckInInfo): Promise<UpdateResult> {
+    return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
       .set({ ...commuteInfo })
@@ -80,12 +72,8 @@ export class CommuteRepository {
     return result;
   }
 
-  async checkOutWork(
-    userIdx: number,
-    { commuteDate, ...commuteInfo }: UpdateCheckOutInfo,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async checkOutWork(userIdx: number, { commuteDate, ...commuteInfo }: UpdateCheckOutInfo): Promise<UpdateResult> {
+    return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
       .set(commuteInfo)
@@ -196,8 +184,8 @@ export class CommuteRepository {
     return result;
   }
 
-  async deleteCommute(commuteIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteCommute(commuteIdx: number): Promise<DeleteResult> {
+    return await this.commuteModel
       .createQueryBuilder()
       .delete()
       .from(CommuteEntity)
@@ -205,12 +193,8 @@ export class CommuteRepository {
       .execute();
   }
 
-  async updateCommuteTime(
-    commuteIdx: number,
-    updateInfo: UpdateCommuteTimeInfo,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateCommuteTime(commuteIdx: number, updateInfo: UpdateCommuteTimeInfo): Promise<UpdateResult> {
+    return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
       .set(updateInfo)
@@ -218,8 +202,8 @@ export class CommuteRepository {
       .execute();
   }
 
-  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto): Promise<UpdateResult> {
+    return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
       .set(noteInfo)

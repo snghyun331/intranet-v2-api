@@ -2,7 +2,6 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { CreateWelfareDto } from './dto/createWelfare.dto';
 import { WelfareRepository } from './repository/welfare.repository';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
-import { EntityManager } from 'typeorm';
 import { ConfirmEnum, HalfYearEnum, YNEnum } from '../../common/constant/enum';
 import {
   NewWelfareMonthStats,
@@ -18,12 +17,14 @@ import { AdminWelfareBalanceFilterDto, AdminWelfareBudgetFilterDto, AdminWelfare
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { substringYearMonth } from '../../common/utils/utility';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class WelfareService {
   constructor(private readonly welfareRepository: WelfareRepository) {}
 
-  async createMyWelfare(userIdx: number, newWelfareInfo: CreateWelfareDto, manager: EntityManager): Promise<string> {
+  @Transactional()
+  async createMyWelfare(userIdx: number, newWelfareInfo: CreateWelfareDto): Promise<string> {
     const currentUserInfo: { userName: string } = await this.welfareRepository.getUserNameByIdx(userIdx);
     if (!currentUserInfo) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -41,38 +42,28 @@ export class WelfareService {
       throw new BadRequestException('아직 복포를 작성할 수 없습니다.');
     }
 
-    const welfareIdx: number = await this.welfareRepository.createWelfare(userIdx, newWelfareInfo, manager);
+    const welfareIdx: number = await this.welfareRepository.createWelfare(userIdx, newWelfareInfo);
     if (newWelfareInfo.payeeIdxs.length > 0) {
       for (const payeeIdx of newWelfareInfo.payeeIdxs) {
         if (payeeIdx === userIdx) {
           throw new BadRequestException('동반 결제자에 본인을 선택할 수 없습니다.');
         }
-        await this.welfareRepository.createPayee(welfareIdx, payeeIdx, newWelfareInfo, manager);
+        await this.welfareRepository.createPayee(welfareIdx, payeeIdx, newWelfareInfo);
       }
     }
 
     // 복지포인트 사용금액 업데이트
-    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-      year,
-      month,
-      userIdx,
-      manager,
-    );
-    await this.welfareRepository.updateMonthlyWelfareStats(
-      welfareMonthExpense,
-      year,
-      month.toString(),
-      userIdx,
-      manager,
-    );
+    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(year, month, userIdx);
+    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month.toString(), userIdx);
 
     // 복지포인트 반기별 사용금액 업데이트
-    await this.welfareRepository.updateWelfareExpense(year, month, userIdx, manager);
+    await this.welfareRepository.updateWelfareExpense(year, month, userIdx);
 
     return newWelfareInfo.targetDay;
   }
 
-  async deleteMyWelfare(userIdx: number, welfareIdx: number, manager: EntityManager): Promise<string> {
+  @Transactional()
+  async deleteMyWelfare(userIdx: number, welfareIdx: number): Promise<string> {
     const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -92,45 +83,31 @@ export class WelfareService {
     // 동반 결제자 목록 불러오기
     const payeeIdxList: number[] = await this.welfareRepository.getUserIdxFromPayerWelfareIdx(welfareIdx);
 
-    await this.welfareRepository.deleteWelfare(welfareIdx, manager);
+    await this.welfareRepository.deleteWelfare(welfareIdx);
 
     // 본인의 복지포인트 사용금액 업데이트
-    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-      year,
-      month,
-      userIdx,
-      manager,
-    );
-    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
+    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(year, month, userIdx);
+    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx);
 
     // 본인의 복지포인트 반기별 사용금액 업데이트
-    await this.welfareRepository.updateWelfareExpense(year, month, userIdx, manager);
+    await this.welfareRepository.updateWelfareExpense(year, month, userIdx);
 
     if (payeeIdxList.length > 0) {
       for (const payeeIdx of payeeIdxList) {
-        const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-          year,
-          month,
-          payeeIdx,
-          manager,
-        );
+        const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(year, month, payeeIdx);
         // 동반결제자의 복지포인트 월별 사용금액 업데이트
-        await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, payeeIdx, manager);
+        await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, payeeIdx);
 
         // 동반 결제자의 복지포인트 반기별 사용금액 업데이트
-        await this.welfareRepository.updateWelfareExpense(year, month, payeeIdx, manager);
+        await this.welfareRepository.updateWelfareExpense(year, month, payeeIdx);
       }
     }
 
     return welfareInfo.targetDay;
   }
 
-  async updateMyWelfare(
-    userIdx: number,
-    welfareIdx: number,
-    updateWelfareInfo: UpdateWelfareDto,
-    manager: EntityManager,
-  ): Promise<string> {
+  @Transactional()
+  async updateMyWelfare(userIdx: number, welfareIdx: number, updateWelfareInfo: UpdateWelfareDto): Promise<string> {
     const currentUserInfo: { userName: string } = await this.welfareRepository.getUserNameByIdx(userIdx);
     if (!currentUserInfo) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -153,9 +130,9 @@ export class WelfareService {
     const { year, month } = substringYearMonth(welfareInfo.targetDay);
 
     // 본인 결제자의 내역 업데이트
-    await this.welfareRepository.updateWelfare(welfareIdx, updateWelfareInfo, manager);
+    await this.welfareRepository.updateWelfare(welfareIdx, updateWelfareInfo);
     // 동반 결제자 내역도 업데이트
-    await this.welfareRepository.updatePayeeWelfare(welfareIdx, updateWelfareInfo, manager);
+    await this.welfareRepository.updatePayeeWelfare(welfareIdx, updateWelfareInfo);
 
     /* payeeIdxs 처리 */
     if (updateWelfareInfo.selfWrittenYN === YNEnum.YES) {
@@ -169,7 +146,7 @@ export class WelfareService {
       const payeeIdxToAdd: number[] = updateWelfareInfo.payeeIdxs.filter((userIdx) => !payeeIdxList.includes(userIdx));
       // 4. 삭제할 데이터 처리
       if (payeeIdxToRemove.length > 0) {
-        await this.welfareRepository.deleteWelfareFromIdxAndUserIdx(welfareIdx, payeeIdxToRemove, manager);
+        await this.welfareRepository.deleteWelfareFromIdxAndUserIdx(welfareIdx, payeeIdxToRemove);
       }
       // 5. 추가할 데이터 처리
       if (payeeIdxToAdd.length > 0) {
@@ -177,22 +154,17 @@ export class WelfareService {
           if (payeeIdx === userIdx) {
             throw new BadRequestException('동반 결제자에 본인을 선택할 수 없습니다.');
           }
-          await this.welfareRepository.createPayee(welfareIdx, payeeIdx, updateWelfareInfo, manager);
+          await this.welfareRepository.createPayee(welfareIdx, payeeIdx, updateWelfareInfo);
         }
       }
     }
 
     // 복지포인트 사용금액 업데이트
-    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(
-      year,
-      month,
-      userIdx,
-      manager,
-    );
-    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx, manager);
+    const welfareMonthExpense: number = await this.welfareRepository.getTotalWelfareExpense(year, month, userIdx);
+    await this.welfareRepository.updateMonthlyWelfareStats(welfareMonthExpense, year, month, userIdx);
 
     // 복지포인트 반기별 사용금액 업데이트
-    await this.welfareRepository.updateWelfareExpense(year, month, userIdx, manager);
+    await this.welfareRepository.updateWelfareExpense(year, month, userIdx);
 
     return updateWelfareInfo.targetDay;
   }
@@ -214,7 +186,8 @@ export class WelfareService {
     return result;
   }
 
-  async createWelfareBudget(welfareBudgetInfo: CreateWelfareBudgetDto, manager: EntityManager) {
+  @Transactional()
+  async createWelfareBudget(welfareBudgetInfo: CreateWelfareBudgetDto) {
     const { year, period: halfYear, welfareBudget } = welfareBudgetInfo;
     const userIdxList: number[] = await this.welfareRepository.getAllUserIdxExceptCEO();
     const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCount(welfareBudgetInfo, year);
@@ -232,7 +205,7 @@ export class WelfareService {
               month: i.toString(),
               welfareMonthExpense: 0,
             };
-            await this.welfareRepository.createWelfareMonthStats(newWelfareMonthStatsInfo, manager);
+            await this.welfareRepository.createWelfareMonthStats(newWelfareMonthStatsInfo);
           }
         }
       } else {
@@ -245,7 +218,7 @@ export class WelfareService {
               month: i.toString(),
               welfareMonthExpense: 0,
             };
-            await this.welfareRepository.createWelfareMonthStats(newWelfareMonthStatsInfo, manager);
+            await this.welfareRepository.createWelfareMonthStats(newWelfareMonthStatsInfo);
           }
         }
       }
@@ -257,7 +230,7 @@ export class WelfareService {
           halfYear,
           welfareBudget,
         };
-        await this.welfareRepository.createWelfareStats(newWelfareStatsInfo, manager);
+        await this.welfareRepository.createWelfareStats(newWelfareStatsInfo);
       }
     } else {
       // update
@@ -266,18 +239,19 @@ export class WelfareService {
         halfYear,
         welfareBudget,
       };
-      await this.welfareRepository.updateWelfareStats(newWelfareStatsInfo, manager);
+      await this.welfareRepository.updateWelfareStats(newWelfareStatsInfo);
     }
 
     return;
   }
 
-  async updateWelfareBudget(welfareStatsIdx: number, welfareBudget: number, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateWelfareBudget(welfareStatsIdx: number, welfareBudget: number): Promise<void> {
     const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCountByIdx(welfareStatsIdx);
     if (welfareStatsCnt < 1) {
       throw new NotFoundException('존재하지 않는 통계 내역입니다.');
     }
-    await this.welfareRepository.updateWelfareBudget(welfareStatsIdx, welfareBudget, manager);
+    await this.welfareRepository.updateWelfareBudget(welfareStatsIdx, welfareBudget);
 
     return;
   }
@@ -299,16 +273,13 @@ export class WelfareService {
     return result;
   }
 
-  async updateWelfareStatsNote(
-    welfareStatsIdx: number,
-    noteInfo: UpdateNoteDto,
-    manager: EntityManager,
-  ): Promise<void> {
+  @Transactional()
+  async updateWelfareStatsNote(welfareStatsIdx: number, noteInfo: UpdateNoteDto): Promise<void> {
     const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCountByIdx(welfareStatsIdx);
     if (welfareStatsCnt < 1) {
       throw new NotFoundException('존재하지 않는 통계 내역입니다.');
     }
-    await this.welfareRepository.updateWelfareStatsNote(welfareStatsIdx, noteInfo, manager);
+    await this.welfareRepository.updateWelfareStatsNote(welfareStatsIdx, noteInfo);
 
     return;
   }
@@ -323,13 +294,14 @@ export class WelfareService {
     return { totalPage, total, welfare };
   }
 
-  async updateConfirmWelfare(welfareIdxList: number[], confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateConfirmWelfare(welfareIdxList: number[], confirmYN: ConfirmEnum): Promise<void> {
     for (const welfareIdx of welfareIdxList) {
       const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
       if (!welfareInfo) {
         throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
       }
-      await this.welfareRepository.updateConfirmWelfare(welfareIdx, confirmYN, manager);
+      await this.welfareRepository.updateConfirmWelfare(welfareIdx, confirmYN);
     }
 
     return;
@@ -341,23 +313,25 @@ export class WelfareService {
     return result;
   }
 
-  async updateClearStatusComplete(welfareStatsIdxList: number[], manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateClearStatusComplete(welfareStatsIdxList: number[]): Promise<void> {
     for (const welfareStatsIdx of welfareStatsIdxList) {
       const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCountByIdx(welfareStatsIdx);
       if (welfareStatsCnt < 1) {
         throw new NotFoundException('존재하지 않는 통계 내역입니다.');
       }
-      await this.welfareRepository.updateClearStatusComplete(welfareStatsIdx, manager);
+      await this.welfareRepository.updateClearStatusComplete(welfareStatsIdx);
     }
   }
 
-  async updateClearStatusNotYet(welfareStatsIdxList: number[], manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateClearStatusNotYet(welfareStatsIdxList: number[]): Promise<void> {
     for (const welfareStatsIdx of welfareStatsIdxList) {
       const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCountByIdx(welfareStatsIdx);
       if (welfareStatsCnt < 1) {
         throw new NotFoundException('존재하지 않는 통계 내역입니다.');
       }
-      await this.welfareRepository.updateClearStatusNotYet(welfareStatsIdx, manager);
+      await this.welfareRepository.updateClearStatusNotYet(welfareStatsIdx);
     }
   }
 }

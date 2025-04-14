@@ -1,7 +1,6 @@
 import * as moment from 'moment';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { LeaveRepository } from './repository/leave.repository';
-import { EntityManager } from 'typeorm';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
 import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum, UserGradeEnum } from '../../../common/constant/enum';
@@ -28,6 +27,7 @@ import { UserPayload } from '../../../common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { ApprovalRepository } from '../approval/repository/approval.repository';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class LeaveService {
@@ -38,12 +38,8 @@ export class LeaveService {
     public readonly configService: ConfigService,
   ) {}
 
-  async createLeave(
-    dto: LeaveRequestDto,
-    user: UserPayload,
-    manager: EntityManager,
-    leaveImage?: Express.Multer.File,
-  ): Promise<void> {
+  @Transactional()
+  async createLeave(dto: LeaveRequestDto, user: UserPayload, leaveImage?: Express.Multer.File): Promise<void> {
     const userIdx: number = user.userIdx;
     const { leaveInfo, approverIdxs, ccUserIdxs, note } = dto;
     const nowYear: number = moment().utcOffset(9).year();
@@ -67,9 +63,9 @@ export class LeaveService {
         // 당일에 등록할 경우
         if (leave.commuteDate === today) {
           commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, leave.commuteDate);
-          await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, manager);
+          await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx);
         } else {
-          commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
+          commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note);
         }
 
         if (leaveImage) {
@@ -92,10 +88,10 @@ export class LeaveService {
             imageUrl,
           };
           // 2. DB에 저장
-          await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
+          await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo);
         }
         // 3. 자동승인
-        await this.leaveRepository.autoApprove(commuteIdx, userIdx, manager);
+        await this.leaveRepository.autoApprove(commuteIdx, userIdx);
       }
 
       return;
@@ -166,20 +162,20 @@ export class LeaveService {
       // 당일에 등록할 경우
       if (leave.commuteDate === today) {
         commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, leave.commuteDate);
-        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, manager);
+        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx);
       } else {
-        commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, manager);
+        commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note);
       }
 
       // 승인 가능자 모두 저장
       if (approverIdxs !== null) {
-        await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs, manager);
+        await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs);
       }
       // 참조자 모두 저장
       if (ccUserIdxs !== null) {
         // 승인가능자는 참조자로 등록 X
         const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(approverIdxs, ccUserIdxs);
-        await this.leaveRepository.createLeaveCCUserList(commuteIdx, removeDuplicateCCUserIdxs, manager);
+        await this.leaveRepository.createLeaveCCUserList(commuteIdx, removeDuplicateCCUserIdxs);
       }
 
       if (leaveImage) {
@@ -197,19 +193,20 @@ export class LeaveService {
           imageUrl,
         };
         // 2. DB에 저장
-        await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
+        await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo);
       }
     }
 
     return;
   }
 
-  async deleteLeave(commuteIdx: number, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async deleteLeave(commuteIdx: number): Promise<void> {
     const leaveInfo = await this.leaveRepository.getLeaveInfoByIdx(commuteIdx);
     if (!leaveInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
-    await this.leaveRepository.deleteLeave(commuteIdx, manager);
+    await this.leaveRepository.deleteLeave(commuteIdx);
     const { userIdx, commuteDate, leaveTypeIdx } = leaveInfo;
     const { year, month } = substringYearMonth(commuteDate);
     const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
@@ -217,30 +214,29 @@ export class LeaveService {
       month,
       userIdx,
       leaveTypeIdx,
-      manager,
     );
 
     // 월별 사용개수 업데이트
-    await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount, manager);
+    await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount);
 
     // 연도별 사용개수 업데이트
-    await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx, manager);
+    await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx);
 
     // 연도별 연차 총 사용량 업데이트
     if (ANNUAL_LEAVE_LISTS.has(leaveTypeIdx)) {
-      await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx, manager);
+      await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx);
     }
     // 연도별 특별휴무 총 사용량 업데이트
     if (SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
-      await this.approvalRepository.updateTotalSpecialLeaveUsage(year, userIdx, manager);
+      await this.approvalRepository.updateTotalSpecialLeaveUsage(year, userIdx);
     }
     // 연도별 대체휴무 총 사용량 업데이트
     if (ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx)) {
-      await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx, manager);
+      await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx);
     }
 
     // 식대 월별 timeoffDays 업데이트
-    await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx, manager);
+    await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx);
   }
 
   async getLeaveSummaries({ pageNo, perPage }: PageNoDto, filterInfo: AdminLeaveFilterDto) {
@@ -490,11 +486,8 @@ export class LeaveService {
     return leaves;
   }
 
-  async updateLeaveImage(
-    commuteIdx: number,
-    leaveImage: Express.Multer.File | undefined,
-    manager: EntityManager,
-  ): Promise<void> {
+  @Transactional()
+  async updateLeaveImage(commuteIdx: number, leaveImage: Express.Multer.File | undefined): Promise<void> {
     const env: string = this.configService.get<string>('NODE_ENV');
     const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
     const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
@@ -516,7 +509,7 @@ export class LeaveService {
         imageUrl,
       };
 
-      await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo, manager);
+      await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo);
     }
 
     /* 이미지 수정 */
@@ -534,7 +527,7 @@ export class LeaveService {
         imageUrl,
       };
 
-      await this.leaveRepository.updateLeaveImage(leaveInfo.imageIdx, imageInfo, manager);
+      await this.leaveRepository.updateLeaveImage(leaveInfo.imageIdx, imageInfo);
     }
 
     /* 이미지 삭제 */
@@ -542,28 +535,29 @@ export class LeaveService {
       const existingFileName: string = leaveInfo.imageName.split('/').pop();
       await this.awsService.deleteS3Image(bucketName, `${s3FolderPath}/${existingFileName}`);
 
-      await this.leaveRepository.deleteLeaveImage(leaveInfo.imageIdx, manager);
+      await this.leaveRepository.deleteLeaveImage(leaveInfo.imageIdx);
     }
 
     return;
   }
 
+  @Transactional()
   async updateUserTotalReceivedAnnualLeave(
     leaveStatsIdx: number,
     { totalReceivedAnnualLeave }: UpdateAnnualLeaveDto,
-    manager: EntityManager,
   ): Promise<void> {
-    await this.leaveRepository.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, totalReceivedAnnualLeave, manager);
+    await this.leaveRepository.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, totalReceivedAnnualLeave);
 
     return;
   }
 
-  async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto): Promise<void> {
     const leaveStatsCnt: number = await this.leaveRepository.getLeaveStatsCountByIdx(leaveStatsIdx);
     if (leaveStatsCnt < 1) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
-    await this.leaveRepository.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
+    await this.leaveRepository.updateLeaveStatsNote(leaveStatsIdx, noteInfo);
 
     return;
   }

@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { NoticeRepostiory } from './repository/notice.repository';
 import { CreateNoticeDto } from './dto/createNotice.dto';
-import { EntityManager } from 'typeorm';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { NoticeResult } from './interface/result.interface';
 import { NoticeDetailInfo, NoticeImageInfo } from './interface/notice.interface';
@@ -9,6 +8,7 @@ import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { ConfigService } from '@nestjs/config';
 import { AwsService } from '../aws/aws.service';
 import { NodeEnvEnum } from '../../common/constant/enum';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class NoticeService {
@@ -18,13 +18,9 @@ export class NoticeService {
     public readonly configService: ConfigService,
   ) {}
 
-  async createNotice(
-    noticeInfo: CreateNoticeDto,
-    adminName: string,
-    manager: EntityManager,
-    noticeImage?: Express.Multer.File,
-  ): Promise<void> {
-    const noticeIdx: number = await this.noticeRepository.createNotice(noticeInfo, adminName, manager);
+  @Transactional()
+  async createNotice(noticeInfo: CreateNoticeDto, adminName: string, noticeImage?: Express.Multer.File): Promise<void> {
+    const noticeIdx: number = await this.noticeRepository.createNotice(noticeInfo, adminName);
 
     /* 첨부 이미지가 있다면 */
     if (noticeImage) {
@@ -38,7 +34,7 @@ export class NoticeService {
       const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, uploadS3FilePath, buffer, mimetype);
       const imageInfo: NoticeImageInfo = { imageName: noticeImage.originalname, imageSize: noticeImage.size, imageUrl };
       // 2. DB에 저장
-      await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo, manager);
+      await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo);
     }
 
     return;
@@ -59,11 +55,11 @@ export class NoticeService {
     return noticeInfo;
   }
 
+  @Transactional()
   async updateNotice(
     adminName: string,
     noticeIdx: number,
     noticeDto: UpdateNoticeDto,
-    manager: EntityManager,
     noticeImage?: Express.Multer.File,
   ): Promise<void> {
     delete noticeDto.noticeImage;
@@ -94,14 +90,14 @@ export class NoticeService {
       // DB 처리
       if (noticeImage) {
         // 기존 이미지 삭제 및 새로운 이미지 추가
-        await this.noticeRepository.updateImageDataToNull(noticeInfo.imageIdx, manager);
+        await this.noticeRepository.updateImageDataToNull(noticeInfo.imageIdx);
       } else {
         // 기존 이미지 삭제만
-        await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx, manager);
+        await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx);
       }
     }
 
-    await this.noticeRepository.updateNotice(adminName, noticeIdx, noticeDto, manager);
+    await this.noticeRepository.updateNotice(adminName, noticeIdx, noticeDto);
 
     /* 새로운 사진으로 변경할 경우 */
     if (noticeImage) {
@@ -115,28 +111,29 @@ export class NoticeService {
       // 3. DB 업데이트
       if (noticeInfo.imageIdx) {
         // 기존 이미지가 있으면 업데이트
-        await this.noticeRepository.updateNoticeImage(noticeInfo.imageIdx, imageInfo, manager);
+        await this.noticeRepository.updateNoticeImage(noticeInfo.imageIdx, imageInfo);
       } else {
         // 기존 이미지가 없으면 생성
-        await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo, manager);
+        await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo);
       }
     }
 
     return;
   }
 
-  async deleteNotice(noticeIdx: number, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async deleteNotice(noticeIdx: number): Promise<void> {
     const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
     if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
     // DB 삭제
-    await this.noticeRepository.deleteNotice(noticeIdx, manager);
+    await this.noticeRepository.deleteNotice(noticeIdx);
 
     /* 이미지가 있다면 */
     if (noticeInfo.imageIdx) {
       // DB 삭제
-      await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx, manager);
+      await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx);
       // S3 삭제
       const env: string = this.configService.get<string>('NODE_ENV');
       const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';

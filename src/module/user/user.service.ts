@@ -11,7 +11,6 @@ import {
 } from './interface/result.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
-import { EntityManager } from 'typeorm';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdateMyPwDto } from './dto/updateMyPw.dto';
@@ -19,6 +18,7 @@ import { decryptPassword, encryptPassword } from '../../common/utils/utility';
 import { YNEnum } from '../../common/constant/enum';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { RedisSearchService } from '../redis/redisSearch.service';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class UserService {
@@ -65,7 +65,8 @@ export class UserService {
     return user;
   }
 
-  async createUser(userInfo: CreateUserDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async createUser(userInfo: CreateUserDto): Promise<void> {
     const result: number = await this.userRepository.getLoginIdCount(userInfo.id);
     if (result >= 1) {
       throw new ConflictException('이미 가입된 유저입니다.(아이디 중복)');
@@ -74,14 +75,14 @@ export class UserService {
     const { adminGradeIdx, ...newUserInfo } = userInfo;
 
     /* 유저 등록 */
-    const userIdx: number = await this.userRepository.createUser(newUserInfo, manager);
+    const userIdx: number = await this.userRepository.createUser(newUserInfo);
 
     /* 어드민 여부 = Y일 경우, 어드민 등록 */
     if (userInfo.adminRole === YNEnum.YES) {
       if (!adminGradeIdx) {
         throw new BadRequestException('어드민 등급을 선택해주세요');
       }
-      await this.userRepository.createAdmin(userIdx, userInfo, manager);
+      await this.userRepository.createAdmin(userIdx, userInfo);
     }
 
     /* Redis에 유저 등록(검색 자동완성) */
@@ -99,18 +100,20 @@ export class UserService {
     return loginId;
   }
 
-  async updateMyInfo(userIdx: number, updateInfo: UpdateMyInfoDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateMyInfo(userIdx: number, updateInfo: UpdateMyInfoDto): Promise<void> {
     const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    await this.userRepository.updateMyInfo(userIdx, updateInfo, manager);
+    await this.userRepository.updateMyInfo(userIdx, updateInfo);
 
     return;
   }
 
-  async updateMyPassword(userIdx: number, updateInfo: UpdateMyPwDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateMyPassword(userIdx: number, updateInfo: UpdateMyPwDto): Promise<void> {
     const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -128,7 +131,7 @@ export class UserService {
     }
     /* 새 비밀번호 암호화 및 저장*/
     const encryptedNewPW: string = encryptPassword(updateInfo.newPassword);
-    await this.userRepository.updateUserPassword(userIdx, encryptedNewPW, manager);
+    await this.userRepository.updateUserPassword(userIdx, encryptedNewPW);
 
     return;
   }
@@ -145,14 +148,15 @@ export class UserService {
     return result;
   }
 
-  async updateUser(userIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async updateUser(userIdx: number, updateInfo: UpdateUserDto): Promise<void> {
     const result: any = await this.userRepository.getUserInfoByIdx(userIdx);
     if (!result) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
     /* 유저 정보 수정 */
-    await this.userRepository.updateUserInfo(userIdx, updateInfo, manager);
+    await this.userRepository.updateUserInfo(userIdx, updateInfo);
 
     if (updateInfo.adminRole === YNEnum.NO && updateInfo.adminGradeIdx) {
       throw new BadRequestException('어드민이 아닌 유저는 어드민 등급을 설정할 수 없습니다.');
@@ -166,19 +170,19 @@ export class UserService {
       const adminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
       // 활성 상태인 어드민일 경우
       if (adminInfo && adminInfo.adminAvail === null) {
-        await this.userRepository.updateAdmin(adminInfo.adminIdx, updateInfo, manager);
+        await this.userRepository.updateAdmin(adminInfo.adminIdx, updateInfo);
       } else if (adminInfo && adminInfo.adminAvail !== null) {
         // 비활성 상태인 어드민일 경우
-        await this.userRepository.restoreUpdateAdmin(adminInfo.adminIdx, updateInfo, manager);
+        await this.userRepository.restoreUpdateAdmin(adminInfo.adminIdx, updateInfo);
       } else {
         // 어드민이 처음일 경우
-        await this.userRepository.createAdmin(userIdx, updateInfo, manager);
+        await this.userRepository.createAdmin(userIdx, updateInfo);
       }
     } else {
       const adminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
       // 어드민 O → 어드민 X로 변경할 경우
       if (adminInfo && adminInfo.adminAvail === null) {
-        await this.userRepository.deleteAdmin(userIdx, manager);
+        await this.userRepository.deleteAdmin(userIdx);
       }
     }
 
@@ -189,16 +193,17 @@ export class UserService {
     }
   }
 
-  async deleteUser(userIdx: number, manager: EntityManager): Promise<void> {
+  @Transactional()
+  async deleteUser(userIdx: number): Promise<void> {
     const result = await this.userRepository.getUserInfoByIdx(userIdx);
     if (!result) {
       throw new BadRequestException('이미 비활성된 유저이거나 올바른 유저가 아닙니다.');
     }
     // 유저 비활성화
-    await this.userRepository.deleteUser(userIdx, manager);
+    await this.userRepository.deleteUser(userIdx);
     // 어드민 비활성화
     if (result.adminRole === YNEnum.YES) {
-      await this.userRepository.deleteAdmin(userIdx, manager);
+      await this.userRepository.deleteAdmin(userIdx);
     }
 
     /* Redis에 등록된 유저네임 삭제 */

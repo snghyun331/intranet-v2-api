@@ -1,17 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -35,14 +22,11 @@ import {
   ADMIN_ACTIVITIES_CONFIRM,
   USERS_ACTIVITIES,
 } from './swagger/activity.swagger';
-import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
 import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUser, CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
-import { TransactionManager } from '../../common/decorator/transaction.decorator';
-import { EntityManager } from 'typeorm';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
 import { ResponseInterface } from '../../common/interface/response.interface';
@@ -74,16 +58,14 @@ export class UserActivityController {
   @ApiForbiddenResponse(USERS_ACTIVITIES.POST.API_FORBIDDEN_RESPONSE)
   @ApiBadRequestResponse(USERS_ACTIVITIES.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.MANAGER)
   @Post()
   async createActivity(
     @Body() activityInfo: CreateActivityDto,
     @CurrentUserIdx() userIdx: number,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.activityService.createActivity(userIdx, activityInfo, manager);
+    const targetDay: string = await this.activityService.createActivity(userIdx, activityInfo);
 
     const response: ResponseInterface = { message: '활동비 사용내역 저장 성공', data: { targetDay } };
 
@@ -100,15 +82,13 @@ export class UserActivityController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.MANAGER)
-  @UseInterceptors(TransactionInterceptor)
   @Put(':activityIdx')
   async updateActivity(
     @Param('activityIdx', ParseIntPipe) activityIdx: number,
     @Body() activityInfo: UpdateActivityDto,
     @CurrentUserIdx() userIdx: number,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.activityService.updateActivity(userIdx, activityIdx, activityInfo, manager);
+    const targetDay: string = await this.activityService.updateActivity(userIdx, activityIdx, activityInfo);
 
     const response: ResponseInterface = { message: '활동비 사용내역 수정 성공', data: { targetDay } };
 
@@ -124,14 +104,12 @@ export class UserActivityController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.MANAGER)
-  @UseInterceptors(TransactionInterceptor)
   @Delete(':activityIdx')
   async deleteActivity(
     @Param('activityIdx', ParseIntPipe) activityIdx: number,
     @CurrentUserIdx() userIdx: number,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.activityService.deleteActivity(userIdx, activityIdx, manager);
+    const targetDay: string = await this.activityService.deleteActivity(userIdx, activityIdx);
 
     const response: ResponseInterface = { message: '활동비 사용내역 초기화 성공', data: { targetDay } };
 
@@ -184,15 +162,11 @@ export class AdminActivityController {
   @ApiCreatedResponse(ADMIN_ACTIVITIES_BUDGET.POST.API_CREATED_RESPONSE)
   @ApiConflictResponse(ADMIN_ACTIVITIES_BUDGET.POST.API_CONFLICT_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Post('budget')
-  async createActivityBudget(
-    @Body() activityBudgetInfo: CreateActivityBudgetDto,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.activityService.createActivityBudget(activityBudgetInfo, manager);
+  async createActivityBudget(@Body() activityBudgetInfo: CreateActivityBudgetDto): Promise<ResponseInterface> {
+    await this.activityService.createActivityBudget(activityBudgetInfo);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -218,16 +192,14 @@ export class AdminActivityController {
   @ApiBody(ADMIN_ACTIVITIES_BUDGET.PATCH.API_BODY)
   @ApiOkResponse(ADMIN_ACTIVITIES_BUDGET.PATCH.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('budget/:activityStatsIdx')
   async updateActivityBudget(
     @Param('activityStatsIdx', ParseIntPipe) activityStatsIdx: number,
     @Body() budgetInfo: UpdateBudgetDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.activityService.updateActivityBudget(activityStatsIdx, budgetInfo, manager);
+    await this.activityService.updateActivityBudget(activityStatsIdx, budgetInfo);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -240,16 +212,14 @@ export class AdminActivityController {
   @ApiOkResponse(ADMIN_ACTIVITIES_BUDGET_NOTE.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_ACTIVITIES_BUDGET_NOTE.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('budget/:activityStatsIdx/note')
   async updateActivityStatsNote(
     @Param('activityStatsIdx', ParseIntPipe) activityStatsIdx: number,
     @Body() noteInfo: UpdateNoteDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.activityService.updateActivityStatsNote(activityStatsIdx, noteInfo, manager);
+    await this.activityService.updateActivityStatsNote(activityStatsIdx, noteInfo);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
 
@@ -260,15 +230,11 @@ export class AdminActivityController {
   @ApiBody(ADMIN_ACTIVITIES_CONFIRM.PATCH.API_BODY)
   @ApiOkResponse(ADMIN_ACTIVITIES_CONFIRM.PATCH.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('confirm')
-  async updateConfirmActivity(
-    @Body() { activityIdxList, confirmYN }: UpdateConfirmDto,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.activityService.updateConfirmActivity(activityIdxList, confirmYN, manager);
+  async updateConfirmActivity(@Body() { activityIdxList, confirmYN }: UpdateConfirmDto): Promise<ResponseInterface> {
+    await this.activityService.updateConfirmActivity(activityIdxList, confirmYN);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -297,15 +263,13 @@ export class AdminActivityController {
   @ApiOkResponse(ADMIN_ACTIVITIES_BALANCES.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_ACTIVITIES_BALANCES.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('balances')
   async updateClearStatusComplete(
     @Body('activityStatsIdxList') activityStatsIdxList: number[],
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.activityService.updateClearStatusComplete(activityStatsIdxList, manager);
+    await this.activityService.updateClearStatusComplete(activityStatsIdxList);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -317,15 +281,13 @@ export class AdminActivityController {
   @ApiOkResponse(ADMIN_ACTIVITIES_BALANCES_CANCEL.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_ACTIVITIES_BALANCES_CANCEL.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('balances/cancel')
   async updateClearStatusNotYet(
     @Body('activityStatsIdxList') activityStatsIdxList: number[],
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.activityService.updateClearStatusNotYet(activityStatsIdxList, manager);
+    await this.activityService.updateClearStatusNotYet(activityStatsIdxList);
 
     const response: ResponseInterface = { message: 'success' };
 

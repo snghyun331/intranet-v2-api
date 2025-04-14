@@ -1,17 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { WelfareService } from './welfare.service';
 import { CreateWelfareDto } from './dto/createWelfare.dto';
 import {
@@ -36,9 +23,6 @@ import {
   USERS_WELFARES,
 } from './swagger/welfare.swagger';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
-import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
-import { TransactionManager } from '../../common/decorator/transaction.decorator';
-import { EntityManager } from 'typeorm';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
 import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
@@ -88,16 +72,14 @@ export class UserWelfareController {
   @ApiCreatedResponse(USERS_WELFARES.POST.API_CREATED_RESPONSE)
   @ApiBadRequestResponse(USERS_WELFARES.POST.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post()
   async createWelfare(
     @Body() welfareInfo: CreateWelfareDto,
     @CurrentUserIdx() userIdx: number,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.welfareService.createMyWelfare(userIdx, welfareInfo, manager);
+    const targetDay: string = await this.welfareService.createMyWelfare(userIdx, welfareInfo);
 
     const response: ResponseInterface = { message: '복지포인트 사용내역 저장 성공', data: { targetDay } };
 
@@ -113,20 +95,13 @@ export class UserWelfareController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @UseInterceptors(TransactionInterceptor)
   @Put(':welfareIdx')
   async updateWelfare(
     @Param('welfareIdx', ParseIntPipe) welfareIdx: number,
     @Body() updateWelfareInfo: UpdateWelfareDto,
     @CurrentUserIdx() userIdx: number,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.welfareService.updateMyWelfare(
-      userIdx,
-      welfareIdx,
-      updateWelfareInfo,
-      manager,
-    );
+    const targetDay: string = await this.welfareService.updateMyWelfare(userIdx, welfareIdx, updateWelfareInfo);
 
     const response: ResponseInterface = { message: '복지포인트 사용내역 수정 성공', data: { targetDay } };
 
@@ -142,14 +117,12 @@ export class UserWelfareController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @UseInterceptors(TransactionInterceptor)
   @Delete(':welfareIdx')
   async deleteWelfare(
     @Param('welfareIdx', ParseIntPipe) welfareIdx: number,
     @CurrentUserIdx() userIdx: number,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    const targetDay: string = await this.welfareService.deleteMyWelfare(userIdx, welfareIdx, manager);
+    const targetDay: string = await this.welfareService.deleteMyWelfare(userIdx, welfareIdx);
 
     const response: ResponseInterface = { message: '복지포인트 사용내역 초기화 성공', data: { targetDay } };
 
@@ -186,15 +159,11 @@ export class AdminWelfareController {
   @ApiBody(ADMIN_WELFARES_CONFIRM.PATCH.API_BODY)
   @ApiOkResponse(ADMIN_WELFARES_CONFIRM.PATCH.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('confirm')
-  async updateConfirmWelfare(
-    @Body() { welfareIdxList, confirmYN }: UpdateConfirmDto,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.welfareService.updateConfirmWelfare(welfareIdxList, confirmYN, manager);
+  async updateConfirmWelfare(@Body() { welfareIdxList, confirmYN }: UpdateConfirmDto): Promise<ResponseInterface> {
+    await this.welfareService.updateConfirmWelfare(welfareIdxList, confirmYN);
 
     const response: ResponseInterface = { message: 'Success' };
 
@@ -205,15 +174,11 @@ export class AdminWelfareController {
   @ApiBody(ADMIN_WELFARES_BUDGET.POST.API_BODY)
   @ApiCreatedResponse(ADMIN_WELFARES_BUDGET.POST.API_CREATED_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Post('budget')
-  async createWelfareBudget(
-    @Body() welfareBudgetInfo: CreateWelfareBudgetDto,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.welfareService.createWelfareBudget(welfareBudgetInfo, manager);
+  async createWelfareBudget(@Body() welfareBudgetInfo: CreateWelfareBudgetDto): Promise<ResponseInterface> {
+    await this.welfareService.createWelfareBudget(welfareBudgetInfo);
 
     const response: ResponseInterface = { message: '어드민 복지포인트 설정 일괄 등록 및 수정 성공' };
 
@@ -225,16 +190,14 @@ export class AdminWelfareController {
   @ApiBody(ADMIN_WELFARES_BUDGET.PATCH.API_BODY)
   @ApiOkResponse(ADMIN_WELFARES_BUDGET.PATCH.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('budget/:welfareStatsIdx')
   async updateWelfareBudget(
     @Param('welfareStatsIdx', ParseIntPipe) welfareStatsIdx: number,
     @Body() { welfareBudget }: UpdateBudgetDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.welfareService.updateWelfareBudget(welfareStatsIdx, welfareBudget, manager);
+    await this.welfareService.updateWelfareBudget(welfareStatsIdx, welfareBudget);
 
     const response: ResponseInterface = { message: '어드민 복지포인트 총 사용가능 금액 개별 수정 성공' };
 
@@ -261,16 +224,14 @@ export class AdminWelfareController {
   @ApiOkResponse(ADMIN_WELFARES_BUDGET_NOTE.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_WELFARES_BUDGET_NOTE.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('budget/:welfareStatsIdx/note')
   async updateWelfareStatsNote(
     @Param('welfareStatsIdx', ParseIntPipe) welfareStatsIdx: number,
     @Body() noteInfo: UpdateNoteDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.welfareService.updateWelfareStatsNote(welfareStatsIdx, noteInfo, manager);
+    await this.welfareService.updateWelfareStatsNote(welfareStatsIdx, noteInfo);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
 
@@ -299,15 +260,13 @@ export class AdminWelfareController {
   @ApiOkResponse(ADMIN_WELFARES_BALANCES.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_WELFARES_BALANCES.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('balances')
   async updateClearStatusComplete(
     @Body('welfareStatsIdxList') welfareStatsIdxList: number[],
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.welfareService.updateClearStatusComplete(welfareStatsIdxList, manager);
+    await this.welfareService.updateClearStatusComplete(welfareStatsIdxList);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -319,15 +278,13 @@ export class AdminWelfareController {
   @ApiOkResponse(ADMIN_WELFARES_BALANCES_CANCEL.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_WELFARES_BALANCES_CANCEL.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch('balances/cancel')
   async updateClearStatusNotYet(
     @Body('welfareStatsIdxList') welfareStatsIdxList: number[],
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.welfareService.updateClearStatusNotYet(welfareStatsIdxList, manager);
+    await this.welfareService.updateClearStatusNotYet(welfareStatsIdxList);
 
     const response: ResponseInterface = { message: 'success' };
 
