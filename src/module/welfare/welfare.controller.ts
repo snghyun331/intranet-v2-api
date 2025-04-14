@@ -29,7 +29,6 @@ import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { WelfareAdminResult, WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
 import {
   AdminWelfareBalanceFilterDto,
   AdminWelfareBudgetFilterDto,
@@ -59,7 +58,7 @@ export class UserWelfareController {
     @Query() { year, halfYear }: WelfareFilterDto,
     @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseInterface> {
-    const welfares: WelfareResult = await this.welfareService.getMyWelfare(year, halfYear, userIdx);
+    const welfares = await this.welfareService.getMyWelfare(year, halfYear, userIdx);
 
     const response: ResponseInterface = { message: '복포 사용내역 조회 성공', data: welfares };
 
@@ -144,10 +143,7 @@ export class AdminWelfareController {
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminWelfareFilterDto,
   ): Promise<ResponseInterface> {
-    const { totalPage, total, welfare }: WelfareAdminResult = await this.welfareService.getWelfare(
-      pageNoInfo,
-      filterInfo,
-    );
+    const { totalPage, total, welfare } = await this.welfareService.getWelfare(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: '어드민 복포 내역 조회 성공', data: { totalPage, total, welfare } };
 
@@ -210,7 +206,7 @@ export class AdminWelfareController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('budget')
   async getWelfareBudget(@Query() filterInfo: AdminWelfareBudgetFilterDto): Promise<ResponseInterface> {
-    const welfareBudget: WelfareBudgetAdminResult[] = await this.welfareService.getWelfareBudget(filterInfo);
+    const welfareBudget = await this.welfareService.getWelfareBudget(filterInfo);
 
     const response: ResponseInterface = { message: '어드민 복포 설정 리스트 조회 성공', data: welfareBudget };
 
