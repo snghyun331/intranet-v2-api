@@ -28,15 +28,12 @@ import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
 import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import { MealAdminResult, MealBudgetAdminResult, MealCalenderResult } from './interface/result.interface';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { AdminMealBalanceFilterDto, AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { MealStatsAdminInfo } from './interface/meal.interface';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
-import { MealEntity } from '../../entity/meal/meal.entity';
 
 @ApiTags('사용자')
 @Controller('users/meals')
@@ -57,7 +54,7 @@ export class UserMealController {
     @Query('month') month: string = moment().utcOffset(9).format('MM'),
     @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseInterface> {
-    const meals: MealCalenderResult = await this.mealService.getMyMeal(year, month, userIdx);
+    const meals = await this.mealService.getMyMeal(year, month, userIdx);
 
     const response: ResponseInterface = { message: '식대 사용내역 조회 성공', data: meals };
 
@@ -112,7 +109,7 @@ export class AdminMealController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get()
   async getMeal(@Query() pageNoInfo: PageNoDto, @Query() filterInfo: AdminMealFilterDto): Promise<ResponseInterface> {
-    const { totalPage, total, meal }: MealAdminResult = await this.mealService.getMeal(pageNoInfo, filterInfo);
+    const { totalPage, total, meal } = await this.mealService.getMeal(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = {
       message: '어드민 식대 내역 조회 성공',
@@ -149,10 +146,7 @@ export class AdminMealController {
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminMealBudgetFilterDto,
   ): Promise<ResponseInterface> {
-    const { totalPage, total, workdays, mealBudget }: MealBudgetAdminResult = await this.mealService.getMealBudget(
-      pageNoInfo,
-      filterInfo,
-    );
+    const { totalPage, total, workdays, mealBudget } = await this.mealService.getMealBudget(pageNoInfo, filterInfo);
     const { month } = filterInfo;
 
     const response: ResponseInterface = {
@@ -190,7 +184,7 @@ export class AdminMealController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('balances')
   async getMealBalance(@Query() filterInfo: AdminMealBalanceFilterDto): Promise<ResponseInterface> {
-    const mealStats: MealStatsAdminInfo[] = await this.mealService.getUserMealStats(filterInfo);
+    const mealStats = await this.mealService.getUserMealStats(filterInfo);
 
     const response: ResponseInterface = {
       message: `어드민 ${filterInfo.month}월 식대 정산 조회 성공`,
@@ -240,7 +234,7 @@ export class AdminMealController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('balances/:mealStatsIdx')
   async getMealBalanaceDetail(@Param('mealStatsIdx', ParseIntPipe) mealStatsIdx: number): Promise<ResponseInterface> {
-    const data: MealEntity[] = await this.mealService.getMealBalanceDetail(mealStatsIdx);
+    const data = await this.mealService.getMealBalanceDetail(mealStatsIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
