@@ -382,6 +382,7 @@ export class ActivityRepository {
         'activityStatsEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
         'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
         'activityStatsEntity.activityBudget AS activityBudget',
         'activityStatsEntity.activityExpense AS activityExpense',
         '(activityStatsEntity.activityBudget - activityStatsEntity.activityExpense) AS activityBalance',
@@ -391,6 +392,7 @@ export class ActivityRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('activityStatsEntity.year = :year', { year })
       .andWhere('userEntity.userAvail IS NULL');
 
