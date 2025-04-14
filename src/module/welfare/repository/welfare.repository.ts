@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../../../entity/user/user.entity';
-import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateWelfareDto } from '../dto/createWelfare.dto';
 import { WelfareEntity } from '../../../entity/welfare/welfare.entity';
 import {
@@ -75,12 +75,8 @@ export class WelfareRepository {
     return allNames;
   }
 
-  async createWelfare(
-    userIdx: number,
-    { targetDay, amount, content, payerName }: CreateWelfareDto,
-    manager: EntityManager,
-  ): Promise<number> {
-    const result: InsertResult = await manager
+  async createWelfare(userIdx: number, { targetDay, amount, content, payerName }: CreateWelfareDto): Promise<number> {
+    const result: InsertResult = await this.welfareModel
       .createQueryBuilder()
       .insert()
       .into(WelfareEntity)
@@ -96,9 +92,8 @@ export class WelfareRepository {
     welfareIdx: number,
     payeeIdx: number,
     { targetDay, content, payerName }: CreateWelfareDto | UpdateWelfareDto,
-    manager: EntityManager,
   ): Promise<InsertResult> {
-    return await manager
+    return await this.welfareModel
       .createQueryBuilder()
       .insert()
       .into(WelfareEntity)
@@ -114,12 +109,12 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getTotalWelfareExpense(year: string, month: string, userIdx: number, manager: EntityManager): Promise<number> {
+  async getTotalWelfareExpense(year: string, month: string, userIdx: number): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: { total: number } = await manager
-      .createQueryBuilder(WelfareEntity, 'welfareEntity')
+    const result: { total: number } = await this.welfareModel
+      .createQueryBuilder('welfareEntity')
       .select('SUM(welfareEntity.amount)', 'total')
       .where('welfareEntity.userIdx = :userIdx', { userIdx })
       .andWhere('welfareEntity.targetDay BETWEEN :startDate AND :endDate', {
@@ -136,9 +131,8 @@ export class WelfareRepository {
     year: string,
     month: string,
     userIdx: number,
-    manager: EntityManager,
   ): Promise<UpdateResult> {
-    return await manager
+    return await this.welfareMonthStatsModel
       .createQueryBuilder()
       .update(WelfareMonthlyStatsEntity)
       .set({ welfareMonthExpense })
@@ -162,8 +156,8 @@ export class WelfareRepository {
     return result;
   }
 
-  async deleteWelfare(welfareIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteWelfare(welfareIdx: number): Promise<DeleteResult> {
+    return await this.welfareModel
       .createQueryBuilder()
       .delete()
       .from(WelfareEntity)
@@ -174,9 +168,8 @@ export class WelfareRepository {
   async updateWelfare(
     welfareIdx: number,
     { targetDay, amount, content, payerName }: UpdateWelfareDto,
-    manager: EntityManager,
   ): Promise<UpdateResult> {
-    return await manager
+    return await this.welfareModel
       .createQueryBuilder()
       .update(WelfareEntity)
       .set({ targetDay, amount, content, payerName })
@@ -187,9 +180,8 @@ export class WelfareRepository {
   async updatePayeeWelfare(
     welfareIdx: number,
     { content, targetDay, payerName }: UpdateWelfareDto,
-    manager: EntityManager,
   ): Promise<UpdateResult> {
-    return await manager
+    return await this.welfareModel
       .createQueryBuilder()
       .update(WelfareEntity)
       .set({ content, targetDay, payerName })
@@ -288,12 +280,8 @@ export class WelfareRepository {
     return userIdxList;
   }
 
-  async deleteWelfareFromIdxAndUserIdx(
-    welfareIdx: number,
-    userIdxs: number[],
-    manager: EntityManager,
-  ): Promise<DeleteResult> {
-    return await manager
+  async deleteWelfareFromIdxAndUserIdx(welfareIdx: number, userIdxs: number[]): Promise<DeleteResult> {
+    return await this.welfareModel
       .createQueryBuilder()
       .delete()
       .from(WelfareEntity)
@@ -341,8 +329,8 @@ export class WelfareRepository {
     return userIdxList;
   }
 
-  async createWelfareStats(newStatsInfo: NewWelfareStats, manager: EntityManager): Promise<InsertResult> {
-    return await manager
+  async createWelfareStats(newStatsInfo: NewWelfareStats): Promise<InsertResult> {
+    return await this.welfareStatsModel
       .createQueryBuilder()
       .insert()
       .into(WelfareStatsEntity)
@@ -350,11 +338,8 @@ export class WelfareRepository {
       .execute();
   }
 
-  async updateWelfareStats(
-    { welfareBudget, year, halfYear }: NewWelfareStats,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateWelfareStats({ welfareBudget, year, halfYear }: NewWelfareStats): Promise<UpdateResult> {
+    return await this.welfareStatsModel
       .createQueryBuilder()
       .update(WelfareStatsEntity)
       .set({ welfareBudget })
@@ -363,11 +348,8 @@ export class WelfareRepository {
       .execute();
   }
 
-  async createWelfareMonthStats(
-    newMonthStatsInfo: NewWelfareMonthStats,
-    manager: EntityManager,
-  ): Promise<InsertResult> {
-    return await manager
+  async createWelfareMonthStats(newMonthStatsInfo: NewWelfareMonthStats): Promise<InsertResult> {
+    return await this.welfareMonthStatsModel
       .createQueryBuilder()
       .insert()
       .into(WelfareMonthlyStatsEntity)
@@ -375,12 +357,8 @@ export class WelfareRepository {
       .execute();
   }
 
-  async updateWelfareBudget(
-    welfareStatsIdx: number,
-    welfareBudget: number,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateWelfareBudget(welfareStatsIdx: number, welfareBudget: number): Promise<UpdateResult> {
+    return await this.welfareStatsModel
       .createQueryBuilder()
       .update(WelfareStatsEntity)
       .set({ welfareBudget })
@@ -419,12 +397,8 @@ export class WelfareRepository {
     return result;
   }
 
-  async updateWelfareStatsNote(
-    welfareStatsIdx: number,
-    { note }: UpdateNoteDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateWelfareStatsNote(welfareStatsIdx: number, { note }: UpdateNoteDto): Promise<UpdateResult> {
+    return await this.welfareStatsModel
       .createQueryBuilder()
       .update(WelfareStatsEntity)
       .set({ note })
@@ -501,17 +475,17 @@ export class WelfareRepository {
     return { totalPage, total, welfare: transformedResult };
   }
 
-  async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
+  async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum): Promise<UpdateResult> {
     if (confirmYN === ConfirmEnum.YES) {
       const confirmDate: Date = new Date();
-      await manager
+      return await this.welfareModel
         .createQueryBuilder()
         .update(WelfareEntity)
         .set({ confirmYN, confirmDate })
         .where('welfareIdx = :welfareIdx', { welfareIdx })
         .execute();
     } else {
-      await manager
+      return await this.welfareModel
         .createQueryBuilder()
         .update(WelfareEntity)
         .set({ confirmYN, confirmDate: null })
@@ -520,7 +494,7 @@ export class WelfareRepository {
     }
   }
 
-  async getUserWelfareStats(year: string, halfYear?: HalfYearEnum): Promise<WelfareStatsAdminInfo[]> {
+  async getUserWelfareStats(year: string, halfYear?: HalfYearEnum) {
     const query: SelectQueryBuilder<WelfareStatsEntity> = this.welfareStatsModel
       .createQueryBuilder('welfareStatsEntity')
       .select([
@@ -530,6 +504,7 @@ export class WelfareRepository {
         'welfareStatsEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
         'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
         'welfareStatsEntity.welfareBudget AS welfareBudget',
         'welfareStatsEntity.welfareExpense AS welfareExpense',
         '(welfareStatsEntity.welfareBudget - welfareStatsEntity.welfareExpense) AS welfareBalance',
@@ -539,6 +514,7 @@ export class WelfareRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('welfareStatsEntity.year = :year', { year });
 
     if (halfYear) {
@@ -556,8 +532,8 @@ export class WelfareRepository {
     return result;
   }
 
-  async updateClearStatusComplete(welfareStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateClearStatusComplete(welfareStatsIdx: number): Promise<UpdateResult> {
+    return await this.welfareStatsModel
       .createQueryBuilder()
       .update(WelfareStatsEntity)
       .set({ clearStatus: ClearStatusEnum.COMPLETE })
@@ -565,8 +541,8 @@ export class WelfareRepository {
       .execute();
   }
 
-  async updateClearStatusNotYet(welfareStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateClearStatusNotYet(welfareStatsIdx: number): Promise<UpdateResult> {
+    return await this.welfareStatsModel
       .createQueryBuilder()
       .update(WelfareStatsEntity)
       .set({ clearStatus: ClearStatusEnum.NOT_YET })
@@ -596,12 +572,7 @@ export class WelfareRepository {
     return result.welfareBudget;
   }
 
-  async updateWelfareExpense(
-    year: string,
-    month: string,
-    userIdx: number,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
+  async updateWelfareExpense(year: string, month: string, userIdx: number): Promise<UpdateResult> {
     if (Number(month) > 7) {
       const query = `(
           SELECT COALESCE(SUM(welfare_month_expense), 0) 
@@ -611,7 +582,7 @@ export class WelfareRepository {
           AND welfare_monthly_stats.month IN ('7','8','9','10','11','12')
         )`;
 
-      return await manager
+      return await this.welfareStatsModel
         .createQueryBuilder()
         .update(WelfareStatsEntity)
         .set({ welfareExpense: () => query })
@@ -628,7 +599,7 @@ export class WelfareRepository {
           AND welfare_monthly_stats.month IN ('1','2','3','4','5','6')
         )`;
 
-      return await manager
+      return await this.welfareStatsModel
         .createQueryBuilder()
         .update(WelfareStatsEntity)
         .set({ welfareExpense: () => query })

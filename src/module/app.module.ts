@@ -12,7 +12,6 @@ import { AuthModule } from './auth/auth.module';
 import { WelfareModule } from './welfare/welfare.module';
 import { UserModule } from './user/user.module';
 import { ActivityModule } from './activity/activity.module';
-import { QnaModule } from './qna/qna.module';
 import { AdminModule } from './admin/admin.module';
 import { PlaygroundModule } from './playground/playground.module';
 import { FileModule } from './file/file.module';
@@ -36,7 +35,6 @@ import { RedisModule } from '@nestjs-modules/ioredis';
     WelfareModule,
     ActivityModule,
     IntranetModule,
-    QnaModule,
     NoticeModule,
     PlaygroundModule,
     FileModule,

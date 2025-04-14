@@ -34,7 +34,7 @@ export class ActivityEntity extends CommonEntity {
   confirmYN: ConfirmEnum;
 
   @Column({ name: 'confirm_date', comment: 'P&C 확인 날짜', nullable: true })
-  confirmDate: string;
+  confirmDate: Date;
 
   @ManyToOne(() => UserEntity, (user) => user.activityRelation, {
     onDelete: 'CASCADE',

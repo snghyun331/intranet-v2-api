@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
-import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { LeaveDetailDto } from '../dto/createLeave.dto';
 import { LeaveImageInfo } from '../interface/leave.interface';
 import { ImageEntity } from '../../../../entity/image/image.entity';
@@ -35,6 +35,10 @@ export class LeaveRepository {
     private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
     @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
+    @InjectRepository(ImageEntity) private readonly imageModel: Repository<ImageEntity>,
+    @InjectRepository(CommuteHasImageEntity) private readonly commuteImageModel: Repository<CommuteHasImageEntity>,
+    @InjectRepository(CommuteApproverEntity) private readonly commuteApproverModel: Repository<CommuteApproverEntity>,
+    @InjectRepository(CommuteCCUserEntity) private readonly commuteCCModel: Repository<CommuteCCUserEntity>,
   ) {}
 
   async getUserInfoByIdx(userIdx: number) {
@@ -103,13 +107,8 @@ export class LeaveRepository {
     return result;
   }
 
-  async createLeave(
-    leaveInfo: LeaveDetailDto,
-    userIdx: number,
-    note: string | null,
-    manager: EntityManager,
-  ): Promise<number> {
-    const result: InsertResult = await manager
+  async createLeave(leaveInfo: LeaveDetailDto, userIdx: number, note: string | null): Promise<number> {
+    const result: InsertResult = await this.commuteModel
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
@@ -122,8 +121,8 @@ export class LeaveRepository {
   }
 
   /* 당일에 휴가를 등록할 때 사용하는 함수 */
-  async updateLeave(commuteIdx: number, leaveTypeIdx: number, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateLeave(commuteIdx: number, leaveTypeIdx: number): Promise<UpdateResult> {
+    return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
       .set({ leaveTypeIdx })
@@ -131,14 +130,14 @@ export class LeaveRepository {
       .execute();
   }
 
-  async autoApprove(commuteIdx: number, userIdx: number, manager: EntityManager): Promise<UpdateResult> {
+  async autoApprove(commuteIdx: number, userIdx: number): Promise<UpdateResult> {
     const updateInfo = {
       confirmYN: ConfirmEnum.YES,
       confirmDate: moment().utcOffset(9).format('YYYY-MM-DD'),
       confirmPersonIdx: userIdx,
     };
 
-    return await manager
+    return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
       .set(updateInfo)
@@ -147,9 +146,9 @@ export class LeaveRepository {
       .execute();
   }
 
-  async createLeaveImage(commuteIdx: number, imageInfo: LeaveImageInfo, manager: EntityManager): Promise<void> {
+  async createLeaveImage(commuteIdx: number, imageInfo: LeaveImageInfo): Promise<void> {
     /* image entity */
-    const result: InsertResult = await manager
+    const result: InsertResult = await this.imageModel
       .createQueryBuilder()
       .insert()
       .into(ImageEntity)
@@ -159,11 +158,16 @@ export class LeaveRepository {
     const imageIdx: number = result.identifiers[0].imageIdx;
 
     /* commute_has_image entity */
-    await manager.createQueryBuilder().insert().into(CommuteHasImageEntity).values({ commuteIdx, imageIdx }).execute();
+    await this.commuteImageModel
+      .createQueryBuilder()
+      .insert()
+      .into(CommuteHasImageEntity)
+      .values({ commuteIdx, imageIdx })
+      .execute();
   }
 
-  async updateLeaveImage(imageIdx: number, imageInfo: LeaveImageInfo, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateLeaveImage(imageIdx: number, imageInfo: LeaveImageInfo): Promise<UpdateResult> {
+    return await this.imageModel
       .createQueryBuilder()
       .update(ImageEntity)
       .set(imageInfo)
@@ -171,12 +175,17 @@ export class LeaveRepository {
       .execute();
   }
 
-  async deleteLeaveImage(imageIdx: number, manager: EntityManager): Promise<void> {
+  async deleteLeaveImage(imageIdx: number): Promise<void> {
     /* image entity */
-    await manager.createQueryBuilder().delete().from(ImageEntity).where('imageIdx = :imageIdx', { imageIdx }).execute();
+    await this.imageModel
+      .createQueryBuilder()
+      .delete()
+      .from(ImageEntity)
+      .where('imageIdx = :imageIdx', { imageIdx })
+      .execute();
 
     /* commute_has_image entity */
-    await manager
+    await this.commuteImageModel
       .createQueryBuilder()
       .delete()
       .from(CommuteHasImageEntity)
@@ -445,9 +454,9 @@ export class LeaveRepository {
     return result;
   }
 
-  async createLeaveApproverList(commuteIdx: number, approverIdxs: number[], manager: EntityManager): Promise<void> {
+  async createLeaveApproverList(commuteIdx: number, approverIdxs: number[]): Promise<void> {
     for (const approverIdx of approverIdxs) {
-      await manager
+      await this.commuteApproverModel
         .createQueryBuilder()
         .insert()
         .into(CommuteApproverEntity)
@@ -458,9 +467,9 @@ export class LeaveRepository {
     return;
   }
 
-  async createLeaveCCUserList(commuteIdx: number, ccUserIdxList: number[], manager: EntityManager): Promise<void> {
+  async createLeaveCCUserList(commuteIdx: number, ccUserIdxList: number[]): Promise<void> {
     for (const ccUserIdx of ccUserIdxList) {
-      await manager
+      await this.commuteCCModel
         .createQueryBuilder()
         .insert()
         .into(CommuteCCUserEntity)
@@ -471,8 +480,8 @@ export class LeaveRepository {
     return;
   }
 
-  async deleteLeave(commuteIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteLeave(commuteIdx: number): Promise<DeleteResult> {
+    return await this.commuteModel
       .createQueryBuilder()
       .delete()
       .from(CommuteEntity)
@@ -496,9 +505,8 @@ export class LeaveRepository {
   async updateUserTotalReceivedAnnualLeave(
     leaveStatsIdx: number,
     totalReceivedAnnualLeave: number,
-    manager: EntityManager,
   ): Promise<UpdateResult> {
-    return await manager
+    return await this.leaveStatsModel
       .createQueryBuilder()
       .update(LeaveStatsEntity)
       .set({ totalReceivedAnnualLeave })
@@ -506,12 +514,8 @@ export class LeaveRepository {
       .execute();
   }
 
-  async updateLeaveStatsNote(
-    leaveStatsIdx: number,
-    { note }: UpdateNoteDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateLeaveStatsNote(leaveStatsIdx: number, { note }: UpdateNoteDto): Promise<UpdateResult> {
+    return await this.leaveStatsModel
       .createQueryBuilder()
       .update(LeaveStatsEntity)
       .set({ note })

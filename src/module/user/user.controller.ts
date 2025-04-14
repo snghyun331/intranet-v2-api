@@ -1,17 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -48,7 +35,6 @@ import {
   CurrentUserInfoResult,
   GradeIdxsResult,
   UserIdxsResult,
-  AllUserInfoResult,
   HqIdxsResult,
   TeamIdxsResult,
 } from './interface/result.interface';
@@ -56,9 +42,6 @@ import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
-import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
-import { TransactionManager } from '../../common/decorator/transaction.decorator';
-import { EntityManager } from 'typeorm';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdateMyPwDto } from './dto/updateMyPw.dto';
@@ -146,16 +129,14 @@ export class UserController {
   @ApiBody(USERS_MY.PUT.API_BODY)
   @ApiOkResponse(USERS_MY.PUT.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Put('me')
   async updateMyInfo(
     @CurrentUserIdx() userIdx: number,
     @Body() updateInfo: UpdateMyInfoDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.userService.updateMyInfo(userIdx, updateInfo, manager);
+    await this.userService.updateMyInfo(userIdx, updateInfo);
 
     const response: ResponseInterface = { message: '내 기본 정보 수정 성공' };
 
@@ -166,16 +147,11 @@ export class UserController {
   @ApiOkResponse(USERS_MY_PW.PATCH.API_OK_RESPONSE)
   @ApiBadRequestResponse(USERS_MY_PW.PATCH.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Patch('me/password')
-  async updateMyPw(
-    @CurrentUserIdx() userIdx: number,
-    @Body() updateInfo: UpdateMyPwDto,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.userService.updateMyPassword(userIdx, updateInfo, manager);
+  async updateMyPw(@CurrentUserIdx() userIdx: number, @Body() updateInfo: UpdateMyPwDto): Promise<ResponseInterface> {
+    await this.userService.updateMyPassword(userIdx, updateInfo);
 
     const response: ResponseInterface = { message: '내 비밀번호 변경 성공' };
 
@@ -214,10 +190,7 @@ export class AdminUserController {
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminUserFilterDto,
   ): Promise<ResponseInterface> {
-    const { totalPage, total, users }: AllUserInfoResult = await this.userService.getAllUsersInfo(
-      pageNoInfo,
-      filterInfo,
-    );
+    const { totalPage, total, users } = await this.userService.getAllUsersInfo(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: '모든 직원 정보 조회 성공', data: { totalPage, total, users } };
 
@@ -225,19 +198,14 @@ export class AdminUserController {
   }
 
   @ApiOperation(ADMIN_USERS.POST.API_OPERATION)
-  @ApiBody(ADMIN_USERS.POST.API_BODY)
   @ApiCreatedResponse(ADMIN_USERS.POST.API_CREATED_RESPONSE)
   @ApiConflictResponse(ADMIN_USERS.POST.API_CONFLICT_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Post()
-  async createUser(
-    @Body() newUserInfo: CreateUserDto,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.userService.createUser(newUserInfo, manager);
+  async createUser(@Body() newUserInfo: CreateUserDto): Promise<ResponseInterface> {
+    await this.userService.createUser(newUserInfo);
 
     const response: ResponseInterface = { message: '새로운 유저 등록 성공' };
 
@@ -262,20 +230,17 @@ export class AdminUserController {
 
   @ApiOperation(ADMIN_USERS.PUT.API_OPERATION)
   @ApiParam(ADMIN_USERS.PUT.API_PARAM1)
-  @ApiBody(ADMIN_USERS.PUT.API_BODY)
   @ApiOkResponse(ADMIN_USERS.PUT.API_OK_RESPONSE)
   @ApiBadRequestResponse(ADMIN_USERS.PUT.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Put(':userIdx')
   async updateUser(
     @Param('userIdx', ParseIntPipe) userIdx: number,
     @Body() updateInfo: UpdateUserDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.userService.updateUser(userIdx, updateInfo, manager);
+    await this.userService.updateUser(userIdx, updateInfo);
 
     const response: ResponseInterface = { message: '유저 정보 수정 성공' };
 
@@ -287,15 +252,11 @@ export class AdminUserController {
   @ApiOkResponse(ADMIN_USERS.DELETE.API_OK_RESPONSE)
   @ApiBadRequestResponse(ADMIN_USERS.DELETE.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Delete(':userIdx')
-  async deleteUser(
-    @Param('userIdx', ParseIntPipe) userIdx: number,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.userService.deleteUser(userIdx, manager);
+  async deleteUser(@Param('userIdx', ParseIntPipe) userIdx: number): Promise<ResponseInterface> {
+    await this.userService.deleteUser(userIdx);
 
     const response: ResponseInterface = { message: 'success' };
 

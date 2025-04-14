@@ -5,12 +5,11 @@ import {
   CurrentUserInfoResult,
   GradeIdxsResult,
   UserIdxsResult,
-  AllUserInfoResult,
   HqIdxsResult,
   TeamIdxsResult,
   CurrentUserInfo,
 } from '../interface/result.interface';
-import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
@@ -24,6 +23,7 @@ import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 import { AdminEntity } from '../../../entity/admin/admin.entity';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
+import { NewAdminInfo } from '../interface/admin.interface';
 
 @Injectable()
 export class UserRepository {
@@ -121,7 +121,7 @@ export class UserRepository {
     return result;
   }
 
-  async getAllUsersInfo({ perPage, pageNo }: PageNoDto, filterInfo: AdminUserFilterDto): Promise<AllUserInfoResult> {
+  async getAllUsersInfo({ perPage, pageNo }: PageNoDto, filterInfo: AdminUserFilterDto) {
     const query: SelectQueryBuilder<UserEntity> = this.userModel
       .createQueryBuilder('userEntity')
       .select([
@@ -143,6 +143,14 @@ export class UserRepository {
         'userEntity.adminRole AS adminRole',
         'adminEntity.adminGradeIdx AS adminGradeIdx',
         'userEntity.comment AS comment',
+        'userEntity.userPersonalEmail AS userPersonalEmail',
+        'userEntity.accountNumber AS accountNumber',
+        'userEntity.accountBank AS accountBank',
+        'userEntity.passportName AS passportName',
+        'userEntity.passportBirth AS passportBirth',
+        'userEntity.passportNo AS passportNo',
+        'userEntity.passportExpiry AS passportExpiry',
+        'userEntity.probationPeriod AS probationPeriod',
         'userEntity.userAvail AS userAvail',
       ])
       .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
@@ -154,18 +162,9 @@ export class UserRepository {
     if (filterInfo.gradeIdx) {
       query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
     }
-    if (filterInfo.userGender) {
-      query.andWhere('userEntity.userGender = :userGender', { userGender: filterInfo.userGender });
-    }
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
       query.andWhere('userEntity.userName = :userName', { userName });
-    }
-    if (filterInfo.joinSDate && filterInfo.joinEDate) {
-      query.andWhere('userEntity.joinDate BETWEEN :joinSDate AND :joinEDate', {
-        joinSDate: filterInfo.joinSDate,
-        joinEDate: filterInfo.joinEDate,
-      });
     }
 
     const total: number = await query.getCount();
@@ -215,10 +214,10 @@ export class UserRepository {
     return { totalPage, total, users: result };
   }
 
-  async createUser(newUserInfo: CreateUserDto, manager: EntityManager): Promise<number> {
+  async createUser(newUserInfo: CreateUserDto): Promise<number> {
     const password: string = encryptPassword(newUserInfo.id + '2467');
 
-    const result: InsertResult = await manager
+    const result: InsertResult = await this.userModel
       .createQueryBuilder()
       .insert()
       .into(UserEntity)
@@ -228,8 +227,8 @@ export class UserRepository {
     return result.identifiers[0].userIdx;
   }
 
-  async updateMyInfo(userIdx: number, updateInfo: UpdateMyInfoDto, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateMyInfo(userIdx: number, updateInfo: UpdateMyInfoDto): Promise<UpdateResult> {
+    return await this.userModel
       .createQueryBuilder()
       .update(UserEntity)
       .set(updateInfo)
@@ -250,8 +249,8 @@ export class UserRepository {
     return password;
   }
 
-  async updateUserPassword(userIdx: number, password: string, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateUserPassword(userIdx: number, password: string): Promise<UpdateResult> {
+    return await this.userModel
       .createQueryBuilder()
       .update(UserEntity)
       .set({ password })
@@ -277,27 +276,21 @@ export class UserRepository {
     return result;
   }
 
-  async createAdmin(
-    userIdx: number,
-    adminInfo: CreateUserDto | UpdateUserDto,
-    manager: EntityManager,
-  ): Promise<InsertResult> {
+  async createAdmin(userIdx: number, adminInfo: NewAdminInfo): Promise<InsertResult> {
     const password: string = encryptPassword(adminInfo.id + '2467');
-    const adminName: string = adminInfo.userName;
-    const adminEmail: string = adminInfo.userEmail;
 
-    return await manager
+    return await this.adminModel
       .createQueryBuilder()
       .insert()
       .into(AdminEntity)
-      .values({ userIdx, password, adminName, adminEmail, ...adminInfo })
+      .values({ userIdx, password, ...adminInfo })
       .execute();
   }
 
-  async updateUserInfo(userIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
+  async updateUserInfo(userIdx: number, updateInfo: UpdateUserDto): Promise<UpdateResult> {
     const { adminGradeIdx, ...userInfo } = updateInfo;
 
-    return await manager
+    return await this.userModel
       .createQueryBuilder()
       .update(UserEntity)
       .set(userInfo)
@@ -305,13 +298,11 @@ export class UserRepository {
       .execute();
   }
 
-  async updateAdmin(adminIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
-    const { id, userName, gradeIdx, hqIdx, teamIdx, userEmail, adminGradeIdx } = updateInfo;
-
-    return await manager
+  async updateAdmin(adminIdx: number, updateInfo: NewAdminInfo): Promise<UpdateResult> {
+    return await this.adminModel
       .createQueryBuilder()
       .update(AdminEntity)
-      .set({ id, adminName: userName, gradeIdx, hqIdx, teamIdx, adminEmail: userEmail, adminGradeIdx })
+      .set(updateInfo)
       .where('adminIdx = :adminIdx', { adminIdx })
       .execute();
   }
@@ -327,8 +318,8 @@ export class UserRepository {
     return result;
   }
 
-  async deleteUser(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteUser(userIdx: number): Promise<DeleteResult> {
+    return await this.userModel
       .createQueryBuilder()
       .softDelete()
       .from(UserEntity)
@@ -346,8 +337,8 @@ export class UserRepository {
     return result;
   }
 
-  async deleteAdmin(userIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteAdmin(userIdx: number): Promise<DeleteResult> {
+    return await this.adminModel
       .createQueryBuilder()
       .softDelete()
       .from(AdminEntity)
@@ -355,21 +346,13 @@ export class UserRepository {
       .execute();
   }
 
-  async restoreUpdateAdmin(adminIdx: number, updateInfo: UpdateUserDto, manager: EntityManager): Promise<UpdateResult> {
-    const { id, userName, gradeIdx, hqIdx, teamIdx, userEmail, adminGradeIdx } = updateInfo;
-
-    return await manager
+  async restoreUpdateAdmin(adminIdx: number, updateInfo: NewAdminInfo): Promise<UpdateResult> {
+    return await this.adminModel
       .createQueryBuilder()
       .update(AdminEntity)
       .set({
         adminAvail: null,
-        id,
-        adminName: userName,
-        gradeIdx,
-        hqIdx,
-        teamIdx,
-        adminEmail: userEmail,
-        adminGradeIdx,
+        ...updateInfo,
       })
       .where('adminIdx = adminIdx', { adminIdx })
       .execute();

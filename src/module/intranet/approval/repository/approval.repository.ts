@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
-import { Brackets, EntityManager, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { Brackets, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
 import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
 import * as moment from 'moment';
@@ -16,7 +16,14 @@ import { MealStatsEntity } from '../../../../entity/meal/mealStats.entity';
 
 @Injectable()
 export class ApprovalRepository {
-  constructor(@InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>) {}
+  constructor(
+    @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
+    @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
+    @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
+    @InjectRepository(LeaveMonthlyUsageEntity)
+    private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
+    @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
+  ) {}
 
   async getCommuteCountByIdx(commuteIdx: number): Promise<number> {
     const result: number = await this.commuteModel
@@ -49,12 +56,7 @@ export class ApprovalRepository {
     return result;
   }
 
-  async updateConfirm(
-    commuteIdx: number,
-    confirmPersonIdx: number,
-    confirmYN: ConfirmEnum,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
+  async updateConfirm(commuteIdx: number, confirmPersonIdx: number, confirmYN: ConfirmEnum): Promise<UpdateResult> {
     const confirmYNDateInfo = { confirmDate: null, rejectDate: null };
     switch (confirmYN) {
       case ConfirmEnum.YES:
@@ -67,7 +69,7 @@ export class ApprovalRepository {
         break;
     }
 
-    return await manager
+    return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
       .set({ confirmYN, confirmPersonIdx, ...confirmYNDateInfo })
@@ -80,13 +82,12 @@ export class ApprovalRepository {
     month: string,
     userIdx: number,
     leaveTypeIdx: number,
-    manager: EntityManager,
   ): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: number = await manager
-      .createQueryBuilder(CommuteEntity, 'commuteEntity')
+    const result: number = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx })
       .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate })
@@ -102,9 +103,8 @@ export class ApprovalRepository {
     userIdx: number,
     leaveTypeIdx: number,
     monthlyUseCount: number,
-    manager: EntityManager,
   ): Promise<UpdateResult> {
-    return await manager
+    return await this.leaveMonthlyUsageModel
       .createQueryBuilder()
       .update(LeaveMonthlyUsageEntity)
       .set({ monthlyUseCount })
@@ -115,12 +115,7 @@ export class ApprovalRepository {
       .execute();
   }
 
-  async updateLeaveAnnualUseCount(
-    year: string,
-    userIdx: number,
-    leaveTypeIdx: number,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
+  async updateLeaveAnnualUseCount(year: string, userIdx: number, leaveTypeIdx: number): Promise<UpdateResult> {
     const query = `(
       SELECT COALESCE(SUM(monthly_use_count), 0) 
       FROM leave_monthly_usage  
@@ -129,7 +124,7 @@ export class ApprovalRepository {
       AND leave_monthly_usage.year = leave_usage.year
     )`;
 
-    return await manager
+    return await this.leaveUsageModel
       .createQueryBuilder()
       .update(LeaveUsageEntity)
       .set({ annualUseCount: () => query })
@@ -139,7 +134,7 @@ export class ApprovalRepository {
       .execute();
   }
 
-  async updateTotalAnnualLeaveUsage(year: string, userIdx: number, manager: EntityManager): Promise<UpdateResult> {
+  async updateTotalAnnualLeaveUsage(year: string, userIdx: number): Promise<UpdateResult> {
     const query = `(
       SELECT SUM(
         CASE 
@@ -154,7 +149,7 @@ export class ApprovalRepository {
       AND leave_usage.year = leave_stats.year
     )`;
 
-    return await manager
+    return await this.leaveStatsModel
       .createQueryBuilder()
       .update(LeaveStatsEntity)
       .set({
@@ -165,7 +160,7 @@ export class ApprovalRepository {
       .execute();
   }
 
-  async updateTotalSpecialLeaveUsage(year: string, userIdx: number, manager: EntityManager): Promise<UpdateResult> {
+  async updateTotalSpecialLeaveUsage(year: string, userIdx: number): Promise<UpdateResult> {
     const query = `(
       SELECT SUM(
         CASE 
@@ -180,7 +175,7 @@ export class ApprovalRepository {
       AND leave_usage.year = leave_stats.year
     )`;
 
-    return await manager
+    return await this.leaveStatsModel
       .createQueryBuilder()
       .update(LeaveStatsEntity)
       .set({
@@ -191,7 +186,7 @@ export class ApprovalRepository {
       .execute();
   }
 
-  async updateTotalAlternativeLeaveUsage(year: string, userIdx: number, manager: EntityManager): Promise<UpdateResult> {
+  async updateTotalAlternativeLeaveUsage(year: string, userIdx: number): Promise<UpdateResult> {
     const query = `(
       SELECT SUM(
         CASE 
@@ -205,7 +200,7 @@ export class ApprovalRepository {
       AND leave_usage.year = leave_stats.year
     )`;
 
-    return await manager
+    return await this.leaveStatsModel
       .createQueryBuilder()
       .update(LeaveStatsEntity)
       .set({
@@ -216,12 +211,7 @@ export class ApprovalRepository {
       .execute();
   }
 
-  async updateMealTimeOffDays(
-    year: string,
-    month: string,
-    userIdx: number,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
+  async updateMealTimeOffDays(year: string, month: string, userIdx: number): Promise<UpdateResult> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
@@ -235,7 +225,7 @@ export class ApprovalRepository {
       AND c.leave_type_idx NOT IN (1,4,5,10,11)
     )`;
 
-    return await manager
+    return await this.mealStatsModel
       .createQueryBuilder()
       .update(MealStatsEntity)
       .set({

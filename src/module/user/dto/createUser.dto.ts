@@ -62,4 +62,44 @@ export class CreateUserDto {
   @IsOptional()
   @IsNumber()
   adminGradeIdx?: number;
+
+  @ApiProperty({ type: String, description: '개인 이메일', required: false })
+  @IsOptional()
+  @IsString()
+  userPersonalEmail?: string;
+
+  @ApiProperty({ type: String, description: '계좌번호', required: false })
+  @IsOptional()
+  @IsString()
+  accountNumber?: string;
+
+  @ApiProperty({ type: String, description: '계좌은행', required: false })
+  @IsOptional()
+  @IsString()
+  accountBank?: string;
+
+  @ApiProperty({ type: String, description: '여권성명', required: false })
+  @IsOptional()
+  @IsString()
+  passportName?: string;
+
+  @ApiProperty({ type: String, description: '여권생년월일', required: false })
+  @IsOptional()
+  @IsString()
+  passportBirth?: string;
+
+  @ApiProperty({ type: String, description: '여권번호', required: false })
+  @IsOptional()
+  @IsString()
+  passportNo?: string;
+
+  @ApiProperty({ type: String, description: '여권만료일', required: false })
+  @IsOptional()
+  @IsString()
+  passportExpiry?: string;
+
+  @ApiProperty({ type: String, description: '수습기간', required: false })
+  @IsOptional()
+  @IsString()
+  probationPeriod?: string;
 }

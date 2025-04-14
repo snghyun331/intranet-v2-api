@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, EntityManager, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateActivityDto } from '../dto/createActivity.dto';
 import { ActivityEntity } from '../../../entity/activity/activity.entity';
 import {
@@ -75,12 +75,8 @@ export class ActivityRepository {
     return result;
   }
 
-  async createActivity(
-    userIdx: number,
-    newActivityInfo: CreateActivityDto,
-    manager: EntityManager,
-  ): Promise<InsertResult> {
-    return await manager
+  async createActivity(userIdx: number, newActivityInfo: CreateActivityDto): Promise<InsertResult> {
+    return await this.activityModel
       .createQueryBuilder()
       .insert()
       .into(ActivityEntity)
@@ -88,17 +84,12 @@ export class ActivityRepository {
       .execute();
   }
 
-  async getTotalActivityExpense(
-    year: string,
-    month: string,
-    payerName: string,
-    manager: EntityManager,
-  ): Promise<number> {
+  async getTotalActivityExpense(year: string, month: string, payerName: string): Promise<number> {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: { total: number } = await manager
-      .createQueryBuilder(ActivityEntity, 'activityEntity')
+    const result: { total: number } = await this.activityModel
+      .createQueryBuilder('activityEntity')
       .select('SUM(activityEntity.amount)', 'total')
       .where('activityEntity.payerName = :payerName', { payerName })
       .andWhere('activityEntity.targetDay BETWEEN :startDate AND :endDate', {
@@ -115,9 +106,8 @@ export class ActivityRepository {
     year: string,
     month: string,
     userIdx: number,
-    manager: EntityManager,
   ): Promise<UpdateResult> {
-    return await manager
+    return await this.activityMonthStatsModel
       .createQueryBuilder()
       .update(ActivityMonthlyStatsEntity)
       .set({ activityMonthExpense })
@@ -142,12 +132,8 @@ export class ActivityRepository {
     return result;
   }
 
-  async updateActivity(
-    activityIdx: number,
-    updateActivityInfo: UpdateActivityDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateActivity(activityIdx: number, updateActivityInfo: UpdateActivityDto): Promise<UpdateResult> {
+    return await this.activityModel
       .createQueryBuilder()
       .update(ActivityEntity)
       .set(updateActivityInfo)
@@ -155,8 +141,8 @@ export class ActivityRepository {
       .execute();
   }
 
-  async deleteActivity(activityIdx: number, manager: EntityManager): Promise<DeleteResult> {
-    return await manager
+  async deleteActivity(activityIdx: number): Promise<DeleteResult> {
+    return await this.activityModel
       .createQueryBuilder()
       .delete()
       .from(ActivityEntity)
@@ -248,18 +234,18 @@ export class ActivityRepository {
       .createQueryBuilder('activityEntity')
       .select([
         'activityEntity.activityIdx AS activityIdx',
+        'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
         'activityEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
-        'gradeEntity.gradeName AS gradeName',
         'activityEntity.targetDay AS targetDay',
         'activityEntity.content AS content',
         'activityEntity.amount AS amount',
         'activityEntity.payerName AS payerName',
-        'activityEntity.confirmYN AS confirmYN',
-        'activityEntity.confirmDate AS confirmDate',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('activityEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
@@ -270,18 +256,13 @@ export class ActivityRepository {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
       query.andWhere('userEntity.userName = :userName', { userName });
     }
-    if (filterInfo.gradeIdx) {
-      query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
-    }
-    if (filterInfo.confirmYN) {
-      query.andWhere('activityEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
-    }
 
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);
 
     query
       .orderBy('activityEntity.targetDay', 'DESC')
+      .addOrderBy('userEntity.userName', 'ASC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
@@ -301,8 +282,8 @@ export class ActivityRepository {
     return statsCnt;
   }
 
-  async createActivityMonthStats(monthStatsInfo: NewActivityMonthStats, manager: EntityManager): Promise<InsertResult> {
-    return await manager
+  async createActivityMonthStats(monthStatsInfo: NewActivityMonthStats): Promise<InsertResult> {
+    return await this.activityMonthStatsModel
       .createQueryBuilder()
       .insert()
       .into(ActivityMonthlyStatsEntity)
@@ -310,8 +291,13 @@ export class ActivityRepository {
       .execute();
   }
 
-  async createActivityStats(statsInfo: NewActivityStats, manager: EntityManager): Promise<InsertResult> {
-    return await manager.createQueryBuilder().insert().into(ActivityStatsEntity).values(statsInfo).execute();
+  async createActivityStats(statsInfo: NewActivityStats): Promise<InsertResult> {
+    return await this.activityStatsModel
+      .createQueryBuilder()
+      .insert()
+      .into(ActivityStatsEntity)
+      .values(statsInfo)
+      .execute();
   }
 
   async getAdminActivityBudget(year: string, halfYear: HalfYearEnum): Promise<ActivityBudgetAdminResult[]> {
@@ -349,12 +335,8 @@ export class ActivityRepository {
     return statsCnt;
   }
 
-  async updateActivityBudget(
-    activityStatsIdx: number,
-    budgetInfo: UpdateBudgetDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateActivityBudget(activityStatsIdx: number, budgetInfo: UpdateBudgetDto): Promise<UpdateResult> {
+    return await this.activityStatsModel
       .createQueryBuilder()
       .update(ActivityStatsEntity)
       .set(budgetInfo)
@@ -362,12 +344,8 @@ export class ActivityRepository {
       .execute();
   }
 
-  async updateActivityStatsNote(
-    activityStatsIdx: number,
-    { note }: UpdateNoteDto,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
-    return await manager
+  async updateActivityStatsNote(activityStatsIdx: number, { note }: UpdateNoteDto): Promise<UpdateResult> {
+    return await this.activityStatsModel
       .createQueryBuilder()
       .update(ActivityStatsEntity)
       .set({ note })
@@ -375,17 +353,17 @@ export class ActivityRepository {
       .execute();
   }
 
-  async updateConfirmActivity(activityIdx: number, confirmYN: ConfirmEnum, manager: EntityManager): Promise<void> {
+  async updateConfirmActivity(activityIdx: number, confirmYN: ConfirmEnum): Promise<UpdateResult> {
     if (confirmYN === ConfirmEnum.YES) {
       const confirmDate: Date = new Date();
-      await manager
+      return await this.activityModel
         .createQueryBuilder()
         .update(ActivityEntity)
         .set({ confirmYN, confirmDate })
         .where('activityIdx = :activityIdx', { activityIdx })
         .execute();
     } else {
-      await manager
+      return await this.activityModel
         .createQueryBuilder()
         .update(ActivityEntity)
         .set({ confirmYN, confirmDate: null })
@@ -404,6 +382,7 @@ export class ActivityRepository {
         'activityStatsEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
         'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
         'activityStatsEntity.activityBudget AS activityBudget',
         'activityStatsEntity.activityExpense AS activityExpense',
         '(activityStatsEntity.activityBudget - activityStatsEntity.activityExpense) AS activityBalance',
@@ -413,6 +392,7 @@ export class ActivityRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('activityStatsEntity.year = :year', { year })
       .andWhere('userEntity.userAvail IS NULL');
 
@@ -432,8 +412,8 @@ export class ActivityRepository {
     return result;
   }
 
-  async updateClearStatusComplete(activityStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateClearStatusComplete(activityStatsIdx: number): Promise<UpdateResult> {
+    return await this.activityStatsModel
       .createQueryBuilder()
       .update(ActivityStatsEntity)
       .set({ clearStatus: ClearStatusEnum.COMPLETE })
@@ -441,8 +421,8 @@ export class ActivityRepository {
       .execute();
   }
 
-  async updateClearStatusNotYet(activityStatsIdx: number, manager: EntityManager): Promise<UpdateResult> {
-    return await manager
+  async updateClearStatusNotYet(activityStatsIdx: number): Promise<UpdateResult> {
+    return await this.activityStatsModel
       .createQueryBuilder()
       .update(ActivityStatsEntity)
       .set({ clearStatus: ClearStatusEnum.NOT_YET })
@@ -461,12 +441,7 @@ export class ActivityRepository {
     return statsCnt;
   }
 
-  async updateActivityExpense(
-    year: string,
-    month: string,
-    userIdx: number,
-    manager: EntityManager,
-  ): Promise<UpdateResult> {
+  async updateActivityExpense(year: string, month: string, userIdx: number): Promise<UpdateResult> {
     if (Number(month) > 7) {
       const query = `(
         SELECT COALESCE(SUM(activity_month_expense), 0) 
@@ -476,7 +451,7 @@ export class ActivityRepository {
         AND activity_monthly_stats.month IN ('7','8','9','10','11','12')
       )`;
 
-      return await manager
+      return await this.activityStatsModel
         .createQueryBuilder()
         .update(ActivityStatsEntity)
         .set({ activityExpense: () => query })
@@ -493,7 +468,7 @@ export class ActivityRepository {
         AND activity_monthly_stats.month IN ('1','2','3','4','5','6')
       )`;
 
-      return await manager
+      return await this.activityStatsModel
         .createQueryBuilder()
         .update(ActivityStatsEntity)
         .set({ activityExpense: () => query })

@@ -1,14 +1,11 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Query, UseGuards } from '@nestjs/common';
 import { ApprovalService } from './approval.service';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { USERS_INTRANET_APPROVAL } from './swagger/approval.swagger';
 import { UserRole } from '../../../common/decorator/role.decorator';
-import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserAuthGuard } from '../../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
 import { UserGradeEnum } from '../../../common/constant/enum';
-import { EntityManager } from 'typeorm';
-import { TransactionManager } from '../../../common/decorator/transaction.decorator';
 import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
 import { ResponseInterface } from '../../../common/interface/response.interface';
 import { UpdateConfirmDto } from './dto/updateConfirm.dto';
@@ -26,15 +23,13 @@ export class ApprovalController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.MANAGER)
-  @UseInterceptors(TransactionInterceptor)
   @Patch(':commuteIdx')
   async confirmLeave(
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() { confirmYN }: UpdateConfirmDto,
     @CurrentUserIdx() confirmPersonIdx: number,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.approvalService.confirmLeave(commuteIdx, confirmPersonIdx, confirmYN, manager);
+    await this.approvalService.confirmLeave(commuteIdx, confirmPersonIdx, confirmYN);
 
     const response: ResponseInterface = { message: 'success' };
 

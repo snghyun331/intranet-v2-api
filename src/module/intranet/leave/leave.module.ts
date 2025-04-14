@@ -11,10 +11,26 @@ import { UserEntity } from '../../../entity/user/user.entity';
 import { LeaveMonthlyUsageEntity } from '../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 import { LeaveUsageEntity } from '../../../entity/intranet/leave/leaveUsage.entity';
 import { ApprovalRepository } from '../approval/repository/approval.repository';
+import { ImageEntity } from '../../../entity/image/image.entity';
+import { CommuteHasImageEntity } from '../../../entity/image/commuteHasImage.entity';
+import { CommuteApproverEntity } from '../../../entity/intranet/commute/commuteApprover.entity';
+import { CommuteCCUserEntity } from '../../../entity/intranet/commute/commuteCCUser.entity';
+import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CommuteEntity, LeaveStatsEntity, LeaveMonthlyUsageEntity, LeaveUsageEntity, UserEntity]),
+    TypeOrmModule.forFeature([
+      CommuteEntity,
+      LeaveStatsEntity,
+      LeaveMonthlyUsageEntity,
+      LeaveUsageEntity,
+      UserEntity,
+      ImageEntity,
+      CommuteHasImageEntity,
+      CommuteApproverEntity,
+      CommuteCCUserEntity,
+      MealStatsEntity,
+    ]),
     AwsModule,
   ],
   providers: [LeaveService, LeaveRepository, ApprovalRepository, AwsService],

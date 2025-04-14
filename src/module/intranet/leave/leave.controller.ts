@@ -39,13 +39,10 @@ import {
   USERS_INTRANET_LEAVE_IMAGE,
   USERS_INTRANET_LEAVE_STATS,
 } from './swagger/leave.swagger';
-import { TransactionInterceptor } from '../../../common/interceptor/transaction.interceptor';
 import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '../../../common/decorator/role.decorator';
 import { AdminGradeEnum, UserGradeEnum } from '../../../common/constant/enum';
 import { UserAuthGuard } from '../../auth/guard/authGuard/userAuth.guard';
-import { TransactionManager } from '../../../common/decorator/transaction.decorator';
-import { EntityManager } from 'typeorm';
 import { CreateLeaveDto, LeaveRequestDto } from './dto/createLeave.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { leaveImageOptions } from '../../file/uploadMulter.options';
@@ -70,16 +67,15 @@ export class UserLeaveController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @UseInterceptors(TransactionInterceptor, FileInterceptor('leaveImage', leaveImageOptions))
+  @UseInterceptors(FileInterceptor('leaveImage', leaveImageOptions))
   @Post()
   async createLeave(
     @Body() { dto }: CreateLeaveDto,
     @CurrentUser() user: UserPayload,
-    @TransactionManager() manager: EntityManager,
     @UploadedFile() leaveImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
     const parsedDto: LeaveRequestDto = dto as LeaveRequestDto;
-    await this.leaveService.createLeave(parsedDto, user, manager, leaveImage);
+    await this.leaveService.createLeave(parsedDto, user, leaveImage);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -92,13 +88,9 @@ export class UserLeaveController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @UseInterceptors(TransactionInterceptor)
   @Delete(':commuteIdx')
-  async deleteLeave(
-    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.leaveService.deleteLeave(commuteIdx, manager);
+  async deleteLeave(@Param('commuteIdx', ParseIntPipe) commuteIdx: number): Promise<ResponseInterface> {
+    await this.leaveService.deleteLeave(commuteIdx);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -179,15 +171,14 @@ export class UserLeaveController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @UseInterceptors(TransactionInterceptor, FileInterceptor('leaveImage', leaveImageOptions))
+  @UseInterceptors(FileInterceptor('leaveImage', leaveImageOptions))
   @UploadLeaveImage()
   @Patch(':commuteIdx/image')
   async updateLeaveImage(
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
-    @TransactionManager() manager: EntityManager,
     @UploadedFile() leaveImage: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    await this.leaveService.updateLeaveImage(commuteIdx, leaveImage, manager);
+    await this.leaveService.updateLeaveImage(commuteIdx, leaveImage);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -222,14 +213,12 @@ export class AdminLeaveController {
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @UseInterceptors(TransactionInterceptor)
   @Patch(':leaveStatsIdx')
   async updateUserTotalReceivedAnnualLeave(
     @Param('leaveStatsIdx', ParseIntPipe) leaveStatsIdx: number,
     @Body() dto: UpdateAnnualLeaveDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.leaveService.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, dto, manager);
+    await this.leaveService.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, dto);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -241,16 +230,14 @@ export class AdminLeaveController {
   @ApiOkResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_OK_RESPONSE)
   @ApiNotFoundResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_NOT_FOUND_RESPONSE)
   @ApiBearerAuth('accessToken')
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Patch(':leaveStatsIdx/note')
   async updateLeaveStatsNote(
     @Param('leaveStatsIdx', ParseIntPipe) leaveStatsIdx: number,
     @Body() noteInfo: UpdateNoteDto,
-    @TransactionManager() manager: EntityManager,
   ): Promise<ResponseInterface> {
-    await this.leaveService.updateLeaveStatsNote(leaveStatsIdx, noteInfo, manager);
+    await this.leaveService.updateLeaveStatsNote(leaveStatsIdx, noteInfo);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
 
@@ -317,13 +304,9 @@ export class AdminLeaveController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @ApiBearerAuth('accessToken')
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @UseInterceptors(TransactionInterceptor)
   @Delete('commute/:commuteIdx')
-  async deleteLeaveByAdmin(
-    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
-    @TransactionManager() manager: EntityManager,
-  ): Promise<ResponseInterface> {
-    await this.leaveService.deleteLeave(commuteIdx, manager);
+  async deleteLeaveByAdmin(@Param('commuteIdx', ParseIntPipe) commuteIdx: number): Promise<ResponseInterface> {
+    await this.leaveService.deleteLeave(commuteIdx);
 
     const response: ResponseInterface = { message: 'success' };
 

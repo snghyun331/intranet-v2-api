@@ -1,7 +1,10 @@
+import { InternalServerErrorException } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModuleAsyncOptions } from '@nestjs/mongoose';
 import { TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { join } from 'path';
+import { DataSource } from 'typeorm';
+import { addTransactionalDataSource } from 'typeorm-transactional';
 
 export const TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
@@ -18,6 +21,12 @@ export const TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
     synchronize: true,
     // logging: true,
   }),
+
+  async dataSourceFactory(option) {
+    if (!option) throw new InternalServerErrorException('Invalid options passed');
+
+    return addTransactionalDataSource(new DataSource(option));
+  },
 };
 
 export const TEST_TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
@@ -34,6 +43,12 @@ export const TEST_TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
     entities: [join(__dirname, '../entity/**/*.entity{.ts,.js}')],
     synchronize: true,
   }),
+
+  async dataSourceFactory(option) {
+    if (!option) throw new InternalServerErrorException('Invalid options passed');
+
+    return addTransactionalDataSource(new DataSource(option));
+  },
 };
 
 export const MONGOOSE_CONFIG: MongooseModuleAsyncOptions = {

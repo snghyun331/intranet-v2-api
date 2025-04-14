@@ -11,8 +11,11 @@ import { setupSwagger } from './config/swagger.config';
 import { ResponseInterceptor } from './common/interceptor/response.interceptor';
 import { validationOptions } from './config/validation.config';
 import { SERVE_STATIC_CONFIG } from './config/serveStatic.config';
+import { initializeTransactionalContext } from 'typeorm-transactional';
 
 async function bootstrap() {
+  initializeTransactionalContext();
+
   const winstonLogger: LoggerService = WinstonModule.createLogger(WINSTON_CONFIG);
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: true,
