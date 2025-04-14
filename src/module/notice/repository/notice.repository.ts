@@ -3,11 +3,10 @@ import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResul
 import { CreateNoticeDto } from '../dto/createNotice.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoticeEntity } from '../../../entity/notice/notice.entity';
-import { NoticeDetailInfo, NoticeImageInfo, NoticeInfo } from '../interface/notice.interface';
-import { NoticeResult } from '../interface/result.interface';
 import { UpdateNoticeDto } from '../dto/updateNotice.dto';
 import { ImageEntity } from '../../../entity/image/image.entity';
 import { NoticeHasImageEntity } from '../../../entity/image/noticeHasImage.entity';
+import { NoticeImageInfo } from '../interface/notice.interface';
 
 @Injectable()
 export class NoticeRepostiory {
@@ -77,7 +76,7 @@ export class NoticeRepostiory {
       .execute();
   }
 
-  async getNoticeList(pageNo: number, perPage: number): Promise<NoticeResult> {
+  async getNoticeList(pageNo: number, perPage: number) {
     const query: SelectQueryBuilder<NoticeEntity> = this.noticeModel
       .createQueryBuilder('noticeEntity')
       .select([
@@ -95,13 +94,13 @@ export class NoticeRepostiory {
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
-    const result: NoticeInfo[] = await query.getRawMany();
+    const result = await query.getRawMany();
 
     return { totalPage, total, notices: result };
   }
 
-  async getNoticeByIdx(noticeIdx: number): Promise<NoticeDetailInfo> {
-    const result: NoticeDetailInfo = await this.noticeModel
+  async getNoticeByIdx(noticeIdx: number) {
+    const result = await this.noticeModel
       .createQueryBuilder('noticeEntity')
       .select([
         'noticeEntity.noticeIdx AS noticeIdx',
