@@ -43,7 +43,6 @@ import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { UpdateConfirmDto } from './dto/updateConfirm.dto';
-import { WelfareStatsAdminInfo } from './interface/welfare.interface';
 
 @ApiTags('사용자')
 @Controller('users/welfares')
@@ -245,7 +244,7 @@ export class AdminWelfareController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('balances')
   async getWelfareBalance(@Query() filterInfo: AdminWelfareBalanceFilterDto): Promise<ResponseInterface> {
-    const welfareStats: WelfareStatsAdminInfo[] = await this.welfareService.getUserWelfareStats(filterInfo);
+    const welfareStats = await this.welfareService.getUserWelfareStats(filterInfo);
 
     const response: ResponseInterface = {
       message: 'success',

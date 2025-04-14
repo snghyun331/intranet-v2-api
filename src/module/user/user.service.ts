@@ -5,7 +5,6 @@ import {
   CurrentUserInfoResult,
   GradeIdxsResult,
   UserIdxsResult,
-  AllUserInfoResult,
   HqIdxsResult,
   TeamIdxsResult,
 } from './interface/result.interface';
@@ -19,6 +18,7 @@ import { YNEnum } from '../../common/constant/enum';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { RedisSearchService } from '../redis/redisSearch.service';
 import { Transactional } from 'typeorm-transactional';
+import { NewAdminInfo } from './interface/admin.interface';
 
 @Injectable()
 export class UserService {
@@ -49,18 +49,11 @@ export class UserService {
     return result;
   }
 
-  async getAllUsersInfo(pageNoInfo: PageNoDto, filterInfo: AdminUserFilterDto): Promise<AllUserInfoResult> {
+  async getAllUsersInfo(pageNoInfo: PageNoDto, filterInfo: AdminUserFilterDto) {
     if ((filterInfo.sortby && !filterInfo.orderby) || (!filterInfo.sortby && filterInfo.orderby)) {
       throw new BadRequestException('sortby와 orderby는 함께 제공되거나 둘 다 없어야 합니다.');
     }
-    if ((filterInfo.joinSDate && !filterInfo.joinEDate) || (!filterInfo.joinSDate && filterInfo.joinEDate)) {
-      throw new BadRequestException('joinSDate와 joinEDate는 함께 제공되거나 둘 다 없어야 합니다.');
-    }
-    if (filterInfo.joinSDate > filterInfo.joinEDate) {
-      throw new BadRequestException('joinSDate는 joinEDate보다 클 수 없습니다.');
-    }
-
-    const user: AllUserInfoResult = await this.userRepository.getAllUsersInfo(pageNoInfo, filterInfo);
+    const user = await this.userRepository.getAllUsersInfo(pageNoInfo, filterInfo);
 
     return user;
   }
@@ -82,7 +75,14 @@ export class UserService {
       if (!adminGradeIdx) {
         throw new BadRequestException('어드민 등급을 선택해주세요');
       }
-      await this.userRepository.createAdmin(userIdx, userInfo);
+      const newAdminInfo: NewAdminInfo = {
+        id: userInfo.id,
+        adminName: userInfo.userName,
+        adminEmail: userInfo.userEmail,
+        adminGradeIdx,
+      };
+
+      await this.userRepository.createAdmin(userIdx, newAdminInfo);
     }
 
     /* Redis에 유저 등록(검색 자동완성) */
@@ -129,7 +129,7 @@ export class UserService {
     if (updateInfo.newPassword !== updateInfo.confirmPassword) {
       throw new BadRequestException('비밀번호가 같지 않습니다');
     }
-    /* 새 비밀번호 암호화 및 저장*/
+    /* 새 비밀번호 암호화 및 저장 */
     const encryptedNewPW: string = encryptPassword(updateInfo.newPassword);
     await this.userRepository.updateUserPassword(userIdx, encryptedNewPW);
 
@@ -167,21 +167,27 @@ export class UserService {
 
     /* 어드민 정보 수정 */
     if (updateInfo.adminRole === YNEnum.YES) {
-      const adminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
+      const newAdminInfo: NewAdminInfo = {
+        id: updateInfo.id,
+        adminName: updateInfo.userName,
+        adminEmail: updateInfo.userEmail,
+        adminGradeIdx: updateInfo.adminGradeIdx,
+      };
+      const previousAdminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
       // 활성 상태인 어드민일 경우
-      if (adminInfo && adminInfo.adminAvail === null) {
-        await this.userRepository.updateAdmin(adminInfo.adminIdx, updateInfo);
-      } else if (adminInfo && adminInfo.adminAvail !== null) {
+      if (previousAdminInfo && previousAdminInfo.adminAvail === null) {
+        await this.userRepository.updateAdmin(previousAdminInfo.adminIdx, newAdminInfo);
+      } else if (previousAdminInfo && previousAdminInfo.adminAvail !== null) {
         // 비활성 상태인 어드민일 경우
-        await this.userRepository.restoreUpdateAdmin(adminInfo.adminIdx, updateInfo);
+        await this.userRepository.restoreUpdateAdmin(previousAdminInfo.adminIdx, newAdminInfo);
       } else {
         // 어드민이 처음일 경우
-        await this.userRepository.createAdmin(userIdx, updateInfo);
+        await this.userRepository.createAdmin(userIdx, newAdminInfo);
       }
     } else {
-      const adminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
+      const previousAdminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
       // 어드민 O → 어드민 X로 변경할 경우
-      if (adminInfo && adminInfo.adminAvail === null) {
+      if (previousAdminInfo && previousAdminInfo.adminAvail === null) {
         await this.userRepository.deleteAdmin(userIdx);
       }
     }

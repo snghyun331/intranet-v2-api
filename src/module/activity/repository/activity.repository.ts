@@ -234,18 +234,18 @@ export class ActivityRepository {
       .createQueryBuilder('activityEntity')
       .select([
         'activityEntity.activityIdx AS activityIdx',
+        'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
         'activityEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
-        'gradeEntity.gradeName AS gradeName',
         'activityEntity.targetDay AS targetDay',
         'activityEntity.content AS content',
         'activityEntity.amount AS amount',
         'activityEntity.payerName AS payerName',
-        'activityEntity.confirmYN AS confirmYN',
-        'activityEntity.confirmDate AS confirmDate',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('activityEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
@@ -256,18 +256,13 @@ export class ActivityRepository {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
       query.andWhere('userEntity.userName = :userName', { userName });
     }
-    if (filterInfo.gradeIdx) {
-      query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
-    }
-    if (filterInfo.confirmYN) {
-      query.andWhere('activityEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
-    }
 
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);
 
     query
       .orderBy('activityEntity.targetDay', 'DESC')
+      .addOrderBy('userEntity.userName', 'ASC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
@@ -387,6 +382,7 @@ export class ActivityRepository {
         'activityStatsEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
         'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
         'activityStatsEntity.activityBudget AS activityBudget',
         'activityStatsEntity.activityExpense AS activityExpense',
         '(activityStatsEntity.activityBudget - activityStatsEntity.activityExpense) AS activityBalance',
@@ -396,6 +392,7 @@ export class ActivityRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('activityStatsEntity.year = :year', { year })
       .andWhere('userEntity.userAvail IS NULL');
 

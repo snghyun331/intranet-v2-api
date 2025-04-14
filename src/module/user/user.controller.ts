@@ -35,7 +35,6 @@ import {
   CurrentUserInfoResult,
   GradeIdxsResult,
   UserIdxsResult,
-  AllUserInfoResult,
   HqIdxsResult,
   TeamIdxsResult,
 } from './interface/result.interface';
@@ -191,10 +190,7 @@ export class AdminUserController {
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminUserFilterDto,
   ): Promise<ResponseInterface> {
-    const { totalPage, total, users }: AllUserInfoResult = await this.userService.getAllUsersInfo(
-      pageNoInfo,
-      filterInfo,
-    );
+    const { totalPage, total, users } = await this.userService.getAllUsersInfo(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: '모든 직원 정보 조회 성공', data: { totalPage, total, users } };
 
@@ -202,7 +198,6 @@ export class AdminUserController {
   }
 
   @ApiOperation(ADMIN_USERS.POST.API_OPERATION)
-  @ApiBody(ADMIN_USERS.POST.API_BODY)
   @ApiCreatedResponse(ADMIN_USERS.POST.API_CREATED_RESPONSE)
   @ApiConflictResponse(ADMIN_USERS.POST.API_CONFLICT_RESPONSE)
   @ApiBearerAuth('accessToken')
@@ -235,7 +230,6 @@ export class AdminUserController {
 
   @ApiOperation(ADMIN_USERS.PUT.API_OPERATION)
   @ApiParam(ADMIN_USERS.PUT.API_PARAM1)
-  @ApiBody(ADMIN_USERS.PUT.API_BODY)
   @ApiOkResponse(ADMIN_USERS.PUT.API_OK_RESPONSE)
   @ApiBadRequestResponse(ADMIN_USERS.PUT.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')

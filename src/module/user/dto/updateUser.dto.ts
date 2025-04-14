@@ -14,6 +14,14 @@ export class UpdateUserDto extends PickType(CreateUserDto, [
   'joinDate',
   'adminRole',
   'adminGradeIdx',
+  'userPersonalEmail',
+  'accountNumber',
+  'accountBank',
+  'passportName',
+  'passportBirth',
+  'passportNo',
+  'passportExpiry',
+  'probationPeriod',
 ]) {
   @ApiProperty({ type: Number, description: '본부IDX', required: false })
   @IsOptional()

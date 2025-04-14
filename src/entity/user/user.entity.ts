@@ -74,6 +74,30 @@ export class UserEntity extends CommonEntity {
   @Column({ name: 'comment', comment: '특이사항', type: 'text', nullable: true })
   comment: string;
 
+  @Column({ name: 'user_personal_email', comment: '개인 이메일', nullable: true })
+  userPersonalEmail: string;
+
+  @Column({ name: 'account_number', comment: '계좌번호', nullable: true })
+  accountNumber: string;
+
+  @Column({ name: 'account_bank', comment: '계좌은행', nullable: true })
+  accountBank: string;
+
+  @Column({ name: 'passport_name', comment: '여권 성명', nullable: true })
+  passportName: string;
+
+  @Column({ name: 'passport_birth', comment: '여권 생년월일', nullable: true })
+  passportBirth: string;
+
+  @Column({ name: 'passport_no', comment: '여권 번호', nullable: true })
+  passportNo: string;
+
+  @Column({ name: 'passport_expiry', comment: '여권 만료일', nullable: true })
+  passportExpiry: string;
+
+  @Column({ name: 'probation_period', comment: '수습기간', nullable: true })
+  probationPeriod: string;
+
   @Column({ name: 'login_token', comment: '로그인 토큰', length: 1000, nullable: true })
   loginToken: string;
 
