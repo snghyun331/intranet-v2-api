@@ -232,12 +232,12 @@ export class AdminLeaveController {
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Patch(':leaveStatsIdx/note')
-  async updateLeaveStatsNote(
-    @Param('leaveStatsIdx', ParseIntPipe) leaveStatsIdx: number,
+  @Patch(':commuteIdx/note')
+  async updateLeaveNote(
+    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() noteInfo: UpdateNoteDto,
   ): Promise<ResponseInterface> {
-    await this.leaveService.updateLeaveStatsNote(leaveStatsIdx, noteInfo);
+    await this.leaveService.updateLeaveNote(commuteIdx, noteInfo);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
 

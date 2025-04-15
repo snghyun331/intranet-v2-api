@@ -98,15 +98,6 @@ export class LeaveRepository {
     return commuteIdx;
   }
 
-  async getLeaveStatsCountByIdx(leaveStatsIdx: number): Promise<number> {
-    const result: number = await this.leaveStatsModel
-      .createQueryBuilder('leaveStatsEntity')
-      .where('leaveStatsEntity.leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
-      .getCount();
-
-    return result;
-  }
-
   async createLeave(leaveInfo: LeaveDetailDto, userIdx: number, note: string | null): Promise<number> {
     const result: InsertResult = await this.commuteModel
       .createQueryBuilder()
@@ -514,12 +505,12 @@ export class LeaveRepository {
       .execute();
   }
 
-  async updateLeaveStatsNote(leaveStatsIdx: number, { note }: UpdateNoteDto): Promise<UpdateResult> {
-    return await this.leaveStatsModel
+  async updateLeaveNote(commuteIdx: number, { note }: UpdateNoteDto): Promise<UpdateResult> {
+    return await this.commuteModel
       .createQueryBuilder()
-      .update(LeaveStatsEntity)
+      .update(CommuteEntity)
       .set({ note })
-      .where('leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
 }
