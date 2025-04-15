@@ -1,29 +1,20 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  CurrentUserInfoResult,
-  GradeIdxsResult,
-  UserIdxsResult,
-  HqIdxsResult,
-  TeamIdxsResult,
-  CurrentUserInfo,
-} from '../interface/result.interface';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { AllUserInfo } from '../interface/user.interface';
 import { AdminUserFilterDto } from '../dto/query.dto';
 import { encryptPassword, removeAllWhiteSpace } from '../../../common/utils/utility';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { SortbyEnum } from '../../../common/constant/enum';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 import { AdminEntity } from '../../../entity/admin/admin.entity';
-import { UpdateUserDto } from '../dto/updateUser.dto';
 import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
 import { NewAdminInfo } from '../interface/admin.interface';
+import { NewUserInfo } from '../interface/user.interface';
 
 @Injectable()
 export class UserRepository {
@@ -55,8 +46,8 @@ export class UserRepository {
     return userCnt;
   }
 
-  async getAllUserIdxInfo(): Promise<UserIdxsResult[]> {
-    const result: UserIdxsResult[] = await this.userModel
+  async getAllUserIdxInfo() {
+    const result = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx', 'userEntity.userName AS userName', 'userEntity.gradeIdx AS gradeIdx'])
       .where('userEntity.userAvail IS NULL')
@@ -65,8 +56,8 @@ export class UserRepository {
     return result;
   }
 
-  async getUserInfo(userIdx: number, commuteDate: string): Promise<CurrentUserInfoResult> {
-    const queryResult: CurrentUserInfo = await this.userModel
+  async getUserInfo(userIdx: number, commuteDate: string) {
+    const queryResult = await this.userModel
       .createQueryBuilder('userEntity')
       .select([
         'userEntity.userIdx AS userIdx',
@@ -101,7 +92,7 @@ export class UserRepository {
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .getRawOne();
 
-    const result: CurrentUserInfoResult = {
+    const result = {
       ...queryResult,
       checkInTime: commuteInfo?.checkInTime ?? null,
       attendance: commuteInfo?.attendance ?? null,
@@ -112,8 +103,8 @@ export class UserRepository {
     return result;
   }
 
-  async getAllGradeIdxInfo(): Promise<GradeIdxsResult[]> {
-    const result: GradeIdxsResult[] = await this.gradeModel
+  async getAllGradeIdxInfo() {
+    const result = await this.gradeModel
       .createQueryBuilder('gradeEntity')
       .select(['gradeEntity.gradeIdx AS gradeIdx', 'gradeEntity.gradeName AS gradeName'])
       .getRawMany();
@@ -209,7 +200,7 @@ export class UserRepository {
         .offset((pageNo - 1) * perPage);
     }
 
-    const result: AllUserInfo[] = await query.getRawMany();
+    const result = await query.getRawMany();
 
     return { totalPage, total, users: result };
   }
@@ -237,7 +228,7 @@ export class UserRepository {
   }
 
   async getUserPassword(userIdx: number): Promise<string> {
-    const result: { password: string } = await this.userModel
+    const result = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.password AS password'])
       .where('userEntity.userIdx = :userIdx', { userIdx })
@@ -258,8 +249,8 @@ export class UserRepository {
       .execute();
   }
 
-  async getAllHqIdxInfo(): Promise<HqIdxsResult[]> {
-    const result: HqIdxsResult[] = await this.hqModel
+  async getAllHqIdxInfo() {
+    const result = await this.hqModel
       .createQueryBuilder('hqEntity')
       .select(['hqEntity.hqIdx AS hqIdx', 'hqEntity.hqName AS hqName'])
       .getRawMany();
@@ -267,8 +258,8 @@ export class UserRepository {
     return result;
   }
 
-  async getAllTeamIdxInfo(): Promise<TeamIdxsResult[]> {
-    const result: TeamIdxsResult[] = await this.teamModel
+  async getAllTeamIdxInfo() {
+    const result = await this.teamModel
       .createQueryBuilder('teamEntity')
       .select(['teamEntity.teamIdx AS teamIdx', 'teamEntity.teamName AS teamName'])
       .getRawMany();
@@ -287,13 +278,11 @@ export class UserRepository {
       .execute();
   }
 
-  async updateUserInfo(userIdx: number, updateInfo: UpdateUserDto): Promise<UpdateResult> {
-    const { adminGradeIdx, ...userInfo } = updateInfo;
-
+  async updateUserInfo(userIdx: number, updateInfo: NewUserInfo): Promise<UpdateResult> {
     return await this.userModel
       .createQueryBuilder()
       .update(UserEntity)
-      .set(userInfo)
+      .set(updateInfo)
       .where('userIdx = :userIdx', { userIdx })
       .execute();
   }
@@ -327,8 +316,8 @@ export class UserRepository {
       .execute();
   }
 
-  async getUserInfoByIdx(userIdx: number): Promise<any> {
-    const result: any = await this.userModel
+  async getUserInfoByIdx(userIdx: number) {
+    const result = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userName AS userName', 'userEntity.adminRole AS adminRole'])
       .where('userEntity.userIdx = :userIdx', { userIdx })

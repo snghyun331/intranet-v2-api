@@ -752,10 +752,9 @@ export const ADMIN_INTRANET_LEAVE_NOTE: SwaggerMethod = {
       summary: '어드민 휴가 특이사항 수정 API',
     },
     API_PARAM1: {
-      name: 'leaveStatsIdx',
+      name: 'commuteIdx',
       type: Number,
       required: true,
-      description: '연차관리IDX',
     },
     API_OK_RESPONSE: {
       content: {

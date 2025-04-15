@@ -13,23 +13,12 @@ import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthl
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
 import { ClearStatusEnum, ConfirmEnum, UserGradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
-import {
-  AdminWelfares,
-  NewWelfareMonthStats,
-  NewWelfareStats,
-  PayeeWelfareInfo,
-  WelfareAdminInfo,
-  WelfareInfo,
-  Welfares,
-  WelfareStats,
-  WelfareStatsAdminInfo,
-} from '../interface/welfare.interface';
 import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
-import { WelfareAdminResult, WelfareBudgetAdminResult } from '../interface/result.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminWelfareFilterDto } from '../dto/query.dto';
 import { TeamEntity } from '../../../entity/user/team.entity';
+import { NewWelfareMonthStats, NewWelfareStats } from '../interface';
 
 @Injectable()
 export class WelfareRepository {
@@ -142,8 +131,8 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getWelfareInfoByIdx(welfareIdx: number): Promise<WelfareInfo> {
-    const result: WelfareInfo = await this.welfareModel
+  async getWelfareInfoByIdx(welfareIdx: number) {
+    const result = await this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
         'welfareEntity.welfareIdx AS welfareIdx',
@@ -189,12 +178,12 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getUserHalfYearWelfares(year: string, halfYear: HalfYearEnum, userIdx: number): Promise<Welfares[]> {
+  async getUserHalfYearWelfares(year: string, halfYear: HalfYearEnum, userIdx: number) {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByHalfYear(year, halfYear);
     const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
 
-    const result: WelfareEntity[] = await this.welfareModel
+    const result = await this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
         'welfareEntity.welfareIdx AS welfareIdx',
@@ -214,10 +203,10 @@ export class WelfareRepository {
       .getRawMany();
 
     // 데이터를 변환하여 payeeList를 추가
-    const transformedResult: Welfares[] = await Promise.all(
+    const transformedResult = await Promise.all(
       result.map(async (welfare) => {
         const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
-        const payeeList: PayeeWelfareInfo[] = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
+        const payeeList = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
 
         return {
           welfareIdx: welfare.welfareIdx,
@@ -236,8 +225,8 @@ export class WelfareRepository {
     return transformedResult;
   }
 
-  async getWelfareStats(year: string, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareStats> {
-    const defaultResult: WelfareStats = {
+  async getWelfareStats(year: string, halfYear: HalfYearEnum, userIdx: number) {
+    const defaultResult = {
       year,
       halfYear,
       welfareBudget: 0,
@@ -263,7 +252,7 @@ export class WelfareRepository {
       return defaultResult;
     }
 
-    const result: WelfareStats = { ...statsInfo, welfareBalance: Number(statsInfo.welfareBalance) };
+    const result = { ...statsInfo, welfareBalance: Number(statsInfo.welfareBalance) };
 
     return result;
   }
@@ -290,8 +279,8 @@ export class WelfareRepository {
       .execute();
   }
 
-  private async getPayeeWelfareFromPayerWelfareIdx(welfareIdx: number): Promise<PayeeWelfareInfo[]> {
-    const result: PayeeWelfareInfo[] = await this.welfareModel
+  private async getPayeeWelfareFromPayerWelfareIdx(welfareIdx: number) {
+    const result = await this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
         'welfareEntity.userIdx AS userIdx',
@@ -375,8 +364,8 @@ export class WelfareRepository {
     return statsCnt;
   }
 
-  async getAdminWelfareBudget(year: string, halfYear: HalfYearEnum): Promise<WelfareBudgetAdminResult[]> {
-    const result: WelfareBudgetAdminResult[] = await this.welfareStatsModel
+  async getAdminWelfareBudget(year: string, halfYear: HalfYearEnum) {
+    const result = await this.welfareStatsModel
       .createQueryBuilder('welfareStatsEntity')
       .select([
         'welfareStatsEntity.welfareStatsIdx AS welfareStatsIdx',
@@ -406,7 +395,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getWelfare(pageNo: number, perPage: number, filterInfo: AdminWelfareFilterDto): Promise<WelfareAdminResult> {
+  async getWelfare(pageNo: number, perPage: number, filterInfo: AdminWelfareFilterDto) {
     const query: SelectQueryBuilder<WelfareEntity> = this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
@@ -446,13 +435,13 @@ export class WelfareRepository {
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
-    const result: AdminWelfares[] = await query.getRawMany();
+    const result = await query.getRawMany();
 
     // 데이터를 변환하여 payeeList를 추가
-    const transformedResult: WelfareAdminInfo[] = await Promise.all(
+    const transformedResult = await Promise.all(
       result.map(async (welfare) => {
         const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
-        const payeeList: PayeeWelfareInfo[] = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
+        const payeeList = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
 
         return {
           welfareIdx: welfare.welfareIdx,
@@ -524,7 +513,7 @@ export class WelfareRepository {
     query.orderBy('userEntity.gradeIdx', 'ASC').addOrderBy('welfareStatsEntity.halfYear', 'ASC');
 
     const userStatsInfo = await query.getRawMany();
-    const result: WelfareStatsAdminInfo[] = userStatsInfo.map((stats) => ({
+    const result = userStatsInfo.map((stats) => ({
       ...stats,
       welfareBalance: Number(stats.welfareBalance),
     }));

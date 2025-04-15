@@ -11,15 +11,7 @@ import {
 } from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
-import {
-  Activities,
-  ActivityInfo,
-  ActivityStats,
-  ActivityStatsAdminInfo,
-  AdminActivity,
-  NewActivityMonthStats,
-  NewActivityStats,
-} from '../interface/activity.interface';
+import { NewActivityMonthStats, NewActivityStats } from '../interface/activity.interface';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { UserPayload } from '../../../common/interface/payload.interface';
@@ -28,7 +20,6 @@ import { ActivityStatsEntity } from '../../../entity/activity/activityStats.enti
 import { AdminActivityFilterDto } from '../dto/query.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
-import { ActivityBudgetAdminResult } from '../interface/result.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { UpdateBudgetDto } from '../dto/updateBudget.dto';
 
@@ -117,8 +108,8 @@ export class ActivityRepository {
       .execute();
   }
 
-  async getActivityInfoByIdx(activityIdx: number): Promise<ActivityInfo> {
-    const result: ActivityInfo = await this.activityModel
+  async getActivityInfoByIdx(activityIdx: number) {
+    const result = await this.activityModel
       .createQueryBuilder('activityEntity')
       .select([
         'activityEntity.activityIdx AS activityIdx',
@@ -180,13 +171,13 @@ export class ActivityRepository {
 
     query.orderBy('activityEntity.targetDay', 'DESC').addOrderBy('activityEntity.createdAt', 'DESC');
 
-    const result: Activities[] = await query.getRawMany();
+    const result = await query.getRawMany();
 
     return result;
   }
 
-  async getActivityStats(year: string, halfYear: HalfYearEnum, user: UserPayload): Promise<ActivityStats> {
-    const defaultResult: ActivityStats = {
+  async getActivityStats(year: string, halfYear: HalfYearEnum, user: UserPayload) {
+    const defaultResult = {
       year,
       halfYear,
       activityBudget: 0,
@@ -224,7 +215,7 @@ export class ActivityRepository {
       return defaultResult;
     }
 
-    const result: ActivityStats = { ...statsInfo, activityBalance: Number(statsInfo.activityBalance) };
+    const result = { ...statsInfo, activityBalance: Number(statsInfo.activityBalance) };
 
     return result;
   }
@@ -266,7 +257,7 @@ export class ActivityRepository {
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
-    const result: AdminActivity[] = await query.getRawMany();
+    const result = await query.getRawMany();
 
     return { totalPage, total, activity: result };
   }
@@ -300,8 +291,8 @@ export class ActivityRepository {
       .execute();
   }
 
-  async getAdminActivityBudget(year: string, halfYear: HalfYearEnum): Promise<ActivityBudgetAdminResult[]> {
-    const result: ActivityBudgetAdminResult[] = await this.activityStatsModel
+  async getAdminActivityBudget(year: string, halfYear: HalfYearEnum) {
+    const result = await this.activityStatsModel
       .createQueryBuilder('activityStatsEntity')
       .select([
         'activityStatsEntity.activityStatsIdx AS activityStatsIdx',
@@ -372,7 +363,7 @@ export class ActivityRepository {
     }
   }
 
-  async getUserActivityStats(year: string, halfYear?: HalfYearEnum): Promise<ActivityStatsAdminInfo[]> {
+  async getUserActivityStats(year: string, halfYear?: HalfYearEnum) {
     const query: SelectQueryBuilder<ActivityStatsEntity> = this.activityStatsModel
       .createQueryBuilder('activityStatsEntity')
       .select([
@@ -404,7 +395,7 @@ export class ActivityRepository {
 
     const userStatsInfo = await query.getRawMany();
 
-    const result: ActivityStatsAdminInfo[] = userStatsInfo.map((stats) => ({
+    const result = userStatsInfo.map((stats) => ({
       ...stats,
       activityBalance: Number(stats.activityBalance),
     }));

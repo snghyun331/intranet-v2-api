@@ -1,24 +1,18 @@
 import * as moment from 'moment';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './repository/user.repository';
-import {
-  CurrentUserInfoResult,
-  GradeIdxsResult,
-  UserIdxsResult,
-  HqIdxsResult,
-  TeamIdxsResult,
-} from './interface/result.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
-import { UpdateMyPwDto } from './dto/updateMyPw.dto';
+import { UpdatePasswordDto } from './dto/updateMyPw.dto';
 import { decryptPassword, encryptPassword } from '../../common/utils/utility';
 import { YNEnum } from '../../common/constant/enum';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { RedisSearchService } from '../redis/redisSearch.service';
 import { Transactional } from 'typeorm-transactional';
 import { NewAdminInfo } from './interface/admin.interface';
+import { NewUserInfo } from './interface/user.interface';
 
 @Injectable()
 export class UserService {
@@ -27,15 +21,15 @@ export class UserService {
     private readonly redisSearchService: RedisSearchService,
   ) {}
 
-  async getAllUserIdxInfo(): Promise<UserIdxsResult[]> {
-    const result: UserIdxsResult[] = await this.userRepository.getAllUserIdxInfo();
+  async getAllUserIdxInfo() {
+    const result = await this.userRepository.getAllUserIdxInfo();
 
     return result;
   }
 
-  async getMyInfo(userIdx: number): Promise<CurrentUserInfoResult> {
+  async getMyInfo(userIdx: number) {
     const commuteDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    const user: CurrentUserInfoResult = await this.userRepository.getUserInfo(userIdx, commuteDate);
+    const user = await this.userRepository.getUserInfo(userIdx, commuteDate);
     if (!user) {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
     }
@@ -43,8 +37,8 @@ export class UserService {
     return user;
   }
 
-  async getAllGradeIdxInfo(): Promise<GradeIdxsResult[]> {
-    const result: GradeIdxsResult[] = await this.userRepository.getAllGradeIdxInfo();
+  async getAllGradeIdxInfo() {
+    const result = await this.userRepository.getAllGradeIdxInfo();
 
     return result;
   }
@@ -65,7 +59,8 @@ export class UserService {
       throw new ConflictException('이미 가입된 유저입니다.(아이디 중복)');
     }
 
-    const { adminGradeIdx, ...newUserInfo } = userInfo;
+    const { adminGradeIdx, ...rest } = userInfo;
+    const newUserInfo: NewUserInfo = rest;
 
     /* 유저 등록 */
     const userIdx: number = await this.userRepository.createUser(newUserInfo);
@@ -113,7 +108,7 @@ export class UserService {
   }
 
   @Transactional()
-  async updateMyPassword(userIdx: number, updateInfo: UpdateMyPwDto): Promise<void> {
+  async updateMyPassword(userIdx: number, updateInfo: UpdatePasswordDto): Promise<void> {
     const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -136,14 +131,14 @@ export class UserService {
     return;
   }
 
-  async getAllHqIdxInfo(): Promise<HqIdxsResult[]> {
-    const result: HqIdxsResult[] = await this.userRepository.getAllHqIdxInfo();
+  async getAllHqIdxInfo() {
+    const result = await this.userRepository.getAllHqIdxInfo();
 
     return result;
   }
 
-  async getAllTeamIdxInfo(): Promise<TeamIdxsResult[]> {
-    const result: TeamIdxsResult[] = await this.userRepository.getAllTeamIdxInfo();
+  async getAllTeamIdxInfo() {
+    const result = await this.userRepository.getAllTeamIdxInfo();
 
     return result;
   }
@@ -156,7 +151,9 @@ export class UserService {
     }
 
     /* 유저 정보 수정 */
-    await this.userRepository.updateUserInfo(userIdx, updateInfo);
+    const { adminGradeIdx, ...rest } = updateInfo;
+    const updateUserInfo: NewUserInfo = rest;
+    await this.userRepository.updateUserInfo(userIdx, updateUserInfo);
 
     if (updateInfo.adminRole === YNEnum.NO && updateInfo.adminGradeIdx) {
       throw new BadRequestException('어드민이 아닌 유저는 어드민 등급을 설정할 수 없습니다.');
@@ -171,7 +168,7 @@ export class UserService {
         id: updateInfo.id,
         adminName: updateInfo.userName,
         adminEmail: updateInfo.userEmail,
-        adminGradeIdx: updateInfo.adminGradeIdx,
+        adminGradeIdx,
       };
       const previousAdminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
       // 활성 상태인 어드민일 경우

@@ -33,8 +33,6 @@ import { CreateNoticeDto } from './dto/createNotice.dto';
 import { CurrentAdmin } from '../../common/decorator/currentAdmin.decorator';
 import { AdminPayload } from '../../common/interface/payload.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { NoticeResult } from './interface/result.interface';
-import { NoticeDetailInfo } from './interface/notice.interface';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -53,7 +51,7 @@ export class UserNoticeController {
   @UserRole(UserGradeEnum.INTERN)
   @Get()
   async getNoticeList(@Query() pageNoInfo: PageNoDto): Promise<ResponseInterface> {
-    const data: NoticeResult = await this.noticeService.getNoticeList(pageNoInfo);
+    const data = await this.noticeService.getNoticeList(pageNoInfo);
 
     const response: ResponseInterface = { message: 'success', data };
 
@@ -69,7 +67,7 @@ export class UserNoticeController {
   @UserRole(UserGradeEnum.INTERN)
   @Get(':noticeIdx')
   async getNoticeDetail(@Param('noticeIdx', ParseIntPipe) noticeIdx: number): Promise<ResponseInterface> {
-    const data: NoticeDetailInfo = await this.noticeService.getNoticeDetail(noticeIdx);
+    const data = await this.noticeService.getNoticeDetail(noticeIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
@@ -109,7 +107,7 @@ export class AdminNoticeController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get()
   async getNoticeList(@Query() pageNoInfo: PageNoDto): Promise<ResponseInterface> {
-    const data: NoticeResult = await this.noticeService.getNoticeList(pageNoInfo);
+    const data = await this.noticeService.getNoticeList(pageNoInfo);
 
     const response: ResponseInterface = { message: 'success', data };
 
@@ -125,7 +123,7 @@ export class AdminNoticeController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get(':noticeIdx')
   async getNoticeDetail(@Param('noticeIdx', ParseIntPipe) noticeIdx: number): Promise<ResponseInterface> {
-    const data: NoticeDetailInfo = await this.noticeService.getNoticeDetail(noticeIdx);
+    const data = await this.noticeService.getNoticeDetail(noticeIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
