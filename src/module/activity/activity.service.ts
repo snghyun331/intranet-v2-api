@@ -1,24 +1,10 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { ActivityRepository } from './repository/activity.repository';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
-import {
-  Activities,
-  ActivityInfo,
-  ActivityStats,
-  ActivityStatsAdminInfo,
-  NewActivityMonthStats,
-  NewActivityStats,
-} from './interface/activity.interface';
+import { NewActivityMonthStats, NewActivityStats } from './interface/activity.interface';
 import { UserPayload } from '../../common/interface/payload.interface';
 import { ConfirmEnum, HalfYearEnum, UserGradeIdxEnum } from '../../common/constant/enum';
-import { ActivityBudgetAdminResult, ActivityResult } from './interface/result.interface';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminActivityBalanceFilterDto, AdminActivityBudgetFilterDto, AdminActivityFilterDto } from './dto/query.dto';
 import { CreateActivityBudgetDto } from './dto/createBudget.dto';
@@ -68,8 +54,6 @@ export class ActivityService {
     // 활동비 반기별 사용금액 업데이트
     await this.activityRepository.updateActivityExpense(year, month, payerUserIdx);
 
-    throw new InternalServerErrorException();
-
     return targetDay;
   }
 
@@ -94,7 +78,7 @@ export class ActivityService {
       throw new BadRequestException('결제자 란에는 CEO, 본부장, 팀장만 기입할 수 있습니다.');
     }
 
-    const activityInfo: ActivityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
+    const activityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
     if (!activityInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
@@ -121,7 +105,7 @@ export class ActivityService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const activityInfo: ActivityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
+    const activityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
     if (!activityInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
@@ -145,10 +129,10 @@ export class ActivityService {
   }
 
   async getActivity(year: string, halfYear: HalfYearEnum, user: UserPayload) {
-    const activityInfo: Activities[] = await this.activityRepository.getHalfYearActivities(year, halfYear, user);
-    const activityStats: ActivityStats = await this.activityRepository.getActivityStats(year, halfYear, user);
+    const activityInfo = await this.activityRepository.getHalfYearActivities(year, halfYear, user);
+    const activityStats = await this.activityRepository.getActivityStats(year, halfYear, user);
 
-    const result: ActivityResult = {
+    const result = {
       activityStats,
       activities: activityInfo,
     };
@@ -214,7 +198,7 @@ export class ActivityService {
     return;
   }
 
-  async getActivityBudget(filterInfo: AdminActivityBudgetFilterDto): Promise<ActivityBudgetAdminResult[]> {
+  async getActivityBudget(filterInfo: AdminActivityBudgetFilterDto) {
     const date: Date = new Date();
     const year: string = date.getFullYear().toString();
 
@@ -226,7 +210,7 @@ export class ActivityService {
       halfYear = filterInfo.halfYear;
     }
 
-    const result: ActivityBudgetAdminResult[] = await this.activityRepository.getAdminActivityBudget(year, halfYear);
+    const result = await this.activityRepository.getAdminActivityBudget(year, halfYear);
 
     return result;
   }
@@ -257,7 +241,7 @@ export class ActivityService {
   @Transactional()
   async updateConfirmActivity(activityIdxList: number[], confirmYN: ConfirmEnum): Promise<void> {
     for (const activityIdx of activityIdxList) {
-      const activityInfo: ActivityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
+      const activityInfo = await this.activityRepository.getActivityInfoByIdx(activityIdx);
       if (!activityInfo) {
         throw new NotFoundException(`해당 내역은 존재하지 않거나 삭제되었습니다: activityIdx: ${activityIdx}`);
       }
@@ -268,8 +252,8 @@ export class ActivityService {
     return;
   }
 
-  async getUserActivityStats({ year, halfYear }: AdminActivityBalanceFilterDto): Promise<ActivityStatsAdminInfo[]> {
-    const result: ActivityStatsAdminInfo[] = await this.activityRepository.getUserActivityStats(year, halfYear);
+  async getUserActivityStats({ year, halfYear }: AdminActivityBalanceFilterDto) {
+    const result = await this.activityRepository.getUserActivityStats(year, halfYear);
 
     return result;
   }

@@ -37,7 +37,6 @@ import {
   AdminActivityFilterDto,
 } from './dto/query.dto';
 import { UserPayload } from '../../common/interface/payload.interface';
-import { ActivityBudgetAdminResult, ActivityResult } from './interface/result.interface';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
@@ -45,7 +44,6 @@ import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { UpdateConfirmDto } from './dto/updateConfirm.dto';
-import { ActivityStatsAdminInfo } from './interface/activity.interface';
 
 @ApiTags('사용자')
 @Controller('users/activities')
@@ -127,7 +125,7 @@ export class UserActivityController {
     @Query() { year, halfYear }: ActivityFilterDto,
     @CurrentUser() user: UserPayload,
   ): Promise<ResponseInterface> {
-    const activities: ActivityResult = await this.activityService.getActivity(year, halfYear, user);
+    const activities = await this.activityService.getActivity(year, halfYear, user);
 
     const response: ResponseInterface = { message: '활동비 사용내역 조회 성공', data: activities };
 
@@ -180,7 +178,7 @@ export class AdminActivityController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('budget')
   async getActivityeBudget(@Query() filterInfo: AdminActivityBudgetFilterDto): Promise<ResponseInterface> {
-    const activityBudget: ActivityBudgetAdminResult[] = await this.activityService.getActivityBudget(filterInfo);
+    const activityBudget = await this.activityService.getActivityBudget(filterInfo);
 
     const response: ResponseInterface = { message: 'success', data: activityBudget };
 
@@ -248,7 +246,7 @@ export class AdminActivityController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('balances')
   async getActivityBalance(@Query() filterInfo: AdminActivityBalanceFilterDto): Promise<ResponseInterface> {
-    const activityStats: ActivityStatsAdminInfo[] = await this.activityService.getUserActivityStats(filterInfo);
+    const activityStats = await this.activityService.getUserActivityStats(filterInfo);
 
     const response: ResponseInterface = {
       message: 'success',

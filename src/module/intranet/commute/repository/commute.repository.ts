@@ -6,18 +6,13 @@ import { AdminCommuteFilterDto, UserCommuteFilterDto } from '../dto/query.dto';
 import { UserEntity } from '../../../../entity/user/user.entity';
 import { GradeEntity } from '../../../../entity/user/grade.entity';
 import { TeamEntity } from '../../../../entity/user/team.entity';
-import {
-  InsertCheckInInfo,
-  UpdateCheckInInfo,
-  UpdateCheckOutInfo,
-  UpdateCommuteTimeInfo,
-} from '../interface/commute.interface';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField, removeAllWhiteSpace } from '../../../../common/utils/utility';
 import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
 import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
 import { ImageEntity } from '../../../../entity/image/image.entity';
+import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
 
 @Injectable()
 export class CommuteRepository {

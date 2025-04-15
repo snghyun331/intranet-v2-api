@@ -2,8 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { NoticeRepostiory } from './repository/notice.repository';
 import { CreateNoticeDto } from './dto/createNotice.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { NoticeResult } from './interface/result.interface';
-import { NoticeDetailInfo, NoticeImageInfo } from './interface/notice.interface';
+import { NoticeImageInfo } from './interface/notice.interface';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { ConfigService } from '@nestjs/config';
 import { AwsService } from '../aws/aws.service';
@@ -40,14 +39,14 @@ export class NoticeService {
     return;
   }
 
-  async getNoticeList({ pageNo, perPage }: PageNoDto): Promise<NoticeResult> {
-    const noticeList: NoticeResult = await this.noticeRepository.getNoticeList(pageNo, perPage);
+  async getNoticeList({ pageNo, perPage }: PageNoDto) {
+    const noticeList = await this.noticeRepository.getNoticeList(pageNo, perPage);
 
     return noticeList;
   }
 
-  async getNoticeDetail(noticeIdx: number): Promise<NoticeDetailInfo> {
-    const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+  async getNoticeDetail(noticeIdx: number) {
+    const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
     if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
@@ -71,7 +70,7 @@ export class NoticeService {
      * 기존 이미지 유지 → imageUrl: string
      */
 
-    const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
     if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
@@ -123,7 +122,7 @@ export class NoticeService {
 
   @Transactional()
   async deleteNotice(noticeIdx: number): Promise<void> {
-    const noticeInfo: NoticeDetailInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
     if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }

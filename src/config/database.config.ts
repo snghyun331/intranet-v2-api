@@ -23,7 +23,7 @@ export const TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
   }),
 
   async dataSourceFactory(option) {
-    if (!option) throw new InternalServerErrorException('Invalid options passed');
+    if (!option) throw new InternalServerErrorException('Transaction Error: Invalid options passed');
 
     return addTransactionalDataSource(new DataSource(option));
   },
@@ -45,7 +45,7 @@ export const TEST_TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
   }),
 
   async dataSourceFactory(option) {
-    if (!option) throw new InternalServerErrorException('Invalid options passed');
+    if (!option) throw new InternalServerErrorException('Transaction Error: Invalid options passed');
 
     return addTransactionalDataSource(new DataSource(option));
   },

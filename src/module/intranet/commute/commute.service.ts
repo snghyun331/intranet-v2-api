@@ -18,12 +18,6 @@ import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
 import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
 import {
-  InsertCheckInInfo,
-  UpdateCheckInInfo,
-  UpdateCheckOutInfo,
-  UpdateCommuteTimeInfo,
-} from './interface/commute.interface';
-import {
   getAmHalfEarlyBoundary,
   getAmHalfLateBoundary,
   getAmQuarterEarlyBoundary,
@@ -36,6 +30,7 @@ import {
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { Transactional } from 'typeorm-transactional';
+import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from './interface';
 
 @Injectable()
 export class CommuteService {

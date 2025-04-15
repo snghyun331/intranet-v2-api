@@ -4,5 +4,3 @@ export interface NewAdminInfo {
   adminEmail: string;
   adminGradeIdx: number;
 }
-
-export interface UpdateAdminInfo extends Partial<NewAdminInfo> {}

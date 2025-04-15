@@ -3,14 +3,7 @@ import { CreateWelfareDto } from './dto/createWelfare.dto';
 import { WelfareRepository } from './repository/welfare.repository';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
 import { ConfirmEnum, HalfYearEnum, YNEnum } from '../../common/constant/enum';
-import {
-  NewWelfareMonthStats,
-  NewWelfareStats,
-  WelfareInfo,
-  Welfares,
-  WelfareStats,
-} from './interface/welfare.interface';
-import { WelfareAdminResult, WelfareBudgetAdminResult, WelfareResult } from './interface/result.interface';
+import { NewWelfareMonthStats, NewWelfareStats } from './interface/welfare.interface';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 import { AdminWelfareBalanceFilterDto, AdminWelfareBudgetFilterDto, AdminWelfareFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -68,7 +61,7 @@ export class WelfareService {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
+    const welfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
     if (!welfareInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
@@ -117,7 +110,7 @@ export class WelfareService {
       throw new BadRequestException('결제자는 본인 이름만 입력 가능합니다.');
     }
 
-    const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
+    const welfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
     if (!welfareInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
@@ -168,19 +161,16 @@ export class WelfareService {
     return updateWelfareInfo.targetDay;
   }
 
-  async getMyWelfare(year: string, halfYear: HalfYearEnum, userIdx: number): Promise<WelfareResult> {
+  async getMyWelfare(year: string, halfYear: HalfYearEnum, userIdx: number) {
     const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const welfareInfo: Welfares[] = await this.welfareRepository.getUserHalfYearWelfares(year, halfYear, userIdx);
-    const welfareStats: WelfareStats = await this.welfareRepository.getWelfareStats(year, halfYear, userIdx);
+    const welfareInfo = await this.welfareRepository.getUserHalfYearWelfares(year, halfYear, userIdx);
+    const welfareStats = await this.welfareRepository.getWelfareStats(year, halfYear, userIdx);
 
-    const result: WelfareResult = {
-      welfareStats,
-      welfares: welfareInfo,
-    };
+    const result = { welfareStats, welfares: welfareInfo };
 
     return result;
   }
@@ -255,7 +245,7 @@ export class WelfareService {
     return;
   }
 
-  async getWelfareBudget(filterInfo: AdminWelfareBudgetFilterDto): Promise<WelfareBudgetAdminResult[]> {
+  async getWelfareBudget(filterInfo: AdminWelfareBudgetFilterDto) {
     const date: Date = new Date();
     const year: string = date.getFullYear().toString();
 
@@ -267,7 +257,7 @@ export class WelfareService {
       halfYear = filterInfo.halfYear;
     }
 
-    const result: WelfareBudgetAdminResult[] = await this.welfareRepository.getAdminWelfareBudget(year, halfYear);
+    const result = await this.welfareRepository.getAdminWelfareBudget(year, halfYear);
 
     return result;
   }
@@ -283,12 +273,8 @@ export class WelfareService {
     return;
   }
 
-  async getWelfare({ pageNo, perPage }: PageNoDto, filterInfo: AdminWelfareFilterDto): Promise<WelfareAdminResult> {
-    const { totalPage, total, welfare }: WelfareAdminResult = await this.welfareRepository.getWelfare(
-      pageNo,
-      perPage,
-      filterInfo,
-    );
+  async getWelfare({ pageNo, perPage }: PageNoDto, filterInfo: AdminWelfareFilterDto) {
+    const { totalPage, total, welfare } = await this.welfareRepository.getWelfare(pageNo, perPage, filterInfo);
 
     return { totalPage, total, welfare };
   }
@@ -296,7 +282,7 @@ export class WelfareService {
   @Transactional()
   async updateConfirmWelfare(welfareIdxList: number[], confirmYN: ConfirmEnum): Promise<void> {
     for (const welfareIdx of welfareIdxList) {
-      const welfareInfo: WelfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
+      const welfareInfo = await this.welfareRepository.getWelfareInfoByIdx(welfareIdx);
       if (!welfareInfo) {
         throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
       }

@@ -31,23 +31,16 @@ import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { ResponseInterface } from '../../common/interface/response.interface';
-import {
-  CurrentUserInfoResult,
-  GradeIdxsResult,
-  UserIdxsResult,
-  HqIdxsResult,
-  TeamIdxsResult,
-} from './interface/result.interface';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
-import { UpdateMyPwDto } from './dto/updateMyPw.dto';
+import { UpdatePasswordDto } from './dto/updateMyPw.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { UpdateUserDto } from './dto/updateUser.dto';
-import { UserDto } from './interface/user.interface';
+import { SearchUserDto } from './dto/searchUser.dto';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -61,7 +54,7 @@ export class UserController {
   @UserRole(UserGradeEnum.INTERN)
   @Get('ids')
   async getAllUserIdxs(): Promise<ResponseInterface> {
-    const userIdxInfo: UserIdxsResult[] = await this.userService.getAllUserIdxInfo();
+    const userIdxInfo = await this.userService.getAllUserIdxInfo();
 
     const response: ResponseInterface = { message: '모든 사용자 IDX 조회 성공', data: userIdxInfo };
 
@@ -75,7 +68,7 @@ export class UserController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('gradeIds')
   async getAllGradeIdxs(): Promise<ResponseInterface> {
-    const gradeIdxInfo: GradeIdxsResult[] = await this.userService.getAllGradeIdxInfo();
+    const gradeIdxInfo = await this.userService.getAllGradeIdxInfo();
 
     const response: ResponseInterface = { message: '모든 직급 IDX 조회 성공', data: gradeIdxInfo };
 
@@ -89,7 +82,7 @@ export class UserController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('hqIds')
   async getAllHqIdxs(): Promise<ResponseInterface> {
-    const hqIdxInfo: HqIdxsResult[] = await this.userService.getAllHqIdxInfo();
+    const hqIdxInfo = await this.userService.getAllHqIdxInfo();
 
     const response: ResponseInterface = { message: '모든 본부 IDX 조회 성공', data: hqIdxInfo };
 
@@ -103,7 +96,7 @@ export class UserController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('teamIds')
   async getAllTeamIdxs(): Promise<ResponseInterface> {
-    const teamIdxInfo: TeamIdxsResult[] = await this.userService.getAllTeamIdxInfo();
+    const teamIdxInfo = await this.userService.getAllTeamIdxInfo();
 
     const response: ResponseInterface = { message: '모든 팀 IDX 조회 성공', data: teamIdxInfo };
 
@@ -118,7 +111,7 @@ export class UserController {
   @UserRole(UserGradeEnum.INTERN)
   @Get('me')
   async getMyInfo(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
-    const user: CurrentUserInfoResult = await this.userService.getMyInfo(userIdx);
+    const user = await this.userService.getMyInfo(userIdx);
 
     const response: ResponseInterface = { message: '현재 로그인 되어있는 사용자 정보 조회 성공', data: user };
 
@@ -150,7 +143,10 @@ export class UserController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Patch('me/password')
-  async updateMyPw(@CurrentUserIdx() userIdx: number, @Body() updateInfo: UpdateMyPwDto): Promise<ResponseInterface> {
+  async updateMyPw(
+    @CurrentUserIdx() userIdx: number,
+    @Body() updateInfo: UpdatePasswordDto,
+  ): Promise<ResponseInterface> {
     await this.userService.updateMyPassword(userIdx, updateInfo);
 
     const response: ResponseInterface = { message: '내 비밀번호 변경 성공' };
@@ -270,7 +266,7 @@ export class AdminUserController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('ids')
   async getAllUserIdxs(): Promise<ResponseInterface> {
-    const userIdxInfo: UserIdxsResult[] = await this.userService.getAllUserIdxInfo();
+    const userIdxInfo = await this.userService.getAllUserIdxInfo();
 
     const response: ResponseInterface = { message: '모든 사용자 IDX 조회 성공', data: userIdxInfo };
 
@@ -295,7 +291,7 @@ export class AdminUserController {
   @ApiOperation(ADMIN_SEARCH_PREFIX_USERNAME.POST.API_OPERATION)
   @ApiBody(ADMIN_SEARCH_PREFIX_USERNAME.POST.API_BODY)
   @Post('search-prefix/username')
-  async test(@Body() user: UserDto): Promise<ResponseInterface> {
+  async test(@Body() user: SearchUserDto): Promise<ResponseInterface> {
     await this.userService.addUserInRedis(user);
 
     const response: ResponseInterface = { message: 'success', data: user };
