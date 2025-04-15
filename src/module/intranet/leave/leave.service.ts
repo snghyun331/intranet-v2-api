@@ -552,12 +552,8 @@ export class LeaveService {
   }
 
   @Transactional()
-  async updateLeaveStatsNote(leaveStatsIdx: number, noteInfo: UpdateNoteDto): Promise<void> {
-    const leaveStatsCnt: number = await this.leaveRepository.getLeaveStatsCountByIdx(leaveStatsIdx);
-    if (leaveStatsCnt < 1) {
-      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
-    }
-    await this.leaveRepository.updateLeaveStatsNote(leaveStatsIdx, noteInfo);
+  async updateLeaveNote(commuteIdx: number, noteInfo: UpdateNoteDto): Promise<void> {
+    await this.leaveRepository.updateLeaveNote(commuteIdx, noteInfo);
 
     return;
   }

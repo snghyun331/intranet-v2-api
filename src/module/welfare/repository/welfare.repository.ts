@@ -13,12 +13,12 @@ import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthl
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
 import { ClearStatusEnum, ConfirmEnum, UserGradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
-import { NewWelfareMonthStats, NewWelfareStats } from '../interface/welfare.interface';
 import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminWelfareFilterDto } from '../dto/query.dto';
 import { TeamEntity } from '../../../entity/user/team.entity';
+import { NewWelfareMonthStats, NewWelfareStats } from '../interface';
 
 @Injectable()
 export class WelfareRepository {

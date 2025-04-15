@@ -61,7 +61,7 @@ export class LeaveRepository {
     return result;
   }
 
-  async getLeaveInfoByIdx(commuteIdx: number): Promise<any> {
+  async getLeaveInfoByIdx(commuteIdx: number) {
     const result: any = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
@@ -75,7 +75,7 @@ export class LeaveRepository {
     return result;
   }
 
-  async getLeaveImageInfoByIdx(commuteIdx: number): Promise<any> {
+  async getLeaveImageInfoByIdx(commuteIdx: number) {
     const result: any = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select(['commuteImageEntity.imageIdx AS imageIdx', 'imageEntity.imageName AS imageName'])
@@ -96,15 +96,6 @@ export class LeaveRepository {
       .getRawOne();
 
     return commuteIdx;
-  }
-
-  async getLeaveStatsCountByIdx(leaveStatsIdx: number): Promise<number> {
-    const result: number = await this.leaveStatsModel
-      .createQueryBuilder('leaveStatsEntity')
-      .where('leaveStatsEntity.leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
-      .getCount();
-
-    return result;
   }
 
   async createLeave(leaveInfo: LeaveDetailDto, userIdx: number, note: string | null): Promise<number> {
@@ -514,12 +505,12 @@ export class LeaveRepository {
       .execute();
   }
 
-  async updateLeaveStatsNote(leaveStatsIdx: number, { note }: UpdateNoteDto): Promise<UpdateResult> {
-    return await this.leaveStatsModel
+  async updateLeaveNote(commuteIdx: number, { note }: UpdateNoteDto): Promise<UpdateResult> {
+    return await this.commuteModel
       .createQueryBuilder()
-      .update(LeaveStatsEntity)
+      .update(CommuteEntity)
       .set({ note })
-      .where('leaveStatsIdx = :leaveStatsIdx', { leaveStatsIdx })
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
 }
