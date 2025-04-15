@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class UpdateMyPwDto {
+export class UpdatePasswordDto {
   @ApiProperty({ type: String, description: '기존 비밀번호', required: true })
   @IsNotEmpty({ message: '기존 비밀번호를 입력해주세요' })
   @IsString()

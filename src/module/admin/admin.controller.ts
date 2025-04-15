@@ -7,7 +7,6 @@ import { ADMIN_GRADES_IDX } from './swagger/admin.swagger';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminRole } from '../../common/decorator/role.decorator';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
-import { AdminGradeIdxsResult } from './interface/result.interface';
 
 @ApiTags('어드민')
 @Controller('admin')
@@ -21,7 +20,7 @@ export class AdminController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('gradeIds')
   async getAllAdminGradeIdxs(): Promise<ResponseInterface> {
-    const gradeIdxInfo: AdminGradeIdxsResult[] = await this.adminService.getAllAdminGradeIdxInfo();
+    const gradeIdxInfo = await this.adminService.getAllAdminGradeIdxInfo();
 
     const response: ResponseInterface = { message: '모든 직급 IDX 조회 성공', data: gradeIdxInfo };
 

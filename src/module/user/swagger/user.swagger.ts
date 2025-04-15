@@ -1,8 +1,8 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 import { CreateUserDto } from '../dto/createUser.dto';
+import { SearchUserDto } from '../dto/searchUser.dto';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 import { UpdateUserDto } from '../dto/updateUser.dto';
-import { UserDto } from '../interface/user.interface';
 
 export const USERS_IDXS: SwaggerMethod = {
   GET: {
@@ -670,7 +670,7 @@ export const ADMIN_SEARCH_PREFIX_USERNAME: SwaggerMethod = {
       summary: '백엔드 테스트용(나중에 삭제)',
     },
     API_BODY: {
-      type: UserDto,
+      type: SearchUserDto,
       examples: {
         a: {
           summary: '예시',

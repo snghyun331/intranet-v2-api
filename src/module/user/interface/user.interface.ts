@@ -1,13 +1,3 @@
-import { CurrentUserInfo } from './result.interface';
+import { CreateUserDto } from '../dto/createUser.dto';
 
-export interface AllUserInfo extends CurrentUserInfo {
-  id: string;
-  userAddress: string;
-  comment: string;
-  userAvalil: Date;
-}
-
-export class UserDto {
-  userIdx: number;
-  userName: string;
-}
+export type NewUserInfo = Omit<CreateUserDto, 'adminGradeIdx'>;
