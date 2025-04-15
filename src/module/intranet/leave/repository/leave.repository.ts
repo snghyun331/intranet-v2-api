@@ -61,7 +61,7 @@ export class LeaveRepository {
     return result;
   }
 
-  async getLeaveInfoByIdx(commuteIdx: number): Promise<any> {
+  async getLeaveInfoByIdx(commuteIdx: number) {
     const result: any = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
@@ -75,7 +75,7 @@ export class LeaveRepository {
     return result;
   }
 
-  async getLeaveImageInfoByIdx(commuteIdx: number): Promise<any> {
+  async getLeaveImageInfoByIdx(commuteIdx: number) {
     const result: any = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select(['commuteImageEntity.imageIdx AS imageIdx', 'imageEntity.imageName AS imageName'])
