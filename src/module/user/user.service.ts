@@ -44,9 +44,6 @@ export class UserService {
   }
 
   async getAllUsersInfo(pageNoInfo: PageNoDto, filterInfo: AdminUserFilterDto) {
-    if ((filterInfo.sortby && !filterInfo.orderby) || (!filterInfo.sortby && filterInfo.orderby)) {
-      throw new BadRequestException('sortby와 orderby는 함께 제공되거나 둘 다 없어야 합니다.');
-    }
     const user = await this.userRepository.getAllUsersInfo(pageNoInfo, filterInfo);
 
     return user;
