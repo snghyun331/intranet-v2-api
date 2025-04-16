@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { closeTestApp, createTestAppWithCommute } from '../../../../test/appInit';
 import * as request from 'supertest';
 import { CheckInDto } from './dto/checkIn.dto';
-import { IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
 import { LeaveDetailDto } from '../leave/dto/createLeave.dto';
 import { CheckOutDto } from './dto/checkOut.dto';
 import { LeaveRepository } from '../leave/repository/leave.repository';
@@ -74,12 +74,12 @@ describe('CommuteController(e2e)', () => {
   /**
    * ✅ 휴가 등록 함수
    */
-  async function requestLeave(commuteDate: string, leaveTypeIdx: IntranetLeaveTypeIdxEnum) {
+  async function requestLeave(commuteDate: string, leaveTypeIdx: IntranetLeaveTypeIdxEnum, confirmYN: ConfirmEnum) {
     const leaveDto: LeaveDetailDto = { commuteDate, leaveTypeIdx };
     const userIdx = 1;
     const note = null;
 
-    await leaveRepository.createLeaveForE2ETest(leaveDto, userIdx, note);
+    await leaveRepository.createLeaveForE2ETest(leaveDto, userIdx, note, confirmYN);
   }
 
   /**
@@ -93,10 +93,10 @@ describe('CommuteController(e2e)', () => {
     beforeEach(async () => {
       commuteDate = '2025-03-04';
       checkInDto = {
-        checkInTime: new Date(`${commuteDate}T00:16:15.000Z`),
+        checkInTime: new Date(`${commuteDate}T09:16:15`),
       };
       checkOutDto = {
-        checkOutTime: new Date(`${commuteDate}T09:18:15.000Z`),
+        checkOutTime: new Date(`${commuteDate}T18:18:15`),
         earlyLeaveReason: null,
       };
     });
@@ -135,7 +135,7 @@ describe('CommuteController(e2e)', () => {
     });
   });
 
-  describe('오전 반차 출근 (지각O)', () => {
+  describe('오전 반차(승인) 출근 (지각O)', () => {
     let commuteDate: string;
     let checkInDto: CheckInDto;
     let checkOutDto: CheckOutDto;
@@ -152,7 +152,7 @@ describe('CommuteController(e2e)', () => {
     });
 
     it('휴가가 정상적으로 등록되는가?', async () => {
-      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.AM_HALF);
+      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.AM_HALF, ConfirmEnum.YES);
     });
 
     it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
@@ -164,7 +164,7 @@ describe('CommuteController(e2e)', () => {
     });
   });
 
-  describe('오후 반차 출근 (지각O)', () => {
+  describe('오후 반차(승인) 출근 (지각O)', () => {
     let commuteDate: string;
     let checkInDto: CheckInDto;
     let checkOutDto: CheckOutDto;
@@ -181,7 +181,7 @@ describe('CommuteController(e2e)', () => {
     });
 
     it('휴가가 정상적으로 등록되는가?', async () => {
-      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.PM_HALF);
+      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.PM_HALF, ConfirmEnum.YES);
     });
 
     it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
@@ -193,7 +193,7 @@ describe('CommuteController(e2e)', () => {
     });
   });
 
-  describe('오전 반반차 출근 (지각O)', () => {
+  describe('오전 반반차(승인) 출근 (지각O)', () => {
     let commuteDate: string;
     let checkInDto: CheckInDto;
     let checkOutDto: CheckOutDto;
@@ -210,7 +210,7 @@ describe('CommuteController(e2e)', () => {
     });
 
     it('휴가가 정상적으로 등록되는가?', async () => {
-      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.AM_QUARTER);
+      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.AM_QUARTER, ConfirmEnum.YES);
     });
 
     it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {
@@ -222,7 +222,7 @@ describe('CommuteController(e2e)', () => {
     });
   });
 
-  describe('오후 반반차 출근 (지각O)', () => {
+  describe('오후 반반차(승인) 출근 (지각O)', () => {
     let commuteDate: string;
     let checkInDto: CheckInDto;
     let checkOutDto: CheckOutDto;
@@ -239,7 +239,7 @@ describe('CommuteController(e2e)', () => {
     });
 
     it('휴가가 정상적으로 등록되는가?', async () => {
-      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.PM_QUARTER);
+      await requestLeave(commuteDate, IntranetLeaveTypeIdxEnum.PM_QUARTER, ConfirmEnum.YES);
     });
 
     it("'정상 출근(지각)'으로 잘 표시되었는가?", async () => {

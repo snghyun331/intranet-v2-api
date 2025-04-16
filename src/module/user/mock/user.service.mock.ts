@@ -1,25 +1,21 @@
 import * as moment from 'moment';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { UserRepository } from './repository/user.repository';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { AdminUserFilterDto } from './dto/query.dto';
-import { CreateUserDto } from './dto/createUser.dto';
-import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
-import { UpdatePasswordDto } from './dto/updateMyPw.dto';
-import { decryptPassword, encryptPassword } from '../../common/utils/utility';
-import { YNEnum } from '../../common/constant/enum';
-import { UpdateUserDto } from './dto/updateUser.dto';
-import { RedisSearchService } from '../redis/redisSearch.service';
+import { UserRepository } from '../repository/user.repository';
+import { PageNoDto } from '../../../common/dto/pageNo.dto';
+import { AdminUserFilterDto } from '../dto/query.dto';
+import { CreateUserDto } from '../dto/createUser.dto';
+import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
+import { UpdatePasswordDto } from '../dto/updateMyPw.dto';
+import { decryptPassword, encryptPassword } from '../../../common/utils/utility';
+import { YNEnum } from '../../../common/constant/enum';
+import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Transactional } from 'typeorm-transactional';
-import { NewAdminInfo } from './interface/admin.interface';
-import { NewUserInfo } from './interface/user.interface';
+import { NewAdminInfo } from '../interface/admin.interface';
+import { NewUserInfo } from '../interface/user.interface';
 
 @Injectable()
-export class UserService {
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly redisSearchService: RedisSearchService,
-  ) {}
+export class MockUserService {
+  constructor(private readonly userRepository: UserRepository) {}
 
   async getAllUserIdxInfo() {
     const result = await this.userRepository.getAllUserIdxInfo();
@@ -76,9 +72,6 @@ export class UserService {
 
       await this.userRepository.createAdmin(userIdx, newAdminInfo);
     }
-
-    /* Redis에 유저 등록(검색 자동완성) */
-    await this.redisSearchService.addUserInRedis(userIdx, userInfo.userName);
 
     return;
   }
@@ -185,12 +178,6 @@ export class UserService {
         await this.userRepository.deleteAdmin(userIdx);
       }
     }
-
-    /* 유저네임이 바뀌었다면, Redis 유저네임 업데이트 */
-    if (updateInfo.userName !== result.userName) {
-      await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
-      await this.redisSearchService.addUserInRedis(userIdx, updateInfo.userName);
-    }
   }
 
   @Transactional()
@@ -206,9 +193,6 @@ export class UserService {
       await this.userRepository.deleteAdmin(userIdx);
     }
 
-    /* Redis에 등록된 유저네임 삭제 */
-    await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
-
     return;
   }
 
@@ -216,17 +200,5 @@ export class UserService {
     const result = await this.userRepository.getBirthdayUsersByDate(date);
 
     return result;
-  }
-
-  async getAllUserName(searchWord: string) {
-    const result = await this.redisSearchService.getUserNameByPrefix(searchWord);
-
-    return result;
-  }
-
-  async addUserInRedis({ userIdx, userName }) {
-    await this.redisSearchService.addUserInRedis(userIdx, userName);
-
-    return;
   }
 }

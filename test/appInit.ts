@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TEST_TYPEORM_CONFIG } from '../src/config/database.config';
 import { AuthModule } from '../src/module/auth/auth.module';
-import { UserModule } from '../src/module/user/user.module';
+import { MockUserModule } from '../src/module/user/user.module';
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AdminGradeEnum, GenderEnum, UserGradeEnum, YNEnum } from '../src/common/constant/enum';
@@ -21,7 +21,7 @@ const createTestApp = async (modules: any[]) => {
       }),
       TypeOrmModule.forRootAsync(TEST_TYPEORM_CONFIG),
       AuthModule,
-      UserModule,
+      MockUserModule,
       ...modules,
     ],
   }).compile();

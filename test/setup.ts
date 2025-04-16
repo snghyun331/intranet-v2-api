@@ -14,10 +14,14 @@ import { setupMealTriggers } from './trigger/meal.trigger';
 import { setupWelfareTriggers } from './trigger/welfare.trigger';
 import { setupActivityTriggers } from './trigger/activity.trigger';
 import { seedLeaveType } from './seed/leave/leaveType.seeder';
+import { addTransactionalDataSource, initializeTransactionalContext } from 'typeorm-transactional';
 
 let dataSource: DataSource;
 
 beforeAll(async () => {
+  // 트랜잭션 초기화
+  initializeTransactionalContext();
+
   // TypeORM 초기화
   const configService = new ConfigService();
   const typeOrmModuleOptions = await TEST_TYPEORM_CONFIG.useFactory(configService);
@@ -25,6 +29,9 @@ beforeAll(async () => {
   dataSource = new DataSource(typeOrmModuleOptions as DataSourceOptions);
 
   await dataSource.initialize();
+
+  // 트랜잭션 적용
+  addTransactionalDataSource(dataSource);
 
   // 데이터 시딩
   await seedTeam(dataSource);

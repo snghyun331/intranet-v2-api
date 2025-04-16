@@ -3,8 +3,6 @@ import { CreateMealDto } from './dto/createMeal.dto';
 import * as request from 'supertest';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { MealRepository } from './repository/meal.repository';
-import { MealStatsAdminInfo } from './interface/meal.interface';
-import { MealEntity } from '../../entity/meal/meal.entity';
 import { closeTestApp, createTestAppWithMeal } from '../../../test/appInit';
 
 describe('MealController(e2e)', () => {
@@ -183,16 +181,16 @@ describe('MealController(e2e)', () => {
 
     it('mealBalance = mealBudget - mealExpense 가 성립하는가?', async () => {
       const { mealStats } = response.body.data;
-      mealStats.forEach((stats: MealStatsAdminInfo) => {
+      mealStats.forEach((stats: any) => {
         expect(typeof stats.mealBalance).toBe('number');
         expect(stats.mealBalance).toEqual(stats.mealBudget - stats.mealExpense);
       });
     });
 
     it('totalOverpay가 알맞게 계산되었는가?', async () => {
-      const mealStats: MealStatsAdminInfo[] = response.body.data.mealStats;
+      const mealStats = response.body.data.mealStats;
       if (mealStats.length > 0) {
-        mealStats.forEach((stats: MealStatsAdminInfo) => {
+        mealStats.forEach((stats: any) => {
           if (stats.mealBalance < 0) {
             expect(stats.totalOverpay).toBe(stats.breakfastOverpay + stats.dinnerOverpay + Math.abs(stats.mealBalance));
           } else {
@@ -205,7 +203,7 @@ describe('MealController(e2e)', () => {
     it('사용가능금액 = 기본금액 X (업무일수 + 휴일근무일수 - 휴무일)가 성립하는가?', async () => {
       const { mealStats } = response.body.data;
       const { baseAmount } = await mealRepository.getMealBaseInfo(year, month);
-      mealStats.forEach((stats: MealStatsAdminInfo) => {
+      mealStats.forEach((stats: any) => {
         expect(stats.mealBudget).toEqual(baseAmount * (stats.workdays + stats.holidayWorkdays - stats.timeoffDays));
       });
     });
@@ -226,8 +224,8 @@ describe('MealController(e2e)', () => {
     });
 
     it('응답값이 targetDay 기준 오름차순으로 정렬되어 있는가?', () => {
-      const data: MealEntity[] = response.body.data;
-      const sortedData: MealEntity[] = data.sort((a: any, b: any) => a.targetDay - b.targetDay);
+      const data = response.body.data;
+      const sortedData = data.sort((a: any, b: any) => a.targetDay - b.targetDay);
       expect(data).toEqual(sortedData);
     });
 
