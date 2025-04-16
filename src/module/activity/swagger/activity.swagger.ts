@@ -602,6 +602,7 @@ export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
         a: {
           summary: '예시',
           value: {
+            year: '2025',
             period: 'H1',
             userIdx: 1,
             memberCount: 7,
