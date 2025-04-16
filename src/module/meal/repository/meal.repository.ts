@@ -509,6 +509,7 @@ export class MealRepository {
         'mealStatsEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
         'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
         'mealStatsEntity.mealBudget AS mealBudget',
         'mealStatsEntity.mealExpense AS mealExpense',
         '(mealStatsEntity.mealBudget - mealStatsEntity.mealExpense) AS mealBalance',
@@ -527,6 +528,7 @@ export class MealRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
       .andWhere('userEntity.userAvail IS NULL')
