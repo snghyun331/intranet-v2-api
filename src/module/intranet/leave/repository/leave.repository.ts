@@ -360,16 +360,6 @@ export class LeaveRepository {
   async getUserLeaveDetail(filterInfo: UserLeaveDetailFilterDto | AdminLeaveDetailFilterDto, userIdx: number) {
     // startDate과 endDate 계산
     const { year, month, leaveTypeIdx } = filterInfo;
-    const { startDate, endDate } = month
-      ? {
-          startDate: getStartAndEndDateByMonth(year, month).firstDayOfMonth.format('YYYY-MM-DD'),
-          endDate: getStartAndEndDateByMonth(year, month).lastDayOfMonth.format('YYYY-MM-DD'),
-        }
-      : {
-          startDate: getStartAndEndDateByYear(year).firstDayOfYear,
-          endDate: getStartAndEndDateByYear(year).lastDayOfYear,
-        };
-
     const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
@@ -414,10 +404,8 @@ export class LeaveRepository {
       .leftJoin(CommuteCCUserEntity, 'commuteCCUserEntity', 'commuteCCUserEntity.commuteIdx = commuteEntity.commuteIdx')
       .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = commuteCCUserEntity.ccUserIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      });
+      .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year })
+      .andWhere('MONTH(commuteEntity.commuteDate) in (:...month)', { month });
 
     if (leaveTypeIdx) {
       query.andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx });
