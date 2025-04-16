@@ -148,10 +148,7 @@ export class ActivityService {
 
   @Transactional()
   async createActivityBudget(budgetInfo: CreateActivityBudgetDto): Promise<void> {
-    const date: Date = new Date();
-    const year: string = date.getFullYear().toString();
-    const halfYear: HalfYearEnum = budgetInfo.period;
-    const activityBudget: number = budgetInfo.activityBudget;
+    const { year, period: halfYear, activityBudget, userIdx, memberCount, budgetPerMember } = budgetInfo;
     const activityStatsCnt: number = await this.activityRepository.getActivityStatsCount(budgetInfo, year);
 
     /** 기록이 없다면 통계 create (기록이 있다면 통계 업데이트) **/
@@ -161,7 +158,7 @@ export class ActivityService {
       if (halfYear === HalfYearEnum.H1) {
         for (let i = 1; i < 7; i++) {
           const newActivityMonthStatsInfo: NewActivityMonthStats = {
-            userIdx: budgetInfo.userIdx,
+            userIdx,
             year,
             month: i.toString(),
             activityMonthExpense: 0,
@@ -172,7 +169,7 @@ export class ActivityService {
         // 하반기일 경우
         for (let i = 7; i < 13; i++) {
           const newActivityMonthStatsInfo: NewActivityMonthStats = {
-            userIdx: budgetInfo.userIdx,
+            userIdx,
             year,
             month: i.toString(),
             activityMonthExpense: 0,
@@ -182,16 +179,15 @@ export class ActivityService {
       }
       /* 반기별 통계 create */
       const newActivityStatsInfo: NewActivityStats = {
-        userIdx: budgetInfo.userIdx,
+        userIdx,
         year,
         halfYear,
         activityBudget,
-        memberCount: budgetInfo.memberCount,
-        budgetPerMember: budgetInfo.budgetPerMember,
+        memberCount,
+        budgetPerMember,
       };
       await this.activityRepository.createActivityStats(newActivityStatsInfo);
     } else {
-      /** 기록이 있다면 409 에러 **/
       throw new ConflictException('이미 새로 등록하였습니다.');
     }
 

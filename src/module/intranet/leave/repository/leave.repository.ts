@@ -25,6 +25,7 @@ import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leave
 import * as moment from 'moment';
 import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
+import { AdminLeaveSortEnum } from '../enum/leave.enum';
 
 @Injectable()
 export class LeaveRepository {
@@ -210,7 +211,28 @@ export class LeaveRepository {
   }
 
   async getLeaveSummaries(pageNo: number, perPage: number, filterInfo: AdminLeaveFilterDto) {
-    // 쿼리 1: 전체 사용자 연차 정보
+    const annualLeaveTypes = [
+      IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE,
+      IntranetLeaveTypeIdxEnum.PM_HALF,
+      IntranetLeaveTypeIdxEnum.PM_QUARTER,
+      IntranetLeaveTypeIdxEnum.AM_HALF,
+      IntranetLeaveTypeIdxEnum.AM_QUARTER,
+    ];
+
+    // 서브쿼리: 사용자별 가장 최근 연차 사용일
+    const subQuery: SelectQueryBuilder<CommuteEntity> = this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.userIdx AS userIdx',
+        'commuteEntity.commuteDate AS lastLeaveDate',
+        `ROW_NUMBER() OVER (PARTITION BY commuteEntity.userIdx ORDER BY commuteEntity.createdAt DESC) AS rownum`,
+      ])
+      .where('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.YES })
+      .andWhere('commuteEntity.leaveTypeIdx IN (:...leaveTypeIdx)', {
+        leaveTypeIdx: annualLeaveTypes,
+      });
+
+    // 메인 쿼리: 사용자 연차 통계 + 최근 연차 사용일 조인
     const query: SelectQueryBuilder<LeaveStatsEntity> = this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')
       .select([
@@ -226,32 +248,49 @@ export class LeaveRepository {
         'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage',
         '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance',
         'leaveStatsEntity.note AS note',
+        'recentLeave.lastLeaveDate AS lastLeaveDate',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .leftJoin(
+        '(' + subQuery.getQuery() + ')',
+        'recentLeave',
+        'recentLeave.userIdx = leaveStatsEntity.userIdx AND recentLeave.rownum = 1',
+      )
+      .setParameters(subQuery.getParameters())
       .where('leaveStatsEntity.year = :year', { year: filterInfo.year });
 
+    // 필터링 처리
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
       query.andWhere('userEntity.userName = :userName', { userName });
     }
 
+    // 총 갯수 및 페이징 계산
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);
 
-    query
-      .orderBy('userEntity.joinDate', 'DESC')
-      .addOrderBy('userEntity.createdAt', 'DESC')
-      .limit(perPage)
-      .offset((pageNo - 1) * perPage);
+    // 정렬 조건 처리
+    if (filterInfo.sortby === AdminLeaveSortEnum.LAST_LEAVE) {
+      const orderby: 'ASC' | 'DESC' = filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+      query.orderBy('recentLeave.lastLeaveDate', orderby);
+    } else {
+      query.orderBy('userEntity.createdAt', 'DESC');
+    }
 
-    const leaveStatsList = await query.getRawMany();
+    // 페이징 처리
+    const leaveStatsList = await query
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage)
+      .getRawMany();
 
     const result = leaveStatsList.map((leaveStats) => ({
+      userIdx: leaveStats.userIdx,
       ...leaveStats,
       totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance),
+      lastLeaveDate: leaveStats.lastLeaveDate ?? null,
     }));
 
     return { totalPage, total, summaries: result };

@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { ConfirmEnum } from '../../../../common/constant/enum';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ConfirmEnum, OrderbyEnum } from '../../../../common/constant/enum';
+import { AdminLeaveSortEnum } from '../enum/leave.enum';
 
 export class AdminLeaveFilterDto {
   @ApiProperty({ name: 'year', required: true, description: '회계연도', type: String, example: '2025' })
@@ -11,6 +12,16 @@ export class AdminLeaveFilterDto {
   @IsOptional()
   @IsString()
   userName?: string;
+
+  @ApiProperty({ type: 'enum', enum: AdminLeaveSortEnum, description: '정렬 기준', required: false })
+  @IsOptional()
+  @IsEnum(AdminLeaveSortEnum)
+  sortby?: AdminLeaveSortEnum;
+
+  @ApiProperty({ type: 'enum', enum: OrderbyEnum, description: '정렬 방법', required: false })
+  @IsOptional()
+  @IsEnum(OrderbyEnum)
+  orderby?: OrderbyEnum;
 }
 
 export class AdminLeaveDetailFilterDto {
