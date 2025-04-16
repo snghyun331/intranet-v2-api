@@ -96,26 +96,26 @@ export class CommuteService {
         await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
 
         return;
+      } else {
+        /* 일반 근무에 대한 지각 판별 */
+        const isNormalLate: boolean =
+          new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
+        const attendance: IntranetAttendanceEnum = isNormalLate
+          ? IntranetAttendanceEnum.CHECK_IN_LATE
+          : IntranetAttendanceEnum.CHECK_IN;
+
+        const updateCheckInInfo: UpdateCheckInInfo = {
+          ...checkInDto,
+          attendance,
+          commuteDate,
+          checkInIpAddr,
+          checkInLogAgent,
+          leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+        };
+
+        /* 일반 근무에 대한 근태 업데이트 */
+        await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
       }
-
-      /* 일반 근무에 대한 지각 판별 */
-      const isNormalLate: boolean =
-        new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
-      const attendance: IntranetAttendanceEnum = isNormalLate
-        ? IntranetAttendanceEnum.CHECK_IN_LATE
-        : IntranetAttendanceEnum.CHECK_IN;
-
-      const updateCheckInInfo: UpdateCheckInInfo = {
-        ...checkInDto,
-        attendance,
-        commuteDate,
-        checkInIpAddr,
-        checkInLogAgent,
-        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
-      };
-
-      /* 일반 근무에 대한 근태 업데이트 */
-      await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
     } else {
       /* commuteInfo가 없는 경우는 비정상적인 상황이며, 일반 근무로 간주됨 */
       const isNormalLate: boolean =
@@ -162,7 +162,6 @@ export class CommuteService {
       throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
     }
     const { checkInTime, leaveTypeIdx } = commuteInfo;
-
     let standardWorkingMinutes: number;
     if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
       standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;

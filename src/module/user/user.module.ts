@@ -11,6 +11,8 @@ import { AdminEntity } from '../../entity/admin/admin.entity';
 import { CommuteEntity } from '../../entity/intranet/commute/commute.entity';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { RedisSearchService } from '../redis/redisSearch.service';
+import { MockUserService } from './mock/user.service.mock';
+import { MockAdminUserController } from './mock/user.controller.mock';
 
 @Module({
   imports: [
@@ -21,3 +23,12 @@ import { RedisSearchService } from '../redis/redisSearch.service';
   controllers: [UserController, AdminUserController],
 })
 export class UserModule {}
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([UserEntity, GradeEntity, HeadquarterEntity, TeamEntity, AdminEntity, CommuteEntity]),
+  ],
+  providers: [MockUserService, UserRepository],
+  controllers: [MockAdminUserController],
+})
+export class MockUserModule {}

@@ -519,12 +519,17 @@ export class LeaveRepository {
       .execute();
   }
 
-  async createLeaveForE2ETest(leaveInfo: LeaveDetailDto, userIdx: number, note: string | null): Promise<number> {
+  async createLeaveForE2ETest(
+    leaveInfo: LeaveDetailDto,
+    userIdx: number,
+    note: string | null,
+    confirmYN: ConfirmEnum,
+  ): Promise<number> {
     const result: InsertResult = await this.commuteModel
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ ...leaveInfo, note, userIdx })
+      .values({ ...leaveInfo, note, userIdx, confirmYN }) // 승인 강제 (테스트 목적)
       .execute();
 
     const commuteIdx: number = result.identifiers[0].commuteIdx;
