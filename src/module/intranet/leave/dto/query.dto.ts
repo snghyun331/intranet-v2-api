@@ -30,10 +30,10 @@ export class AdminLeaveDetailFilterDto {
   @IsString()
   year: string;
 
-  @ApiProperty({ name: 'month', required: false, description: '검색월', type: String, example: '2' })
+  @ApiProperty({ name: 'month', required: false, description: '검색월(개별 및 복수)', type: String })
   @IsOptional()
-  @IsString()
-  month: string;
+  @Transform(({ value }) => decodeURIComponent(value).split(',')) // 쉼표로 구분된 문자열을 배열로 변환
+  month?: string[];
 
   @ApiProperty({
     name: 'leaveTypeIdx',
@@ -54,10 +54,10 @@ export class UserLeaveDetailFilterDto {
   @IsString()
   year: string;
 
-  @ApiProperty({ name: 'month', required: false, description: '검색월', type: String, example: '2' })
+  @ApiProperty({ name: 'month', required: false, description: '검색월(개별 및 복수)', type: String })
   @IsOptional()
-  @IsString()
-  month: string;
+  @Transform(({ value }) => decodeURIComponent(value).split(',')) // 쉼표로 구분된 문자열을 배열로 변환
+  month?: string[];
 
   @ApiProperty({
     name: 'leaveTypeIdx',
