@@ -357,14 +357,18 @@ export class LeaveRepository {
   }
 
   // 추후 쿼리 튜닝 필요,,
-  async getUserLeaveDetail(
-    { year, month, ...filter }: UserLeaveDetailFilterDto | AdminLeaveDetailFilterDto,
-    userIdx: number,
-  ) {
-    // 해당 월의 첫 번째 날과 마지막 날을 구함
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
-    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
-    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+  async getUserLeaveDetail(filterInfo: UserLeaveDetailFilterDto | AdminLeaveDetailFilterDto, userIdx: number) {
+    // startDate과 endDate 계산
+    const { year, month, leaveTypeIdx } = filterInfo;
+    const { startDate, endDate } = month
+      ? {
+          startDate: getStartAndEndDateByMonth(year, month).firstDayOfMonth.format('YYYY-MM-DD'),
+          endDate: getStartAndEndDateByMonth(year, month).lastDayOfMonth.format('YYYY-MM-DD'),
+        }
+      : {
+          startDate: getStartAndEndDateByYear(year).firstDayOfYear,
+          endDate: getStartAndEndDateByYear(year).lastDayOfYear,
+        };
 
     const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
       .createQueryBuilder('commuteEntity')
@@ -415,16 +419,16 @@ export class LeaveRepository {
         endDate,
       });
 
-    if (filter.leaveTypeIdx) {
-      query.andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: filter.leaveTypeIdx });
+    if (leaveTypeIdx) {
+      query.andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx });
     } else {
       query.andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
       });
     }
 
-    if ('confirmYN' in filter && filter.confirmYN) {
-      query.andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: filter.confirmYN });
+    if ('confirmYN' in filterInfo && filterInfo.confirmYN) {
+      query.andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
     }
 
     query.orderBy('commuteEntity.createdAt', 'ASC'); // 누적 잔여 연차 수 계산을 위한 createdAt 기준 오름차순 정렬
@@ -519,12 +523,17 @@ export class LeaveRepository {
       .execute();
   }
 
-  async createLeaveForE2ETest(leaveInfo: LeaveDetailDto, userIdx: number, note: string | null): Promise<number> {
+  async createLeaveForE2ETest(
+    leaveInfo: LeaveDetailDto,
+    userIdx: number,
+    note: string | null,
+    confirmYN: ConfirmEnum,
+  ): Promise<number> {
     const result: InsertResult = await this.commuteModel
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ ...leaveInfo, note, userIdx })
+      .values({ ...leaveInfo, note, userIdx, confirmYN }) // 승인 강제 (테스트 목적)
       .execute();
 
     const commuteIdx: number = result.identifiers[0].commuteIdx;

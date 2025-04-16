@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { OrderbyEnum, SortbyEnum } from '../../../common/constant/enum';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class AdminUserFilterDto {
@@ -14,14 +13,4 @@ export class AdminUserFilterDto {
   @IsOptional()
   @IsString()
   userName?: string;
-
-  @ApiProperty({ type: 'enum', enum: SortbyEnum, description: '정렬 기준', required: false })
-  @IsOptional()
-  @IsEnum(SortbyEnum)
-  sortby?: SortbyEnum;
-
-  @ApiProperty({ type: 'enum', enum: OrderbyEnum, description: '정렬 방법', required: false })
-  @IsOptional()
-  @IsEnum(OrderbyEnum)
-  orderby?: OrderbyEnum;
 }

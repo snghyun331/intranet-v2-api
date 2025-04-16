@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ConfirmEnum, OrderbyEnum } from '../../../../common/constant/enum';
 import { AdminLeaveSortEnum } from '../enum/leave.enum';
@@ -30,8 +30,8 @@ export class AdminLeaveDetailFilterDto {
   @IsString()
   year: string;
 
-  @ApiProperty({ name: 'month', required: true, description: '검색월', type: String, example: '2' })
-  @IsNotEmpty()
+  @ApiProperty({ name: 'month', required: false, description: '검색월', type: String, example: '2' })
+  @IsOptional()
   @IsString()
   month: string;
 
@@ -43,6 +43,7 @@ export class AdminLeaveDetailFilterDto {
     example: 6,
   })
   @IsOptional()
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   leaveTypeIdx?: number;
 }
@@ -53,8 +54,8 @@ export class UserLeaveDetailFilterDto {
   @IsString()
   year: string;
 
-  @ApiProperty({ name: 'month', required: true, description: '검색월', type: String, example: '2' })
-  @IsNotEmpty()
+  @ApiProperty({ name: 'month', required: false, description: '검색월', type: String, example: '2' })
+  @IsOptional()
   @IsString()
   month: string;
 
@@ -66,7 +67,7 @@ export class UserLeaveDetailFilterDto {
     example: 6,
   })
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   leaveTypeIdx?: number;
 

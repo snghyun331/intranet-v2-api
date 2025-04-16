@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
@@ -9,7 +9,6 @@ import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminUserFilterDto } from '../dto/query.dto';
 import { encryptPassword, removeAllWhiteSpace } from '../../../common/utils/utility';
 import { CreateUserDto } from '../dto/createUser.dto';
-import { SortbyEnum } from '../../../common/constant/enum';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 import { AdminEntity } from '../../../entity/admin/admin.entity';
 import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
@@ -161,44 +160,10 @@ export class UserRepository {
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);
 
-    if (filterInfo.sortby && filterInfo.orderby) {
-      if (filterInfo.sortby === SortbyEnum.GRADE) {
-        query
-          .orderBy('userEntity.gradeIdx', filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC')
-          .addOrderBy('userEntity.joinDate', 'DESC')
-          .addOrderBy('userEntity.createdAt', 'DESC')
-          .limit(perPage)
-          .offset((pageNo - 1) * perPage);
-      } else if (filterInfo.sortby === SortbyEnum.BIRTH) {
-        query
-          .orderBy('userEntity.userBirth', filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC')
-          .addOrderBy('userEntity.joinDate', 'DESC')
-          .addOrderBy('userEntity.createdAt', 'DESC')
-          .limit(perPage)
-          .offset((pageNo - 1) * perPage);
-      } else if (filterInfo.sortby === SortbyEnum.JOIN) {
-        query
-          .orderBy('userEntity.joinDate', filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC')
-          .addOrderBy('userEntity.createdAt', 'DESC')
-          .limit(perPage)
-          .offset((pageNo - 1) * perPage);
-      } else if (filterInfo.sortby === SortbyEnum.TEAM) {
-        query
-          .orderBy('teamEntity.teamName', filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC')
-          .addOrderBy('userEntity.joinDate', 'DESC')
-          .addOrderBy('userEntity.createdAt', 'DESC')
-          .limit(perPage)
-          .offset((pageNo - 1) * perPage);
-      } else {
-        throw new BadRequestException('지원하지 않는 정렬 기준입니다.');
-      }
-    } else {
-      query
-        .orderBy('userEntity.joinDate', 'DESC')
-        .addOrderBy('userEntity.createdAt', 'DESC')
-        .limit(perPage)
-        .offset((pageNo - 1) * perPage);
-    }
+    query
+      .orderBy('userEntity.createdAt', 'DESC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
 
     const result = await query.getRawMany();
 

@@ -43,12 +43,6 @@ export const TEST_TYPEORM_CONFIG: TypeOrmModuleAsyncOptions = {
     entities: [join(__dirname, '../entity/**/*.entity{.ts,.js}')],
     synchronize: true,
   }),
-
-  async dataSourceFactory(option) {
-    if (!option) throw new InternalServerErrorException('Transaction Error: Invalid options passed');
-
-    return addTransactionalDataSource(new DataSource(option));
-  },
 };
 
 export const MONGOOSE_CONFIG: MongooseModuleAsyncOptions = {
