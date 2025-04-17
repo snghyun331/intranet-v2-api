@@ -404,8 +404,11 @@ export class LeaveRepository {
       .leftJoin(CommuteCCUserEntity, 'commuteCCUserEntity', 'commuteCCUserEntity.commuteIdx = commuteEntity.commuteIdx')
       .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = commuteCCUserEntity.ccUserIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year })
-      .andWhere('MONTH(commuteEntity.commuteDate) in (:...month)', { month });
+      .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year });
+
+    if (month) {
+      query.andWhere('MONTH(commuteEntity.commuteDate) IN (:...month)', { month });
+    }
 
     if (leaveTypeIdx) {
       query.andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx });

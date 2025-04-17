@@ -33,24 +33,59 @@ export class ApprovalService {
     /* 승인여부 업데이트 */
     await this.approvalRepository.updateConfirm(commuteIdx, confirmPersonIdx, confirmYN);
 
-    /* 승인여부 업데이트에 따른 휴가 산정 변경 */
+    /*
+     승인여부 업데이트에 따른 휴가 산정 변경 
+    */
     const userIdx: number = existing.userIdx; // 휴가를 올린 사용자 IDX
 
-    if (confirmYN === ConfirmEnum.YES) {
-      const { year, month } = substringYearMonth(existing.commuteDate);
+    const { year, month } = substringYearMonth(existing.commuteDate);
+    const leaveTypeIdx: number = existing.leaveTypeIdx;
 
-      const leaveTypeIdx: number = existing.leaveTypeIdx;
+    /* 승인일 경우, */
+    if (confirmYN === ConfirmEnum.YES) {
       const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
+        // 휴가 유형에 대한 해당 월 사용개수
         year,
         month,
         userIdx,
         leaveTypeIdx,
       );
-
-      // 월별 사용개수 업데이트
+      // 해당 월 사용개수 업데이트
       await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount);
 
-      // 연도별 사용개수 업데이트
+      // 해당 연도 사용개수 업데이트
+      await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx);
+
+      // 해당 연도 연차 총 사용량 업데이트
+      if (ANNUAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
+        await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx);
+      }
+      // 해당 연도 특별휴무 총 사용량 업데이트
+      if (SPECIAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
+        await this.approvalRepository.updateTotalSpecialLeaveUsage(year, userIdx);
+      }
+      // 해당 연도 대체휴무 총 사용량 업데이트
+      if (ALTERNATIVE_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
+        await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx);
+      }
+
+      // 식대 해당 월 timeoffDays 업데이트
+      await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx);
+    }
+
+    /* 승인이었다가 반려될 경우 */
+    if (confirmYN === ConfirmEnum.REJECT && existing.confirmYN === ConfirmEnum.YES) {
+      const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
+        // 휴가 유형에 대한 해당 월 사용개수
+        year,
+        month,
+        userIdx,
+        leaveTypeIdx,
+      );
+      // 해당 월 사용개수 -1
+      await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount);
+
+      // 해당 연도 사용개수
       await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx);
 
       // 연도별 연차 총 사용량 업데이트
@@ -65,9 +100,6 @@ export class ApprovalService {
       if (ALTERNATIVE_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
         await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx);
       }
-
-      // 식대 월별 timeoffDays 업데이트
-      await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx);
     }
   }
 
