@@ -304,6 +304,7 @@ export class LeaveService {
       totalAnnualLeaveBalance: Number(leaveStats.totalAnnualLeaveBalance), // 잔여 연차 개수 (integar)
       notConfirmLeaveCount, // 대기중인 휴가 개수
     };
+    console.log(leaveSummary);
 
     // 근속년수가 3년 미만인 경우 중도입사 연차 개수를 추가
     if (leaveSummary.yearsSinceJoin < 3) {

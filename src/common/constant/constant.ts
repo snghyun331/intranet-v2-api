@@ -62,7 +62,7 @@ export const FULL_DAY_REST_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
 ]);
 
 export const ANNUAL_LEAVE_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
-  IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE,
+  IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE,
   IntranetLeaveTypeIdxEnum.AM_HALF,
   IntranetLeaveTypeIdxEnum.PM_HALF,
   IntranetLeaveTypeIdxEnum.AM_QUARTER,
