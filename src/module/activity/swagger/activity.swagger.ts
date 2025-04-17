@@ -474,6 +474,8 @@ export const ADMIN_ACTIVITIES: SwaggerMethod = {
                   content: '커피가마시고싶구나',
                   amount: 20000,
                   payerName: '김단아',
+                  confirmYN: 'N',
+                  confirmDate: null,
                 },
                 {
                   activityIdx: 30,
@@ -485,6 +487,8 @@ export const ADMIN_ACTIVITIES: SwaggerMethod = {
                   content: '새로고침이슈',
                   amount: 40000,
                   payerName: '김단아',
+                  confirmYN: 'N',
+                  confirmDate: null,
                 },
               ],
             },
