@@ -233,6 +233,8 @@ export class ActivityRepository {
         'activityEntity.content AS content',
         'activityEntity.amount AS amount',
         'activityEntity.payerName AS payerName',
+        'activityEntity.confirmYN AS confirmYN',
+        'activityEntity.confirmDate AS confirmDate',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
