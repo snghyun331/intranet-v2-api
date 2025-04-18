@@ -19,9 +19,13 @@ export class PlaygroundService {
     const lock: boolean = await this.redisLockService.waitAndSetLock(lockKey, PICK_LUNCH_LOCK_DURATION);
 
     try {
-      const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-      // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
-      const lunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
+      // const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
+      // // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
+      // const lunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
+      // if (!lunchGroupConfig) {
+      //   throw new BadRequestException('지금은 뽑기 가능 시간이 아닙니다.');
+      // }
+      const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
       if (!lunchGroupConfig) {
         throw new BadRequestException('지금은 뽑기 가능 시간이 아닙니다.');
       }
@@ -74,12 +78,12 @@ export class PlaygroundService {
   }
 
   async setLunchGroup({ total, perGroup, sDate, eDate, notice }: CreateLunchGroupDto): Promise<void> {
-    // 이미 설정한 데이터가 있는지 확인
-    const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    const existLunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
-    if (existLunchGroupConfig) {
-      throw new BadRequestException('기존 점심조 설정이 남아있습니다. 삭제 후 다시 시도해주세요.');
-    }
+    // // 이미 설정한 데이터가 있는지 확인
+    // const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
+    // const existLunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
+    // if (existLunchGroupConfig) {
+    //   throw new BadRequestException('기존 점심조 설정이 남아있습니다. 삭제 후 다시 시도해주세요.');
+    // }
 
     const maxGroup: number = Math.floor(total / perGroup);
     const extraGroupCount: number = total % perGroup === 0 ? 0 : total % perGroup;
@@ -100,9 +104,15 @@ export class PlaygroundService {
   }
 
   async getLunchGroupForAdmin(): Promise<any> {
-    const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
-    const lunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
+    // const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
+    // // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
+    // const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig(nowDate);
+    // if (!lunchGroupConfig) {
+    //   return [];
+    // }
+
+    // 가장 최신의 점심조 설정 데이터 조회
+    const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
     if (!lunchGroupConfig) {
       return [];
     }
@@ -126,9 +136,15 @@ export class PlaygroundService {
   }
 
   async getLunchGroupForUser(userName: string): Promise<any> {
-    const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
-    const lunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
+    // const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
+    // // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
+    // const lunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
+    // if (!lunchGroupConfig) {
+    //   return [];
+    // }
+
+    // 가장 최신의 점심조 설정 데이터 조회
+    const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
     if (!lunchGroupConfig) {
       return [];
     }

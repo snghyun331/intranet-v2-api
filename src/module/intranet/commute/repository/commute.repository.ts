@@ -10,8 +10,6 @@ import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField, removeAllWhiteSpace } from '../../../../common/utils/utility';
 import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
-import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
-import { ImageEntity } from '../../../../entity/image/image.entity';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
 
 @Injectable()
@@ -95,10 +93,6 @@ export class CommuteRepository {
         'commuteEntity.attendance AS attendance',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
-        'commuteImageEntity.imageIdx AS imageIdx',
-        'imageEntity.imageName AS imageName',
-        'imageEntity.imageSize AS imageSize',
-        'imageEntity.imageUrl AS imageUrl',
         'commuteEntity.updateReason AS updateReason',
         'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
         'commuteEntity.note AS note',
@@ -113,11 +107,9 @@ export class CommuteRepository {
         'commuteEntity.updatedAt AS updatedAt',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
-      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
-      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
       .where('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
@@ -133,7 +125,8 @@ export class CommuteRepository {
     const totalPage: number = Math.ceil(total / perPage);
 
     query
-      .orderBy('userEntity.userName', 'DESC')
+      .orderBy('commuteEntity.commuteDate', 'DESC')
+      .addOrderBy('userEntity.userName', 'ASC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
