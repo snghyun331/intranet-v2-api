@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { AwsService } from '../aws/aws.service';
 import { NodeEnvEnum } from '../../common/constant/enum';
 import { Transactional } from 'typeorm-transactional';
+import { AdminNoticeFilterDto } from './dto/query.dto';
 
 @Injectable()
 export class NoticeService {
@@ -39,8 +40,8 @@ export class NoticeService {
     return;
   }
 
-  async getNoticeList({ pageNo, perPage }: PageNoDto) {
-    const noticeList = await this.noticeRepository.getNoticeList(pageNo, perPage);
+  async getNoticeList({ pageNo, perPage }: PageNoDto, filterInfo?: AdminNoticeFilterDto) {
+    const noticeList = await this.noticeRepository.getNoticeList(pageNo, perPage, filterInfo);
 
     return noticeList;
   }
