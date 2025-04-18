@@ -117,12 +117,12 @@ export class SchedulerService {
   }
 
   // 매일 자정마다 당일 전직원 근태 내역 저장
-  @Cron('5 9 * * *')
+  @Cron('1 0 * * 1-5')
   async insertAllCommutesForToday() {
-    this.logger.log('🚀 Start Inserting All Commutes For Today !');
+    this.logger.log(`🚀 오늘의 출근 정보 자동 등록을 시작합니다. (현재시간 - UTC기준: ${new Date()}) !`);
 
     await this.schedulerRepository.insertCommutesForToday();
 
-    this.logger.log('🏁 Finish Inserting All Commutes For Today !');
+    this.logger.log('🏁 오늘의 출근 정보 자동 등록을 마칩니다. !');
   }
 }
