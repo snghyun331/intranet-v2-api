@@ -7,6 +7,7 @@ import { UpdateNoticeDto } from '../dto/updateNotice.dto';
 import { ImageEntity } from '../../../entity/image/image.entity';
 import { NoticeHasImageEntity } from '../../../entity/image/noticeHasImage.entity';
 import { NoticeImageInfo } from '../interface/notice.interface';
+import { AdminNoticeFilterDto } from '../dto/query.dto';
 
 @Injectable()
 export class NoticeRepostiory {
@@ -76,7 +77,7 @@ export class NoticeRepostiory {
       .execute();
   }
 
-  async getNoticeList(pageNo: number, perPage: number) {
+  async getNoticeList(pageNo: number, perPage: number, filterInfo: AdminNoticeFilterDto) {
     const query: SelectQueryBuilder<NoticeEntity> = this.noticeModel
       .createQueryBuilder('noticeEntity')
       .select([
@@ -85,6 +86,11 @@ export class NoticeRepostiory {
         'noticeEntity.creatorName AS creatorName',
         'noticeEntity.createdAt AS createdAt',
       ]);
+
+    if (filterInfo.title) {
+      const title: string = filterInfo.title;
+      query.where('noticeEntity.title LIKE :title', { title: `%${title}%` });
+    }
 
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);

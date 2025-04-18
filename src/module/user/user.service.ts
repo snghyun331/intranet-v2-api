@@ -13,11 +13,13 @@ import { RedisSearchService } from '../redis/redisSearch.service';
 import { Transactional } from 'typeorm-transactional';
 import { NewAdminInfo } from './interface/admin.interface';
 import { NewUserInfo } from './interface/user.interface';
+import { CommuteRepository } from '../intranet/commute/repository/commute.repository';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly commuteRepository: CommuteRepository,
     private readonly redisSearchService: RedisSearchService,
   ) {}
 
@@ -76,6 +78,10 @@ export class UserService {
 
       await this.userRepository.createAdmin(userIdx, newAdminInfo);
     }
+
+    /* 등록일 기준 출퇴근 정보 생성 */
+    const commuteDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
+    await this.commuteRepository.createTodayCommute(userIdx, commuteDate);
 
     /* Redis에 유저 등록(검색 자동완성) */
     await this.redisSearchService.addUserInRedis(userIdx, userInfo.userName);

@@ -38,6 +38,15 @@ export class CommuteRepository {
       .execute();
   }
 
+  async createTodayCommute(userIdx: number, commuteDate: string): Promise<InsertResult> {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .insert()
+      .into(CommuteEntity)
+      .values({ userIdx, commuteDate })
+      .execute();
+  }
+
   async updateCheckInWork(userIdx: number, { commuteDate, ...commuteInfo }: UpdateCheckInInfo): Promise<UpdateResult> {
     return await this.commuteModel
       .createQueryBuilder()
