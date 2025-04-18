@@ -113,7 +113,7 @@ export class CommuteRepository {
         'commuteEntity.updatedAt AS updatedAt',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
-      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
@@ -133,7 +133,8 @@ export class CommuteRepository {
     const totalPage: number = Math.ceil(total / perPage);
 
     query
-      .orderBy('userEntity.userName', 'DESC')
+      .orderBy('commuteEntity.commuteDate', 'DESC')
+      .addOrderBy('userEntity.userName', 'ASC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
