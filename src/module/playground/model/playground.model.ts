@@ -59,4 +59,13 @@ export class PlayGroundModel {
 
     return result;
   }
+
+  async findLatestLunchGroupConfig(): Promise<HydratedDocument<LunchGroupConfig>> {
+    const result: HydratedDocument<LunchGroupConfig> = await this.lunchGroupConfigModel
+      .findOne()
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return result;
+  }
 }
