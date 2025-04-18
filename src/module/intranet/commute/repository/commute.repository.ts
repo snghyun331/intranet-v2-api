@@ -131,7 +131,6 @@ export class CommuteRepository {
       .offset((pageNo - 1) * perPage);
 
     const records = await query.getRawMany();
-    console.log(records);
 
     // 승인여부와 날짜를 합친 새 필드 추가
     const result = await Promise.all(

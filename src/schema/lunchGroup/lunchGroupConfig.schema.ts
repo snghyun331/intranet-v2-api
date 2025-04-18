@@ -25,9 +25,6 @@ export class LunchGroupConfig {
 
   @Prop({ type: String, required: false }) // 점심조 관련 공지사항
   notice: string;
-
-  @Prop({ type: Date, required: false, index: { expires: 0 } }) // expireAt에 자동 삭제되는 TTL 적용
-  expireAt: Date;
 }
 
 export const LunchGroupConfigSchema = SchemaFactory.createForClass(LunchGroupConfig);
