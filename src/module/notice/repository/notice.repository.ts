@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { Brackets, DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateNoticeDto } from '../dto/createNotice.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NoticeEntity } from '../../../entity/notice/notice.entity';
@@ -87,9 +87,16 @@ export class NoticeRepostiory {
         'noticeEntity.createdAt AS createdAt',
       ]);
 
-    if (filterInfo.title) {
-      const title: string = filterInfo.title;
-      query.where('noticeEntity.title LIKE :title', { title: `%${title}%` });
+    if (filterInfo.searchWord) {
+      const searchWord: string = filterInfo.searchWord;
+      query.where(
+        new Brackets((qb) => {
+          qb.where('noticeEntity.title LIKE :searchWord', { searchWord: `%${searchWord}%` }).orWhere(
+            'noticeEntity.content LIKE :searchWord',
+            { searchWord: `%${searchWord}%` },
+          );
+        }),
+      );
     }
 
     const total: number = await query.getCount();
