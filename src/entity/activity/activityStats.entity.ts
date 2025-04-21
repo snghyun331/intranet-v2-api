@@ -29,15 +29,6 @@ export class ActivityStatsEntity extends CommonEntity {
   @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
   note: string;
 
-  @Column({ name: 'member_count', comment: '구성원 수', nullable: false })
-  memberCount: number;
-
-  @Column({ name: 'budget_per_memebr', comment: '구성원 당 금액', nullable: false })
-  budgetPerMember: number;
-
-  @Column({ name: 'extra_budget', comment: '개별 추가 금액', default: 0, nullable: false })
-  extraBudget: number;
-
   @Column({
     name: 'clear_status',
     comment: '정산여부',

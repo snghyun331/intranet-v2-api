@@ -3,8 +3,8 @@ import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { HalfYearEnum } from '../../../common/constant/enum';
 
 export class CreateActivityBudgetDto {
-  @ApiProperty({ type: String, description: '적용 연도', required: true })
-  @IsNotEmpty({ message: '적용 연도를 선택해주세요' })
+  @ApiProperty({ type: String, description: '적용 년도', required: true })
+  @IsNotEmpty({ message: '적용 년도를 선택해주세요' })
   @IsString()
   year: string;
 
@@ -13,23 +13,8 @@ export class CreateActivityBudgetDto {
   @IsEnum(HalfYearEnum)
   period: HalfYearEnum;
 
-  @ApiProperty({ type: String, description: '활동비 권한자IDX', required: true })
-  @IsNotEmpty({ message: '이름(IDX)을 선택해주세요' })
-  @IsNumber()
-  userIdx: number;
-
-  @ApiProperty({ type: Number, description: '구성원 수', required: true })
-  @IsNotEmpty({ message: '구성원 수를 입력해주세요' })
-  @IsNumber()
-  memberCount: number;
-
-  @ApiProperty({ type: Number, description: '구성원 당 금액', required: true })
-  @IsNotEmpty({ message: '구성원 당 금액을 입력해주세요' })
-  @IsNumber()
-  budgetPerMember: number;
-
-  @ApiProperty({ type: Number, description: '활동비 사용가능금액', required: true })
-  @IsNotEmpty({ message: '사용가능금액을 입력해주세요.' })
+  @ApiProperty({ type: Number, description: '활동비 사용가능 금액', required: true })
+  @IsNotEmpty({ message: '활동비 사용가능 금액을 입력d해주세요.' })
   @IsNumber()
   activityBudget: number;
 }
