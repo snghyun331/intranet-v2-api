@@ -11,11 +11,11 @@ import {
 } from '../../../common/utils/utility';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
 import { UpdateActivityDto } from '../dto/updateActivity.dto';
-import { NewActivityMonthStats, NewActivityStats } from '../interface/activity.interface';
+import { NewActivityMonthStats, NewActivityStats } from '../interface';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { UserPayload } from '../../../common/interface/payload.interface';
-import { ClearStatusEnum, ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum, ConfirmEnum, HalfYearEnum, UserGradeIdxEnum } from '../../../common/constant/enum';
 import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
 import { AdminActivityFilterDto } from '../dto/query.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
@@ -264,12 +264,11 @@ export class ActivityRepository {
     return { totalPage, total, activity: result };
   }
 
-  async getActivityStatsCount({ period, userIdx }: CreateActivityBudgetDto, year: string) {
+  async getActivityStatsCount({ period }: CreateActivityBudgetDto, year: string) {
     const statsCnt: number = await this.activityStatsModel
       .createQueryBuilder('activityStatsEntity')
       .where('activityStatsEntity.year = :year', { year })
       .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear: period })
-      .andWhere('activityStatsEntity.userIdx = :userIdx', { userIdx })
       .getCount();
 
     return statsCnt;
@@ -303,9 +302,6 @@ export class ActivityRepository {
         'gradeEntity.gradeName AS gradeName',
         'activityStatsEntity.activityBudget AS activityBudget',
         'activityStatsEntity.note AS note',
-        'activityStatsEntity.memberCount AS memberCount',
-        'activityStatsEntity.budgetPerMember AS budgetPerMember',
-        'activityStatsEntity.extraBudget AS extraBudget',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
@@ -470,5 +466,28 @@ export class ActivityRepository {
         .andWhere('halfYear = :halfYear', { halfYear: HalfYearEnum.H1 })
         .execute();
     }
+  }
+
+  async getManagerOrHigherUserIdxList(): Promise<number[]> {
+    const result: { userIdx: number }[] = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userIdx AS userIdx'])
+      .where('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.gradeIdx <= :gradeIdx', { gradeIdx: UserGradeIdxEnum.MANAGER })
+      .getRawMany();
+
+    const userIdxList: number[] = result.map((r) => r.userIdx);
+
+    return userIdxList;
+  }
+
+  async updateActivityStats({ activityBudget, year, halfYear }: NewActivityStats): Promise<UpdateResult> {
+    return await this.activityStatsModel
+      .createQueryBuilder()
+      .update(ActivityStatsEntity)
+      .set({ activityBudget })
+      .where('year = :year', { year })
+      .andWhere('halfYear = :halfYear', { halfYear })
+      .execute();
   }
 }

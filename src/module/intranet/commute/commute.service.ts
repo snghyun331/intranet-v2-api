@@ -278,6 +278,15 @@ export class CommuteService {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
+    /* 필요하다면, 근무유형(leaveTypeIdx) 수정 */
+    let leaveTypeIdx: IntranetLeaveTypeIdxEnum;
+    if (!commuteInfo.leaveTypeIdx && updateDto.checkInTime) {
+      leaveTypeIdx = IntranetLeaveTypeIdxEnum.NORMAL;
+    }
+    if (commuteInfo.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL && !updateDto.checkInTime) {
+      leaveTypeIdx = null;
+    }
+
     /* 지각 판별 */
     const isNormalLate: boolean =
       (commuteInfo.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL ||
@@ -338,6 +347,7 @@ export class CommuteService {
       workingMinutes,
       overtimeWorkingMinutes,
       attendance,
+      leaveTypeIdx: leaveTypeIdx || commuteInfo.leaveTypeIdx,
     };
 
     await this.commuteRepository.updateCommuteTime(commuteIdx, updateInfo);

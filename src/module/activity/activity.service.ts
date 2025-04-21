@@ -1,8 +1,8 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { ActivityRepository } from './repository/activity.repository';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
-import { NewActivityMonthStats, NewActivityStats } from './interface/activity.interface';
+import { NewActivityMonthStats, NewActivityStats } from './interface';
 import { UserPayload } from '../../common/interface/payload.interface';
 import { ConfirmEnum, HalfYearEnum, UserGradeIdxEnum } from '../../common/constant/enum';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
@@ -148,7 +148,8 @@ export class ActivityService {
 
   @Transactional()
   async createActivityBudget(budgetInfo: CreateActivityBudgetDto): Promise<void> {
-    const { year, period: halfYear, activityBudget, userIdx, memberCount, budgetPerMember } = budgetInfo;
+    const { year, period: halfYear, activityBudget } = budgetInfo;
+    const userIdxList: number[] = await this.activityRepository.getManagerOrHigherUserIdxList();
     const activityStatsCnt: number = await this.activityRepository.getActivityStatsCount(budgetInfo, year);
 
     /** 기록이 없다면 통계 create (기록이 있다면 통계 업데이트) **/
@@ -157,38 +158,48 @@ export class ActivityService {
       // 상반기일 경우
       if (halfYear === HalfYearEnum.H1) {
         for (let i = 1; i < 7; i++) {
-          const newActivityMonthStatsInfo: NewActivityMonthStats = {
-            userIdx,
-            year,
-            month: i.toString(),
-            activityMonthExpense: 0,
-          };
-          await this.activityRepository.createActivityMonthStats(newActivityMonthStatsInfo);
+          for (const userIdx of userIdxList) {
+            const newActivityMonthStatsInfo: NewActivityMonthStats = {
+              userIdx,
+              year,
+              month: i.toString(),
+              activityMonthExpense: 0,
+            };
+            await this.activityRepository.createActivityMonthStats(newActivityMonthStatsInfo);
+          }
         }
       } else {
         // 하반기일 경우
         for (let i = 7; i < 13; i++) {
-          const newActivityMonthStatsInfo: NewActivityMonthStats = {
-            userIdx,
-            year,
-            month: i.toString(),
-            activityMonthExpense: 0,
-          };
-          await this.activityRepository.createActivityMonthStats(newActivityMonthStatsInfo);
+          for (const userIdx of userIdxList) {
+            const newActivityMonthStatsInfo: NewActivityMonthStats = {
+              userIdx,
+              year,
+              month: i.toString(),
+              activityMonthExpense: 0,
+            };
+            await this.activityRepository.createActivityMonthStats(newActivityMonthStatsInfo);
+          }
         }
       }
       /* 반기별 통계 create */
+      for (const userIdx of userIdxList) {
+        const newActivityStatsInfo: NewActivityStats = {
+          userIdx,
+          year,
+          halfYear,
+          activityBudget,
+        };
+        await this.activityRepository.createActivityStats(newActivityStatsInfo);
+      }
+    } else {
+      // update
       const newActivityStatsInfo: NewActivityStats = {
-        userIdx,
         year,
         halfYear,
         activityBudget,
-        memberCount,
-        budgetPerMember,
       };
-      await this.activityRepository.createActivityStats(newActivityStatsInfo);
-    } else {
-      throw new ConflictException('이미 새로 등록하였습니다.');
+      await this.activityRepository.updateActivityStats(newActivityStatsInfo);
     }
 
     return;
