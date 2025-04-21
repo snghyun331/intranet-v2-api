@@ -38,7 +38,7 @@ import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { noticeImageOptions } from '../file/uploadMulter.options';
-import { AdminNoticeFilterDto } from './dto/query.dto';
+import { AdminNoticeFilterDto, UserNoticeFilterDto } from './dto/query.dto';
 
 @ApiTags('사용자')
 @Controller('users/notices')
@@ -51,8 +51,11 @@ export class UserNoticeController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get()
-  async getNoticeList(@Query() pageNoInfo: PageNoDto): Promise<ResponseInterface> {
-    const data = await this.noticeService.getNoticeList(pageNoInfo);
+  async getNoticeList(
+    @Query() pageNoInfo: PageNoDto,
+    @Query() filterInfo?: UserNoticeFilterDto,
+  ): Promise<ResponseInterface> {
+    const data = await this.noticeService.getNoticeList(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
 
