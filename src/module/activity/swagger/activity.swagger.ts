@@ -517,9 +517,6 @@ export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
         a: {
           summary: '예시',
           value: {
-            budgetPerMember: 200000,
-            memberCount: 7,
-            extraBudget: 10000,
             activityBudget: 1410000,
           },
         },
@@ -575,9 +572,6 @@ export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
                     gradeName: '본부장',
                     activityBudget: 1400000,
                     note: null,
-                    memberCount: 7,
-                    budgetPerMember: 200000,
-                    extraBudget: 0,
                   },
                 ],
               },
@@ -608,9 +602,6 @@ export const ADMIN_ACTIVITIES_BUDGET: SwaggerMethod = {
           value: {
             year: '2025',
             period: 'H1',
-            userIdx: 1,
-            memberCount: 7,
-            budgetPerMember: 200000,
             activityBudget: 1400000,
           },
         },

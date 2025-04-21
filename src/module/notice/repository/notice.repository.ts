@@ -77,7 +77,7 @@ export class NoticeRepostiory {
       .execute();
   }
 
-  async getNoticeList(pageNo: number, perPage: number, filterInfo: AdminNoticeFilterDto) {
+  async getNoticeList(pageNo: number, perPage: number, filterInfo?: AdminNoticeFilterDto) {
     const query: SelectQueryBuilder<NoticeEntity> = this.noticeModel
       .createQueryBuilder('noticeEntity')
       .select([
@@ -87,7 +87,7 @@ export class NoticeRepostiory {
         'noticeEntity.createdAt AS createdAt',
       ]);
 
-    if (filterInfo.searchWord) {
+    if (filterInfo?.searchWord) {
       const searchWord: string = filterInfo.searchWord;
       query.where(
         new Brackets((qb) => {

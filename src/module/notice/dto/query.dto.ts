@@ -4,3 +4,8 @@ export class AdminNoticeFilterDto {
   @ApiProperty({ type: String, required: false, description: '제목 및 내용 검색' })
   searchWord?: string;
 }
+
+export class UserNoticeFilterDto {
+  @ApiProperty({ type: String, required: false, description: '제목 및 내용 검색' })
+  searchWord?: string;
+}
