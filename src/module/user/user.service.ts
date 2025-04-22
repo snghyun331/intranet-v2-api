@@ -199,25 +199,6 @@ export class UserService {
     }
   }
 
-  @Transactional()
-  async deleteUser(userIdx: number): Promise<void> {
-    const result = await this.userRepository.getUserInfoByIdx(userIdx);
-    if (!result) {
-      throw new BadRequestException('이미 비활성된 유저이거나 올바른 유저가 아닙니다.');
-    }
-    // 유저 비활성화
-    await this.userRepository.deleteUser(userIdx);
-    // 어드민 비활성화
-    if (result.adminRole === YNEnum.YES) {
-      await this.userRepository.deleteAdmin(userIdx);
-    }
-
-    /* Redis에 등록된 유저네임 삭제 */
-    await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
-
-    return;
-  }
-
   async getBirthdayUsers(date: string) {
     const result = await this.userRepository.getBirthdayUsersByDate(date);
 
@@ -234,5 +215,35 @@ export class UserService {
     await this.redisSearchService.addUserInRedis(userIdx, userName);
 
     return;
+  }
+
+  @Transactional()
+  async updateUserStatus(userIdx: number, userAvail: YNEnum) {
+    const result = await this.userRepository.getUsersIncludeInactiveByIdx(userIdx);
+    if (!result) {
+      throw new BadRequestException('직원 정보가 없습니다.');
+    }
+
+    /* 비활성화 유저를 활성화 */
+    if (userAvail === YNEnum.YES) {
+      // userAvail를 null로 변경
+      await this.userRepository.restoreUser(userIdx);
+
+      // 등록일 기준 출퇴근 정보 생성
+      const commuteDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
+      await this.commuteRepository.createTodayCommute(userIdx, commuteDate);
+
+      // Redis에 유저 등록(검색 자동완성)
+      await this.redisSearchService.addUserInRedis(userIdx, result.userName);
+    } else {
+      // 활성화 유저를 비활성화
+      await this.userRepository.deleteUser(userIdx);
+      if (result.adminRole === YNEnum.YES) {
+        await this.userRepository.deleteAdmin(userIdx);
+      }
+
+      // Redis에 등록된 유저네임 삭제
+      await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
+    }
   }
 }

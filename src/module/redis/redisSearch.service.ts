@@ -2,6 +2,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import { SearchUserDto } from '../user/dto/searchUser.dto';
+import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class RedisSearchService {

@@ -205,6 +205,27 @@ export const USERS_GRADES_IDX: SwaggerMethod = {
 };
 
 export const ADMIN_USERS: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '직원 활성화/비활성화 선택 API',
+    },
+    API_PARAM1: {
+      name: 'userIdx',
+      type: Number,
+      required: true,
+      description: '유저IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
   DELETE: {
     API_OPERATION: {
       summary: '직원 삭제(비활성화) API',

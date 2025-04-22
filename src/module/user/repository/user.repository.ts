@@ -297,6 +297,17 @@ export class UserRepository {
     return result;
   }
 
+  async getUsersIncludeInactiveByIdx(userIdx: number) {
+    const result = await this.userModel
+      .createQueryBuilder('userEntity')
+      .withDeleted()
+      .select(['userEntity.userName AS userName', 'userEntity.adminRole AS adminRole'])
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .getRawOne();
+
+    return result;
+  }
+
   async deleteAdmin(userIdx: number): Promise<DeleteResult> {
     return await this.adminModel
       .createQueryBuilder()
@@ -335,5 +346,9 @@ export class UserRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async restoreUser(userIdx: number): Promise<UpdateResult> {
+    return await this.userModel.createQueryBuilder().where('user_idx = :userIdx', { userIdx }).restore().execute();
   }
 }
