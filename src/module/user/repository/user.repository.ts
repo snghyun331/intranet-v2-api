@@ -14,6 +14,7 @@ import { AdminEntity } from '../../../entity/admin/admin.entity';
 import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
 import { NewAdminInfo } from '../interface/admin.interface';
 import { NewUserInfo } from '../interface/user.interface';
+import { YNALLEnum } from '../../../common/constant/enum';
 
 @Injectable()
 export class UserRepository {
@@ -146,8 +147,7 @@ export class UserRepository {
       .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .leftJoin(AdminEntity, 'adminEntity', 'adminEntity.userIdx = userEntity.userIdx')
-      .where('userEntity.userAvail IS NULL');
+      .leftJoin(AdminEntity, 'adminEntity', 'adminEntity.userIdx = userEntity.userIdx');
 
     if (filterInfo.gradeIdx) {
       query.andWhere('userEntity.gradeIdx = :gradeIdx', { gradeIdx: filterInfo.gradeIdx });
@@ -155,6 +155,12 @@ export class UserRepository {
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
       query.andWhere('userEntity.userName = :userName', { userName });
+    }
+    if (filterInfo.userAvail === YNALLEnum.YES) {
+      query.andWhere('userEntity.userAvail IS NULL');
+    }
+    if (filterInfo.userAvail === YNALLEnum.NO) {
+      query.andWhere('userEntity.userAvail IS NOT NULL');
     }
 
     const total: number = await query.getCount();

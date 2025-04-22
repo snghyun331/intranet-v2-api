@@ -48,8 +48,9 @@ export class LeaveService {
     /* CEO이면, 아무 조건 없이 휴가 등록 및 자동승인 */
     if (user.gradeName === UserGradeEnum.CEO) {
       for (const leave of leaveInfo) {
+        const commuteDate: string = leave.commuteDate;
         const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
-        if (!dateStringFormat.test(leave.commuteDate)) {
+        if (!dateStringFormat.test(commuteDate)) {
           throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
         }
         const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
@@ -61,8 +62,8 @@ export class LeaveService {
         let commuteIdx: number;
         const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
         // 당일에 등록할 경우
-        if (leave.commuteDate === today) {
-          commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, leave.commuteDate);
+        if (commuteDate === today) {
+          commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, commuteDate);
           await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx);
         } else {
           commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note);
@@ -99,11 +100,12 @@ export class LeaveService {
 
     /* CEO 제외한 사용자의 휴가 등록 */
     for (const leave of leaveInfo) {
+      const commuteDate: string = leave.commuteDate;
+      const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
       const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
-      if (!dateStringFormat.test(leave.commuteDate)) {
+      if (!dateStringFormat.test(commuteDate)) {
         throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
       }
-      const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
       if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
         throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
       }
@@ -159,12 +161,22 @@ export class LeaveService {
       /* 휴가등록 */
       let commuteIdx: number;
       const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+
+      // 연차 차감 단위 계산
+      const isBirthday: boolean = await this.leaveRepository.isBirthday(userIdx, commuteDate);
+      const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday);
+
+      const totalReduceUnit = await this.leaveRepository.getTotalLeaveReduceUnitByDate(userIdx, commuteDate);
+      if (totalReduceUnit + leaveReduceUnit > 1.0) {
+        throw new BadRequestException('휴가는 하루에 최대 1.0까지만 사용할 수 있습니다.');
+      }
+
       // 당일에 등록할 경우
-      if (leave.commuteDate === today) {
-        commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, leave.commuteDate);
-        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx);
+      if (commuteDate === today) {
+        commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, commuteDate);
+        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, leaveReduceUnit);
       } else {
-        commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note);
+        commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
       }
 
       // 승인 가능자 모두 저장
@@ -369,106 +381,57 @@ export class LeaveService {
   }
 
   async getUserLeaveInfo(filterInfo: UserLeaveDetailFilterDto | AdminLeaveDetailFilterDto, userIdx: number) {
+    const { year: filterYear, month: filterMonth, leaveTypeIdx: filterLeaveTypeIdx } = filterInfo;
     if (filterInfo.leaveTypeIdx && !Object.values(IntranetLeaveTypeIdxEnum).includes(filterInfo.leaveTypeIdx)) {
       throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
     }
     // 부여받은 총 연차 수 가져오기
     const { totalReceivedAnnualLeave } = await this.leaveRepository.getAnnualLeaveSummary(userIdx, filterInfo.year);
 
-    // 휴가 상세내역 정보 가져오기
-    const leaveDetails = await this.leaveRepository.getUserLeaveDetail(filterInfo, userIdx);
+    /* 1. (필터없이) 연도 전체 휴가 상세정보 조회 */
+    const leaveDetails = await this.leaveRepository.getUserLeaveDetail(filterYear, userIdx);
 
-    // 데이터를 commuteIdx 기준으로 그룹화
-    const leaveDetailsWithApprovers = leaveDetails.reduce((acc, row) => {
-      // 기존 commuteIdx가 있는지 확인
-      const existing = acc.find((item: any) => item.commuteIdx === row.commuteIdx);
+    /* 2. commuteIdx 기준 그룹화 + 참조자 및 승인자 정보 합치기 */
+    const groupedLeaveDetails = await this.groupByCommuteIdx(leaveDetails);
 
-      const approverInfo = {
-        approverIdx: row.approverIdx,
-        approverName: row.approverName,
-      };
-      const ccUserInfo = {
-        ccUserIdx: row.ccUserIdx,
-        ccUserName: row.ccUserName,
-      };
-
-      if (existing) {
-        // 같은 commuteIdx이면 approverInfo 리스트에 추가
-        if (row.approverIdx) {
-          const isIdxAlreadyExists = existing.approverInfo.some((user: any) => user.approverIdx === row.approverIdx);
-          if (!isIdxAlreadyExists) {
-            existing.approverInfo.push(approverInfo);
-          }
-        }
-        // 같은 commuteIdx이면 ccUserInfo 리스트에 추가
-        if (row.ccUserIdx) {
-          const isIdxAlreadyExists = existing.ccUserInfo.some((user: any) => user.ccUserIdx === row.ccUserIdx);
-          if (!isIdxAlreadyExists) {
-            existing.ccUserInfo.push(ccUserInfo);
-          }
-        }
-      } else {
-        // 새로운 commuteIdx이면 새로운 객체 생성
-        acc.push({
-          commuteIdx: row.commuteIdx,
-          userIdx: row.userIdx,
-          commuteDate: row.commuteDate,
-          commuteDayName: row.commuteDayName,
-          leaveTypeIdx: row.leaveTypeIdx,
-          leaveType: row.leaveType,
-          imageIdx: row.imageIdx,
-          imageName: row.imageName,
-          imageSize: row.imageSize,
-          imageUrl: row.imageUrl,
-          annualLeaveReduceUnit: row.annualLeaveReduceUnit,
-          note: row.note,
-          confirmYN: row.confirmYN,
-          confirmDate: row.confirmDate,
-          rejectDate: row.rejectDate,
-          confirmPersonIdx: row.confirmPersonIdx,
-          confirmPersonName: row.confirmPersonName,
-          createdAt: row.createdAt,
-          updatedAt: row.updatedAt,
-          approverInfo: row.approverIdx ? [approverInfo] : [],
-          ccUserInfo: row.ccUserIdx ? [ccUserInfo] : [],
-        });
-      }
-      return acc;
-    }, []);
-
+    /* 3. 연차 차감 개수 계산 + 승인여부 필드 처리 */
     const updatedLeaveDetails = await Promise.all(
-      leaveDetailsWithApprovers.map(async (leaveDetail: any) => {
-        // leaveReduceUnit 재설정
-        leaveDetail.annualLeaveReduceUnit =
-          leaveDetail.confirmYN === ConfirmEnum.YES ? leaveDetail.annualLeaveReduceUnit : 0;
+      groupedLeaveDetails.map(async (detail: any) => {
+        // annualLeaveReduceUnit 설정
+        detail.annualLeaveReduceUnit =
+          detail.confirmYN === ConfirmEnum.YES && ANNUAL_LEAVE_LISTS.has(detail.leaveTypeIdx)
+            ? detail.leaveReduceUnit
+            : 0;
         // 승인여부와 날짜를 합친 새 필드 추가
-        const confirmStatus: string = addConfirmStatusField(
-          leaveDetail.confirmYN,
-          leaveDetail.confirmDate,
-          leaveDetail.rejectDate,
-        );
+        detail.confirmStatus = addConfirmStatusField(detail.confirmYN, detail.confirmDate, detail.rejectDate);
 
-        return {
-          ...leaveDetail,
-          confirmStatus,
-        };
+        return detail;
       }),
     );
 
-    // 누적 잔여 연차 수 계산
-    let remainingAnnualLeaveQuota: number = totalReceivedAnnualLeave;
-    const calculatedLeaveDetails = updatedLeaveDetails.map((leaveDetail) => {
-      remainingAnnualLeaveQuota -= leaveDetail.annualLeaveReduceUnit;
+    /* 4. 누적 잔여 연차 수 계산 */
+    let remainingQuota = totalReceivedAnnualLeave;
+    const withRemainingQuota = updatedLeaveDetails.map((detail) => {
+      remainingQuota -= detail.annualLeaveReduceUnit;
       return {
-        ...leaveDetail,
-        remainingAnnualLeaveQuota,
+        ...detail,
+        remainingAnnualLeaveQuota: remainingQuota,
       };
     });
 
-    // commuteDate 기준으로 다시 내림차순 정렬
-    const result = calculatedLeaveDetails.sort(
-      (a, b) => new Date(b.commuteDate).getTime() - new Date(a.commuteDate).getTime(),
-    );
+    /* 5. 사후 필터링 처리 (month, leaveTypeIdx, confirmYN) */
+    const filtered = withRemainingQuota.filter((detail) => {
+      const commuteMonth = new Date(detail.commuteDate).getMonth() + 1;
+      const matchMonth = !filterMonth || filterMonth.includes(commuteMonth.toString());
+      const matchLeaveTypeIdx = !filterLeaveTypeIdx || detail.leaveTypeIdx === filterLeaveTypeIdx;
+      const matchConfirmYN =
+        !('confirmYN' in filterInfo) || !filterInfo.confirmYN || detail.confirmYN === filterInfo.confirmYN;
+
+      return matchMonth && matchLeaveTypeIdx && matchConfirmYN;
+    });
+
+    /* 6. commuteDate 기준으로 다시 내림차순 정렬 */
+    const result = filtered.sort((a, b) => new Date(b.commuteDate).getTime() - new Date(a.commuteDate).getTime());
 
     return result;
   }
@@ -559,5 +522,170 @@ export class LeaveService {
     await this.leaveRepository.updateLeaveNote(commuteIdx, noteInfo);
 
     return;
+  }
+
+  private async calculateLeaveReduceUnit(leaveTypeIdx: number, isBirthday: boolean) {
+    if (isBirthday) {
+      switch (leaveTypeIdx) {
+        case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
+          return 0.75;
+        case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
+          return 0.75;
+        case IntranetLeaveTypeIdxEnum.AM_HALF:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_HALF:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.AM_QUARTER:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.PM_QUARTER:
+          return 0;
+        case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.HEALTH_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.TRAINING:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.SICK_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.AM_TRAINING:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_TRAINING:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
+          return 0.25;
+      }
+    } else {
+      switch (leaveTypeIdx) {
+        case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.AM_HALF:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_HALF:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_QUARTER:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.PM_QUARTER:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.HEALTH_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.TRAINING:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.SICK_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.AM_TRAINING:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_TRAINING:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
+          return 0.25;
+      }
+    }
+    return 0;
+  }
+
+  private async groupByCommuteIdx(rows: any[]) {
+    return rows.reduce((acc, row) => {
+      // const existing = acc.find((item) => item.commuteIdx === row.commuteIdx);
+      // if (existing) {
+      //   existing.approverInfo.push({
+      //     approverIdx: row.approverIdx,
+      //     approverName: row.approverName,
+      //   });
+      //   existing.ccUserInfo.push({
+      //     ccUserIdx: row.ccUserIdx,
+      //     ccUserName: row.ccUserName,
+      //   });
+      // } else {
+      //   acc.push({
+      //     ...row,
+      //     approverInfo: row.approverIdx ? [{ approverIdx: row.approverIdx, approverName: row.approverName }] : [],
+      //     ccUserInfo: row.ccUserIdx ? [{ ccUserIdx: row.ccUserIdx, ccUserName: row.ccUserName }] : [],
+      //   });
+      // }
+      // 기존 commuteIdx가 있는지 확인
+      const existing = acc.find((item: any) => item.commuteIdx === row.commuteIdx);
+
+      const approverInfo = {
+        approverIdx: row.approverIdx,
+        approverName: row.approverName,
+      };
+      const ccUserInfo = {
+        ccUserIdx: row.ccUserIdx,
+        ccUserName: row.ccUserName,
+      };
+
+      if (existing) {
+        // 같은 commuteIdx이면 approverInfo 리스트에 추가
+        if (row.approverIdx) {
+          const isIdxAlreadyExists = existing.approverInfo.some((user: any) => user.approverIdx === row.approverIdx);
+          if (!isIdxAlreadyExists) {
+            existing.approverInfo.push(approverInfo);
+          }
+        }
+        // 같은 commuteIdx이면 ccUserInfo 리스트에 추가
+        if (row.ccUserIdx) {
+          const isIdxAlreadyExists = existing.ccUserInfo.some((user: any) => user.ccUserIdx === row.ccUserIdx);
+          if (!isIdxAlreadyExists) {
+            existing.ccUserInfo.push(ccUserInfo);
+          }
+        }
+      } else {
+        // 새로운 commuteIdx이면 새로운 객체 생성
+        acc.push({
+          commuteIdx: row.commuteIdx,
+          userIdx: row.userIdx,
+          commuteDate: row.commuteDate,
+          commuteDayName: row.commuteDayName,
+          leaveTypeIdx: row.leaveTypeIdx,
+          leaveType: row.leaveType,
+          imageIdx: row.imageIdx,
+          imageName: row.imageName,
+          imageSize: row.imageSize,
+          imageUrl: row.imageUrl,
+          leaveReduceUnit: row.leaveReduceUnit,
+          note: row.note,
+          confirmYN: row.confirmYN,
+          confirmDate: row.confirmDate,
+          rejectDate: row.rejectDate,
+          confirmPersonIdx: row.confirmPersonIdx,
+          confirmPersonName: row.confirmPersonName,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          approverInfo: row.approverIdx ? [approverInfo] : [],
+          ccUserInfo: row.ccUserIdx ? [ccUserInfo] : [],
+        });
+      }
+      return acc;
+    }, []);
   }
 }

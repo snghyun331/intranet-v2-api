@@ -135,77 +135,85 @@ export class ApprovalRepository {
   }
 
   async updateTotalAnnualLeaveUsage(year: string, userIdx: number): Promise<UpdateResult> {
-    const query = `(
-      SELECT SUM(
-        CASE 
-          WHEN leave_usage.leave_type_idx IN (2, 3) THEN leave_usage.annual_use_count * 0.5
-          WHEN leave_usage.leave_type_idx IN (4, 5) THEN leave_usage.annual_use_count * 0.25
-          WHEN leave_usage.leave_type_idx = 6 THEN leave_usage.annual_use_count
-          ELSE 0
-        END
-      )
-      FROM leave_usage
-      WHERE leave_usage.user_idx = leave_stats.user_idx 
-      AND leave_usage.year = leave_stats.year
-    )`;
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select('SUM(commuteEntity.leaveReduceUnit)', 'total')
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.YES })
+      .andWhere('commuteEntity.leaveTypeIdx IN (:...leaveTypeIdx)', {
+        leaveTypeIdx: [
+          IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE,
+          IntranetLeaveTypeIdxEnum.AM_HALF,
+          IntranetLeaveTypeIdxEnum.AM_QUARTER,
+          IntranetLeaveTypeIdxEnum.PM_HALF,
+          IntranetLeaveTypeIdxEnum.PM_QUARTER,
+        ],
+      })
+      .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year })
+      .getRawOne();
+
+    const totalAnnualLeaveUsage = result.total || 0;
 
     return await this.leaveStatsModel
       .createQueryBuilder()
       .update(LeaveStatsEntity)
-      .set({
-        totalAnnualLeaveUsage: () => query,
-      })
+      .set({ totalAnnualLeaveUsage })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('year = :year', { year })
       .execute();
   }
 
   async updateTotalSpecialLeaveUsage(year: string, userIdx: number): Promise<UpdateResult> {
-    const query = `(
-      SELECT SUM(
-        CASE 
-          WHEN leave_usage.leave_type_idx IN (8, 9) THEN leave_usage.annual_use_count * 0.5
-          WHEN leave_usage.leave_type_idx IN (10, 11) THEN leave_usage.annual_use_count * 0.25
-          WHEN leave_usage.leave_type_idx = 7 THEN leave_usage.annual_use_count
-          ELSE 0
-        END
-      )
-      FROM leave_usage
-      WHERE leave_usage.user_idx = leave_stats.user_idx 
-      AND leave_usage.year = leave_stats.year
-    )`;
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select('SUM(commuteEntity.leaveReduceUnit)', 'total')
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.YES })
+      .andWhere('commuteEntity.leaveTypeIdx IN (:...leaveTypeIdx)', {
+        leaveTypeIdx: [
+          IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE,
+          IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE,
+          IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE,
+          IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE,
+          IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE,
+        ],
+      })
+      .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year })
+      .getRawOne();
+
+    const totalSpecialLeaveUsage = result.total || 0;
 
     return await this.leaveStatsModel
       .createQueryBuilder()
       .update(LeaveStatsEntity)
-      .set({
-        totalSpecialLeaveUsage: () => query,
-      })
+      .set({ totalSpecialLeaveUsage })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('year = :year', { year })
       .execute();
   }
 
   async updateTotalAlternativeLeaveUsage(year: string, userIdx: number): Promise<UpdateResult> {
-    const query = `(
-      SELECT SUM(
-        CASE 
-          WHEN leave_usage.leave_type_idx IN (13, 14) THEN leave_usage.annual_use_count * 0.5
-          WHEN leave_usage.leave_type_idx = 12 THEN leave_usage.annual_use_count
-          ELSE 0
-        END
-      )
-      FROM leave_usage
-      WHERE leave_usage.user_idx = leave_stats.user_idx 
-      AND leave_usage.year = leave_stats.year
-    )`;
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select('SUM(commuteEntity.leaveReduceUnit)', 'total')
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.YES })
+      .andWhere('commuteEntity.leaveTypeIdx IN (:...leaveTypeIdx)', {
+        leaveTypeIdx: [
+          IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE,
+          IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE,
+          IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE,
+        ],
+      })
+      .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year })
+      .getRawOne();
+
+    const totalAlternativeLeaveUsage = result.total || 0;
 
     return await this.leaveStatsModel
       .createQueryBuilder()
       .update(LeaveStatsEntity)
-      .set({
-        totalAlternativeLeaveUsage: () => query,
-      })
+      .set({ totalAlternativeLeaveUsage })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('year = :year', { year })
       .execute();
