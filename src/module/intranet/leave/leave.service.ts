@@ -48,8 +48,9 @@ export class LeaveService {
     /* CEO이면, 아무 조건 없이 휴가 등록 및 자동승인 */
     if (user.gradeName === UserGradeEnum.CEO) {
       for (const leave of leaveInfo) {
+        const commuteDate: string = leave.commuteDate;
         const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
-        if (!dateStringFormat.test(leave.commuteDate)) {
+        if (!dateStringFormat.test(commuteDate)) {
           throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
         }
         const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
@@ -61,8 +62,8 @@ export class LeaveService {
         let commuteIdx: number;
         const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
         // 당일에 등록할 경우
-        if (leave.commuteDate === today) {
-          commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, leave.commuteDate);
+        if (commuteDate === today) {
+          commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, commuteDate);
           await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx);
         } else {
           commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note);
@@ -99,11 +100,12 @@ export class LeaveService {
 
     /* CEO 제외한 사용자의 휴가 등록 */
     for (const leave of leaveInfo) {
+      const commuteDate: string = leave.commuteDate;
+      const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
       const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
-      if (!dateStringFormat.test(leave.commuteDate)) {
+      if (!dateStringFormat.test(commuteDate)) {
         throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
       }
-      const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
       if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
         throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
       }
@@ -159,12 +161,22 @@ export class LeaveService {
       /* 휴가등록 */
       let commuteIdx: number;
       const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+
+      // 연차 차감 단위 계산
+      const isBirthday: boolean = await this.leaveRepository.isBirthday(userIdx, commuteDate);
+      const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday);
+
+      const totalReduceUnit = await this.leaveRepository.getTotalLeaveReduceUnitByDate(userIdx, commuteDate);
+      if (totalReduceUnit + leaveReduceUnit > 1.0) {
+        throw new BadRequestException('휴가는 하루에 최대 1.0까지만 사용할 수 있습니다.');
+      }
+
       // 당일에 등록할 경우
-      if (leave.commuteDate === today) {
-        commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, leave.commuteDate);
-        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx);
+      if (commuteDate === today) {
+        commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, commuteDate);
+        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, leaveReduceUnit);
       } else {
-        commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note);
+        commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
       }
 
       // 승인 가능자 모두 저장
@@ -559,5 +571,94 @@ export class LeaveService {
     await this.leaveRepository.updateLeaveNote(commuteIdx, noteInfo);
 
     return;
+  }
+
+  private async calculateLeaveReduceUnit(leaveTypeIdx: number, isBirthday: boolean) {
+    if (isBirthday) {
+      switch (leaveTypeIdx) {
+        case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
+          return 0.75;
+        case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
+          return 0.75;
+        case IntranetLeaveTypeIdxEnum.AM_HALF:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_HALF:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.AM_QUARTER:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.PM_QUARTER:
+          return 0;
+        case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.HEALTH_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.TRAINING:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.SICK_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.AM_TRAINING:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_TRAINING:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
+          return 0.25;
+      }
+    } else {
+      switch (leaveTypeIdx) {
+        case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.AM_HALF:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_HALF:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_QUARTER:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.PM_QUARTER:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.HEALTH_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.TRAINING:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.SICK_LEAVE:
+          return 1;
+        case IntranetLeaveTypeIdxEnum.AM_TRAINING:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_TRAINING:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE:
+          return 0.5;
+        case IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE:
+          return 0.25;
+        case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
+          return 0.25;
+      }
+    }
+    return 0;
   }
 }

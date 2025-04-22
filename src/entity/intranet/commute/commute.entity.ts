@@ -75,6 +75,9 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'confirm_person_idx', comment: '승인자 IDX', nullable: true })
   confirmPersonIdx: number;
 
+  @Column({ name: 'leave_reduce_unit', comment: '휴가 차감 단위', type: 'float', default: 0, nullable: false })
+  leaveReduceUnit: number;
+
   @ManyToOne(() => UserEntity, (user) => user.commuteRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

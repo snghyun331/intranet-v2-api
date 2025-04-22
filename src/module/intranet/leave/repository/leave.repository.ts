@@ -99,12 +99,17 @@ export class LeaveRepository {
     return commuteIdx;
   }
 
-  async createLeave(leaveInfo: LeaveDetailDto, userIdx: number, note: string | null): Promise<number> {
+  async createLeave(
+    leaveInfo: LeaveDetailDto,
+    userIdx: number,
+    note: string | null,
+    leaveReduceUnit?: number | 0,
+  ): Promise<number> {
     const result: InsertResult = await this.commuteModel
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ leaveTypeIdx: Number(leaveInfo.leaveTypeIdx), ...leaveInfo, note, userIdx })
+      .values({ leaveTypeIdx: Number(leaveInfo.leaveTypeIdx), ...leaveInfo, note, userIdx, leaveReduceUnit })
       .execute();
 
     const commuteIdx: number = result.identifiers[0].commuteIdx;
@@ -113,11 +118,11 @@ export class LeaveRepository {
   }
 
   /* 당일에 휴가를 등록할 때 사용하는 함수 */
-  async updateLeave(commuteIdx: number, leaveTypeIdx: number): Promise<UpdateResult> {
+  async updateLeave(commuteIdx: number, leaveTypeIdx: number, leaveReduceUnit?: number | 0): Promise<UpdateResult> {
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ leaveTypeIdx })
+      .set({ leaveTypeIdx, leaveReduceUnit })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
@@ -551,5 +556,28 @@ export class LeaveRepository {
       .set({ note })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
+  }
+
+  async isBirthday(userIdx: number, commuteDate: string): Promise<boolean> {
+    const date: string = commuteDate.slice(5);
+    const result = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userIdx AS userIdx'])
+      .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('DATE_FORMAT(userEntity.userBirth, "%m-%d") = :date', { date })
+      .getRawOne();
+
+    return !!result;
+  }
+
+  async getTotalLeaveReduceUnitByDate(userIdx: number, commuteDate: string): Promise<number> {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select(['SUM(commuteEntity.leaveReduceUnit) AS total'])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .getRawOne();
+
+    return parseFloat(result?.total ?? 0);
   }
 }
