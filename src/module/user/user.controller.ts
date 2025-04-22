@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -27,7 +27,7 @@ import {
 } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
-import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
+import { AdminGradeEnum, UserGradeEnum, YNEnum } from '../../common/constant/enum';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { ResponseInterface } from '../../common/interface/response.interface';
@@ -243,16 +243,19 @@ export class AdminUserController {
     return response;
   }
 
-  @ApiOperation(ADMIN_USERS.DELETE.API_OPERATION)
-  @ApiParam(ADMIN_USERS.DELETE.API_PARAM1)
-  @ApiOkResponse(ADMIN_USERS.DELETE.API_OK_RESPONSE)
-  @ApiBadRequestResponse(ADMIN_USERS.DELETE.API_BAD_REQUEST_RESPONSE)
+  @ApiOperation(ADMIN_USERS.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_USERS.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_USERS.PATCH.API_OK_RESPONSE)
+  @ApiBadRequestResponse(ADMIN_USERS.PATCH.API_BAD_REQUEST_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Delete(':userIdx')
-  async deleteUser(@Param('userIdx', ParseIntPipe) userIdx: number): Promise<ResponseInterface> {
-    await this.userService.deleteUser(userIdx);
+  @Patch(':userIdx')
+  async updateUserStatus(
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+    @Query('userAvail') userAvail: YNEnum,
+  ): Promise<ResponseInterface> {
+    await this.userService.updateUserStatus(userIdx, userAvail);
 
     const response: ResponseInterface = { message: 'success' };
 
