@@ -13,7 +13,13 @@ export class LeaveStatsEntity extends CommonEntity {
   @Column({ name: 'year', comment: '회계연도', nullable: false })
   year: string;
 
-  @Column({ name: 'total_received_annual_leave', comment: '부여받은 총 연차 수', type: 'float', nullable: false })
+  @Column({
+    name: 'total_received_annual_leave',
+    comment: '부여받은 총 연차 수',
+    type: 'float',
+    default: 0,
+    nullable: false,
+  })
   totalReceivedAnnualLeave: number;
 
   @Column({ name: 'total_annual_leave_usage', comment: '사용 연차 수', type: 'float', default: 0, nullable: false })
