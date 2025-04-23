@@ -53,6 +53,7 @@ export class UserService {
 
   @Transactional()
   async createUser(userInfo: CreateUserDto): Promise<void> {
+    const currentYear: string = moment().utcOffset(9).year().toString();
     const result: number = await this.userRepository.getLoginIdCount(userInfo.id);
     if (result >= 1) {
       throw new ConflictException('이미 가입된 유저입니다.(아이디 중복)');
@@ -79,7 +80,16 @@ export class UserService {
       await this.userRepository.createAdmin(userIdx, newAdminInfo);
     }
 
-    /* 등록일 기준 출퇴근 정보 생성 */
+    /*  leaveStats 엔티티에 데이터(default: 0) 추가 */
+    await this.userRepository.createLeaveStatsInfo(userIdx, currentYear);
+
+    /* leaveUsage 엔티티에 데이터(default: 0) 추가 */
+    await this.userRepository.createLeaveUsageInfo(userIdx, currentYear);
+
+    /* leaveMonthlyUsage 엔티티에 데이터(default: 0) 추가 */
+    await this.userRepository.createLeaveMonthlyUsageInfo(userIdx, currentYear);
+
+    /* 등록일 기준 출퇴근 데이터 생성 */
     const commuteDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
     await this.commuteRepository.createTodayCommute(userIdx, commuteDate);
 

@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment';
 import { AES, enc } from 'crypto-js';
-import { ConfirmEnum, HalfYearEnum } from '../constant/enum';
+import { ConfirmEnum, HalfYearEnum, LeaveGrantTypeEnum } from '../constant/enum';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (dateString: string): string => {
@@ -219,4 +219,27 @@ export const addConfirmStatusField = (confirmYN: ConfirmEnum, confirmDate: strin
 
 export const removeDuplicateIdxs = (array: any[], originalArray: any[]): any[] => {
   return originalArray.filter((item) => !array.includes(item));
+};
+
+export const getTodayLeaveGrantType = (joinDateString: string): LeaveGrantTypeEnum => {
+  const today = moment().utcOffset(9);
+  const joinDate = moment(joinDateString).utcOffset(9);
+  const joinOneYearLater = joinDate.clone().add(1, 'year').format('YYYY-MM-DD');
+
+  if (today.format('YYYY-MM-DD') === joinOneYearLater) {
+    return LeaveGrantTypeEnum.ANNUAL;
+  }
+  if (today.date() === joinDate.date()) {
+    return LeaveGrantTypeEnum.MONTHLY;
+  }
+
+  return LeaveGrantTypeEnum.NONE;
+};
+
+export const getDaysBetwweenTwoDates = (startDate: string, endDate: string): number => {
+  const start: Date = new Date(startDate);
+  const end: Date = new Date(endDate);
+  const days: number = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+  return days;
 };

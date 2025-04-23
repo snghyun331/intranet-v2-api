@@ -8,7 +8,7 @@ const swaggerCustomOptions: SwaggerCustomOptions = {
   },
 };
 
-export function setupSwagger(app: INestApplication): void {
+export const setupSwagger = (app: INestApplication): void => {
   if (process.env.NODE_ENV === 'dev') {
     const options: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
       .setTitle('ACG 식대/복포 관리 서비스 API Docs')
@@ -27,4 +27,4 @@ export function setupSwagger(app: INestApplication): void {
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('api', app, document, swaggerCustomOptions);
   }
-}
+};

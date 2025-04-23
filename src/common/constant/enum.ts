@@ -136,3 +136,9 @@ export enum YNALLEnum {
   NO = YNEnum.NO,
   ALL = 'ALL',
 }
+
+export enum LeaveGrantTypeEnum {
+  ANNUAL = 'ANNUAL',
+  MONTHLY = 'MONTHLY',
+  NONE = 'NONE',
+}
