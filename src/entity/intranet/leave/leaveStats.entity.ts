@@ -28,7 +28,13 @@ export class LeaveStatsEntity extends CommonEntity {
   })
   midJoinReceivedAnnualLeave: number;
 
-  @Column({ name: 'total_received_special_leave', comment: '부여받은 총 특별휴무 수', type: 'float', nullable: false })
+  @Column({
+    name: 'total_received_special_leave',
+    comment: '부여받은 총 특별휴무 수',
+    type: 'float',
+    default: 0,
+    nullable: false,
+  })
   totalReceivedSpecialLeave: number;
 
   @Column({
@@ -44,6 +50,7 @@ export class LeaveStatsEntity extends CommonEntity {
     name: 'total_received_alternative_leave',
     comment: '부여받은 총 대체휴무 수',
     type: 'float',
+    default: 0,
     nullable: false,
   })
   totalReceivedAlternativeLeave: number;
