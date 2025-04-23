@@ -14,10 +14,23 @@ import { RedisSearchService } from '../redis/redisSearch.service';
 import { MockUserService } from './mock/user.service.mock';
 import { MockAdminUserController } from './mock/user.controller.mock';
 import { CommuteRepository } from '../intranet/commute/repository/commute.repository';
+import { LeaveStatsEntity } from '../../entity/intranet/leave/leaveStats.entity';
+import { LeaveUsageEntity } from '../../entity/intranet/leave/leaveUsage.entity';
+import { LeaveMonthlyUsageEntity } from '../../entity/intranet/leave/leaveMonthlyUsage.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity, GradeEntity, HeadquarterEntity, TeamEntity, AdminEntity, CommuteEntity]),
+    TypeOrmModule.forFeature([
+      UserEntity,
+      GradeEntity,
+      HeadquarterEntity,
+      TeamEntity,
+      AdminEntity,
+      CommuteEntity,
+      LeaveStatsEntity,
+      LeaveUsageEntity,
+      LeaveMonthlyUsageEntity,
+    ]),
     RedisModule,
   ],
   providers: [UserService, UserRepository, RedisSearchService, CommuteRepository],

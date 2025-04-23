@@ -9,10 +9,21 @@ import { SchedulerRepository } from './repository/scheduler.repository';
 import { UserEntity } from '../../entity/user/user.entity';
 import { MealStatsEntity } from '../../entity/meal/mealStats.entity';
 import { WelfareStatsEntity } from '../../entity/welfare/welfareStats.entity';
+import { LeaveStatsEntity } from '../../entity/intranet/leave/leaveStats.entity';
+import { LeaveUsageEntity } from '../../entity/intranet/leave/leaveUsage.entity';
+import { LeaveMonthlyUsageEntity } from '../../entity/intranet/leave/leaveMonthlyUsage.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([HolidayEntity, UserEntity, MealStatsEntity, WelfareStatsEntity]),
+    TypeOrmModule.forFeature([
+      HolidayEntity,
+      UserEntity,
+      MealStatsEntity,
+      WelfareStatsEntity,
+      LeaveStatsEntity,
+      LeaveUsageEntity,
+      LeaveMonthlyUsageEntity,
+    ]),
     ScheduleModule.forRoot(),
     HttpModule.registerAsync(AXIOS_CONFIG),
   ],

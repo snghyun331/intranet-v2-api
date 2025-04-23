@@ -15,6 +15,9 @@ import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
 import { NewAdminInfo } from '../interface/admin.interface';
 import { NewUserInfo } from '../interface/user.interface';
 import { YNALLEnum } from '../../../common/constant/enum';
+import { LeaveStatsEntity } from '../../../entity/intranet/leave/leaveStats.entity';
+import { LeaveUsageEntity } from '../../../entity/intranet/leave/leaveUsage.entity';
+import { LeaveMonthlyUsageEntity } from '../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 
 @Injectable()
 export class UserRepository {
@@ -25,6 +28,10 @@ export class UserRepository {
     @InjectRepository(TeamEntity) private readonly teamModel: Repository<TeamEntity>,
     @InjectRepository(AdminEntity) private readonly adminModel: Repository<AdminEntity>,
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<AdminEntity>,
+    @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
+    @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
+    @InjectRepository(LeaveMonthlyUsageEntity)
+    private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
   ) {}
 
   async getLoginIdCount(loginId: string): Promise<number> {
@@ -350,5 +357,44 @@ export class UserRepository {
 
   async restoreUser(userIdx: number): Promise<UpdateResult> {
     return await this.userModel.createQueryBuilder().where('user_idx = :userIdx', { userIdx }).restore().execute();
+  }
+
+  async createLeaveStatsInfo(userIdx: number, year: string): Promise<InsertResult> {
+    return await this.leaveStatsModel
+      .createQueryBuilder()
+      .insert()
+      .into(LeaveStatsEntity)
+      .values({ userIdx, year })
+      .execute();
+  }
+
+  async createLeaveUsageInfo(userIdx: number, year: string): Promise<void> {
+    // 휴가유형별
+    for (let i = 2; i <= 20; i++) {
+      const leaveTypeIdx: number = i;
+      await this.leaveUsageModel
+        .createQueryBuilder()
+        .insert()
+        .into(LeaveUsageEntity)
+        .values({ userIdx, year, leaveTypeIdx })
+        .execute();
+    }
+  }
+
+  async createLeaveMonthlyUsageInfo(userIdx: number, year: string): Promise<void> {
+    // 월별
+    for (let i = 1; i <= 12; i++) {
+      const month: string = i.toString();
+      // 휴가 유형별
+      for (let j = 2; j <= 20; j++) {
+        const leaveTypeIdx = j;
+        await this.leaveMonthlyUsageModel
+          .createQueryBuilder()
+          .insert()
+          .into(LeaveMonthlyUsageEntity)
+          .values({ userIdx, year, month, leaveTypeIdx })
+          .execute();
+      }
+    }
   }
 }
