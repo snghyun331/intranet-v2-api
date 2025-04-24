@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseGuards,
@@ -17,6 +18,7 @@ import { ResponseInterface } from '../../../common/interface/response.interface'
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -30,6 +32,7 @@ import {
   ADMIN_INTRANET_LEAVE,
   ADMIN_INTRANET_LEAVE_ALL_CALENDER,
   ADMIN_INTRANET_LEAVE_DETAIL,
+  ADMIN_INTRANET_LEAVE_EXTRA,
   ADMIN_INTRANET_LEAVE_NOTE,
   ADMIN_INTRANET_LEAVE_STATS,
   UploadLeaveImage,
@@ -54,6 +57,7 @@ import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDt
 import { UserPayload } from '../../../common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
 
 @ApiTags('사용자')
 @Controller('users/intranet/leave')
@@ -235,9 +239,9 @@ export class AdminLeaveController {
   @Patch(':commuteIdx/note')
   async updateLeaveNote(
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
-    @Body() noteInfo: UpdateNoteDto,
+    @Body() dto: UpdateNoteDto,
   ): Promise<ResponseInterface> {
-    await this.leaveService.updateLeaveNote(commuteIdx, noteInfo);
+    await this.leaveService.updateLeaveNote(commuteIdx, dto);
 
     const response: ResponseInterface = { message: '비고 수정 성공' };
 
@@ -307,6 +311,21 @@ export class AdminLeaveController {
   @Delete('commute/:commuteIdx')
   async deleteLeaveByAdmin(@Param('commuteIdx', ParseIntPipe) commuteIdx: number): Promise<ResponseInterface> {
     await this.leaveService.deleteLeave(commuteIdx);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE_EXTRA.PUT.API_OPERATION)
+  @ApiBody(ADMIN_INTRANET_LEAVE_EXTRA.PUT.API_BODY)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_EXTRA.PUT.API_OK_RESPONSE)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @ApiBearerAuth('accessToken')
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Put('extra')
+  async updateExtraLeave(@Body() dto: UpdateExtraLeaveDto): Promise<ResponseInterface> {
+    await this.leaveService.updateExtraLeave(dto);
 
     const response: ResponseInterface = { message: 'success' };
 

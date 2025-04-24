@@ -26,6 +26,7 @@ import * as moment from 'moment';
 import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminLeaveSortEnum } from '../enum/leave.enum';
+import { ALTERNATIVE_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from '../../../../common/constant/constant';
 
 @Injectable()
 export class LeaveRepository {
@@ -635,5 +636,27 @@ export class LeaveRepository {
       .getRawOne();
 
     return parseFloat(result?.total ?? 0);
+  }
+
+  async updateExtraLeave(userIdx: number, year: string, leaveTypeIdx: number, extraLeave: number): Promise<void> {
+    if (SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+      await this.leaveStatsModel
+        .createQueryBuilder()
+        .update(LeaveStatsEntity)
+        .set({ totalReceivedSpecialLeave: () => `totalReceivedSpecialLeave + ${extraLeave}` })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .execute();
+    }
+
+    if (ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx)) {
+      await this.leaveStatsModel
+        .createQueryBuilder()
+        .update(LeaveStatsEntity)
+        .set({ totalReceivedAlternativeLeave: () => `totalReceivedAlternativeLeave + ${extraLeave}` })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .execute();
+    }
   }
 }

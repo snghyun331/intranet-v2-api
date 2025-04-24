@@ -1,5 +1,6 @@
 import { ApiBody } from '@nestjs/swagger';
 import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
+import { UpdateExtraLeaveDto } from '../dto/updateExtraLeave.dto';
 
 export const USERS_INTRANET_LEAVE: SwaggerMethod = {
   DELETE: {
@@ -785,6 +786,48 @@ export const ADMIN_INTRANET_LEAVE_NOTE: SwaggerMethod = {
                 path: '/admin/intranet/leave/1',
               },
             },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_INTRANET_LEAVE_EXTRA: SwaggerMethod = {
+  PUT: {
+    API_OPERATION: {
+      summary: '어드민 휴가 추가 부여 API',
+    },
+    API_BODY: {
+      type: UpdateExtraLeaveDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '특별휴무',
+          value: {
+            userIdx: 1,
+            year: '2025',
+            leaveTypeIdx: 7,
+            extraLeave: 0.5,
+          },
+        },
+        b: {
+          summary: '대체휴무',
+          value: {
+            userIdx: 1,
+            year: '2025',
+            leaveTypeIdx: 12,
+            extraLeave: 2,
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
           },
         },
       },

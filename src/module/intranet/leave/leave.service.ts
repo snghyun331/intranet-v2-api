@@ -28,6 +28,7 @@ import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { ApprovalRepository } from '../approval/repository/approval.repository';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { Transactional } from 'typeorm-transactional';
+import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
 
 @Injectable()
 export class LeaveService {
@@ -687,5 +688,16 @@ export class LeaveService {
       }
       return acc;
     }, []);
+  }
+
+  @Transactional()
+  async updateExtraLeave(dto: UpdateExtraLeaveDto): Promise<void> {
+    const { userIdx, year, leaveTypeIdx, extraLeave } = dto;
+    if (!ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx) && !SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+      throw new BadRequestException('특별휴무, 대체휴무만 선택할 수 있습니다.');
+    }
+    await this.leaveRepository.updateExtraLeave(userIdx, year, leaveTypeIdx, extraLeave);
+
+    return;
   }
 }
