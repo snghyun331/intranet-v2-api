@@ -16,6 +16,7 @@ import { CommuteHasImageEntity } from '../../../entity/image/commuteHasImage.ent
 import { CommuteApproverEntity } from '../../../entity/intranet/commute/commuteApprover.entity';
 import { CommuteCCUserEntity } from '../../../entity/intranet/commute/commuteCCUser.entity';
 import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
+import { LeaveExtraEntity } from '../../../entity/intranet/leave/leaveExtra.entity';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
       CommuteApproverEntity,
       CommuteCCUserEntity,
       MealStatsEntity,
+      LeaveExtraEntity,
     ]),
     AwsModule,
   ],

@@ -54,10 +54,11 @@ import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
-import { UserPayload } from '../../../common/interface/payload.interface';
+import { AdminPayload, UserPayload } from '../../../common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
+import { CurrentAdmin } from '../../../common/decorator/currentAdmin.decorator';
 
 @ApiTags('사용자')
 @Controller('users/intranet/leave')
@@ -324,10 +325,27 @@ export class AdminLeaveController {
   @ApiBearerAuth('accessToken')
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Put('extra')
-  async updateExtraLeave(@Body() dto: UpdateExtraLeaveDto): Promise<ResponseInterface> {
-    await this.leaveService.updateExtraLeave(dto);
+  async updateExtraLeave(
+    @Body() dto: UpdateExtraLeaveDto,
+    @CurrentAdmin() { adminName }: AdminPayload,
+  ): Promise<ResponseInterface> {
+    await this.leaveService.updateExtraLeave(adminName, dto);
 
     const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE_EXTRA.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_EXTRA.GET.API_OK_RESPONSE)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @ApiBearerAuth('accessToken')
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('extra')
+  async getExtraLeaveInfo(@Query('year') year: string): Promise<ResponseInterface> {
+    const data = await this.leaveService.getExtraLeaveInfo(year);
+
+    const response: ResponseInterface = { message: 'success', data };
 
     return response;
   }

@@ -29,6 +29,7 @@ import { ApprovalRepository } from '../approval/repository/approval.repository';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { Transactional } from 'typeorm-transactional';
 import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
+import { NewLeaveExtra } from './interface/leaveExtra.interface';
 
 @Injectable()
 export class LeaveService {
@@ -691,13 +692,28 @@ export class LeaveService {
   }
 
   @Transactional()
-  async updateExtraLeave(dto: UpdateExtraLeaveDto): Promise<void> {
-    const { userIdx, year, leaveTypeIdx, extraLeave } = dto;
+  async updateExtraLeave(adminName: string, dto: UpdateExtraLeaveDto): Promise<void> {
+    const { userIdx, year, leaveTypeIdx, extraLeave, note } = dto;
     if (!ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx) && !SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
       throw new BadRequestException('특별휴무, 대체휴무만 선택할 수 있습니다.');
     }
-    await this.leaveRepository.updateExtraLeave(userIdx, year, leaveTypeIdx, extraLeave);
+
+    const newLeaveExtra: NewLeaveExtra = {
+      userIdx,
+      year,
+      leaveTypeIdx,
+      extraLeave,
+      adminName,
+      note: note ?? null,
+    };
+    await this.leaveRepository.updateExtraLeave(newLeaveExtra);
 
     return;
+  }
+
+  async getExtraLeaveInfo(year: string) {
+    const result = await this.leaveRepository.getExtraLeaveInfo(year);
+
+    return result;
   }
 }

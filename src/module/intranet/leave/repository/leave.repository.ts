@@ -27,6 +27,8 @@ import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commute
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminLeaveSortEnum } from '../enum/leave.enum';
 import { ALTERNATIVE_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from '../../../../common/constant/constant';
+import { LeaveExtraEntity } from '../../../../entity/intranet/leave/leaveExtra.entity';
+import { NewLeaveExtra } from '../interface/leaveExtra.interface';
 
 @Injectable()
 export class LeaveRepository {
@@ -41,6 +43,7 @@ export class LeaveRepository {
     @InjectRepository(CommuteHasImageEntity) private readonly commuteImageModel: Repository<CommuteHasImageEntity>,
     @InjectRepository(CommuteApproverEntity) private readonly commuteApproverModel: Repository<CommuteApproverEntity>,
     @InjectRepository(CommuteCCUserEntity) private readonly commuteCCModel: Repository<CommuteCCUserEntity>,
+    @InjectRepository(LeaveExtraEntity) private readonly leaveExtraModel: Repository<LeaveExtraEntity>,
   ) {}
 
   async getUserInfoByIdx(userIdx: number) {
@@ -638,7 +641,8 @@ export class LeaveRepository {
     return parseFloat(result?.total ?? 0);
   }
 
-  async updateExtraLeave(userIdx: number, year: string, leaveTypeIdx: number, extraLeave: number): Promise<void> {
+  async updateExtraLeave(newLeaveExtra: NewLeaveExtra): Promise<void> {
+    const { userIdx, leaveTypeIdx, extraLeave, year } = newLeaveExtra;
     if (SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
       await this.leaveStatsModel
         .createQueryBuilder()
@@ -658,5 +662,31 @@ export class LeaveRepository {
         .andWhere('year = :year', { year })
         .execute();
     }
+
+    await this.leaveExtraModel.createQueryBuilder().insert().into(LeaveExtraEntity).values(newLeaveExtra).execute();
+  }
+
+  async getExtraLeaveInfo(year: string) {
+    const result = await this.leaveExtraModel
+      .createQueryBuilder('leaveExtraEntity')
+      .select([
+        'leaveExtraEntity.leaveExtraIdx AS leaveExtraIdx',
+        'leaveExtraEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'leaveExtraEntity.year AS year',
+        'leaveExtraEntity.leaveTypeIdx AS leaveTypeIdx',
+        'leaveTypeEntity.leaveType AS leaveType',
+        'leaveExtraEntity.extraLeave AS extraLeave',
+        'leaveExtraEntity.adminName AS adminName',
+        'leaveExtraEntity.note AS note',
+        'leaveExtraEntity.createdAt AS createdAt',
+        'leaveExtraEntity.updatedAt AS updatedAt',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveExtraEntity.userIdx')
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = leaveExtraEntity.leaveTypeIdx')
+      .where('leaveExtraEntity.year = :year', { year })
+      .getRawMany();
+
+    return result;
   }
 }

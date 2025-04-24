@@ -12,4 +12,7 @@ export class UpdateExtraLeaveDto {
 
   @ApiProperty({ type: Number, description: '부여개수', required: true })
   extraLeave: number;
+
+  @ApiProperty({ type: String, description: '내용', required: false })
+  note?: string | null;
 }

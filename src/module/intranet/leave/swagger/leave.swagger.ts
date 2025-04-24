@@ -794,6 +794,36 @@ export const ADMIN_INTRANET_LEAVE_NOTE: SwaggerMethod = {
 };
 
 export const ADMIN_INTRANET_LEAVE_EXTRA: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 휴가 추가 부여 내역조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: [
+              {
+                leaveExtraIdx: 1,
+                userIdx: 2,
+                userName: '이승현',
+                year: '2025',
+                leaveTypeIdx: 7,
+                leaveType: '특별 휴무',
+                extraLeave: 0.5,
+                adminName: '이승현',
+                note: null,
+                createdAt: '2025-04-24T06:44:51.315Z',
+                updatedAt: '2025-04-24T06:44:51.315Z',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
   PUT: {
     API_OPERATION: {
       summary: '어드민 휴가 추가 부여 API',
