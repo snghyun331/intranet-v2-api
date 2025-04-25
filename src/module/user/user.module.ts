@@ -40,7 +40,17 @@ export class UserModule {}
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity, GradeEntity, HeadquarterEntity, TeamEntity, AdminEntity, CommuteEntity]),
+    TypeOrmModule.forFeature([
+      UserEntity,
+      GradeEntity,
+      HeadquarterEntity,
+      TeamEntity,
+      AdminEntity,
+      CommuteEntity,
+      LeaveStatsEntity,
+      LeaveUsageEntity,
+      LeaveMonthlyUsageEntity,
+    ]),
   ],
   providers: [MockUserService, UserRepository],
   controllers: [MockAdminUserController],
