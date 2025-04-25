@@ -163,7 +163,7 @@ export class MockUserService {
       const previousAdminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
       // 활성 상태인 어드민일 경우
       if (previousAdminInfo && previousAdminInfo.adminAvail === null) {
-        await this.userRepository.updateAdmin(previousAdminInfo.adminIdx, newAdminInfo);
+        await this.userRepository.updateAdminInfo(previousAdminInfo.adminIdx, newAdminInfo);
       } else if (previousAdminInfo && previousAdminInfo.adminAvail !== null) {
         // 비활성 상태인 어드민일 경우
         await this.userRepository.restoreUpdateAdmin(previousAdminInfo.adminIdx, newAdminInfo);

@@ -99,8 +99,8 @@ export class UserService {
     return;
   }
 
-  async checkIdIfAvailable(loginId: string): Promise<string> {
-    const result: number = await this.userRepository.getLoginIdCount(loginId);
+  async checkIdIfAvailable(loginId: string, userIdx: number): Promise<string> {
+    const result: number = await this.userRepository.getLoginIdCountExceptMe(loginId, userIdx);
     if (result >= 1) {
       throw new ConflictException('중복된 ID입니다. 다른 ID를 입력해 주세요.');
     }
@@ -186,7 +186,7 @@ export class UserService {
       const previousAdminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
       // 활성 상태인 어드민일 경우
       if (previousAdminInfo && previousAdminInfo.adminAvail === null) {
-        await this.userRepository.updateAdmin(previousAdminInfo.adminIdx, newAdminInfo);
+        await this.userRepository.updateAdminInfo(previousAdminInfo.adminIdx, newAdminInfo);
       } else if (previousAdminInfo && previousAdminInfo.adminAvail !== null) {
         // 비활성 상태인 어드민일 경우
         await this.userRepository.restoreUpdateAdmin(previousAdminInfo.adminIdx, newAdminInfo);

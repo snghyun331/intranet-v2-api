@@ -499,7 +499,7 @@ export class LeaveRepository {
     const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
     const count: number = await this.commuteModel
       .createQueryBuilder('commuteEntity')
-      .where('commuteEntity.userIdx = userIdx', { userIdx })
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.HEALTH_LEAVE })
       .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
         startDate,

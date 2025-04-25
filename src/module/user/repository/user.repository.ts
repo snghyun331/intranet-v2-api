@@ -43,6 +43,16 @@ export class UserRepository {
     return userCnt;
   }
 
+  async getLoginIdCountExceptMe(loginId: string, userIdx: number): Promise<number> {
+    const userCnt: number = await this.userModel
+      .createQueryBuilder('userEntity')
+      .where('userEntity.id = :id', { id: loginId })
+      .andWhere('userEntity.userIdx != :userIdx', { userIdx })
+      .getCount();
+
+    return userCnt;
+  }
+
   async getUserCountByIdx(userIdx: number): Promise<number> {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
@@ -265,7 +275,7 @@ export class UserRepository {
       .execute();
   }
 
-  async updateAdmin(adminIdx: number, updateInfo: NewAdminInfo): Promise<UpdateResult> {
+  async updateAdminInfo(adminIdx: number, updateInfo: NewAdminInfo): Promise<UpdateResult> {
     return await this.adminModel
       .createQueryBuilder()
       .update(AdminEntity)
@@ -332,7 +342,7 @@ export class UserRepository {
         adminAvail: null,
         ...updateInfo,
       })
-      .where('adminIdx = adminIdx', { adminIdx })
+      .where('adminIdx = :adminIdx', { adminIdx })
       .execute();
   }
 
