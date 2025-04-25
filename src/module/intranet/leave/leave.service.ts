@@ -116,12 +116,12 @@ export class LeaveService {
       // 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가
       if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
         // 보건 휴가 월 사용 개수 조회
-        const { healthMonthlyUseCount } = await this.leaveRepository.getHealthMonthlyUseCount(
+        const healthLeaveMonthCount: number = await this.leaveRepository.getHealthLeaveCountInMonth(
           userIdx,
           nowYear.toString(),
           nowMonth.toString(),
         );
-        if (healthMonthlyUseCount !== 0) {
+        if (healthLeaveMonthCount !== 0) {
           throw new BadRequestException(
             '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
           );
