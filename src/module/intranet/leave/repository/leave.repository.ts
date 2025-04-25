@@ -26,7 +26,6 @@ import * as moment from 'moment';
 import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminLeaveSortEnum } from '../enum/leave.enum';
-import { ALTERNATIVE_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from '../../../../common/constant/constant';
 import { LeaveExtraEntity } from '../../../../entity/intranet/leave/leaveExtra.entity';
 import { NewLeaveExtra } from '../interface/leaveExtra.interface';
 
@@ -641,29 +640,13 @@ export class LeaveRepository {
     return parseFloat(result?.total ?? 0);
   }
 
-  async createExtraLeave(newLeaveExtra: NewLeaveExtra): Promise<void> {
-    const { userIdx, leaveTypeIdx, extraLeave, year } = newLeaveExtra;
-    if (SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
-      await this.leaveStatsModel
-        .createQueryBuilder()
-        .update(LeaveStatsEntity)
-        .set({ totalReceivedSpecialLeave: () => `totalReceivedSpecialLeave + ${extraLeave}` })
-        .where('userIdx = :userIdx', { userIdx })
-        .andWhere('year = :year', { year })
-        .execute();
-    }
-
-    if (ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx)) {
-      await this.leaveStatsModel
-        .createQueryBuilder()
-        .update(LeaveStatsEntity)
-        .set({ totalReceivedAlternativeLeave: () => `totalReceivedAlternativeLeave + ${extraLeave}` })
-        .where('userIdx = :userIdx', { userIdx })
-        .andWhere('year = :year', { year })
-        .execute();
-    }
-
-    await this.leaveExtraModel.createQueryBuilder().insert().into(LeaveExtraEntity).values(newLeaveExtra).execute();
+  async createExtraLeave(newLeaveExtra: NewLeaveExtra): Promise<InsertResult> {
+    return await this.leaveExtraModel
+      .createQueryBuilder()
+      .insert()
+      .into(LeaveExtraEntity)
+      .values(newLeaveExtra)
+      .execute();
   }
 
   async updateExtraLeave(leaveExtraIdx: number, newLeaveExtra: NewLeaveExtra): Promise<UpdateResult> {

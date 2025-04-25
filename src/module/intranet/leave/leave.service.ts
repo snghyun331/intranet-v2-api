@@ -618,23 +618,6 @@ export class LeaveService {
 
   private async groupByCommuteIdx(rows: any[]) {
     return rows.reduce((acc, row) => {
-      // const existing = acc.find((item) => item.commuteIdx === row.commuteIdx);
-      // if (existing) {
-      //   existing.approverInfo.push({
-      //     approverIdx: row.approverIdx,
-      //     approverName: row.approverName,
-      //   });
-      //   existing.ccUserInfo.push({
-      //     ccUserIdx: row.ccUserIdx,
-      //     ccUserName: row.ccUserName,
-      //   });
-      // } else {
-      //   acc.push({
-      //     ...row,
-      //     approverInfo: row.approverIdx ? [{ approverIdx: row.approverIdx, approverName: row.approverName }] : [],
-      //     ccUserInfo: row.ccUserIdx ? [{ ccUserIdx: row.ccUserIdx, ccUserName: row.ccUserName }] : [],
-      //   });
-      // }
       // 기존 commuteIdx가 있는지 확인
       const existing = acc.find((item: any) => item.commuteIdx === row.commuteIdx);
 
@@ -695,7 +678,7 @@ export class LeaveService {
   @Transactional()
   async createExtraLeave(adminName: string, dto: CreateExtraLeaveDto): Promise<void> {
     const { userIdx, year, leaveTypeIdx, extraLeave, note } = dto;
-    if (!ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx) && !SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+    if (![IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE, IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE].includes(leaveTypeIdx)) {
       throw new BadRequestException('특별휴무, 대체휴무만 선택할 수 있습니다.');
     }
 
@@ -707,7 +690,11 @@ export class LeaveService {
       adminName,
       note: note ?? null,
     };
+
+    /* 내역 추가 */
     await this.leaveRepository.createExtraLeave(newLeaveExtra);
+    /* totalReceived 업데이트 */
+    await this.leaveRepository.updateTotalReceivedLeave(userIdx, leaveTypeIdx, year);
 
     return;
   }
@@ -715,7 +702,7 @@ export class LeaveService {
   @Transactional()
   async updateExtraLeave(leaveExtraIdx: number, adminName: string, dto: UpdateExtraLeaveDto): Promise<void> {
     const { userIdx, year, leaveTypeIdx, extraLeave, note } = dto;
-    if (!ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx) && !SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+    if (![IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE, IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE].includes(leaveTypeIdx)) {
       throw new BadRequestException('특별휴무, 대체휴무만 선택할 수 있습니다.');
     }
 
@@ -730,9 +717,10 @@ export class LeaveService {
 
     /* 내역 업데이트 */
     await this.leaveRepository.updateExtraLeave(leaveExtraIdx, newLeaveExtra);
-
     /* totalReceived 업데이트 */
     await this.leaveRepository.updateTotalReceivedLeave(userIdx, leaveTypeIdx, year);
+
+    return;
   }
 
   async getExtraLeaveInfo(year: string) {
