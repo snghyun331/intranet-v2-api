@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
@@ -493,22 +493,21 @@ export class LeaveRepository {
     return result;
   }
 
-  async getHealthMonthlyUseCount(userIdx: number, year: string, month: string) {
-    const result = await this.leaveMonthlyUsageModel
-      .createQueryBuilder('leaveMonthlyUsageEntity')
-      .select(['leaveMonthlyUsageEntity.monthlyUseCount AS healthMonthlyUseCount'])
-      .where('leaveMonthlyUsageEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('leaveMonthlyUsageEntity.year = :year', { year })
-      .andWhere('leaveMonthlyUsageEntity.month = :month', { month })
-      .andWhere('leaveMonthlyUsageEntity.leaveTypeIdx = :leaveTypeIdx', {
-        leaveTypeIdx: IntranetLeaveTypeIdxEnum.HEALTH_LEAVE,
+  async getHealthLeaveCountInMonth(userIdx: number, year: string, month: string): Promise<number> {
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const count: number = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .where('commuteEntity.userIdx = userIdx', { userIdx })
+      .andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.HEALTH_LEAVE })
+      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
       })
-      .getRawOne();
+      .getCount();
 
-    if (!result) {
-      throw new BadRequestException('해당 사용자의 월별 보건휴가 사용량이 설정되어 있지 않습니다.');
-    }
-    return result;
+    return count;
   }
 
   async getAllLeaveCalender(year: string, month: string) {
