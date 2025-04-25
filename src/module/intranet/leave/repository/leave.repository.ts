@@ -706,6 +706,7 @@ export class LeaveRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveExtraEntity.userIdx')
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = leaveExtraEntity.leaveTypeIdx')
       .where('leaveExtraEntity.year = :year', { year })
+      .orderBy('leaveExtraEntity.createdAt', 'DESC')
       .getRawMany();
 
     return result;

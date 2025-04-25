@@ -183,11 +183,11 @@ export class LeaveService {
       }
 
       // 승인 가능자 모두 저장
-      if (approverIdxs !== null) {
+      if (ccUserIdxs !== null && ccUserIdxs !== undefined) {
         await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs);
       }
       // 참조자 모두 저장
-      if (ccUserIdxs !== null) {
+      if (ccUserIdxs !== null && ccUserIdxs !== undefined) {
         // 승인가능자는 참조자로 등록 X
         const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(approverIdxs, ccUserIdxs);
         await this.leaveRepository.createLeaveCCUserList(commuteIdx, removeDuplicateCCUserIdxs);
