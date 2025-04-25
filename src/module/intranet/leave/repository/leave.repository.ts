@@ -484,7 +484,10 @@ export class LeaveRepository {
       .leftJoin(CommuteCCUserEntity, 'commuteCCUserEntity', 'commuteCCUserEntity.commuteIdx = commuteEntity.commuteIdx')
       .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = commuteCCUserEntity.ccUserIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year });
+      .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year })
+      .andWhere('leaveTypeEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
+        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+      });
 
     query.orderBy('commuteEntity.commuteDate', 'ASC'); // 누적 잔여 연차 수 계산을 위한 commuteDate 기준 오름차순 정렬
 
