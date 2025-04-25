@@ -723,6 +723,20 @@ export class LeaveService {
     return;
   }
 
+  @Transactional()
+  async deleteExtraLeave(leaveExtraIdx: number): Promise<void> {
+    /* 삭제할 내역 조회 */
+    const extraInfo = await this.leaveRepository.getExtraLeaveInfoByIdx(leaveExtraIdx);
+    if (!extraInfo) {
+      throw new BadRequestException('이미 삭제하였거나 존재하지 않는 내역입니다.');
+    }
+    /* 내역 삭제 */
+    await this.leaveRepository.deleteExtraLeave(leaveExtraIdx);
+    /* totalReceived 업데이트 */
+    const { userIdx, leaveTypeIdx, year } = extraInfo;
+    await this.leaveRepository.updateTotalReceivedLeave(userIdx, leaveTypeIdx, year);
+  }
+
   async getExtraLeaveInfo(year: string) {
     const result = await this.leaveRepository.getExtraLeaveInfoByYear(year);
 

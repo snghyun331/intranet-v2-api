@@ -308,13 +308,28 @@ export class AdminLeaveController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @ApiBearerAuth('accessToken')
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Put('extra')
+  @Put('extra/:leaveExtraIdx')
   async updateExtraLeaveInfo(
     @Param('leaveExtraIdx', ParseIntPipe) leaveExtraIdx: number,
     @CurrentAdmin() { adminName }: AdminPayload,
     @Body() dto: UpdateExtraLeaveDto,
   ): Promise<ResponseInterface> {
     await this.leaveService.updateExtraLeave(leaveExtraIdx, adminName, dto);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE_EXTRA.DELETE.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_LEAVE_EXTRA.DELETE.API_PARAM1)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_EXTRA.DELETE.API_OK_RESPONSE)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @ApiBearerAuth('accessToken')
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Delete('extra/:leaveExtraIdx')
+  async deleteExtraLeaveInfo(@Param('leaveExtraIdx', ParseIntPipe) leaveExtraIdx: number): Promise<ResponseInterface> {
+    await this.leaveService.deleteExtraLeave(leaveExtraIdx);
 
     const response: ResponseInterface = { message: 'success' };
 

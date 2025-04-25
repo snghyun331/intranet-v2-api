@@ -795,9 +795,30 @@ export const ADMIN_INTRANET_LEAVE_NOTE: SwaggerMethod = {
 };
 
 export const ADMIN_INTRANET_LEAVE_EXTRA: SwaggerMethod = {
+  DELETE: {
+    API_OPERATION: {
+      summary: '어드민 휴가 추가부여 내역 삭제 API',
+    },
+    API_PARAM1: {
+      name: 'leaveExtraIdx',
+      type: Number,
+      required: true,
+      description: '내역 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
   PUT: {
     API_OPERATION: {
-      summary: '어드민 휴가 추가 부여 내역수정 API',
+      summary: '어드민 휴가 추가부여 내역 수정 API',
     },
     API_PARAM1: {
       type: Number,
@@ -842,7 +863,7 @@ export const ADMIN_INTRANET_LEAVE_EXTRA: SwaggerMethod = {
   },
   GET: {
     API_OPERATION: {
-      summary: '어드민 휴가 추가 부여 내역 조회 API',
+      summary: '어드민 휴가 추가부여 내역 조회 API',
     },
     API_OK_RESPONSE: {
       content: {

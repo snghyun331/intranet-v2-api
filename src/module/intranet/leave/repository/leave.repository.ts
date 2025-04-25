@@ -711,4 +711,27 @@ export class LeaveRepository {
 
     return result;
   }
+
+  async getExtraLeaveInfoByIdx(leaveExtraIdx: number) {
+    const result = await this.leaveExtraModel
+      .createQueryBuilder('leaveExtraEntity')
+      .select([
+        'leaveExtraEntity.userIdx AS userIdx',
+        'leaveExtraEntity.year AS year',
+        'leaveExtraEntity.leaveTypeIdx AS leaveTypeIdx',
+      ])
+      .where('leaveExtraEntity.leaveExtraIdx = :leaveExtraIdx', { leaveExtraIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async deleteExtraLeave(leaveExtraIdx: number): Promise<DeleteResult> {
+    return await this.leaveExtraModel
+      .createQueryBuilder()
+      .delete()
+      .from(LeaveExtraEntity)
+      .where('leaveExtraIdx = :leaveExtraIdx', { leaveExtraIdx })
+      .execute();
+  }
 }
