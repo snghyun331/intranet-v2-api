@@ -28,6 +28,9 @@ import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { ApprovalRepository } from '../approval/repository/approval.repository';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { Transactional } from 'typeorm-transactional';
+import { CreateExtraLeaveDto } from './dto/createExtraLeave.dto';
+import { NewLeaveExtra } from './interface/leaveExtra.interface';
+import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
 
 @Injectable()
 export class LeaveService {
@@ -615,23 +618,6 @@ export class LeaveService {
 
   private async groupByCommuteIdx(rows: any[]) {
     return rows.reduce((acc, row) => {
-      // const existing = acc.find((item) => item.commuteIdx === row.commuteIdx);
-      // if (existing) {
-      //   existing.approverInfo.push({
-      //     approverIdx: row.approverIdx,
-      //     approverName: row.approverName,
-      //   });
-      //   existing.ccUserInfo.push({
-      //     ccUserIdx: row.ccUserIdx,
-      //     ccUserName: row.ccUserName,
-      //   });
-      // } else {
-      //   acc.push({
-      //     ...row,
-      //     approverInfo: row.approverIdx ? [{ approverIdx: row.approverIdx, approverName: row.approverName }] : [],
-      //     ccUserInfo: row.ccUserIdx ? [{ ccUserIdx: row.ccUserIdx, ccUserName: row.ccUserName }] : [],
-      //   });
-      // }
       // 기존 commuteIdx가 있는지 확인
       const existing = acc.find((item: any) => item.commuteIdx === row.commuteIdx);
 
@@ -687,5 +673,73 @@ export class LeaveService {
       }
       return acc;
     }, []);
+  }
+
+  @Transactional()
+  async createExtraLeave(adminName: string, dto: CreateExtraLeaveDto): Promise<void> {
+    const { userIdx, year, leaveTypeIdx, extraLeave, note } = dto;
+    if (![IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE, IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE].includes(leaveTypeIdx)) {
+      throw new BadRequestException('특별휴무, 대체휴무만 선택할 수 있습니다.');
+    }
+
+    const newLeaveExtra: NewLeaveExtra = {
+      userIdx,
+      year,
+      leaveTypeIdx,
+      extraLeave,
+      adminName,
+      note: note ?? null,
+    };
+
+    /* 내역 추가 */
+    await this.leaveRepository.createExtraLeave(newLeaveExtra);
+    /* totalReceived 업데이트 */
+    await this.leaveRepository.updateTotalReceivedLeave(userIdx, leaveTypeIdx, year);
+
+    return;
+  }
+
+  @Transactional()
+  async updateExtraLeave(leaveExtraIdx: number, adminName: string, dto: UpdateExtraLeaveDto): Promise<void> {
+    const { userIdx, year, leaveTypeIdx, extraLeave, note } = dto;
+    if (![IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE, IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE].includes(leaveTypeIdx)) {
+      throw new BadRequestException('특별휴무, 대체휴무만 선택할 수 있습니다.');
+    }
+
+    const newLeaveExtra: NewLeaveExtra = {
+      userIdx,
+      year,
+      leaveTypeIdx,
+      extraLeave,
+      adminName,
+      note: note ?? null,
+    };
+
+    /* 내역 업데이트 */
+    await this.leaveRepository.updateExtraLeave(leaveExtraIdx, newLeaveExtra);
+    /* totalReceived 업데이트 */
+    await this.leaveRepository.updateTotalReceivedLeave(userIdx, leaveTypeIdx, year);
+
+    return;
+  }
+
+  @Transactional()
+  async deleteExtraLeave(leaveExtraIdx: number): Promise<void> {
+    /* 삭제할 내역 조회 */
+    const extraInfo = await this.leaveRepository.getExtraLeaveInfoByIdx(leaveExtraIdx);
+    if (!extraInfo) {
+      throw new BadRequestException('이미 삭제하였거나 존재하지 않는 내역입니다.');
+    }
+    /* 내역 삭제 */
+    await this.leaveRepository.deleteExtraLeave(leaveExtraIdx);
+    /* totalReceived 업데이트 */
+    const { userIdx, leaveTypeIdx, year } = extraInfo;
+    await this.leaveRepository.updateTotalReceivedLeave(userIdx, leaveTypeIdx, year);
+  }
+
+  async getExtraLeaveInfo(year: string) {
+    const result = await this.leaveRepository.getExtraLeaveInfoByYear(year);
+
+    return result;
   }
 }

@@ -26,6 +26,8 @@ import * as moment from 'moment';
 import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminLeaveSortEnum } from '../enum/leave.enum';
+import { LeaveExtraEntity } from '../../../../entity/intranet/leave/leaveExtra.entity';
+import { NewLeaveExtra } from '../interface/leaveExtra.interface';
 
 @Injectable()
 export class LeaveRepository {
@@ -40,6 +42,7 @@ export class LeaveRepository {
     @InjectRepository(CommuteHasImageEntity) private readonly commuteImageModel: Repository<CommuteHasImageEntity>,
     @InjectRepository(CommuteApproverEntity) private readonly commuteApproverModel: Repository<CommuteApproverEntity>,
     @InjectRepository(CommuteCCUserEntity) private readonly commuteCCModel: Repository<CommuteCCUserEntity>,
+    @InjectRepository(LeaveExtraEntity) private readonly leaveExtraModel: Repository<LeaveExtraEntity>,
   ) {}
 
   async getUserInfoByIdx(userIdx: number) {
@@ -635,5 +638,100 @@ export class LeaveRepository {
       .getRawOne();
 
     return parseFloat(result?.total ?? 0);
+  }
+
+  async createExtraLeave(newLeaveExtra: NewLeaveExtra): Promise<InsertResult> {
+    return await this.leaveExtraModel
+      .createQueryBuilder()
+      .insert()
+      .into(LeaveExtraEntity)
+      .values(newLeaveExtra)
+      .execute();
+  }
+
+  async updateExtraLeave(leaveExtraIdx: number, newLeaveExtra: NewLeaveExtra): Promise<UpdateResult> {
+    return await this.leaveExtraModel
+      .createQueryBuilder()
+      .update(LeaveExtraEntity)
+      .set(newLeaveExtra)
+      .where('leaveExtraIdx = :leaveExtraIdx', { leaveExtraIdx })
+      .execute();
+  }
+
+  async updateTotalReceivedLeave(userIdx: number, leaveTypeIdx: number, year: string): Promise<UpdateResult> {
+    const query = `(
+        SELECT COALESCE(SUM(extra_leave), 0) 
+        FROM leave_extra
+        WHERE leave_extra.user_idx = ${userIdx}
+        AND leave_extra.leave_type_idx = ${leaveTypeIdx}
+        AND leave_extra.year = ${year}
+      )`;
+
+    if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE) {
+      return await this.leaveStatsModel
+        .createQueryBuilder()
+        .update(LeaveStatsEntity)
+        .set({ totalReceivedSpecialLeave: () => query })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .execute();
+    }
+
+    if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE) {
+      return await this.leaveStatsModel
+        .createQueryBuilder()
+        .update(LeaveStatsEntity)
+        .set({ totalReceivedAlternativeLeave: () => query })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .execute();
+    }
+  }
+
+  async getExtraLeaveInfoByYear(year: string) {
+    const result = await this.leaveExtraModel
+      .createQueryBuilder('leaveExtraEntity')
+      .select([
+        'leaveExtraEntity.leaveExtraIdx AS leaveExtraIdx',
+        'leaveExtraEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'leaveExtraEntity.year AS year',
+        'leaveExtraEntity.leaveTypeIdx AS leaveTypeIdx',
+        'leaveTypeEntity.leaveType AS leaveType',
+        'leaveExtraEntity.extraLeave AS extraLeave',
+        'leaveExtraEntity.adminName AS adminName',
+        'leaveExtraEntity.note AS note',
+        'leaveExtraEntity.createdAt AS createdAt',
+        'leaveExtraEntity.updatedAt AS updatedAt',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveExtraEntity.userIdx')
+      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = leaveExtraEntity.leaveTypeIdx')
+      .where('leaveExtraEntity.year = :year', { year })
+      .getRawMany();
+
+    return result;
+  }
+
+  async getExtraLeaveInfoByIdx(leaveExtraIdx: number) {
+    const result = await this.leaveExtraModel
+      .createQueryBuilder('leaveExtraEntity')
+      .select([
+        'leaveExtraEntity.userIdx AS userIdx',
+        'leaveExtraEntity.year AS year',
+        'leaveExtraEntity.leaveTypeIdx AS leaveTypeIdx',
+      ])
+      .where('leaveExtraEntity.leaveExtraIdx = :leaveExtraIdx', { leaveExtraIdx })
+      .getRawOne();
+
+    return result;
+  }
+
+  async deleteExtraLeave(leaveExtraIdx: number): Promise<DeleteResult> {
+    return await this.leaveExtraModel
+      .createQueryBuilder()
+      .delete()
+      .from(LeaveExtraEntity)
+      .where('leaveExtraIdx = :leaveExtraIdx', { leaveExtraIdx })
+      .execute();
   }
 }
