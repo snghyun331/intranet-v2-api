@@ -13,6 +13,8 @@ import { UserApprovalFilter } from '../dto/query.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { UserEntity } from '../../../../entity/user/user.entity';
 import { MealStatsEntity } from '../../../../entity/meal/mealStats.entity';
+import { ImageEntity } from '../../../../entity/image/image.entity';
+import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
 
 @Injectable()
 export class ApprovalRepository {
@@ -260,6 +262,10 @@ export class ApprovalRepository {
         'userEntity.userName AS userName',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
+        'commuteImageEntity.imageIdx AS imageIdx',
+        'imageEntity.imageName AS imageName',
+        'imageEntity.imageSize AS imageSize',
+        'imageEntity.imageUrl AS imageUrl',
         'commuteEntity.note AS note',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
@@ -282,6 +288,8 @@ export class ApprovalRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
+      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
       .where('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate })
       .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
       .andWhere(

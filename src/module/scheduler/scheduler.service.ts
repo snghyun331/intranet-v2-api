@@ -145,7 +145,6 @@ export class SchedulerService {
     const currentYear: string = moment().utcOffset(9).year().toString();
     const users = await this.schedulerRepository.getAllUsersInfo();
     for (const user of users) {
-      console.log(user);
       let totalReceivedAnnualLeave: number = 0;
 
       // 근속년수 계산
