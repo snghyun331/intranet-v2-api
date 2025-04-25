@@ -57,8 +57,9 @@ import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDt
 import { AdminPayload, UserPayload } from '../../../common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
-import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
+import { CreateExtraLeaveDto } from './dto/createExtraLeave.dto';
 import { CurrentAdmin } from '../../../common/decorator/currentAdmin.decorator';
+import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
 
 @ApiTags('사용자')
 @Controller('users/intranet/leave')
@@ -213,42 +214,6 @@ export class AdminLeaveController {
     return response;
   }
 
-  @ApiOperation(ADMIN_INTRANET_LEAVE.PATCH.API_OPERATION)
-  @ApiOkResponse(ADMIN_INTRANET_LEAVE.PATCH.API_OK_RESPONSE)
-  @ApiBearerAuth('accessToken')
-  @UseGuards(AdminAuthGuard, AdminRoleGuard)
-  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Patch(':leaveStatsIdx')
-  async updateUserTotalReceivedAnnualLeave(
-    @Param('leaveStatsIdx', ParseIntPipe) leaveStatsIdx: number,
-    @Body() dto: UpdateAnnualLeaveDto,
-  ): Promise<ResponseInterface> {
-    await this.leaveService.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, dto);
-
-    const response: ResponseInterface = { message: 'success' };
-
-    return response;
-  }
-
-  @ApiOperation(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_OPERATION)
-  @ApiParam(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_PARAM1)
-  @ApiOkResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_OK_RESPONSE)
-  @ApiNotFoundResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_NOT_FOUND_RESPONSE)
-  @ApiBearerAuth('accessToken')
-  @UseGuards(AdminAuthGuard, AdminRoleGuard)
-  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Patch(':commuteIdx/note')
-  async updateLeaveNote(
-    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
-    @Body() dto: UpdateNoteDto,
-  ): Promise<ResponseInterface> {
-    await this.leaveService.updateLeaveNote(commuteIdx, dto);
-
-    const response: ResponseInterface = { message: '비고 수정 성공' };
-
-    return response;
-  }
-
   @ApiOperation(ADMIN_INTRANET_LEAVE_STATS.GET.API_OPERATION)
   @ApiParam(ADMIN_INTRANET_LEAVE_STATS.GET.API_PARAM1)
   @ApiOkResponse(ADMIN_INTRANET_LEAVE_STATS.GET.API_OK_RESPONSE)
@@ -318,18 +283,38 @@ export class AdminLeaveController {
     return response;
   }
 
+  @ApiOperation(ADMIN_INTRANET_LEAVE_EXTRA.POST.API_OPERATION)
+  @ApiBody(ADMIN_INTRANET_LEAVE_EXTRA.POST.API_BODY)
+  @ApiCreatedResponse(ADMIN_INTRANET_LEAVE_EXTRA.POST.API_OK_RESPONSE)
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @ApiBearerAuth('accessToken')
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Post('extra')
+  async createExtraLeave(
+    @Body() dto: CreateExtraLeaveDto,
+    @CurrentAdmin() { adminName }: AdminPayload,
+  ): Promise<ResponseInterface> {
+    await this.leaveService.createExtraLeave(adminName, dto);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
   @ApiOperation(ADMIN_INTRANET_LEAVE_EXTRA.PUT.API_OPERATION)
   @ApiBody(ADMIN_INTRANET_LEAVE_EXTRA.PUT.API_BODY)
+  @ApiParam(ADMIN_INTRANET_LEAVE_EXTRA.PUT.API_PARAM1)
   @ApiOkResponse(ADMIN_INTRANET_LEAVE_EXTRA.PUT.API_OK_RESPONSE)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @ApiBearerAuth('accessToken')
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Put('extra')
-  async updateExtraLeave(
-    @Body() dto: UpdateExtraLeaveDto,
+  async updateExtraLeaveInfo(
+    @Param('leaveExtraIdx', ParseIntPipe) leaveExtraIdx: number,
     @CurrentAdmin() { adminName }: AdminPayload,
+    @Body() dto: UpdateExtraLeaveDto,
   ): Promise<ResponseInterface> {
-    await this.leaveService.updateExtraLeave(adminName, dto);
+    await this.leaveService.updateExtraLeave(leaveExtraIdx, adminName, dto);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -346,6 +331,42 @@ export class AdminLeaveController {
     const data = await this.leaveService.getExtraLeaveInfo(year);
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_OK_RESPONSE)
+  @ApiNotFoundResponse(ADMIN_INTRANET_LEAVE_NOTE.PATCH.API_NOT_FOUND_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch(':commuteIdx/note')
+  async updateLeaveNote(
+    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
+    @Body() dto: UpdateNoteDto,
+  ): Promise<ResponseInterface> {
+    await this.leaveService.updateLeaveNote(commuteIdx, dto);
+
+    const response: ResponseInterface = { message: '비고 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_INTRANET_LEAVE.PATCH.API_OPERATION)
+  @ApiOkResponse(ADMIN_INTRANET_LEAVE.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch(':leaveStatsIdx')
+  async updateUserTotalReceivedAnnualLeave(
+    @Param('leaveStatsIdx', ParseIntPipe) leaveStatsIdx: number,
+    @Body() dto: UpdateAnnualLeaveDto,
+  ): Promise<ResponseInterface> {
+    await this.leaveService.updateUserTotalReceivedAnnualLeave(leaveStatsIdx, dto);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

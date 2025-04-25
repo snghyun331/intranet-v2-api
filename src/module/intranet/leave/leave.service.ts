@@ -28,8 +28,9 @@ import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { ApprovalRepository } from '../approval/repository/approval.repository';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { Transactional } from 'typeorm-transactional';
-import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
+import { CreateExtraLeaveDto } from './dto/createExtraLeave.dto';
 import { NewLeaveExtra } from './interface/leaveExtra.interface';
+import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
 
 @Injectable()
 export class LeaveService {
@@ -692,7 +693,7 @@ export class LeaveService {
   }
 
   @Transactional()
-  async updateExtraLeave(adminName: string, dto: UpdateExtraLeaveDto): Promise<void> {
+  async createExtraLeave(adminName: string, dto: CreateExtraLeaveDto): Promise<void> {
     const { userIdx, year, leaveTypeIdx, extraLeave, note } = dto;
     if (!ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx) && !SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
       throw new BadRequestException('특별휴무, 대체휴무만 선택할 수 있습니다.');
@@ -706,13 +707,36 @@ export class LeaveService {
       adminName,
       note: note ?? null,
     };
-    await this.leaveRepository.updateExtraLeave(newLeaveExtra);
+    await this.leaveRepository.createExtraLeave(newLeaveExtra);
 
     return;
   }
 
+  @Transactional()
+  async updateExtraLeave(leaveExtraIdx: number, adminName: string, dto: UpdateExtraLeaveDto): Promise<void> {
+    const { userIdx, year, leaveTypeIdx, extraLeave, note } = dto;
+    if (!ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx) && !SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+      throw new BadRequestException('특별휴무, 대체휴무만 선택할 수 있습니다.');
+    }
+
+    const newLeaveExtra: NewLeaveExtra = {
+      userIdx,
+      year,
+      leaveTypeIdx,
+      extraLeave,
+      adminName,
+      note: note ?? null,
+    };
+
+    /* 내역 업데이트 */
+    await this.leaveRepository.updateExtraLeave(leaveExtraIdx, newLeaveExtra);
+
+    /* totalReceived 업데이트 */
+    await this.leaveRepository.updateTotalReceivedLeave(userIdx, leaveTypeIdx, year);
+  }
+
   async getExtraLeaveInfo(year: string) {
-    const result = await this.leaveRepository.getExtraLeaveInfo(year);
+    const result = await this.leaveRepository.getExtraLeaveInfoByYear(year);
 
     return result;
   }

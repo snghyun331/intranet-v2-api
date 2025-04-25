@@ -1,5 +1,6 @@
 import { ApiBody } from '@nestjs/swagger';
 import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
+import { CreateExtraLeaveDto } from '../dto/createExtraLeave.dto';
 import { UpdateExtraLeaveDto } from '../dto/updateExtraLeave.dto';
 
 export const USERS_INTRANET_LEAVE: SwaggerMethod = {
@@ -794,39 +795,15 @@ export const ADMIN_INTRANET_LEAVE_NOTE: SwaggerMethod = {
 };
 
 export const ADMIN_INTRANET_LEAVE_EXTRA: SwaggerMethod = {
-  GET: {
-    API_OPERATION: {
-      summary: '어드민 휴가 추가 부여 내역조회 API',
-    },
-    API_OK_RESPONSE: {
-      content: {
-        'application/json': {
-          example: {
-            statusCode: 200,
-            message: 'success',
-            data: [
-              {
-                leaveExtraIdx: 1,
-                userIdx: 2,
-                userName: '이승현',
-                year: '2025',
-                leaveTypeIdx: 7,
-                leaveType: '특별 휴무',
-                extraLeave: 0.5,
-                adminName: '이승현',
-                note: null,
-                createdAt: '2025-04-24T06:44:51.315Z',
-                updatedAt: '2025-04-24T06:44:51.315Z',
-              },
-            ],
-          },
-        },
-      },
-    },
-  },
   PUT: {
     API_OPERATION: {
-      summary: '어드민 휴가 추가 부여 API',
+      summary: '어드민 휴가 추가 부여 내역수정 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      required: true,
+      name: 'leaveExtraIdx',
+      description: '내역 IDX',
     },
     API_BODY: {
       type: UpdateExtraLeaveDto,
@@ -857,6 +834,75 @@ export const ADMIN_INTRANET_LEAVE_EXTRA: SwaggerMethod = {
         'application/json': {
           example: {
             statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+  GET: {
+    API_OPERATION: {
+      summary: '어드민 휴가 추가 부여 내역 조회 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: [
+              {
+                leaveExtraIdx: 1,
+                userIdx: 2,
+                userName: '이승현',
+                year: '2025',
+                leaveTypeIdx: 7,
+                leaveType: '특별 휴무',
+                extraLeave: 0.5,
+                adminName: '이승현',
+                note: null,
+                createdAt: '2025-04-24T06:44:51.315Z',
+                updatedAt: '2025-04-24T06:44:51.315Z',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 휴가 추가 부여 API',
+    },
+    API_BODY: {
+      type: CreateExtraLeaveDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '특별휴무',
+          value: {
+            userIdx: 1,
+            year: '2025',
+            leaveTypeIdx: 7,
+            extraLeave: 0.5,
+          },
+        },
+        b: {
+          summary: '대체휴무',
+          value: {
+            userIdx: 1,
+            year: '2025',
+            leaveTypeIdx: 12,
+            extraLeave: 2,
+          },
+        },
+      },
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 201,
             message: 'success',
           },
         },

@@ -641,7 +641,7 @@ export class LeaveRepository {
     return parseFloat(result?.total ?? 0);
   }
 
-  async updateExtraLeave(newLeaveExtra: NewLeaveExtra): Promise<void> {
+  async createExtraLeave(newLeaveExtra: NewLeaveExtra): Promise<void> {
     const { userIdx, leaveTypeIdx, extraLeave, year } = newLeaveExtra;
     if (SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
       await this.leaveStatsModel
@@ -666,7 +666,46 @@ export class LeaveRepository {
     await this.leaveExtraModel.createQueryBuilder().insert().into(LeaveExtraEntity).values(newLeaveExtra).execute();
   }
 
-  async getExtraLeaveInfo(year: string) {
+  async updateExtraLeave(leaveExtraIdx: number, newLeaveExtra: NewLeaveExtra): Promise<UpdateResult> {
+    return await this.leaveExtraModel
+      .createQueryBuilder()
+      .update(LeaveExtraEntity)
+      .set(newLeaveExtra)
+      .where('leaveExtraIdx = :leaveExtraIdx', { leaveExtraIdx })
+      .execute();
+  }
+
+  async updateTotalReceivedLeave(userIdx: number, leaveTypeIdx: number, year: string): Promise<UpdateResult> {
+    const query = `(
+        SELECT COALESCE(SUM(extra_leave), 0) 
+        FROM leave_extra
+        WHERE leave_extra.user_idx = ${userIdx}
+        AND leave_extra.leave_type_idx = ${leaveTypeIdx}
+        AND leave_extra.year = ${year}
+      )`;
+
+    if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE) {
+      return await this.leaveStatsModel
+        .createQueryBuilder()
+        .update(LeaveStatsEntity)
+        .set({ totalReceivedSpecialLeave: () => query })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .execute();
+    }
+
+    if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE) {
+      return await this.leaveStatsModel
+        .createQueryBuilder()
+        .update(LeaveStatsEntity)
+        .set({ totalReceivedAlternativeLeave: () => query })
+        .where('userIdx = :userIdx', { userIdx })
+        .andWhere('year = :year', { year })
+        .execute();
+    }
+  }
+
+  async getExtraLeaveInfoByYear(year: string) {
     const result = await this.leaveExtraModel
       .createQueryBuilder('leaveExtraEntity')
       .select([
