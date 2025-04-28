@@ -6,8 +6,8 @@ import { CheckOutDto } from './dto/checkOut.dto';
 import {
   NORMAL_WORKING_MINUTES,
   FULL_DAY_REST_LISTS,
-  HALF_HOLIDAY_WORKING_MINUTES,
-  QUARTER_HOLIDAY_WORKING_MINUTES,
+  HALF_LEAVE_WORKING_MINUTES,
+  QUARTER_LEAVE_WORKING_MINUTES,
   PARTIAL_DAY_REST_LISTS,
   PM_QUARTER_REST_LISTS,
   AM_REST_LISTS,
@@ -164,9 +164,9 @@ export class CommuteService {
     const { checkInTime, leaveTypeIdx } = commuteInfo;
     let standardWorkingMinutes: number;
     if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
+      standardWorkingMinutes = HALF_LEAVE_WORKING_MINUTES;
     } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
+      standardWorkingMinutes = QUARTER_LEAVE_WORKING_MINUTES;
     } else {
       standardWorkingMinutes = NORMAL_WORKING_MINUTES;
     }
@@ -306,12 +306,12 @@ export class CommuteService {
 
     let standardWorkingMinutes: number;
     if (AM_REST_LISTS.has(commuteInfo.leaveTypeIdx) || PM_REST_LISTS.has(commuteInfo.leaveTypeIdx)) {
-      standardWorkingMinutes = HALF_HOLIDAY_WORKING_MINUTES;
+      standardWorkingMinutes = HALF_LEAVE_WORKING_MINUTES;
     } else if (
       AM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx) ||
       PM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx)
     ) {
-      standardWorkingMinutes = QUARTER_HOLIDAY_WORKING_MINUTES;
+      standardWorkingMinutes = QUARTER_LEAVE_WORKING_MINUTES;
     } else {
       standardWorkingMinutes = NORMAL_WORKING_MINUTES;
     }
