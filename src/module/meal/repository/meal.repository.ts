@@ -10,7 +10,7 @@ import { ClearStatusEnum, UserGradeIdxEnum, MealTypeEnum, YNEnum } from '../../.
 import { DetailedMealData, MealStats } from '../interface/meal.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { AdminMealFilterDto, AdminMealBudgetFilterDto } from '../dto/query.dto';
-import { NewMealStats } from '../../scheduler/interface/meal.interface';
+import { NewMealStats } from '../../scheduler/interface/mealStats.interface';
 import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';

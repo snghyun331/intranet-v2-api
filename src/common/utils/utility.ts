@@ -191,8 +191,7 @@ export const getNormalEarlyBoundary = (timestamp: Date): Date => {
 
 // 근속년수 계산
 export const getYearsSinceJoin = (joinDateString: string): number => {
-  // const now: moment.Moment = moment().utcOffset(9);
-  const now: moment.Moment = moment('2025-01-01').utcOffset(9);
+  const now: moment.Moment = moment().utcOffset(9);
   const joinDate = moment(joinDateString).utcOffset(9);
   const yearsSinceJoin: number = now.diff(joinDate, 'years');
 

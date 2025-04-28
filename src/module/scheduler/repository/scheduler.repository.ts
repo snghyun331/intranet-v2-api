@@ -9,7 +9,7 @@ import { HolidayInfo } from '../interface/holiday.interface';
 import { LeaveStatsEntity } from '../../../entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '../../../entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '../../../entity/intranet/leave/leaveMonthlyUsage.entity';
-import { LeaveGrantTypeEnum } from '../../../common/constant/enum';
+import { NewLeaveStats } from '../interface/leaveStats.interface';
 
 @Injectable()
 export class SchedulerRepository {
@@ -49,13 +49,21 @@ export class SchedulerRepository {
     const statsInfo = await this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')
       .select([
-        '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS lastYearAnnualLeaveBalance',
+        'leaveStatsEntity.totalReceivedAnnualLeave AS totalReceivedAnnualLeave',
+        'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage',
+        '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance',
+        'leaveStatsEntity.midJoinReceivedAnnualLeave AS midJoinReceivedAnnualLeave',
       ])
       .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
       .andWhere('leaveStatsEntity.year = :year', { year })
       .getRawOne();
 
-    const result = { lastYearAnnualLeaveBalance: Number(statsInfo?.lastYearAnnualLeaveBalance ?? 0) };
+    const result = {
+      totalReceivedAnnualLeave: statsInfo?.totalReceivedAnnualLeave ?? 0,
+      totalAnnualLeaveUsage: statsInfo?.totalAnnualLeaveUsage ?? 0,
+      totalAnnualLeaveBalance: Number(statsInfo?.totalAnnualLeaveBalance ?? 0),
+      midJoinReceivedAnnualLeave: statsInfo?.midJoinReceivedAnnualLeave ?? 0,
+    };
 
     return result;
   }
@@ -80,12 +88,22 @@ export class SchedulerRepository {
     return;
   }
 
-  async insertLeaveStatsInfo(userIdx: number, year: string, totalReceivedAnnualLeave: number): Promise<InsertResult> {
+  async insertLeaveStatsInfo(userIdx: number, year: string, newLeaveStats: NewLeaveStats): Promise<InsertResult> {
     return await this.leaveStatsModel
       .createQueryBuilder()
       .insert()
       .into(LeaveStatsEntity)
-      .values({ userIdx, year, totalReceivedAnnualLeave })
+      .values({ userIdx, year, ...newLeaveStats })
+      .execute();
+  }
+
+  async updateLeaveStatsInfo(userIdx: number, year: string, newLeaveStats: NewLeaveStats): Promise<UpdateResult> {
+    return await this.leaveStatsModel
+      .createQueryBuilder()
+      .update(LeaveStatsEntity)
+      .set(newLeaveStats)
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('year = :year', { year })
       .execute();
   }
 
@@ -117,29 +135,5 @@ export class SchedulerRepository {
           .execute();
       }
     }
-  }
-
-  async insertExtraReceivedAnnualLeave(
-    userIdx: number,
-    year: string,
-    extraAnnualLeaves: number,
-    leaveGrantType: LeaveGrantTypeEnum,
-  ): Promise<UpdateResult> {
-    const updateSet: any = {
-      totalReceivedAnnualLeave: () => `totalReceivedAnnualLeave + ${extraAnnualLeaves}`,
-    };
-
-    // 입사 1년일 경우, midJoinReceivedAnnualLeave도 같이 등록
-    if (leaveGrantType === LeaveGrantTypeEnum.ANNUAL) {
-      updateSet.midJoinReceivedAnnualLeave = extraAnnualLeaves;
-    }
-
-    return await this.leaveStatsModel
-      .createQueryBuilder()
-      .update(LeaveStatsEntity)
-      .set(updateSet)
-      .where('userIdx = :userIdx', { userIdx })
-      .andWhere('year = :year', { year })
-      .execute();
   }
 }

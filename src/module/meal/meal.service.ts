@@ -6,7 +6,7 @@ import { BasicMealData, DetailedMealData } from './interface/meal.interface';
 import { AdminMealBalanceFilterDto, AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { substringYearMonth } from '../../common/utils/utility';
-import { NewMealStats } from '../scheduler/interface/meal.interface';
+import { NewMealStats } from '../scheduler/interface/mealStats.interface';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '../../common/constant/constant';
