@@ -10,7 +10,6 @@ import { ClearStatusEnum, UserGradeIdxEnum, MealTypeEnum, YNEnum } from '../../.
 import { DetailedMealData, MealStats } from '../interface/meal.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { AdminMealFilterDto, AdminMealBudgetFilterDto } from '../dto/query.dto';
-import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { NewMealStats } from '../../scheduler/interface/meal.interface';
 import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
@@ -408,12 +407,19 @@ export class MealRepository {
     return statsCnt;
   }
 
-  async createMealBudget(mealBudgetInfo: CreateMealBudgetDto, newMealStatsInfo: NewMealStats): Promise<InsertResult> {
+  async createMealStats(newMealStats: NewMealStats): Promise<InsertResult> {
+    return await this.mealStatsModel.createQueryBuilder().insert().into(MealStatsEntity).values(newMealStats).execute();
+  }
+
+  async updateMealStats(newMealStats: NewMealStats): Promise<UpdateResult> {
+    const { year, month, workdays } = newMealStats;
+
     return await this.mealStatsModel
       .createQueryBuilder()
-      .insert()
-      .into(MealStatsEntity)
-      .values({ ...mealBudgetInfo, ...newMealStatsInfo })
+      .update(MealStatsEntity)
+      .set({ workdays })
+      .where('year = :year', { year })
+      .andWhere('month = :month', { month })
       .execute();
   }
 

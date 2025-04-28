@@ -5,7 +5,7 @@ import { MealTypeEnum, YNEnum } from '../../common/constant/enum';
 import { BasicMealData, DetailedMealData } from './interface/meal.interface';
 import { AdminMealBalanceFilterDto, AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
-import { getTotalDaysInMonth, substringYearMonth } from '../../common/utils/utility';
+import { substringYearMonth } from '../../common/utils/utility';
 import { NewMealStats } from '../scheduler/interface/meal.interface';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
@@ -235,9 +235,9 @@ export class MealService {
 
   @Transactional()
   async createMealBudget(mealBudgetInfo: CreateMealBudgetDto): Promise<void> {
-    const { year, month, baseAmount } = mealBudgetInfo;
+    const { year, month, baseAmount, workdays } = mealBudgetInfo;
 
-    /* 기본 식대 저장 */
+    /** mealBase 저장 및 업데이트 **/
     const mealBaseInfo = await this.mealRepository.getMealBaseInfo(year, month);
     if (!mealBaseInfo) {
       // 기본 식대 정보가 없다면 create
@@ -246,26 +246,32 @@ export class MealService {
       // 기본 식대 정보가 있고, 기존 정보랑 상이하다면 update
       await this.mealRepository.updateMealBase(year, month, baseAmount);
     }
+
+    /** mealStats 저장 및 업데이트 **/
     const mealStatsCnt: number = await this.mealRepository.getMealStatsCount(year, month);
-    /* 기록이 없다면 통계 create (기록이 있다면 mealBudget은 트리거에 의해 자동 업데이트)*/
+    /* 기록이 없다면 create  */
     if (mealStatsCnt < 1) {
-      // holidays 불러오기
       const holidayDates: string[] = await this.mealRepository.getHolidayDates(year, month);
-      // workdays 불러오기
       const holidays: number = holidayDates.length;
-      const totalDays: number = getTotalDaysInMonth(year, month);
-      const workdays: number = totalDays - holidays;
-      // 식대 사용가능한 모든 유저의 IDX 불러오기
       const userIdxList: number[] = await this.mealRepository.getAllUserIdxExceptCEO();
       for (const userIdx of userIdxList) {
-        const newMealStatsInfo: NewMealStats = {
-          userIdx,
+        const newMealStats: NewMealStats = {
+          year,
+          month,
           workdays,
+          userIdx,
           holidays,
-          mealBalance: 0,
         };
-        await this.mealRepository.createMealBudget(mealBudgetInfo, newMealStatsInfo);
+        await this.mealRepository.createMealStats(newMealStats);
       }
+    } else {
+      /* 기록이 있다면 update */
+      const newMealStats: NewMealStats = {
+        year,
+        month,
+        workdays,
+      };
+      await this.mealRepository.updateMealStats(newMealStats);
     }
 
     // 마지막: 각종 업데이트에 따른 사용가능금액 업데이트
@@ -274,15 +280,8 @@ export class MealService {
 
   async getMealBudget(pageNoInfo: PageNoDto, filterInfo: AdminMealBudgetFilterDto) {
     const { totalPage, total, mealBudget } = await this.mealRepository.getAdminMealBudget(pageNoInfo, filterInfo);
-    const { year, month } = filterInfo;
-    // holidays 불러오기
-    const holidayDates: string[] = await this.mealRepository.getHolidayDates(year, month);
-    // workdays 불러오기
-    const holidays: number = holidayDates.length;
-    const totalDays: number = getTotalDaysInMonth(year, month);
-    const workdays: number = totalDays - holidays;
 
-    return { totalPage, total, workdays, mealBudget };
+    return { totalPage, total, mealBudget };
   }
 
   @Transactional()
