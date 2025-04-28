@@ -48,9 +48,9 @@ export class SchedulerRepository {
   async getUserLeaveStatsInfo(userIdx: number, year: string) {
     const statsInfo = await this.leaveStatsModel
       .createQueryBuilder('leaveStatsEntity')
-      .select(
+      .select([
         '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS lastYearAnnualLeaveBalance',
-      )
+      ])
       .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
       .andWhere('leaveStatsEntity.year = :year', { year })
       .getRawOne();

@@ -137,7 +137,12 @@ export class SchedulerService {
     this.logger.log('🏁 오늘의 출근 정보 자동 등록을 마칩니다. !');
   }
 
-  /* 매년 1월 1일에 해당년도 연차 현황 일괄 등록 */
+  /*
+   * ✅ 전직원 총연차일 일괄 등록 ✅
+   * 근속년수 0년차 직원: 부여받은 월차 개수 (= 작년 총연차일)
+   * 근속년수 1년차 이상 직원: 기본 15개, 3년차부터 2년마다 1씩 증가
+   * 기준일은 매년 1월 1일
+   */
   @Cron(CronExpression.EVERY_YEAR)
   @Transactional()
   async insertReceivedAnnualLeave() {
@@ -147,11 +152,9 @@ export class SchedulerService {
     for (const user of users) {
       let totalReceivedAnnualLeave: number = 0;
 
-      // 근속년수 계산
       const { userIdx, joinDate } = user;
-      const yearsSinceJoin = getYearsSinceJoin(joinDate);
+      const yearsSinceJoin: number = getYearsSinceJoin(joinDate); // 근속년수
 
-      // 사용가능 연차 계산
       if (yearsSinceJoin < 1) {
         const lastYear: string = (Number(currentYear) - 1).toString();
         const { lastYearAnnualLeaveBalance } = await this.schedulerRepository.getUserLeaveStatsInfo(userIdx, lastYear);
@@ -175,8 +178,9 @@ export class SchedulerService {
   }
 
   /*
-   * 입사 1년 미만 직원: 매달 월차 1일 자동 부여
-   * 입사 1년 경과 직원: (전년도 재직일수/365) * 15 계산 -> 올림하여 연차 부여
+   * ✅ 월차 및 총연차일 업데이트 ✅
+   * 근속년수 0년차 직원: 매달 월차 1일 자동 부여
+   * 근속년수 딱 1년(입사 1주년) 직원: 총연차일 업데이트 (지금까지의 총 연차 잔여개수 + (전년도 재직일수/365) * 15의 올림값)
    * 기준일은 today(오늘)
    */
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
@@ -190,7 +194,7 @@ export class SchedulerService {
 
       const leaveGrantType: LeaveGrantTypeEnum = getTodayLeaveGrantType(joinDate);
 
-      // 입사 1년 경과인 직원일 경우
+      // 입사 1주년 직원
       if (leaveGrantType === LeaveGrantTypeEnum.ANNUAL) {
         const endDayofLastYear: string = `${currentYear - 1}-12-31`; // 전년도 마지막 날
         const lastYearWorkDays: number = getDaysBetwweenTwoDates(joinDate, endDayofLastYear); // 재직일 수
@@ -204,9 +208,9 @@ export class SchedulerService {
         );
       }
 
-      // 입사 1년 미만인 직원일 경우
+      // 근속년수 0년차 직원
       if (leaveGrantType === LeaveGrantTypeEnum.MONTHLY) {
-        const extraAnnualLeaves: number = 1; // 월차 부여
+        const extraAnnualLeaves: number = 1; // 월차 1일 부여
         const currentYearString: string = currentYear.toString();
         await this.schedulerRepository.insertExtraReceivedAnnualLeave(
           userIdx,

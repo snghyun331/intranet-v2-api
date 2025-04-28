@@ -222,6 +222,12 @@ export const removeDuplicateIdxs = (array: any[], originalArray: any[]): any[] =
   return originalArray.filter((item) => !array.includes(item));
 };
 
+/*
+ * 총 근무일수가 365일 이하인 직원 대상
+ * - 오늘이 입사 1주년이면: ANNUAL
+ * - 오늘이 매월 입사일과 같은 날이면: MONTHLY
+ * - 위 둘 모두 해당하지 않으면: NONE
+ */
 export const getTodayLeaveGrantType = (joinDateString: string): LeaveGrantTypeEnum => {
   const today = moment().utcOffset(9);
   const joinDate = moment(joinDateString).utcOffset(9);
