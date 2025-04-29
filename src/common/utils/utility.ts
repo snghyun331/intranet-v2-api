@@ -191,8 +191,7 @@ export const getNormalEarlyBoundary = (timestamp: Date): Date => {
 
 // 근속년수 계산
 export const getYearsSinceJoin = (joinDateString: string): number => {
-  // const now: moment.Moment = moment().utcOffset(9);
-  const now: moment.Moment = moment('2025-01-01').utcOffset(9);
+  const now: moment.Moment = moment().utcOffset(9);
   const joinDate = moment(joinDateString).utcOffset(9);
   const yearsSinceJoin: number = now.diff(joinDate, 'years');
 
@@ -222,6 +221,12 @@ export const removeDuplicateIdxs = (array: any[], originalArray: any[]): any[] =
   return originalArray.filter((item) => !array.includes(item));
 };
 
+/*
+ * 총 근무일수가 365일 이하인 직원 대상
+ * - 오늘이 입사 1주년이면: ANNUAL
+ * - 오늘이 매월 입사일과 같은 날이면: MONTHLY
+ * - 위 둘 모두 해당하지 않으면: NONE
+ */
 export const getTodayLeaveGrantType = (joinDateString: string): LeaveGrantTypeEnum => {
   const today = moment().utcOffset(9);
   const joinDate = moment(joinDateString).utcOffset(9);

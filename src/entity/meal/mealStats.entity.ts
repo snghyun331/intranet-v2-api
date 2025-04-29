@@ -29,7 +29,7 @@ export class MealStatsEntity extends CommonEntity {
   @Column({ name: 'holiday_workdays', comment: '휴일근무일수', default: 0, nullable: false })
   holidayWorkdays: number;
 
-  @Column({ name: 'meal_budget', comment: '이번달 식대(중식) 사용가능 금액', nullable: false })
+  @Column({ name: 'meal_budget', comment: '이번달 식대(중식) 사용가능 금액', default: 0, nullable: false })
   mealBudget: number;
 
   @Column({ name: 'meal_expense', comment: '이번달 식대(중식) 사용 금액', default: 0, nullable: false })

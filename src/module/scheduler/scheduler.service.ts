@@ -17,6 +17,7 @@ import { HolidayInfo } from './interface/holiday.interface';
 import { Transactional } from 'typeorm-transactional';
 import * as moment from 'moment';
 import { LeaveGrantTypeEnum } from '../../common/constant/enum';
+import { NewLeaveStats } from './interface/leaveStats.interface';
 
 @Injectable()
 export class SchedulerService {
@@ -137,7 +138,12 @@ export class SchedulerService {
     this.logger.log('🏁 오늘의 출근 정보 자동 등록을 마칩니다. !');
   }
 
-  /* 매년 1월 1일에 해당년도 연차 현황 일괄 등록 */
+  /*
+   * ✅ 전직원 총연차일 일괄 등록 ✅
+   * 근속년수 0년차 직원: 부여받은 월차 개수 (= 작년 총연차일)
+   * 근속년수 1년차 이상 직원: 기본 15개, 3년차부터 2년마다 1씩 증가
+   * 기준일은 매년 1월 1일
+   */
   @Cron(CronExpression.EVERY_YEAR)
   @Transactional()
   async insertReceivedAnnualLeave() {
@@ -146,23 +152,29 @@ export class SchedulerService {
     const users = await this.schedulerRepository.getAllUsersInfo();
     for (const user of users) {
       let totalReceivedAnnualLeave: number = 0;
+      let totalAnnualLeaveUsage: number = 0;
 
-      // 근속년수 계산
       const { userIdx, joinDate } = user;
-      const yearsSinceJoin = getYearsSinceJoin(joinDate);
+      const lastYear: string = (Number(currentYear) - 1).toString();
+      const lastYearStats = await this.schedulerRepository.getUserLeaveStatsInfo(userIdx, lastYear); // 작년 연차 현황 조회
+      const yearsSinceJoin: number = getYearsSinceJoin(joinDate); // 근속년수
 
-      // 사용가능 연차 계산
       if (yearsSinceJoin < 1) {
-        const lastYear: string = (Number(currentYear) - 1).toString();
-        const { lastYearAnnualLeaveBalance } = await this.schedulerRepository.getUserLeaveStatsInfo(userIdx, lastYear);
-        totalReceivedAnnualLeave = lastYearAnnualLeaveBalance;
+        totalReceivedAnnualLeave = lastYearStats.totalReceivedAnnualLeave;
+        totalAnnualLeaveUsage = lastYearStats.totalAnnualLeaveUsage;
       } else {
         const extraAnnualLeave: number = Math.floor((yearsSinceJoin - 1) / 2); // 3년차부터 2년마다 1씩 증가
         totalReceivedAnnualLeave = 15 + extraAnnualLeave;
+        totalAnnualLeaveUsage = 0;
       }
 
-      // leaveStats 엔티티에 정보(totalReceived) 추가
-      await this.schedulerRepository.insertLeaveStatsInfo(userIdx, currentYear, totalReceivedAnnualLeave);
+      // leaveStats 엔티티에 정보(총연차일, 사용개수) 추가
+      const newLeaveStats: NewLeaveStats = {
+        totalReceivedAnnualLeave,
+        totalAnnualLeaveUsage,
+        midJoinReceivedAnnualLeave: lastYearStats.midJoinReceivedAnnualLeave,
+      };
+      await this.schedulerRepository.insertLeaveStatsInfo(userIdx, currentYear, newLeaveStats);
 
       // leaveUsage 엔티티에 정보(default: 0) 추가
       await this.schedulerRepository.insertLeaveUsageInfo(userIdx, currentYear);
@@ -175,14 +187,16 @@ export class SchedulerService {
   }
 
   /*
-   * 입사 1년 미만 직원: 매달 월차 1일 자동 부여
-   * 입사 1년 경과 직원: (전년도 재직일수/365) * 15 계산 -> 올림하여 연차 부여
+   * ✅ 월차 및 총연차일 업데이트 ✅
+   * 근속년수 0년차 직원: 매달 월차 1일 자동 부여
+   * 근속년수 딱 1년(입사 1주년) 직원: 총 연차일 업데이트 (지금까지의 총 연차 잔여개수 + (전년도 재직일수/365) * 15의 올림값)
    * 기준일은 today(오늘)
    */
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   @Transactional()
   async insertExtraReceivedAnnualLeaveForMidJoiner() {
     const currentYear: number = moment().utcOffset(9).year();
+    const currentYearString: string = currentYear.toString();
     const users = await this.schedulerRepository.getAllUserWithLessThanOneYear();
     for (const user of users) {
       const { userIdx, userName, joinDate } = user;
@@ -190,30 +204,33 @@ export class SchedulerService {
 
       const leaveGrantType: LeaveGrantTypeEnum = getTodayLeaveGrantType(joinDate);
 
-      // 입사 1년 경과인 직원일 경우
+      // 입사 1주년 직원의 경우,
       if (leaveGrantType === LeaveGrantTypeEnum.ANNUAL) {
         const endDayofLastYear: string = `${currentYear - 1}-12-31`; // 전년도 마지막 날
-        const lastYearWorkDays: number = getDaysBetwweenTwoDates(joinDate, endDayofLastYear); // 재직일 수
-        const extraAnnualLeaves: number = Math.ceil((lastYearWorkDays / 365) * 15); // 중도입사 연차 부여
-        const currentYearString: string = currentYear.toString();
-        await this.schedulerRepository.insertExtraReceivedAnnualLeave(
-          userIdx,
-          currentYearString,
-          extraAnnualLeaves,
-          leaveGrantType,
-        );
+        const lastYearWorkDays: number = getDaysBetwweenTwoDates(joinDate, endDayofLastYear); // 재직일수
+        const midJoinReceivedAnnualLeave: number = Math.ceil((lastYearWorkDays / 365) * 15); // 중도입사연차 수 (전년도 재직일수/365) * 15의 올림값)
+        const leaveStats = await this.schedulerRepository.getUserLeaveStatsInfo(userIdx, currentYearString);
+        const totalAnnualLeaveBalance: number = leaveStats.totalAnnualLeaveBalance; // 지금까지의 총 연차 잔여개수
+
+        const updateLeaveStats: NewLeaveStats = {
+          totalReceivedAnnualLeave: totalAnnualLeaveBalance + midJoinReceivedAnnualLeave,
+          totalAnnualLeaveUsage: 0,
+          midJoinReceivedAnnualLeave,
+        };
+        await this.schedulerRepository.updateLeaveStatsInfo(userIdx, currentYearString, updateLeaveStats);
       }
 
-      // 입사 1년 미만인 직원일 경우
+      // 근속년수 0년차 직원의 경우,
       if (leaveGrantType === LeaveGrantTypeEnum.MONTHLY) {
-        const extraAnnualLeaves: number = 1; // 월차 부여
-        const currentYearString: string = currentYear.toString();
-        await this.schedulerRepository.insertExtraReceivedAnnualLeave(
-          userIdx,
-          currentYearString,
-          extraAnnualLeaves,
-          leaveGrantType,
-        );
+        const leaveStats = await this.schedulerRepository.getUserLeaveStatsInfo(userIdx, currentYearString);
+        const updatedTotalReceivedAnnualLeave = leaveStats.totalReceivedAnnualLeave + 1; // 월차 1일 부여
+
+        const updateLeaveStats: NewLeaveStats = {
+          totalReceivedAnnualLeave: updatedTotalReceivedAnnualLeave,
+          totalAnnualLeaveUsage: leaveStats.totalAnnualLeaveUsage,
+          midJoinReceivedAnnualLeave: 0,
+        };
+        await this.schedulerRepository.updateLeaveStatsInfo(userIdx, currentYearString, updateLeaveStats);
       }
     }
   }

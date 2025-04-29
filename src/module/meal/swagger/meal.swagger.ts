@@ -362,7 +362,7 @@ export const ADMIN_MEALS_BUDGET: SwaggerMethod = {
       examples: {
         a: {
           summary: '기본금액 및 총금액 설정',
-          value: { baseAmount: 10000, mealBudget: 230000, year: '2024', month: '8' },
+          value: { baseAmount: 10000, workdays: 21, year: '2024', month: '8' },
           description: '월은 1, 2 ... 포맷으로 입력해주세요(02 X). mealBudget은 기본식대 X 업무일 수 금액입니다.',
         },
       },

@@ -7,10 +7,10 @@ export class CreateMealBudgetDto {
   @IsNumber()
   baseAmount: number;
 
-  @ApiProperty({ type: Number, description: '인원별 총 금액', required: true })
-  @IsNotEmpty({ message: '인원별 총 금액을 입력해주세요.' })
+  @ApiProperty({ type: Number, description: '업무일', example: 21, required: true })
+  @IsNotEmpty({ message: '업무일을 입력해주세요' })
   @IsNumber()
-  mealBudget: number;
+  workdays: number;
 
   @ApiProperty({ type: String, description: '연도', example: '2024', required: true })
   @IsNotEmpty({ message: '연도를 입력해주세요.' })

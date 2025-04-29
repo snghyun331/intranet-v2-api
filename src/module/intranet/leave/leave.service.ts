@@ -48,7 +48,7 @@ export class LeaveService {
     const nowYear: number = moment().utcOffset(9).year();
     const nowMonth: number = moment().utcOffset(9).month() + 1;
 
-    /* CEO이면, 아무 조건 없이 휴가 등록 및 자동승인 */
+    /** CEO이면, 아무 조건 없이 휴가 등록 및 자동승인 **/
     if (user.gradeName === UserGradeEnum.CEO) {
       for (const leave of leaveInfo) {
         const commuteDate: string = leave.commuteDate;
@@ -101,7 +101,12 @@ export class LeaveService {
       return;
     }
 
-    /* CEO 제외한 사용자의 휴가 등록 */
+    /** CEO 제외한 사용자의 휴가 등록 **/
+    // 연차 잔여 개수 조회
+    const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(userIdx, nowYear.toString());
+    // 등록하려는 휴가 누적 차감단위
+    let totalRegisterLeaveReduceUnit: number = 0;
+
     for (const leave of leaveInfo) {
       const commuteDate: string = leave.commuteDate;
       const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
@@ -113,7 +118,7 @@ export class LeaveService {
         throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
       }
 
-      // 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가
+      /* 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가 */
       if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
         // 보건 휴가 월 사용 개수 조회
         const healthLeaveMonthCount: number = await this.leaveRepository.getHealthLeaveCountInMonth(
@@ -127,9 +132,6 @@ export class LeaveService {
           );
         }
       }
-
-      // 연차 잔여 개수 조회
-      const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(userIdx, nowYear.toString());
 
       // 잔여 연차가 1미만이면 연차 사용 불가
       if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE) {
@@ -161,18 +163,26 @@ export class LeaveService {
         }
       }
 
-      /* 휴가등록 */
-      let commuteIdx: number;
-      const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
-
-      // 연차 차감 단위 계산
+      // 하루에 사용한 휴가 총합이 1.0을 초과하면 사용불가
       const isBirthday: boolean = await this.leaveRepository.isBirthday(userIdx, commuteDate);
-      const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday);
-
+      const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday); // 연차 차감단위
       const totalReduceUnit = await this.leaveRepository.getTotalLeaveReduceUnitByDate(userIdx, commuteDate);
       if (totalReduceUnit + leaveReduceUnit > 1.0) {
         throw new BadRequestException('휴가는 하루에 최대 1.0까지만 사용할 수 있습니다.');
       }
+
+      // 등록하려는 휴가의 총합이 잔여 연차를 초과하면 사용불가
+      totalRegisterLeaveReduceUnit += leaveReduceUnit;
+
+      if (totalAnnualLeaveBalance - totalRegisterLeaveReduceUnit < 0) {
+        throw new BadRequestException(
+          '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+        );
+      }
+
+      /* 휴가등록 */
+      let commuteIdx: number;
+      const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
 
       // 당일에 등록할 경우
       if (commuteDate === today) {
@@ -183,11 +193,11 @@ export class LeaveService {
       }
 
       // 승인 가능자 모두 저장
-      if (approverIdxs !== null) {
+      if (ccUserIdxs !== null && ccUserIdxs !== undefined) {
         await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs);
       }
       // 참조자 모두 저장
-      if (ccUserIdxs !== null) {
+      if (ccUserIdxs !== null && ccUserIdxs !== undefined) {
         // 승인가능자는 참조자로 등록 X
         const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(approverIdxs, ccUserIdxs);
         await this.leaveRepository.createLeaveCCUserList(commuteIdx, removeDuplicateCCUserIdxs);
