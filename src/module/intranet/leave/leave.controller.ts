@@ -285,7 +285,7 @@ export class AdminLeaveController {
 
   @ApiOperation(ADMIN_INTRANET_LEAVE_EXTRA.POST.API_OPERATION)
   @ApiBody(ADMIN_INTRANET_LEAVE_EXTRA.POST.API_BODY)
-  @ApiCreatedResponse(ADMIN_INTRANET_LEAVE_EXTRA.POST.API_OK_RESPONSE)
+  @ApiCreatedResponse(ADMIN_INTRANET_LEAVE_EXTRA.POST.API_CREATED_RESPONSE)
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @ApiBearerAuth('accessToken')
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
