@@ -146,12 +146,12 @@ export class AdminMealController {
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminMealBudgetFilterDto,
   ): Promise<ResponseInterface> {
-    const { totalPage, total, workdays, mealBudget } = await this.mealService.getMealBudget(pageNoInfo, filterInfo);
+    const { totalPage, total, mealBudget } = await this.mealService.getMealBudget(pageNoInfo, filterInfo);
     const { month } = filterInfo;
 
     const response: ResponseInterface = {
       message: `${month}월 어드민 식대 설정 리스트 조회 성공`,
-      data: { totalPage, total, workdays, mealBudget },
+      data: { totalPage, total, mealBudget },
     };
 
     return response;

@@ -210,14 +210,18 @@ export class AdminUserController {
 
   @ApiOperation(ADMIN_USERS_CHECK.GET.API_OPERATION)
   @ApiParam(ADMIN_USERS_CHECK.GET.API_PARAM1)
+  @ApiParam(ADMIN_USERS_CHECK.GET.API_PARAM2)
   @ApiOkResponse(ADMIN_USERS_CHECK.GET.API_OK_RESPONSE)
   @ApiConflictResponse(ADMIN_USERS_CHECK.GET.API_CONFLICT_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Get('check-login-id/:loginId')
-  async checkLoginId(@Param('loginId') loginId: string): Promise<ResponseInterface> {
-    const id: string = await this.userService.checkIdIfAvailable(loginId);
+  @Get('check-login-id/:loginId/users/:userIdx')
+  async checkLoginId(
+    @Param('loginId') loginId: string,
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+  ): Promise<ResponseInterface> {
+    const id: string = await this.userService.checkIdIfAvailable(loginId, userIdx);
 
     const response: ResponseInterface = { message: '아이디 중복확인 성공', data: { id } };
 

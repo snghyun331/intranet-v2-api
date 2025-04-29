@@ -506,6 +506,12 @@ export const ADMIN_USERS_CHECK: SwaggerMethod = {
       required: true,
       description: '등록할 로그인 아이디',
     },
+    API_PARAM2: {
+      name: 'userIdx',
+      type: Number,
+      required: true,
+      description: '수정할 직원IDX',
+    },
     API_OK_RESPONSE: {
       content: {
         'application/json': {
