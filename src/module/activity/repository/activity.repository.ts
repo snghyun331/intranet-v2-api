@@ -15,7 +15,7 @@ import { NewActivityMonthStats, NewActivityStats } from '../interface';
 import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
 import { TeamEntity } from '../../../entity/user/team.entity';
 import { UserPayload } from '../../../common/interface/payload.interface';
-import { ClearStatusEnum, ConfirmEnum, HalfYearEnum, UserGradeIdxEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum, ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
 import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
 import { AdminActivityFilterDto } from '../dto/query.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
@@ -26,45 +26,11 @@ import { UpdateBudgetDto } from '../dto/updateBudget.dto';
 @Injectable()
 export class ActivityRepository {
   constructor(
-    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(ActivityEntity) private readonly activityModel: Repository<ActivityEntity>,
     @InjectRepository(ActivityStatsEntity) private readonly activityStatsModel: Repository<ActivityStatsEntity>,
     @InjectRepository(ActivityMonthlyStatsEntity)
     private readonly activityMonthStatsModel: Repository<ActivityMonthlyStatsEntity>,
   ) {}
-
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
-
-  async getAllUserNames(): Promise<string[]> {
-    const result: { userName: string }[] = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userName AS userName'])
-      .where('userEntity.userAvail IS NULL')
-      .getRawMany();
-
-    const allNames: string[] = result.map((r) => r.userName);
-
-    return allNames;
-  }
-
-  async getUserIdxByName(userName: string): Promise<any> {
-    const result: any = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx', 'userEntity.gradeIdx AS gradeIdx', 'userEntity.teamIdx AS teamIdx'])
-      .where('userEntity.userName = :userName', { userName })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getRawOne();
-
-    return result;
-  }
 
   async createActivity(userIdx: number, newActivityInfo: CreateActivityDto): Promise<InsertResult> {
     return await this.activityModel
@@ -466,19 +432,6 @@ export class ActivityRepository {
         .andWhere('halfYear = :halfYear', { halfYear: HalfYearEnum.H1 })
         .execute();
     }
-  }
-
-  async getManagerOrHigherUserIdxList(): Promise<number[]> {
-    const result: { userIdx: number }[] = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx'])
-      .where('userEntity.userAvail IS NULL')
-      .andWhere('userEntity.gradeIdx <= :gradeIdx', { gradeIdx: UserGradeIdxEnum.MANAGER })
-      .getRawMany();
-
-    const userIdxList: number[] = result.map((r) => r.userIdx);
-
-    return userIdxList;
   }
 
   async updateActivityStats({ activityBudget, year, halfYear }: NewActivityStats): Promise<UpdateResult> {

@@ -10,14 +10,18 @@ import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { substringYearMonth } from '../../common/utils/utility';
 import { Transactional } from 'typeorm-transactional';
 import { NewWelfareMonthStats, NewWelfareStats } from './interface';
+import { GlobalUserRepository } from '../common/repository/globalUser.repository';
 
 @Injectable()
 export class WelfareService {
-  constructor(private readonly welfareRepository: WelfareRepository) {}
+  constructor(
+    private readonly welfareRepository: WelfareRepository,
+    private readonly userRepository: GlobalUserRepository,
+  ) {}
 
   @Transactional()
   async createMyWelfare(userIdx: number, newWelfareInfo: CreateWelfareDto): Promise<string> {
-    const currentUserInfo: { userName: string } = await this.welfareRepository.getUserNameByIdx(userIdx);
+    const currentUserInfo: { userName: string } = await this.userRepository.getUserNameByIdx(userIdx);
     if (!currentUserInfo) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -56,7 +60,7 @@ export class WelfareService {
 
   @Transactional()
   async deleteMyWelfare(userIdx: number, welfareIdx: number): Promise<string> {
-    const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -100,7 +104,7 @@ export class WelfareService {
 
   @Transactional()
   async updateMyWelfare(userIdx: number, welfareIdx: number, updateWelfareInfo: UpdateWelfareDto): Promise<string> {
-    const currentUserInfo: { userName: string } = await this.welfareRepository.getUserNameByIdx(userIdx);
+    const currentUserInfo: { userName: string } = await this.userRepository.getUserNameByIdx(userIdx);
     if (!currentUserInfo) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -162,7 +166,7 @@ export class WelfareService {
   }
 
   async getMyWelfare(year: string, halfYear: HalfYearEnum, userIdx: number) {
-    const userCnt: number = await this.welfareRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -178,7 +182,7 @@ export class WelfareService {
   @Transactional()
   async createWelfareBudget(welfareBudgetInfo: CreateWelfareBudgetDto) {
     const { year, period: halfYear, welfareBudget } = welfareBudgetInfo;
-    const userIdxList: number[] = await this.welfareRepository.getAllUserIdxExceptCEO();
+    const userIdxList: number[] = await this.userRepository.getAllUserIdxExceptCEO();
     const welfareStatsCnt: number = await this.welfareRepository.getWelfareStatsCount(welfareBudgetInfo, year);
 
     /** 기록이 없다면 통계 create (기록이 있다면 통계 업데이트) **/

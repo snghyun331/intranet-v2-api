@@ -61,16 +61,6 @@ export class AuthRepository {
       .execute();
   }
 
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
-
   async getAdminPersonal(id: string): Promise<Admin> {
     const result: Admin = await this.adminModel
       .createQueryBuilder('adminEntity')

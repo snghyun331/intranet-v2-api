@@ -7,7 +7,6 @@ import { AdminLeaveController, UserLeaveController } from './leave.controller';
 import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
 import { AwsModule } from '../../aws/aws.module';
 import { AwsService } from '../../aws/aws.service';
-import { UserEntity } from '../../../entity/user/user.entity';
 import { LeaveMonthlyUsageEntity } from '../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 import { LeaveUsageEntity } from '../../../entity/intranet/leave/leaveUsage.entity';
 import { ApprovalRepository } from '../approval/repository/approval.repository';
@@ -15,7 +14,6 @@ import { ImageEntity } from '../../../entity/image/image.entity';
 import { CommuteHasImageEntity } from '../../../entity/image/commuteHasImage.entity';
 import { CommuteApproverEntity } from '../../../entity/intranet/commute/commuteApprover.entity';
 import { CommuteCCUserEntity } from '../../../entity/intranet/commute/commuteCCUser.entity';
-import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { LeaveExtraEntity } from '../../../entity/intranet/leave/leaveExtra.entity';
 
 @Module({
@@ -25,12 +23,10 @@ import { LeaveExtraEntity } from '../../../entity/intranet/leave/leaveExtra.enti
       LeaveStatsEntity,
       LeaveMonthlyUsageEntity,
       LeaveUsageEntity,
-      UserEntity,
       ImageEntity,
       CommuteHasImageEntity,
       CommuteApproverEntity,
       CommuteCCUserEntity,
-      MealStatsEntity,
       LeaveExtraEntity,
     ]),
     AwsModule,

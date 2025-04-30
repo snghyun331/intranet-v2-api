@@ -12,10 +12,14 @@ import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Transactional } from 'typeorm-transactional';
 import { NewAdminInfo } from '../interface/admin.interface';
 import { NewUserInfo } from '../interface/user.interface';
+import { GlobalUserRepository } from '../../common/repository/globalUser.repository';
 
 @Injectable()
 export class MockUserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly globalUserRepository: GlobalUserRepository,
+  ) {}
 
   async getAllUserIdxInfo() {
     const result = await this.userRepository.getAllUserIdxInfo();
@@ -87,7 +91,7 @@ export class MockUserService {
 
   @Transactional()
   async updateMyInfo(userIdx: number, updateInfo: UpdateMyInfoDto): Promise<void> {
-    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.globalUserRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -99,7 +103,7 @@ export class MockUserService {
 
   @Transactional()
   async updateMyPassword(userIdx: number, updateInfo: UpdatePasswordDto): Promise<void> {
-    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.globalUserRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }

@@ -53,16 +53,6 @@ export class UserRepository {
     return userCnt;
   }
 
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
-
   async getAllUserIdxInfo() {
     const result = await this.userModel
       .createQueryBuilder('userEntity')

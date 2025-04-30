@@ -6,11 +6,13 @@ import { LoginAdminResult, LoginUserResult } from './interface/result.interface'
 import { User } from './interface/user.interface';
 import { decryptPassword } from '../../common/utils/utility';
 import { Admin } from './interface/admin.interface';
+import { GlobalUserRepository } from '../common/repository/globalUser.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly authRepository: AuthRepository,
+    private readonly userRepository: GlobalUserRepository,
     private jwtService: JwtService,
   ) {}
 
@@ -33,7 +35,7 @@ export class AuthService {
   }
 
   async userLogout(userIdx: number): Promise<void> {
-    const userCnt: number = await this.authRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
