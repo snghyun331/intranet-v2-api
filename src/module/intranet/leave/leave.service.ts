@@ -437,9 +437,9 @@ export class LeaveService {
     });
 
     /* 5. 사후 필터링 처리 (month, leaveTypeIdx, confirmYN) */
-    const filtered = withRemainingQuota.filter((detail) => {
-      const commuteMonth = new Date(detail.commuteDate).getMonth() + 1;
-      const matchMonth = !filterMonth || filterMonth.includes(commuteMonth.toString());
+    const filtered: any[] = withRemainingQuota.filter((detail) => {
+      const commuteMonth: number = moment(detail.commuteDate).utcOffset(9).month() + 1;
+      const matchMonth: boolean = !filterMonth || filterMonth.includes(commuteMonth.toString());
       const matchLeaveTypeIdx = !filterLeaveTypeIdx || detail.leaveTypeIdx === filterLeaveTypeIdx;
       const matchConfirmYN =
         !('confirmYN' in filterInfo) || !filterInfo.confirmYN || detail.confirmYN === filterInfo.confirmYN;

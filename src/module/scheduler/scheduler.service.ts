@@ -34,10 +34,10 @@ export class SchedulerService {
   @Transactional()
   async insertHoliday() {
     this.logger.log('🚀 다음 분기 휴일 정보 수집을 시작합니다 !');
-    const date: Date = new Date();
-    const nowMonth: number = date.getMonth() + 1;
+    const today = moment().utcOffset(9);
+    const nowMonth: number = today.month() + 1;
     let nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
-    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
+    const year: number = nowMonth === 12 ? today.year() + 1 : today.year();
     for (let i = 0; i < 6; i++) {
       const publicHolidayInfoList: HolidayInfo[] = (await this.getPublicHolidayDatas(year, nextMonth)) ?? [];
       const weekendInfoList: HolidayInfo[] = await this.getWeekendDatas(year, nextMonth);
@@ -131,7 +131,7 @@ export class SchedulerService {
   @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_1AM)
   @Transactional()
   async insertAllCommutesForToday() {
-    this.logger.log(`🚀 오늘의 출근 정보 자동 등록을 시작합니다. (현재시간: ${new Date()}) !`);
+    this.logger.log(`🚀 오늘의 출근 정보 자동 등록을 시작합니다. (현재시간: ${moment().utcOffset(9)}) !`);
 
     await this.schedulerRepository.insertCommutesForToday();
 
@@ -147,7 +147,7 @@ export class SchedulerService {
   @Cron(CronExpression.EVERY_YEAR)
   @Transactional()
   async insertReceivedAnnualLeave() {
-    this.logger.log(`🚀 연차 자동 등록을 시작합니다. (현재시간: ${new Date()}) !`);
+    this.logger.log(`🚀 연차 자동 등록을 시작합니다. (현재시간: ${moment().utcOffset(9)}) !`);
     const currentYear: string = moment().utcOffset(9).year().toString();
     const users = await this.schedulerRepository.getAllUsersInfo();
     for (const user of users) {
@@ -200,7 +200,9 @@ export class SchedulerService {
     const users = await this.schedulerRepository.getAllUserWithLessThanOneYear();
     for (const user of users) {
       const { userIdx, userName, joinDate } = user;
-      this.logger.log(`🚀 중도입사자 ${userName}에 대한 연차 부여를 시작합니다. (현재시간: ${new Date()}) !`);
+      this.logger.log(
+        `🚀 중도입사자 ${userName}에 대한 월/연차 업데이트를 시작합니다.(현재시간: ${moment().utcOffset(9)}) !`,
+      );
 
       const leaveGrantType: LeaveGrantTypeEnum = getTodayLeaveGrantType(joinDate);
 

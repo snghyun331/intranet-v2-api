@@ -32,7 +32,6 @@ export class ServerErrorFilter implements ExceptionFilter {
     const query = JSON.stringify(request.query);
     const userPayload: UserPayload = request.user as UserPayload;
     const loginUserName: string = userPayload ? userPayload.userName : undefined;
-    const timeStamp: string = new Date().toLocaleString('ko-KR');
 
     if (request) {
       this.logger.error(
@@ -47,7 +46,6 @@ export class ServerErrorFilter implements ExceptionFilter {
 
       const errResponseBody: object = {
         ...errReponse,
-        timeStamp,
         path: request.url,
       };
 
@@ -59,7 +57,6 @@ export class ServerErrorFilter implements ExceptionFilter {
       const errResponseBody: object = {
         statusCode: status,
         message,
-        timeStamp,
         path: request.url,
       };
 
