@@ -12,7 +12,7 @@ import {
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
-import { ClearStatusEnum, ConfirmEnum, UserGradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum, ConfirmEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
 import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
@@ -23,46 +23,12 @@ import { NewWelfareMonthStats, NewWelfareStats } from '../interface';
 @Injectable()
 export class WelfareRepository {
   constructor(
-    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(WelfareEntity) private readonly welfareModel: Repository<WelfareEntity>,
     @InjectRepository(WelfareMonthlyStatsEntity)
     private readonly welfareMonthStatsModel: Repository<WelfareMonthlyStatsEntity>,
     @InjectRepository(WelfareStatsEntity)
     private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
   ) {}
-
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
-
-  async getUserNameByIdx(userIdx: number): Promise<{ userName: string }> {
-    const result: { userName: string } = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userName AS userName'])
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getRawOne();
-
-    return result;
-  }
-
-  async getAllUserNames(): Promise<string[]> {
-    const result: { userName: string }[] = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userName AS userName'])
-      .andWhere('userEntity.userAvail IS NULL')
-      .getRawMany();
-
-    const allNames: string[] = result.map((r) => r.userName);
-
-    return allNames;
-  }
 
   async createWelfare(userIdx: number, { targetDay, amount, content, payerName }: CreateWelfareDto): Promise<number> {
     const result: InsertResult = await this.welfareModel
@@ -303,19 +269,6 @@ export class WelfareRepository {
       .getCount();
 
     return statsCnt;
-  }
-
-  async getAllUserIdxExceptCEO(): Promise<number[]> {
-    const result: { userIdx: number }[] = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx'])
-      .where('userEntity.userAvail IS NULL')
-      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: UserGradeIdxEnum.CEO })
-      .getRawMany();
-
-    const userIdxList: number[] = result.map((r) => r.userIdx);
-
-    return userIdxList;
   }
 
   async createWelfareStats(newStatsInfo: NewWelfareStats): Promise<InsertResult> {

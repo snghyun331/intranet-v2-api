@@ -31,12 +31,16 @@ import { Transactional } from 'typeorm-transactional';
 import { CreateExtraLeaveDto } from './dto/createExtraLeave.dto';
 import { NewLeaveExtra } from './interface/leaveExtra.interface';
 import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
+import { GlobalUserRepository } from '../../common/repository/globalUser.repository';
+import { GlobalMealRepository } from '../../common/repository/globalMeal.repository';
 
 @Injectable()
 export class LeaveService {
   constructor(
     private readonly leaveRepository: LeaveRepository,
     private readonly approvalRepository: ApprovalRepository,
+    private readonly mealRepository: GlobalMealRepository,
+    private readonly userRepository: GlobalUserRepository,
     private readonly awsService: AwsService,
     public readonly configService: ConfigService,
   ) {}
@@ -164,7 +168,7 @@ export class LeaveService {
       }
 
       // 하루에 사용한 휴가 총합이 1.0을 초과하면 사용불가
-      const isBirthday: boolean = await this.leaveRepository.isBirthday(userIdx, commuteDate);
+      const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, commuteDate);
       const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday); // 연차 차감단위
       const totalReduceUnit = await this.leaveRepository.getTotalLeaveReduceUnitByDate(userIdx, commuteDate);
       if (totalReduceUnit + leaveReduceUnit > 1.0) {
@@ -261,7 +265,7 @@ export class LeaveService {
     }
 
     // 식대 월별 timeoffDays 업데이트
-    await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx);
+    await this.mealRepository.updateMealTimeOffDays(year, month, userIdx);
   }
 
   async getLeaveSummaries({ pageNo, perPage }: PageNoDto, filterInfo: AdminLeaveFilterDto) {
@@ -280,7 +284,7 @@ export class LeaveService {
   }
 
   async getUserLeaveStats(year: string, userIdx: number) {
-    const userInfo = await this.leaveRepository.getUserInfoByIdx(userIdx);
+    const userInfo = await this.userRepository.getUserInfoByIdx(userIdx);
     if (!userInfo) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }

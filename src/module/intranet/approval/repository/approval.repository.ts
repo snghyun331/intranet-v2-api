@@ -12,7 +12,6 @@ import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.e
 import { UserApprovalFilter } from '../dto/query.dto';
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { UserEntity } from '../../../../entity/user/user.entity';
-import { MealStatsEntity } from '../../../../entity/meal/mealStats.entity';
 import { ImageEntity } from '../../../../entity/image/image.entity';
 import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
 
@@ -20,21 +19,11 @@ import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.
 export class ApprovalRepository {
   constructor(
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
-    @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
     @InjectRepository(LeaveMonthlyUsageEntity)
     private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
     @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
   ) {}
-
-  async getCommuteCountByIdx(commuteIdx: number): Promise<number> {
-    const result: number = await this.commuteModel
-      .createQueryBuilder('commuteEntity')
-      .where('commuteEntity.commuteIdx', { commuteIdx })
-      .getCount();
-
-    return result;
-  }
 
   async getCommuteInfoWithApprover(commuteIdx: number) {
     const result = await this.commuteModel
@@ -218,32 +207,6 @@ export class ApprovalRepository {
       .set({ totalAlternativeLeaveUsage })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('year = :year', { year })
-      .execute();
-  }
-
-  async updateMealTimeOffDays(year: string, month: string, userIdx: number): Promise<UpdateResult> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
-    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
-    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-
-    const query = `(
-      SELECT COUNT(DISTINCT(c.commute_date)) 
-      FROM commute c
-      WHERE c.user_idx = ${userIdx}
-      AND c.confirm_yn = '${ConfirmEnum.YES}'
-      AND c.commute_date BETWEEN '${startDate}' AND '${endDate}'
-      AND c.leave_type_idx NOT IN (1,4,5,10,11)
-    )`;
-
-    return await this.mealStatsModel
-      .createQueryBuilder()
-      .update(MealStatsEntity)
-      .set({
-        timeoffDays: () => query,
-      })
-      .where('userIdx = :userIdx', { userIdx })
-      .andWhere('year = :year', { year })
-      .andWhere('month = :month', { month })
       .execute();
   }
 

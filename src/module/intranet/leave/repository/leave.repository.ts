@@ -21,7 +21,6 @@ import {
 import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
 import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
-import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
 import * as moment from 'moment';
 import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
@@ -34,36 +33,13 @@ export class LeaveRepository {
   constructor(
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
-    @InjectRepository(LeaveMonthlyUsageEntity)
-    private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
     @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
-    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(ImageEntity) private readonly imageModel: Repository<ImageEntity>,
     @InjectRepository(CommuteHasImageEntity) private readonly commuteImageModel: Repository<CommuteHasImageEntity>,
     @InjectRepository(CommuteApproverEntity) private readonly commuteApproverModel: Repository<CommuteApproverEntity>,
     @InjectRepository(CommuteCCUserEntity) private readonly commuteCCModel: Repository<CommuteCCUserEntity>,
     @InjectRepository(LeaveExtraEntity) private readonly leaveExtraModel: Repository<LeaveExtraEntity>,
   ) {}
-
-  async getUserInfoByIdx(userIdx: number) {
-    const result = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select([
-        'userEntity.userIdx AS userIdx',
-        'userEntity.userName AS userName',
-        'userEntity.joinDate AS joinDate',
-        'hqEntity.hqName AS hqName',
-        'teamEntity.teamName AS teamName',
-        'gradeEntity.gradeName AS gradeName',
-      ])
-      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
-      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .getRawOne();
-
-    return result;
-  }
 
   async getLeaveInfoByIdx(commuteIdx: number) {
     const result: any = await this.commuteModel
@@ -302,16 +278,6 @@ export class LeaveRepository {
     }));
 
     return { totalPage, total, summaries: result };
-  }
-
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
   }
 
   async getUserLeaveStats(year: string, userIdx: number) {
@@ -617,18 +583,6 @@ export class LeaveRepository {
       .set({ note })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
-  }
-
-  async isBirthday(userIdx: number, commuteDate: string): Promise<boolean> {
-    const date: string = commuteDate.slice(5);
-    const result = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx'])
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('DATE_FORMAT(userEntity.userBirth, "%m-%d") = :date', { date })
-      .getRawOne();
-
-    return !!result;
   }
 
   async getTotalLeaveReduceUnitByDate(userIdx: number, commuteDate: string): Promise<number> {

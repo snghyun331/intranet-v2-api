@@ -12,20 +12,24 @@ import { UpdateNoteDto } from './dto/updateNote.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { substringYearMonth } from '../../common/utils/utility';
 import { Transactional } from 'typeorm-transactional';
+import { GlobalUserRepository } from '../common/repository/globalUser.repository';
 
 @Injectable()
 export class ActivityService {
-  constructor(private readonly activityRepository: ActivityRepository) {}
+  constructor(
+    private readonly activityRepository: ActivityRepository,
+    private readonly userRepository: GlobalUserRepository,
+  ) {}
 
   @Transactional()
   async createActivity(userIdx: number, newActivityInfo: CreateActivityDto): Promise<string> {
     const { targetDay, payerName } = newActivityInfo;
-    const userCnt: number = await this.activityRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const payerInfo: any = await this.activityRepository.getUserIdxByName(payerName);
+    const payerInfo: any = await this.userRepository.getUserIdxByName(payerName);
     if (!payerInfo) {
       throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
     }
@@ -60,12 +64,12 @@ export class ActivityService {
   @Transactional()
   async updateActivity(userIdx: number, activityIdx: number, updateActivityInfo: UpdateActivityDto): Promise<string> {
     const { targetDay, payerName } = updateActivityInfo;
-    const userCnt: number = await this.activityRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
 
-    const payerInfo: any = await this.activityRepository.getUserIdxByName(payerName);
+    const payerInfo: any = await this.userRepository.getUserIdxByName(payerName);
     if (!payerInfo) {
       throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
     }
@@ -100,7 +104,7 @@ export class ActivityService {
 
   @Transactional()
   async deleteActivity(userIdx: number, activityIdx: number): Promise<string> {
-    const userCnt: number = await this.activityRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -111,7 +115,7 @@ export class ActivityService {
     }
     const { targetDay, payerName } = activityInfo;
 
-    const payerInfo: any = await this.activityRepository.getUserIdxByName(payerName);
+    const payerInfo: any = await this.userRepository.getUserIdxByName(payerName);
     const { userIdx: payerUserIdx } = payerInfo; // 결제자 IDX
 
     const { year, month } = substringYearMonth(targetDay);
@@ -149,7 +153,7 @@ export class ActivityService {
   @Transactional()
   async createActivityBudget(budgetInfo: CreateActivityBudgetDto): Promise<void> {
     const { year, period: halfYear, activityBudget } = budgetInfo;
-    const userIdxList: number[] = await this.activityRepository.getManagerOrHigherUserIdxList();
+    const userIdxList: number[] = await this.userRepository.getManagerOrHigherUserIdxList();
     const activityStatsCnt: number = await this.activityRepository.getActivityStatsCount(budgetInfo, year);
 
     /** 기록이 없다면 통계 create (기록이 있다면 통계 업데이트) **/

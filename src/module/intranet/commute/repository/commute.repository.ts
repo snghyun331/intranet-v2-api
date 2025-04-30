@@ -14,20 +14,7 @@ import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommute
 
 @Injectable()
 export class CommuteRepository {
-  constructor(
-    @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
-    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
-  ) {}
-
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
+  constructor(@InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>) {}
 
   async createCheckInWork(userIdx: number, commuteInfo: InsertCheckInInfo): Promise<InsertResult> {
     return await this.commuteModel

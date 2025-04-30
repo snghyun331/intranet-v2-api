@@ -6,7 +6,7 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { UserEntity } from '../../../entity/user/user.entity';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import { ClearStatusEnum, UserGradeIdxEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
+import { ClearStatusEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
 import { DetailedMealData, MealStats } from '../interface/meal.interface';
 import { GradeEntity } from '../../../entity/user/grade.entity';
 import { AdminMealFilterDto, AdminMealBudgetFilterDto } from '../dto/query.dto';
@@ -25,67 +25,8 @@ export class MealRepository {
     @InjectRepository(MealEntity) private readonly mealModel: Repository<MealEntity>,
     @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
     @InjectRepository(MealBaseEntity) private readonly mealBaseModel: Repository<MealBaseEntity>,
-    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(HolidayEntity) private readonly holidayModel: Repository<HolidayEntity>,
   ) {}
-
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
-
-  async getAllUserNames(): Promise<string[]> {
-    const result: { userName: string }[] = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userName AS userName'])
-      .where('userEntity.userAvail IS NULL')
-      .getRawMany();
-
-    const allNames: string[] = result.map((r) => r.userName);
-
-    return allNames;
-  }
-
-  async getAllUserIdxExceptCEO(): Promise<number[]> {
-    const result: { userIdx: number }[] = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx'])
-      .where('userEntity.userAvail IS NULL')
-      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: UserGradeIdxEnum.CEO })
-      .getRawMany();
-
-    const userIdxList: number[] = result.map((r) => r.userIdx);
-
-    return userIdxList;
-  }
-
-  async getHolidayDates(year: string, month: string): Promise<string[]> {
-    // 해당 월의 첫 번째 날과 마지막 날을 구함
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
-    const firstDayOfMonthToString: string = firstDayOfMonth.format('YYYY-MM-DD');
-    const lastDayOfMonthToString: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: HolidayEntity[] = await this.holidayModel
-      .createQueryBuilder('holidayEntity')
-      .select([
-        'holidayEntity.holidayIdx AS holidayIdx',
-        'holidayEntity.holidayDate AS holidayDate',
-        'holidayEntity.holidayName AS holidayName',
-      ])
-      .where('holidayEntity.holidayDate BETWEEN :firstDayOfMonthToString AND :lastDayOfMonthToString', {
-        firstDayOfMonthToString,
-        lastDayOfMonthToString,
-      })
-      .getRawMany();
-
-    const holidayDates: string[] = result.map((r) => r.holidayDate);
-
-    return holidayDates;
-  }
 
   async getMyMealCalender(year: string, month: string, userIdx: number) {
     const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);

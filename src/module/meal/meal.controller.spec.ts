@@ -29,7 +29,7 @@ describe('MealController(e2e)', () => {
   describe('[POST] /admin/meals/budget', () => {
     const createMealBudgetDto: CreateMealBudgetDto = {
       baseAmount: 10000,
-      mealBudget: 23000,
+      workdays: 21,
       year: '2024',
       month: '10',
     };
