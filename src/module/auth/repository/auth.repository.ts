@@ -37,7 +37,6 @@ export class AuthRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('userEntity.id = :id', { id })
-      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     return result;
@@ -81,7 +80,6 @@ export class AuthRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('adminEntity.id = :id', { id })
-      .andWhere('adminEntity.adminAvail IS NULL')
       .getRawOne();
 
     return result;

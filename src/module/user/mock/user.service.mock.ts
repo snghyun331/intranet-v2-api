@@ -157,30 +157,19 @@ export class MockUserService {
     }
 
     /* 어드민 정보 수정 */
-    if (updateInfo.adminRole === YNEnum.YES) {
+    // 어드민 N → Y인 경우,
+    if (result.adminRole === YNEnum.NO && updateInfo.adminRole === YNEnum.YES) {
       const newAdminInfo: NewAdminInfo = {
         id: updateInfo.id,
         adminName: updateInfo.userName,
         adminEmail: updateInfo.userEmail,
         adminGradeIdx,
       };
-      const previousAdminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
-      // 활성 상태인 어드민일 경우
-      if (previousAdminInfo && previousAdminInfo.adminAvail === null) {
-        await this.userRepository.updateAdminInfo(previousAdminInfo.adminIdx, newAdminInfo);
-      } else if (previousAdminInfo && previousAdminInfo.adminAvail !== null) {
-        // 비활성 상태인 어드민일 경우
-        await this.userRepository.restoreUpdateAdmin(previousAdminInfo.adminIdx, newAdminInfo);
-      } else {
-        // 어드민이 처음일 경우
-        await this.userRepository.createAdmin(userIdx, newAdminInfo);
-      }
-    } else {
-      const previousAdminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
-      // 어드민 O → 어드민 X로 변경할 경우
-      if (previousAdminInfo && previousAdminInfo.adminAvail === null) {
-        await this.userRepository.deleteAdmin(userIdx);
-      }
+      await this.userRepository.createAdmin(userIdx, newAdminInfo);
+    }
+    // 어드민 Y → N인 경우,
+    if (result.adminRole === YNEnum.YES && updateInfo.adminRole === YNEnum.NO) {
+      await this.userRepository.deleteAdmin(userIdx);
     }
   }
 

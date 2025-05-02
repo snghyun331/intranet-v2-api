@@ -14,7 +14,7 @@ import { AdminEntity } from '@entity/admin/admin.entity';
 import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 import { NewAdminInfo } from '@user/interface/admin.interface';
 import { NewUserInfo } from '@user/interface/user.interface';
-import { YNALLEnum } from '@common/constant/enum';
+import { YNALLEnum, YNEnum } from '@common/constant/enum';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
@@ -39,6 +39,7 @@ export class UserRepository {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
       .where('userEntity.id = :id', { id: loginId })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getCount();
 
     return userCnt;
@@ -49,6 +50,7 @@ export class UserRepository {
       .createQueryBuilder('userEntity')
       .where('userEntity.id = :id', { id: loginId })
       .andWhere('userEntity.userIdx != :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getCount();
 
     return userCnt;
@@ -58,7 +60,7 @@ export class UserRepository {
     const result = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx', 'userEntity.userName AS userName', 'userEntity.gradeIdx AS gradeIdx'])
-      .where('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawMany();
 
     return result;
@@ -85,7 +87,6 @@ export class UserRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     const commuteInfo = await this.commuteModel
@@ -123,7 +124,6 @@ export class UserRepository {
   async getAllUsersInfo({ perPage, pageNo }: PageNoDto, filterInfo: AdminUserFilterDto) {
     const query: SelectQueryBuilder<UserEntity> = this.userModel
       .createQueryBuilder('userEntity')
-      .withDeleted()
       .select([
         'userEntity.id AS id',
         'userEntity.userIdx AS userIdx',
@@ -166,10 +166,10 @@ export class UserRepository {
       query.andWhere('userEntity.userName = :userName', { userName });
     }
     if (filterInfo.userAvail === YNALLEnum.YES) {
-      query.andWhere('userEntity.userAvail IS NULL');
+      query.andWhere('userEntity.userAvail = :userAvail', { userAvail: YNALLEnum.YES });
     }
     if (filterInfo.userAvail === YNALLEnum.NO) {
-      query.andWhere('userEntity.userAvail IS NOT NULL');
+      query.andWhere('userEntity.userAvail = :userAvail', { userAvail: YNALLEnum.NO });
     }
 
     const total: number = await query.getCount();
@@ -212,7 +212,6 @@ export class UserRepository {
       .createQueryBuilder('userEntity')
       .select(['userEntity.password AS password'])
       .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     const { password } = result;
@@ -279,8 +278,7 @@ export class UserRepository {
   async getAdminInfoByUserIdx(userIdx: number) {
     const result = await this.adminModel
       .createQueryBuilder('adminEntity')
-      .withDeleted()
-      .select(['adminEntity.adminIdx AS adminIdx', 'adminEntity.adminAvail AS adminAvail'])
+      .select(['adminEntity.adminIdx AS adminIdx'])
       .where('adminEntity.userIdx = :userIdx', { userIdx })
       .getRawOne();
 
@@ -290,7 +288,7 @@ export class UserRepository {
   async deleteUser(userIdx: number): Promise<DeleteResult> {
     return await this.userModel
       .createQueryBuilder()
-      .softDelete()
+      .delete()
       .from(UserEntity)
       .where('userIdx = :userIdx', { userIdx })
       .execute();
@@ -306,35 +304,12 @@ export class UserRepository {
     return result;
   }
 
-  async getUsersIncludeInactiveByIdx(userIdx: number) {
-    const result = await this.userModel
-      .createQueryBuilder('userEntity')
-      .withDeleted()
-      .select(['userEntity.userName AS userName', 'userEntity.adminRole AS adminRole'])
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .getRawOne();
-
-    return result;
-  }
-
   async deleteAdmin(userIdx: number): Promise<DeleteResult> {
     return await this.adminModel
       .createQueryBuilder()
-      .softDelete()
+      .delete()
       .from(AdminEntity)
       .where('userIdx = :userIdx', { userIdx })
-      .execute();
-  }
-
-  async restoreUpdateAdmin(adminIdx: number, updateInfo: NewAdminInfo): Promise<UpdateResult> {
-    return await this.adminModel
-      .createQueryBuilder()
-      .update(AdminEntity)
-      .set({
-        adminAvail: null,
-        ...updateInfo,
-      })
-      .where('adminIdx = :adminIdx', { adminIdx })
       .execute();
   }
 
@@ -349,7 +324,6 @@ export class UserRepository {
       ])
       .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('month(userEntity.userBirth) = :month', { month })
-      .andWhere('userEntity.userAvail IS NULL')
       .orderBy('userEntity.userBirth', 'ASC')
 
       .getRawMany();
@@ -357,8 +331,13 @@ export class UserRepository {
     return result;
   }
 
-  async restoreUser(userIdx: number): Promise<UpdateResult> {
-    return await this.userModel.createQueryBuilder().where('user_idx = :userIdx', { userIdx }).restore().execute();
+  async updateUserStatus(userIdx: number, userAvail: YNEnum): Promise<UpdateResult> {
+    return await this.userModel
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set({ userAvail })
+      .where('userIdx = :userIdx', { userIdx })
+      .execute();
   }
 
   async createLeaveStatsInfo(userIdx: number, year: string): Promise<InsertResult> {

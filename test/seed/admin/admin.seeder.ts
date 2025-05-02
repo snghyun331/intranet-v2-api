@@ -14,7 +14,6 @@ export const seedAdmin = async (dataSource: DataSource): Promise<void> => {
       adminEmail: 'email@acghr.co.kr',
       adminGradeIdx: 1,
       loginToken: null,
-      adminAvail: null,
     },
   ];
 

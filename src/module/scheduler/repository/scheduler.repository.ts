@@ -10,6 +10,7 @@ import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
 import { NewLeaveStats } from '@scheduler/interface/leaveStats.interface';
+import { YNEnum } from '../../../common/constant/enum';
 
 @Injectable()
 export class SchedulerRepository {
@@ -29,7 +30,7 @@ export class SchedulerRepository {
     const result = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx', 'userEntity.joinDate AS joinDate'])
-      .where('userEntity.userAvail IS NULL')
+      .where('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawMany();
 
     return result;
@@ -40,6 +41,7 @@ export class SchedulerRepository {
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx', 'userEntity.userName AS userName', 'userEntity.joinDate AS joinDate'])
       .where('DATEDIFF(CURDATE(), userEntity.joinDate) <= 365')
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawMany();
 
     return result;

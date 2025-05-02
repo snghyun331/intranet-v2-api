@@ -12,7 +12,7 @@ import { UserEntity } from '@entity/user/user.entity';
 import { GradeEntity } from '@entity/user/grade.entity';
 import { HeadquarterEntity } from '@entity/user/headquarter.entity';
 import { TeamEntity } from '@entity/user/team.entity';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
 import { getStartAndEndDateByMonth, getStartAndEndDateByYear, removeAllWhiteSpace } from '@common/utils/utility';
 import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from '@entity/intranet/commute/commuteApprover.entity';
@@ -240,7 +240,8 @@ export class LeaveRepository {
         'recentLeave.userIdx = leaveStatsEntity.userIdx AND recentLeave.rownum = 1',
       )
       .setParameters(subQuery.getParameters())
-      .where('leaveStatsEntity.year = :year', { year: filterInfo.year });
+      .where('leaveStatsEntity.year = :year', { year: filterInfo.year })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     // 필터링 처리
     if (filterInfo.userName) {
@@ -497,6 +498,7 @@ export class LeaveRepository {
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .where('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
@@ -659,6 +661,7 @@ export class LeaveRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveExtraEntity.userIdx')
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = leaveExtraEntity.leaveTypeIdx')
       .where('leaveExtraEntity.year = :year', { year })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .orderBy('leaveExtraEntity.createdAt', 'DESC')
       .getRawMany();
 

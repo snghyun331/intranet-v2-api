@@ -318,7 +318,7 @@ export class MealRepository {
         eDate: searchInfo.eDate,
       })
       .andWhere('mealEntity.amount IS NOT NULL')
-      .andWhere('userEntity.userAvail IS NULL');
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (searchInfo.userName) {
       query.andWhere('userEntity.userName = :userName', { userName: searchInfo.userName });
@@ -414,7 +414,7 @@ export class MealRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
-      .andWhere('userEntity.userAvail IS NULL');
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     const total = await query.getCount();
     const totalPage = Math.ceil(total / perPage);
@@ -478,7 +478,7 @@ export class MealRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
-      .andWhere('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .orderBy('userEntity.gradeIdx', 'ASC')
       .getRawMany();
 

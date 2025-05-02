@@ -328,6 +328,7 @@ export class WelfareRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('welfareStatsEntity.year = :year', { year })
       .andWhere('welfareStatsEntity.halfYear = :halfYear', { halfYear })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .orderBy('userEntity.gradeIdx', 'ASC')
       .addOrderBy('userEntity.userName', 'ASC')
       .getRawMany();
@@ -368,7 +369,8 @@ export class WelfareRepository {
       .where('welfareEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
-      });
+      })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
@@ -453,7 +455,8 @@ export class WelfareRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .where('welfareStatsEntity.year = :year', { year });
+      .where('welfareStatsEntity.year = :year', { year })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (halfYear) {
       query.andWhere('welfareStatsEntity.halfYear = :halfYear', { halfYear });

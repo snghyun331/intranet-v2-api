@@ -228,7 +228,7 @@ export const ADMIN_USERS: SwaggerMethod = {
   },
   DELETE: {
     API_OPERATION: {
-      summary: '직원 삭제(비활성화) API',
+      summary: '직원 삭제(완전삭제) API',
     },
     API_PARAM1: {
       type: Number,
@@ -251,9 +251,9 @@ export const ADMIN_USERS: SwaggerMethod = {
         'application/json': {
           examples: {
             a: {
-              summary: '이미 비활성 or 올바른 유저X',
+              summary: '이미 삭제 or 올바른 유저X',
               value: {
-                message: '이미 비활성된 유저이거나 올바른 유저가 아닙니다.',
+                message: '이미 삭제된 유저이거나 올바른 유저가 아닙니다.',
                 error: 'Bad Request',
                 statusCode: 400,
                 timeStamp: '2024. 12. 4. 오전 10:26:09',
@@ -387,7 +387,7 @@ export const ADMIN_USERS: SwaggerMethod = {
                   adminRole: 'N',
                   adminGradeIdx: null,
                   comment: null,
-                  userAvail: null,
+                  userAvail: 'N',
                 },
               ],
             },

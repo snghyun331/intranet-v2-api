@@ -1,6 +1,6 @@
 import { GenderEnum, YNEnum } from '@common/constant/enum';
 import { CommonEntity } from '@common/entity/common.entity';
-import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { HeadquarterEntity } from './headquarter.entity';
 import { TeamEntity } from './team.entity';
 import { GradeEntity } from './grade.entity';
@@ -102,8 +102,15 @@ export class UserEntity extends CommonEntity {
   @Column({ name: 'login_token', comment: '로그인 토큰', length: 1000, nullable: true })
   loginToken: string;
 
-  @DeleteDateColumn({ type: 'datetime', name: 'user_avail', comment: '유효성 여부', nullable: true })
-  userAvail: Date | null;
+  @Column({
+    type: 'enum',
+    enum: YNEnum,
+    name: 'user_avail',
+    comment: '재직 퇴사 여부',
+    default: YNEnum.YES,
+    nullable: false,
+  })
+  userAvail: YNEnum;
 
   @ManyToOne(() => HeadquarterEntity, (hq) => hq.userRelation, {
     onDelete: 'SET NULL',

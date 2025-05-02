@@ -23,7 +23,6 @@ export class DownloadRepository {
       .createQueryBuilder('userEntity')
       .select(['userEntity.userName AS userName'])
       .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     return result;

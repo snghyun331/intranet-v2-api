@@ -11,7 +11,7 @@ import { NewActivityMonthStats, NewActivityStats } from '@activity/interface';
 import { HeadquarterEntity } from '@entity/user/headquarter.entity';
 import { TeamEntity } from '@entity/user/team.entity';
 import { UserPayload } from '@common/interface/payload.interface';
-import { ClearStatusEnum, ConfirmEnum, HalfYearEnum } from '@common/constant/enum';
+import { ClearStatusEnum, ConfirmEnum, HalfYearEnum, YNEnum } from '@common/constant/enum';
 import { ActivityStatsEntity } from '@entity/activity/activityStats.entity';
 import { AdminActivityFilterDto } from '@activity/dto/query.dto';
 import { GradeEntity } from '@entity/user/grade.entity';
@@ -123,7 +123,8 @@ export class ActivityRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = activityEntity.userIdx')
       .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .where('activityEntity.targetDay BETWEEN :startDate AND :endDate', { startDate, endDate });
+      .where('activityEntity.targetDay BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (user.hqName) {
       query.andWhere('hqEntity.hqName = :hqName', { hqName: user.hqName });
@@ -164,7 +165,8 @@ export class ActivityRepository {
       .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('activityStatsEntity.year = :year', { year })
-      .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear });
+      .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (user.hqName) {
       query.andWhere('hqEntity.hqName = :hqName', { hqName: user.hqName });
@@ -205,7 +207,7 @@ export class ActivityRepository {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
       })
-      .andWhere('userEntity.userAvail IS NULL');
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
@@ -269,7 +271,7 @@ export class ActivityRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('activityStatsEntity.year = :year', { year })
       .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear })
-      .andWhere('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .orderBy('userEntity.gradeIdx', 'ASC')
       .addOrderBy('userEntity.userName', 'ASC')
       .getRawMany();
@@ -345,7 +347,7 @@ export class ActivityRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('activityStatsEntity.year = :year', { year })
-      .andWhere('userEntity.userAvail IS NULL');
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (halfYear) {
       query.andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear });

@@ -9,7 +9,7 @@ import { TeamEntity } from '@entity/user/team.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField, removeAllWhiteSpace } from '@common/utils/utility';
-import { IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
+import { IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
 
 @Injectable()
@@ -110,7 +110,7 @@ export class CommuteRepository {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
       })
-      .andWhere('userEntity.userAvail IS NULL');
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
