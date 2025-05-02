@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 import { Brackets, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
-import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
+import { CommuteApproverEntity } from '@entity/intranet/commute/commuteApprover.entity';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
 import * as moment from 'moment';
-import { getStartAndEndDateByMonth } from '../../../../common/utils/utility';
-import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
-import { LeaveStatsEntity } from '../../../../entity/intranet/leave/leaveStats.entity';
-import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
+import { getStartAndEndDateByMonth } from '@common/utils/utility';
+import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
+import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
+import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { UserApprovalFilter } from '../dto/query.dto';
-import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
-import { UserEntity } from '../../../../entity/user/user.entity';
-import { ImageEntity } from '../../../../entity/image/image.entity';
-import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
+import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
+import { UserEntity } from '@entity/user/user.entity';
+import { ImageEntity } from '@entity/image/image.entity';
+import { CommuteHasImageEntity } from '@entity/image/commuteHasImage.entity';
 
 @Injectable()
 export class ApprovalRepository {

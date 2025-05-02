@@ -10,7 +10,7 @@ import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { substringYearMonth } from '../../common/utils/utility';
 import { Transactional } from 'typeorm-transactional';
 import { NewWelfareMonthStats, NewWelfareStats } from './interface';
-import { GlobalUserRepository } from '../common/repository/globalUser.repository';
+import { GlobalUserRepository } from '../global/repository/globalUser.repository';
 import * as moment from 'moment';
 
 @Injectable()

@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { ResponseInterface } from '../../common/interface/response.interface';
-import { decryptPassword, encryptPassword } from '../../common/utils/utility';
+import { ResponseInterface } from '@common/interface/response.interface';
+import { decryptPassword, encryptPassword } from '@common/utils/utility';
 
 @ApiTags('HEALTH CHECK')
 @Controller('health')

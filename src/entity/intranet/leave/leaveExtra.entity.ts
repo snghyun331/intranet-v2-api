@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { CommonEntity } from '../../../common/entity/common.entity';
-import { UserEntity } from '../../user/user.entity';
+import { CommonEntity } from '@common/entity/common.entity';
+import { UserEntity } from '@entity/user/user.entity';
 import { LeaveTypeEntity } from './leaveType.entity';
 
 @Entity({ name: 'leave_extra', comment: '휴가 추가 부여정보 tb' })

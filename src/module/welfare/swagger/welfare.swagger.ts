@@ -1,9 +1,9 @@
-import { SwaggerMethod } from '../../../common/interface/swagger.interface';
-import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
-import { CreateWelfareDto } from '../dto/createWelfare.dto';
-import { UpdateConfirmDto } from '../dto/updateConfirm.dto';
-import { UpdateNoteDto } from '../dto/updateNote.dto';
-import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
+import { CreateWelfareBudgetDto } from '@welfare/dto/createBudget.dto';
+import { CreateWelfareDto } from '@welfare/dto/createWelfare.dto';
+import { UpdateConfirmDto } from '@welfare/dto/updateConfirm.dto';
+import { UpdateNoteDto } from '@welfare/dto/updateNote.dto';
+import { UpdateWelfareDto } from '@welfare/dto/updateWelfare.dto';
 
 export const USERS_WELFARES: SwaggerMethod = {
   GET: {

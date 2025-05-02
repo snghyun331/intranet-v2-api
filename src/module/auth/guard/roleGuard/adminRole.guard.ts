@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { AdminGradeEnum } from '../../../../common/constant/enum';
+import { AdminGradeEnum } from '@common/constant/enum';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()

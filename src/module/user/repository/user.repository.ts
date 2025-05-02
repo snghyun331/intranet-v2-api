@@ -1,24 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { UserEntity } from '../../../entity/user/user.entity';
+import { UserEntity } from '@entity/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
-import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
-import { TeamEntity } from '../../../entity/user/team.entity';
-import { GradeEntity } from '../../../entity/user/grade.entity';
-import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { AdminUserFilterDto } from '../dto/query.dto';
-import { encryptPassword, removeAllWhiteSpace } from '../../../common/utils/utility';
-import { CreateUserDto } from '../dto/createUser.dto';
-import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
-import { AdminEntity } from '../../../entity/admin/admin.entity';
-import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
-import { NewAdminInfo } from '../interface/admin.interface';
-import { NewUserInfo } from '../interface/user.interface';
-import { YNALLEnum } from '../../../common/constant/enum';
-import { LeaveStatsEntity } from '../../../entity/intranet/leave/leaveStats.entity';
-import { LeaveUsageEntity } from '../../../entity/intranet/leave/leaveUsage.entity';
-import { LeaveMonthlyUsageEntity } from '../../../entity/intranet/leave/leaveMonthlyUsage.entity';
-import { UpdateCommentDto } from '../dto/updateComment.dto';
+import { HeadquarterEntity } from '@entity/user/headquarter.entity';
+import { TeamEntity } from '@entity/user/team.entity';
+import { GradeEntity } from '@entity/user/grade.entity';
+import { PageNoDto } from '@common/dto/pageNo.dto';
+import { AdminUserFilterDto } from '@user/dto/query.dto';
+import { encryptPassword, removeAllWhiteSpace } from '@common/utils/utility';
+import { CreateUserDto } from '@user/dto/createUser.dto';
+import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
+import { AdminEntity } from '@entity/admin/admin.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
+import { NewAdminInfo } from '@user/interface/admin.interface';
+import { NewUserInfo } from '@user/interface/user.interface';
+import { YNALLEnum } from '@common/constant/enum';
+import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
+import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
+import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
+import { UpdateCommentDto } from '@user/dto/updateComment.dto';
 
 @Injectable()
 export class UserRepository {

@@ -4,12 +4,12 @@ import { LOGIN, LOGIN_ADMIN, LOGOUT } from './swagger/auth.swagger';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { LoginAdminResult, LoginUserResult } from './interface/result.interface';
-import { ResponseInterface } from '../../common/interface/response.interface';
-import { UserRole } from '../../common/decorator/role.decorator';
-import { UserGradeEnum } from '../../common/constant/enum';
+import { ResponseInterface } from '@common/interface/response.interface';
+import { UserRole } from '@common/decorator/role.decorator';
+import { UserGradeEnum } from '@common/constant/enum';
 import { UserAuthGuard } from './guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from './guard/roleGuard/userRole.guard';
-import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
+import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
 
 @ApiTags('AUTH')
 @Controller()

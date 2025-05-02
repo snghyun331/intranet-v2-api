@@ -23,24 +23,24 @@ import {
   USERS_WELFARES,
 } from './swagger/welfare.swagger';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
-import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
-import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
-import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
-import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
-import { ResponseInterface } from '../../common/interface/response.interface';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
+import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
+import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
+import { ResponseInterface } from '@common/interface/response.interface';
 import {
   AdminWelfareBalanceFilterDto,
   AdminWelfareBudgetFilterDto,
   AdminWelfareFilterDto,
   WelfareFilterDto,
 } from './dto/query.dto';
-import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
+import { AdminRoleGuard } from '@auth/guard/roleGuard/adminRole.guard';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { PageNoDto } from '@common/dto/pageNo.dto';
+import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
 import { UpdateConfirmDto } from './dto/updateConfirm.dto';
 
 @ApiTags('사용자')

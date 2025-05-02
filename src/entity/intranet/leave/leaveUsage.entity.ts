@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { LeaveTypeEntity } from './leaveType.entity';
-import { UserEntity } from '../../user/user.entity';
+import { UserEntity } from '@entity/user/user.entity';
 
 @Entity({ name: 'leave_usage', comment: '휴가사용 월별 사용량 tb' })
 export class LeaveUsageEntity {

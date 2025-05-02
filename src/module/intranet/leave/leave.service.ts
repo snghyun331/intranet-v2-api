@@ -31,8 +31,8 @@ import { Transactional } from 'typeorm-transactional';
 import { CreateExtraLeaveDto } from './dto/createExtraLeave.dto';
 import { NewLeaveExtra } from './interface/leaveExtra.interface';
 import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
-import { GlobalUserRepository } from '../../common/repository/globalUser.repository';
-import { GlobalMealRepository } from '../../common/repository/globalMeal.repository';
+import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
+import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
 
 @Injectable()
 export class LeaveService {

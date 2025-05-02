@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from '../dto/query.dto';
-import { UserEntity } from '../../../../entity/user/user.entity';
-import { GradeEntity } from '../../../../entity/user/grade.entity';
-import { TeamEntity } from '../../../../entity/user/team.entity';
+import { UserEntity } from '@entity/user/user.entity';
+import { GradeEntity } from '@entity/user/grade.entity';
+import { TeamEntity } from '@entity/user/team.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
-import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
-import { addConfirmStatusField, removeAllWhiteSpace } from '../../../../common/utils/utility';
-import { IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
+import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
+import { addConfirmStatusField, removeAllWhiteSpace } from '@common/utils/utility';
+import { IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
 
 @Injectable()

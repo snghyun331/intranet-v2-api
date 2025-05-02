@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { NoticeEntity } from '../notice/notice.entity';
-import { ImageEntity } from './image.entity';
+import { NoticeEntity } from '@entity/notice/notice.entity';
+import { ImageEntity } from '@entity/image/image.entity';
 
 @Entity({ name: 'notice_has_image', comment: '공지사항 이미지 tb' })
 export class NoticeHasImageEntity {

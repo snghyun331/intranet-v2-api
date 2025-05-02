@@ -9,16 +9,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ADMIN_PLAYGROUND_LUNCH_GROUP, USERS_PLAYGROUND_LUNCH_GROUP } from './swagger/playground.swagger';
-import { ResponseInterface } from '../../common/interface/response.interface';
-import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
-import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
-import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
-import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
-import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { ResponseInterface } from '@common/interface/response.interface';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
+import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
+import { AdminRoleGuard } from '@auth/guard/roleGuard/adminRole.guard';
+import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
 import { CreateLunchGroupDto } from './dto/createLunchGroup.dto';
-import { CurrentUser } from '../../common/decorator/currentUser.decorator';
-import { UserPayload } from '../../common/interface/payload.interface';
+import { CurrentUser } from '@common/decorator/currentUser.decorator';
+import { UserPayload } from '@common/interface/payload.interface';
 
 @ApiTags('사용자')
 @Controller('users/playground')

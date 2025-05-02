@@ -1,5 +1,4 @@
-import { SwaggerMethod } from '../../../common/interface/swagger.interface';
-import { CreateNoticeDto } from '../dto/createNotice.dto';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
 import { UpdateNoticeDto } from '../dto/updateNotice.dto';
 
 export const ADMIN_NOTICES: SwaggerMethod = {

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { HalfYearEnum } from '../../../common/constant/enum';
+import { HalfYearEnum } from '@common/constant/enum';
 
 export class WelfareFilterDto {
   @ApiProperty({ name: 'year', description: '검색 연도', type: String, required: true })

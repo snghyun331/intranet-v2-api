@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { ConfirmEnum, OrderbyEnum } from '../../../../common/constant/enum';
+import { ConfirmEnum, OrderbyEnum } from '@common/constant/enum';
 import { AdminLeaveSortEnum } from '../enum/leave.enum';
 
 export class AdminLeaveFilterDto {

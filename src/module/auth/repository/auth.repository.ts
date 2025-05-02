@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../../entity/user/user.entity';
-import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
-import { TeamEntity } from '../../../entity/user/team.entity';
-import { GradeEntity } from '../../../entity/user/grade.entity';
-import { User } from '../interface/user.interface';
-import { AdminEntity } from '../../../entity/admin/admin.entity';
-import { AdminGradeEntity } from '../../../entity/admin/grade.entity';
-import { Admin } from '../interface/admin.interface';
+import { UserEntity } from '@entity/user/user.entity';
+import { HeadquarterEntity } from '@entity/user/headquarter.entity';
+import { TeamEntity } from '@entity/user/team.entity';
+import { GradeEntity } from '@entity/user/grade.entity';
+import { User } from '@auth/interface/user.interface';
+import { AdminEntity } from '@entity/admin/admin.entity';
+import { AdminGradeEntity } from '@entity/admin/grade.entity';
+import { Admin } from '@auth/interface/admin.interface';
 
 @Injectable()
 export class AuthRepository {

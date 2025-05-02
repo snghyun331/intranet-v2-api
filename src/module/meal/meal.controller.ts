@@ -24,15 +24,15 @@ import {
 import { CreateMealDto } from './dto/createMeal.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
-import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
-import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
-import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
-import { ResponseInterface } from '../../common/interface/response.interface';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
+import { ResponseInterface } from '@common/interface/response.interface';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { AdminMealBalanceFilterDto, AdminMealBudgetFilterDto, AdminMealFilterDto } from './dto/query.dto';
 import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 
 @ApiTags('사용자')

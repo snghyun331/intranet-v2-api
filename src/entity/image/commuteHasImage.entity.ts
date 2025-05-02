@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { ImageEntity } from './image.entity';
-import { CommuteEntity } from '../intranet/commute/commute.entity';
+import { ImageEntity } from '@entity/image/image.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 
 @Entity({ name: 'commute_has_image', comment: '근태 증빙 이미지 tb' })
 export class CommuteHasImageEntity {

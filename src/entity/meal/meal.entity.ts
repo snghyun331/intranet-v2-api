@@ -1,7 +1,7 @@
-import { MealTypeEnum, YNEnum } from '../../common/constant/enum';
-import { CommonEntity } from '../../common/entity/common.entity';
+import { MealTypeEnum, YNEnum } from '@common/constant/enum';
+import { CommonEntity } from '@common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { UserEntity } from '../user/user.entity';
+import { UserEntity } from '@entity/user/user.entity';
 
 @Entity({ name: 'meal', comment: '식대 사용내역 tb' })
 export class MealEntity extends CommonEntity {

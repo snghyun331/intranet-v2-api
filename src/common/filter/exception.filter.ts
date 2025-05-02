@@ -11,7 +11,7 @@ import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Request, Response } from 'express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { QueryFailedError } from 'typeorm';
-import { UserPayload } from '../interface/payload.interface';
+import { UserPayload } from '@common/interface/payload.interface';
 
 @Catch(HttpException, QueryFailedError, Error)
 export class ServerErrorFilter implements ExceptionFilter {

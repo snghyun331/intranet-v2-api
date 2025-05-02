@@ -3,10 +3,10 @@ import { MealService } from './meal.service';
 import { MealRepository } from './repository/meal.repository';
 import { AdminMealController, UserMealController } from './meal.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MealEntity } from '../../entity/meal/meal.entity';
-import { MealStatsEntity } from '../../entity/meal/mealStats.entity';
-import { HolidayEntity } from '../../entity/scheduler/holiday.entity';
-import { MealBaseEntity } from '../../entity/meal/mealBase.entity';
+import { MealEntity } from '@entity/meal/meal.entity';
+import { MealStatsEntity } from '@entity/meal/mealStats.entity';
+import { HolidayEntity } from '@entity/scheduler/holiday.entity';
+import { MealBaseEntity } from '@entity/meal/mealBase.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([MealEntity, MealStatsEntity, MealBaseEntity, HolidayEntity])],

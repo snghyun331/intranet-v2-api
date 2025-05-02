@@ -1,27 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { UserEntity } from '../../../entity/user/user.entity';
+import { UserEntity } from '@entity/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
-import { CreateActivityDto } from '../dto/createActivity.dto';
-import { ActivityEntity } from '../../../entity/activity/activity.entity';
-import {
-  getStartAndEndDateByHalfYear,
-  getStartAndEndDateByMonth,
-  removeAllWhiteSpace,
-} from '../../../common/utils/utility';
-import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
-import { UpdateActivityDto } from '../dto/updateActivity.dto';
-import { NewActivityMonthStats, NewActivityStats } from '../interface';
-import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
-import { TeamEntity } from '../../../entity/user/team.entity';
-import { UserPayload } from '../../../common/interface/payload.interface';
-import { ClearStatusEnum, ConfirmEnum, HalfYearEnum } from '../../../common/constant/enum';
-import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
-import { AdminActivityFilterDto } from '../dto/query.dto';
-import { GradeEntity } from '../../../entity/user/grade.entity';
-import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
-import { UpdateNoteDto } from '../dto/updateNote.dto';
-import { UpdateBudgetDto } from '../dto/updateBudget.dto';
+import { CreateActivityDto } from '@activity/dto/createActivity.dto';
+import { ActivityEntity } from '@entity/activity/activity.entity';
+import { getStartAndEndDateByHalfYear, getStartAndEndDateByMonth, removeAllWhiteSpace } from '@common/utils/utility';
+import { ActivityMonthlyStatsEntity } from '@entity/activity/activityMonthlyStats.entity';
+import { UpdateActivityDto } from '@activity/dto/updateActivity.dto';
+import { NewActivityMonthStats, NewActivityStats } from '@activity/interface';
+import { HeadquarterEntity } from '@entity/user/headquarter.entity';
+import { TeamEntity } from '@entity/user/team.entity';
+import { UserPayload } from '@common/interface/payload.interface';
+import { ClearStatusEnum, ConfirmEnum, HalfYearEnum } from '@common/constant/enum';
+import { ActivityStatsEntity } from '@entity/activity/activityStats.entity';
+import { AdminActivityFilterDto } from '@activity/dto/query.dto';
+import { GradeEntity } from '@entity/user/grade.entity';
+import { CreateActivityBudgetDto } from '@activity/dto/createBudget.dto';
+import { UpdateNoteDto } from '@activity/dto/updateNote.dto';
+import { UpdateBudgetDto } from '@activity/dto/updateBudget.dto';
 
 @Injectable()
 export class ActivityRepository {

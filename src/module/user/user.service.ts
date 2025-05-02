@@ -1,21 +1,21 @@
 import * as moment from 'moment';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { UserRepository } from './repository/user.repository';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { AdminUserFilterDto } from './dto/query.dto';
-import { CreateUserDto } from './dto/createUser.dto';
-import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
-import { UpdatePasswordDto } from './dto/updateMyPw.dto';
-import { decryptPassword, encryptPassword } from '../../common/utils/utility';
-import { YNEnum } from '../../common/constant/enum';
-import { UpdateUserDto } from './dto/updateUser.dto';
-import { RedisSearchService } from '../redis/redisSearch.service';
+import { UserRepository } from '@user/repository/user.repository';
+import { PageNoDto } from '@common/dto/pageNo.dto';
+import { AdminUserFilterDto } from '@user/dto/query.dto';
+import { CreateUserDto } from '@user/dto/createUser.dto';
+import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
+import { UpdatePasswordDto } from '@user/dto/updateMyPw.dto';
+import { decryptPassword, encryptPassword } from '@common/utils/utility';
+import { YNEnum } from '@common/constant/enum';
+import { UpdateUserDto } from '@user/dto/updateUser.dto';
+import { RedisSearchService } from '@redis/redisSearch.service';
 import { Transactional } from 'typeorm-transactional';
-import { NewAdminInfo } from './interface/admin.interface';
-import { NewUserInfo } from './interface/user.interface';
-import { CommuteRepository } from '../intranet/commute/repository/commute.repository';
-import { GlobalUserRepository } from '../common/repository/globalUser.repository';
-import { UpdateCommentDto } from './dto/updateComment.dto';
+import { NewAdminInfo } from '@user/interface/admin.interface';
+import { NewUserInfo } from '@user/interface/user.interface';
+import { CommuteRepository } from '@intranet/commute/repository/commute.repository';
+import { GlobalUserRepository } from '@global/repository/globalUser.repository';
+import { UpdateCommentDto } from '@user/dto/updateComment.dto';
 
 @Injectable()
 export class UserService {

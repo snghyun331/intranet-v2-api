@@ -1,18 +1,18 @@
 import * as moment from 'moment';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
-import { PageNoDto } from '../../../common/dto/pageNo.dto';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminUserFilterDto } from '../dto/query.dto';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
 import { UpdatePasswordDto } from '../dto/updateMyPw.dto';
-import { decryptPassword, encryptPassword } from '../../../common/utils/utility';
-import { YNEnum } from '../../../common/constant/enum';
+import { decryptPassword, encryptPassword } from '@common/utils/utility';
+import { YNEnum } from '@common/constant/enum';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Transactional } from 'typeorm-transactional';
 import { NewAdminInfo } from '../interface/admin.interface';
 import { NewUserInfo } from '../interface/user.interface';
-import { GlobalUserRepository } from '../../common/repository/globalUser.repository';
+import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 
 @Injectable()
 export class MockUserService {

@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment';
 import { AES, enc } from 'crypto-js';
-import { ConfirmEnum, HalfYearEnum, LeaveGrantTypeEnum } from '../constant/enum';
+import { ConfirmEnum, HalfYearEnum, LeaveGrantTypeEnum } from '@common/constant/enum';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (dateString: string): string => {

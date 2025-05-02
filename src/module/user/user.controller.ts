@@ -27,19 +27,19 @@ import {
   ADMIN_USERS_COMMENT,
 } from './swagger/user.swagger';
 import { UserService } from './user.service';
-import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
-import { AdminGradeEnum, UserGradeEnum, YNEnum } from '../../common/constant/enum';
-import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
-import { ResponseInterface } from '../../common/interface/response.interface';
-import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
-import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum, YNEnum } from '@common/constant/enum';
+import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
+import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
+import { ResponseInterface } from '@common/interface/response.interface';
+import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
+import { AdminRoleGuard } from '@auth/guard/roleGuard/adminRole.guard';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdatePasswordDto } from './dto/updateMyPw.dto';
-import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { SearchUserDto } from './dto/searchUser.dto';
 import { UpdateCommentDto } from './dto/updateComment.dto';

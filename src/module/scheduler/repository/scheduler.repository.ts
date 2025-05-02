@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, InsertResult, Repository, UpdateResult } from 'typeorm';
-import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import { UserEntity } from '../../../entity/user/user.entity';
-import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
-import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
-import { HolidayInfo } from '../interface/holiday.interface';
-import { LeaveStatsEntity } from '../../../entity/intranet/leave/leaveStats.entity';
-import { LeaveUsageEntity } from '../../../entity/intranet/leave/leaveUsage.entity';
-import { LeaveMonthlyUsageEntity } from '../../../entity/intranet/leave/leaveMonthlyUsage.entity';
-import { NewLeaveStats } from '../interface/leaveStats.interface';
+import { HolidayEntity } from '@entity/scheduler/holiday.entity';
+import { UserEntity } from '@entity/user/user.entity';
+import { MealStatsEntity } from '@entity/meal/mealStats.entity';
+import { WelfareStatsEntity } from '@entity/welfare/welfareStats.entity';
+import { HolidayInfo } from '@scheduler/interface/holiday.interface';
+import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
+import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
+import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
+import { NewLeaveStats } from '@scheduler/interface/leaveStats.interface';
 
 @Injectable()
 export class SchedulerRepository {

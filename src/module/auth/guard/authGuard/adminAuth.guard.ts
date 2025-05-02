@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
-import { UNAUTHORIZED } from '../../../../common/error/unauthorized.error';
+import { UNAUTHORIZED } from '@common/error/unauthorized.error';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { AdminPayload } from '../../../../common/interface/payload.interface';
+import { AdminPayload } from '@common/interface/payload.interface';
 
 @Injectable()
 export class AdminAuthGuard extends AuthGuard('admin') {

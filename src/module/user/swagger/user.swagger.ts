@@ -1,8 +1,8 @@
-import { SwaggerMethod } from '../../../common/interface/swagger.interface';
-import { CreateUserDto } from '../dto/createUser.dto';
-import { SearchUserDto } from '../dto/searchUser.dto';
-import { UpdateMyInfoDto } from '../dto/updateMyInfo.dto';
-import { UpdateUserDto } from '../dto/updateUser.dto';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
+import { CreateUserDto } from '@user/dto/createUser.dto';
+import { SearchUserDto } from '@user/dto/searchUser.dto';
+import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
+import { UpdateUserDto } from '@user/dto/updateUser.dto';
 
 export const USERS_IDXS: SwaggerMethod = {
   GET: {

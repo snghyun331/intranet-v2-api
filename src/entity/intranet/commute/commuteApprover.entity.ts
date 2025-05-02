@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { CommuteEntity } from './commute.entity';
-import { UserEntity } from '../../user/user.entity';
+import { UserEntity } from '@entity/user/user.entity';
 
 @Entity({ name: 'commute_approver', comment: '근태 승인 가능 목록 tb' })
 export class CommuteApproverEntity {

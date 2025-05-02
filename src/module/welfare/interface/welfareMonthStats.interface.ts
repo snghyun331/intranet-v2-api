@@ -1,4 +1,4 @@
-import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
+import { WelfareMonthlyStatsEntity } from '@entity/welfare/welfareMonthlyStats.entity';
 
 type RequiredFields = 'userIdx' | 'year' | 'month' | 'welfareMonthExpense';
 

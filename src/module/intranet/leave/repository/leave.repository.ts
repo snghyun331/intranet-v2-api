@@ -1,31 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { LeaveDetailDto } from '../dto/createLeave.dto';
 import { LeaveImageInfo } from '../interface/leave.interface';
-import { ImageEntity } from '../../../../entity/image/image.entity';
-import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
+import { ImageEntity } from '@entity/image/image.entity';
+import { CommuteHasImageEntity } from '@entity/image/commuteHasImage.entity';
 import { AdminLeaveFilterDto } from '../dto/query.dto';
-import { LeaveStatsEntity } from '../../../../entity/intranet/leave/leaveStats.entity';
-import { UserEntity } from '../../../../entity/user/user.entity';
-import { GradeEntity } from '../../../../entity/user/grade.entity';
-import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
-import { TeamEntity } from '../../../../entity/user/team.entity';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
-import {
-  getStartAndEndDateByMonth,
-  getStartAndEndDateByYear,
-  removeAllWhiteSpace,
-} from '../../../../common/utils/utility';
-import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
-import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
-import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
+import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
+import { UserEntity } from '@entity/user/user.entity';
+import { GradeEntity } from '@entity/user/grade.entity';
+import { HeadquarterEntity } from '@entity/user/headquarter.entity';
+import { TeamEntity } from '@entity/user/team.entity';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
+import { getStartAndEndDateByMonth, getStartAndEndDateByYear, removeAllWhiteSpace } from '@common/utils/utility';
+import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
+import { CommuteApproverEntity } from '@entity/intranet/commute/commuteApprover.entity';
+import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import * as moment from 'moment';
-import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
+import { CommuteCCUserEntity } from '@entity/intranet/commute/commuteCCUser.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminLeaveSortEnum } from '../enum/leave.enum';
-import { LeaveExtraEntity } from '../../../../entity/intranet/leave/leaveExtra.entity';
+import { LeaveExtraEntity } from '@entity/intranet/leave/leaveExtra.entity';
 import { NewLeaveExtra } from '../interface/leaveExtra.interface';
 
 @Injectable()

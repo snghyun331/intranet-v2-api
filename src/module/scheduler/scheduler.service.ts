@@ -3,20 +3,20 @@ import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
-import { NUM_OF_ROWS, PAGE_NO } from '../../common/constant/constant';
+import { NUM_OF_ROWS, PAGE_NO } from '@common/constant/constant';
 import {
   getDateFormYYYYMMDD,
   getDaysBetwweenTwoDates,
   getTodayLeaveGrantType,
   getWeekendDates,
   getYearsSinceJoin,
-} from '../../common/utils/utility';
+} from '@common/utils/utility';
 import { AxiosHoliday } from './interface/axiosData.interface';
 import { SchedulerRepository } from './repository/scheduler.repository';
 import { HolidayInfo } from './interface/holiday.interface';
 import { Transactional } from 'typeorm-transactional';
 import * as moment from 'moment';
-import { LeaveGrantTypeEnum } from '../../common/constant/enum';
+import { LeaveGrantTypeEnum } from '@common/constant/enum';
 import { NewLeaveStats } from './interface/leaveStats.interface';
 
 @Injectable()
@@ -192,7 +192,7 @@ export class SchedulerService {
    * 근속년수 딱 1년(입사 1주년) 직원: 총 연차일 업데이트 (지금까지의 총 연차 잔여개수 + (전년도 재직일수/365) * 15의 올림값)
    * 기준일은 today(오늘)
    */
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
   @Transactional()
   async insertExtraReceivedAnnualLeaveForMidJoiner() {
     const currentYear: number = moment().utcOffset(9).year();

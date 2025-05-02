@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { AdminGradeEnum, UserGradeEnum } from '../constant/enum';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
 
 export const UserRole = (role: UserGradeEnum) => SetMetadata('roles', role);
 

@@ -11,8 +11,8 @@ import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '../../common/constant/constant';
 import { Transactional } from 'typeorm-transactional';
-import { GlobalUserRepository } from '../common/repository/globalUser.repository';
-import { GlobalHolidayRepository } from '../common/repository/globalHoliday.repository';
+import { GlobalUserRepository } from '../global/repository/globalUser.repository';
+import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repository';
 
 @Injectable()
 export class MealService {

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@common/*": ["./src/common/*"],
+      "@config/*": ["./src/config/*"],
+      "@entity/*": ["./src/entity/*"],
+      "@schema/*": ["./src/schema/*"],
+      "@activity/*": ["./src/module/activity/*"],
+      "@admin/*": ["./src/module/admin/*"],
+      "@auth/*": ["./src/module/auth/*"],
+      "@aws/*": ["./src/module/aws/*"],
+      "@file/*": ["./src/module/file/*"],
+      "@global/*": ["./src/module/global/*"],
+      "@health/*": ["./src/module/health/*"],
+      "@intranet/*": ["./src/module/intranet/*"],
+      "@meal/*": ["./src/module/meal/*"],
+      "@notice/*": ["./src/module/notice/*"],
+      "@playground/*": ["./src/module/playground/*"],
+      "@redis/*": ["./src/module/redis/*"],
+      "@scheduler/*": ["./src/module/scheduler/*"],
+      "@user/*": ["./src/module/user/*"],
+      "@welfare/*": ["./src/module/welfare/*"]
+    }
+  }
+}

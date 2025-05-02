@@ -1,4 +1,4 @@
-import { SwaggerMethod } from '../../../common/interface/swagger.interface';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
 import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
 import { UpdateNoteDto } from '../dto/updateNote.dto';

@@ -1,5 +1,5 @@
 import { ApiBody } from '@nestjs/swagger';
-import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
 import { CreateExtraLeaveDto } from '../dto/createExtraLeave.dto';
 import { UpdateExtraLeaveDto } from '../dto/updateExtraLeave.dto';
 

@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../../entity/user/user.entity';
+import { UserEntity } from '@entity/user/user.entity';
 import { Repository } from 'typeorm';
-import { UserGradeIdxEnum } from '../../../common/constant/enum';
-import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
-import { TeamEntity } from '../../../entity/user/team.entity';
-import { GradeEntity } from '../../../entity/user/grade.entity';
+import { UserGradeIdxEnum } from '@common/constant/enum';
+import { HeadquarterEntity } from '@entity/user/headquarter.entity';
+import { TeamEntity } from '@entity/user/team.entity';
+import { GradeEntity } from '@entity/user/grade.entity';
 
 @Injectable()
 export class GlobalUserRepository {

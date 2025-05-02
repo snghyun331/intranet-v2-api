@@ -12,7 +12,7 @@ import { UpdateNoteDto } from './dto/updateNote.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { substringYearMonth } from '../../common/utils/utility';
 import { Transactional } from 'typeorm-transactional';
-import { GlobalUserRepository } from '../common/repository/globalUser.repository';
+import { GlobalUserRepository } from '../global/repository/globalUser.repository';
 import * as moment from 'moment';
 
 @Injectable()

@@ -1,7 +1,7 @@
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
-import { SearchUserDto } from '../user/dto/searchUser.dto';
+import { SearchUserDto } from '@user/dto/searchUser.dto';
 
 @Injectable()
 export class RedisSearchService {
