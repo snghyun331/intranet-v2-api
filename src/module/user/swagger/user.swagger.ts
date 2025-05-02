@@ -738,3 +738,27 @@ export const ADMIN_SEARCH_PREFIX_USERNAME: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_USERS_COMMENT: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 직원 특이사항 수정 API',
+    },
+    API_PARAM1: {
+      name: 'userIdx',
+      type: Number,
+      required: true,
+      description: '유저IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};

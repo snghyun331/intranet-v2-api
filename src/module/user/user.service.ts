@@ -15,6 +15,7 @@ import { NewAdminInfo } from './interface/admin.interface';
 import { NewUserInfo } from './interface/user.interface';
 import { CommuteRepository } from '../intranet/commute/repository/commute.repository';
 import { GlobalUserRepository } from '../common/repository/globalUser.repository';
+import { UpdateCommentDto } from './dto/updateComment.dto';
 
 @Injectable()
 export class UserService {
@@ -257,5 +258,12 @@ export class UserService {
       // Redis에 등록된 유저네임 삭제
       await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
     }
+  }
+
+  @Transactional()
+  async updateUserComment(userIdx: number, commentInfo: UpdateCommentDto): Promise<void> {
+    await this.userRepository.updateComment(userIdx, commentInfo);
+
+    return;
   }
 }

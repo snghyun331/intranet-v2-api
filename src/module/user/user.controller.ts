@@ -24,6 +24,7 @@ import {
   ADMIN_USERS_IDXS,
   USERS_BIRTH,
   ADMIN_SEARCH_PREFIX_USERNAME,
+  ADMIN_USERS_COMMENT,
 } from './swagger/user.swagger';
 import { UserService } from './user.service';
 import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
@@ -41,6 +42,7 @@ import { UpdatePasswordDto } from './dto/updateMyPw.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { SearchUserDto } from './dto/searchUser.dto';
+import { UpdateCommentDto } from './dto/updateComment.dto';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -243,6 +245,24 @@ export class AdminUserController {
     await this.userService.updateUser(userIdx, updateInfo);
 
     const response: ResponseInterface = { message: '유저 정보 수정 성공' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_USERS_COMMENT.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_USERS_COMMENT.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_USERS_COMMENT.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch(':userIdx/comment')
+  async updateUserComment(
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+    @Body() commentInfo: UpdateCommentDto,
+  ): Promise<ResponseInterface> {
+    await this.userService.updateUserComment(userIdx, commentInfo);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

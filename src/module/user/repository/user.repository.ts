@@ -18,6 +18,7 @@ import { YNALLEnum } from '../../../common/constant/enum';
 import { LeaveStatsEntity } from '../../../entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '../../../entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '../../../entity/intranet/leave/leaveMonthlyUsage.entity';
+import { UpdateCommentDto } from '../dto/updateComment.dto';
 
 @Injectable()
 export class UserRepository {
@@ -122,6 +123,7 @@ export class UserRepository {
   async getAllUsersInfo({ perPage, pageNo }: PageNoDto, filterInfo: AdminUserFilterDto) {
     const query: SelectQueryBuilder<UserEntity> = this.userModel
       .createQueryBuilder('userEntity')
+      .withDeleted()
       .select([
         'userEntity.id AS id',
         'userEntity.userIdx AS userIdx',
@@ -396,5 +398,14 @@ export class UserRepository {
           .execute();
       }
     }
+  }
+
+  async updateComment(userIdx: number, commentInfo: UpdateCommentDto): Promise<UpdateResult> {
+    return await this.userModel
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set(commentInfo)
+      .where('userIdx = :userIdx', { userIdx })
+      .execute();
   }
 }
