@@ -1,4 +1,4 @@
-import { AdminGradeEnum, GenderEnum, YNEnum } from '../constant/enum';
+import { AdminGradeEnum, GenderEnum, YNEnum } from '@common/constant/enum';
 
 export interface UserPayload {
   userIdx: number;

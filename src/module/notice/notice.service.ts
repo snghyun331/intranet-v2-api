@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { NoticeRepostiory } from './repository/notice.repository';
 import { CreateNoticeDto } from './dto/createNotice.dto';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { NoticeImageInfo } from './interface/notice.interface';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { ConfigService } from '@nestjs/config';
 import { AwsService } from '../aws/aws.service';
-import { NodeEnvEnum } from '../../common/constant/enum';
+import { NodeEnvEnum } from '@common/constant/enum';
 import { Transactional } from 'typeorm-transactional';
 import { AdminNoticeFilterDto } from './dto/query.dto';
 

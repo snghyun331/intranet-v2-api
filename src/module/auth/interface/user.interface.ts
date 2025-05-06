@@ -1,4 +1,4 @@
-import { GenderEnum, YNEnum } from '../../../common/constant/enum';
+import { GenderEnum, YNEnum } from '@common/constant/enum';
 
 export interface User {
   id: string;

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { YNEnum } from '../../../common/constant/enum';
+import { YNEnum } from '@common/constant/enum';
 import { Type } from 'class-transformer';
 
 export class MealInputDto {

@@ -21,7 +21,7 @@ import { IntranetModule } from './intranet/intranet.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { REDIS_CONFIG } from '../config/redis.config';
 import { RedisModule } from '@nestjs-modules/ioredis';
-import { GlobalModule } from './common/global.module';
+import { GlobalModule } from './global/global.module';
 
 @Module({
   imports: [

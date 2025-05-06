@@ -1,5 +1,5 @@
-import { WithOptional } from '../../../../common/utils/type';
-import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
+import { WithOptional } from '@common/utils/type';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 
 type RequiredFields =
   | 'checkInTime'

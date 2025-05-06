@@ -1,7 +1,7 @@
-import { CommonEntity } from '../../common/entity/common.entity';
+import { CommonEntity } from '@common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { UserEntity } from '../user/user.entity';
-import { ConfirmEnum } from '../../common/constant/enum';
+import { UserEntity } from '@entity/user/user.entity';
+import { ConfirmEnum } from '@common/constant/enum';
 
 @Entity({ name: 'activity', comment: '활동비 사용내역 tb' })
 export class ActivityEntity extends CommonEntity {

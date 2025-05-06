@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { AdminEntity } from './admin.entity';
+import { AdminEntity } from '@entity/admin/admin.entity';
 
 @Entity({ name: 'admin_grade', comment: '어드민 직급 tb' })
 export class AdminGradeEntity {

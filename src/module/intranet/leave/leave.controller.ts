@@ -14,7 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { LeaveService } from './leave.service';
-import { ResponseInterface } from '../../../common/interface/response.interface';
+import { ResponseInterface } from '@common/interface/response.interface';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -42,23 +42,23 @@ import {
   USERS_INTRANET_LEAVE_IMAGE,
   USERS_INTRANET_LEAVE_STATS,
 } from './swagger/leave.swagger';
-import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
-import { AdminRole, UserRole } from '../../../common/decorator/role.decorator';
-import { AdminGradeEnum, UserGradeEnum } from '../../../common/constant/enum';
-import { UserAuthGuard } from '../../auth/guard/authGuard/userAuth.guard';
+import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
 import { CreateLeaveDto, LeaveRequestDto } from './dto/createLeave.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { leaveImageOptions } from '../../file/uploadMulter.options';
-import { CurrentUser, CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
-import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
-import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
-import { PageNoDto } from '../../../common/dto/pageNo.dto';
+import { leaveImageOptions } from '@file/uploadMulter.options';
+import { CurrentUser, CurrentUserIdx } from '@common/decorator/currentUser.decorator';
+import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
+import { AdminRoleGuard } from '@auth/guard/roleGuard/adminRole.guard';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
-import { AdminPayload, UserPayload } from '../../../common/interface/payload.interface';
+import { AdminPayload, UserPayload } from '@common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { CreateExtraLeaveDto } from './dto/createExtraLeave.dto';
-import { CurrentAdmin } from '../../../common/decorator/currentAdmin.decorator';
+import { CurrentAdmin } from '@common/decorator/currentAdmin.decorator';
 import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
 
 @ApiTags('사용자')

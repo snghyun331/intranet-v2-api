@@ -31,7 +31,7 @@ import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { Transactional } from 'typeorm-transactional';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from './interface';
-import { GlobalUserRepository } from '../../common/repository/globalUser.repository';
+import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
 
 @Injectable()
 export class CommuteService {

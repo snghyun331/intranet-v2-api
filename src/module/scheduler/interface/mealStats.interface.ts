@@ -1,5 +1,5 @@
-import { WithOptional } from '../../../common/utils/type';
-import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
+import { WithOptional } from '@common/utils/type';
+import { MealStatsEntity } from '@entity/meal/mealStats.entity';
 
 type RequiredFields = 'year' | 'month' | 'workdays' | 'userIdx' | 'holidays';
 type OptionalFields = 'userIdx' | 'holidays';

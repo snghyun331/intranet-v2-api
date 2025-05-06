@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { CommuteEntity } from '../commute/commute.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 import { LeaveMonthlyUsageEntity } from './leaveMonthlyUsage.entity';
 import { LeaveUsageEntity } from './leaveUsage.entity';
 import { LeaveExtraEntity } from './leaveExtra.entity';

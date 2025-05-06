@@ -23,16 +23,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ADMIN_NOTICES, ADMIN_NOTICES_DETAIL, USERS_NOTICES, USERS_NOTICES_DETAIL } from './swagger/notice.swagger';
-import { ResponseInterface } from '../../common/interface/response.interface';
+import { ResponseInterface } from '@common/interface/response.interface';
 import { NoticeService } from './notice.service';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
-import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
-import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
 import { CreateNoticeDto } from './dto/createNotice.dto';
-import { CurrentAdmin } from '../../common/decorator/currentAdmin.decorator';
-import { AdminPayload } from '../../common/interface/payload.interface';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { CurrentAdmin } from '@common/decorator/currentAdmin.decorator';
+import { AdminPayload } from '@common/interface/payload.interface';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';

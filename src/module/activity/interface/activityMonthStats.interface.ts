@@ -1,4 +1,4 @@
-import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
+import { ActivityMonthlyStatsEntity } from '@entity/activity/activityMonthlyStats.entity';
 
 type RequiredFields = 'userIdx' | 'year' | 'month' | 'activityMonthExpense';
 

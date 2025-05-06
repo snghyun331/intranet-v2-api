@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../../entity/user/user.entity';
+import { UserEntity } from '@entity/user/user.entity';
 import { Repository } from 'typeorm';
-import { UserGradeIdxEnum } from '../../../common/constant/enum';
-import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
-import { TeamEntity } from '../../../entity/user/team.entity';
-import { GradeEntity } from '../../../entity/user/grade.entity';
+import { UserGradeIdxEnum, YNEnum } from '@common/constant/enum';
+import { HeadquarterEntity } from '@entity/user/headquarter.entity';
+import { TeamEntity } from '@entity/user/team.entity';
+import { GradeEntity } from '@entity/user/grade.entity';
 
 @Injectable()
 export class GlobalUserRepository {
@@ -15,7 +15,7 @@ export class GlobalUserRepository {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
       .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getCount();
 
     return userCnt;
@@ -25,7 +25,7 @@ export class GlobalUserRepository {
     const result: { userName: string }[] = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userName AS userName'])
-      .where('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawMany();
 
     const allNames: string[] = result.map((r) => r.userName);
@@ -38,7 +38,7 @@ export class GlobalUserRepository {
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx', 'userEntity.gradeIdx AS gradeIdx', 'userEntity.teamIdx AS teamIdx'])
       .where('userEntity.userName = :userName', { userName })
-      .andWhere('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawOne();
 
     return result;
@@ -48,8 +48,8 @@ export class GlobalUserRepository {
     const result: { userIdx: number }[] = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx'])
-      .where('userEntity.userAvail IS NULL')
-      .andWhere('userEntity.gradeIdx <= :gradeIdx', { gradeIdx: UserGradeIdxEnum.MANAGER })
+      .where('userEntity.gradeIdx <= :gradeIdx', { gradeIdx: UserGradeIdxEnum.MANAGER })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawMany();
 
     const userIdxList: number[] = result.map((r) => r.userIdx);
@@ -61,8 +61,8 @@ export class GlobalUserRepository {
     const result: { userIdx: number }[] = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx'])
-      .where('userEntity.userAvail IS NULL')
-      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: UserGradeIdxEnum.CEO })
+      .where('userEntity.gradeIdx != :gradeIdx', { gradeIdx: UserGradeIdxEnum.CEO })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawMany();
 
     const userIdxList: number[] = result.map((r) => r.userIdx);
@@ -75,7 +75,7 @@ export class GlobalUserRepository {
       .createQueryBuilder('userEntity')
       .select(['userEntity.userName AS userName'])
       .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawOne();
 
     return result;
@@ -96,6 +96,7 @@ export class GlobalUserRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('userEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawOne();
 
     return result;
@@ -108,6 +109,7 @@ export class GlobalUserRepository {
       .select(['userEntity.userIdx AS userIdx'])
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .andWhere('DATE_FORMAT(userEntity.userBirth, "%m-%d") = :date', { date })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawOne();
 
     return !!result;

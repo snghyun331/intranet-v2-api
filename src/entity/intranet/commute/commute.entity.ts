@@ -1,9 +1,9 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { CommonEntity } from '../../../common/entity/common.entity';
-import { UserEntity } from '../../user/user.entity';
-import { ConfirmEnum, IntranetAttendanceEnum } from '../../../common/constant/enum';
-import { CommuteHasImageEntity } from '../../image/commuteHasImage.entity';
-import { LeaveTypeEntity } from '../leave/leaveType.entity';
+import { CommonEntity } from '@common/entity/common.entity';
+import { UserEntity } from '@entity/user/user.entity';
+import { ConfirmEnum, IntranetAttendanceEnum } from '@common/constant/enum';
+import { CommuteHasImageEntity } from '@entity/image/commuteHasImage.entity';
+import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from './commuteApprover.entity';
 
 @Entity({ name: 'commute', comment: '출퇴근 정보 tb' })

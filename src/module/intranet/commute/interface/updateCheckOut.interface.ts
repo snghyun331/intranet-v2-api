@@ -1,4 +1,4 @@
-import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 
 type RequiredFields =
   | 'commuteDate'

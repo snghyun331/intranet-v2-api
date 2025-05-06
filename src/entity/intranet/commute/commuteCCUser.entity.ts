@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { CommuteEntity } from './commute.entity';
-import { UserEntity } from '../../user/user.entity';
+import { UserEntity } from '@entity/user/user.entity';
 
 @Entity({ name: 'commute_cc_user', comment: '근태 참조 사용자 목록 tb' })
 export class CommuteCCUserEntity {

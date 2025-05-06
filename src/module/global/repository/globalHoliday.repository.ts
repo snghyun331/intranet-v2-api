@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
-import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
+import { getStartAndEndDateByMonth } from '@common/utils/utility';
+import { HolidayEntity } from '@entity/scheduler/holiday.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

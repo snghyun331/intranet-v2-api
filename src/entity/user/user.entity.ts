@@ -1,25 +1,25 @@
-import { GenderEnum, YNEnum } from '../../common/constant/enum';
-import { CommonEntity } from '../../common/entity/common.entity';
-import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { GenderEnum, YNEnum } from '@common/constant/enum';
+import { CommonEntity } from '@common/entity/common.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { HeadquarterEntity } from './headquarter.entity';
 import { TeamEntity } from './team.entity';
 import { GradeEntity } from './grade.entity';
-import { MealEntity } from '../meal/meal.entity';
-import { MealStatsEntity } from '../meal/mealStats.entity';
-import { WelfareEntity } from '../welfare/welfare.entity';
-import { WelfareStatsEntity } from '../welfare/welfareStats.entity';
-import { WelfareMonthlyStatsEntity } from '../welfare/welfareMonthlyStats.entity';
-import { ActivityMonthlyStatsEntity } from '../activity/activityMonthlyStats.entity';
-import { ActivityStatsEntity } from '../activity/activityStats.entity';
-import { ActivityEntity } from '../activity/activity.entity';
-import { AdminEntity } from '../admin/admin.entity';
-import { CommuteEntity } from '../intranet/commute/commute.entity';
-import { CommuteApproverEntity } from '../intranet/commute/commuteApprover.entity';
-import { LeaveMonthlyUsageEntity } from '../intranet/leave/leaveMonthlyUsage.entity';
-import { LeaveUsageEntity } from '../intranet/leave/leaveUsage.entity';
-import { LeaveStatsEntity } from '../intranet/leave/leaveStats.entity';
-import { CommuteCCUserEntity } from '../intranet/commute/commuteCCUser.entity';
-import { LeaveExtraEntity } from '../intranet/leave/leaveExtra.entity';
+import { MealEntity } from '@entity/meal/meal.entity';
+import { MealStatsEntity } from '@entity/meal/mealStats.entity';
+import { WelfareEntity } from '@entity/welfare/welfare.entity';
+import { WelfareStatsEntity } from '@entity/welfare/welfareStats.entity';
+import { WelfareMonthlyStatsEntity } from '@entity/welfare/welfareMonthlyStats.entity';
+import { ActivityMonthlyStatsEntity } from '@entity/activity/activityMonthlyStats.entity';
+import { ActivityStatsEntity } from '@entity/activity/activityStats.entity';
+import { ActivityEntity } from '@entity/activity/activity.entity';
+import { AdminEntity } from '@entity/admin/admin.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
+import { CommuteApproverEntity } from '@entity/intranet/commute/commuteApprover.entity';
+import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
+import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
+import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
+import { CommuteCCUserEntity } from '@entity/intranet/commute/commuteCCUser.entity';
+import { LeaveExtraEntity } from '@entity/intranet/leave/leaveExtra.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -102,8 +102,15 @@ export class UserEntity extends CommonEntity {
   @Column({ name: 'login_token', comment: '로그인 토큰', length: 1000, nullable: true })
   loginToken: string;
 
-  @DeleteDateColumn({ type: 'datetime', name: 'user_avail', comment: '유효성 여부', nullable: true })
-  userAvail: Date | null;
+  @Column({
+    type: 'enum',
+    enum: YNEnum,
+    name: 'user_avail',
+    comment: '재직 퇴사 여부',
+    default: YNEnum.YES,
+    nullable: false,
+  })
+  userAvail: YNEnum;
 
   @ManyToOne(() => HeadquarterEntity, (hq) => hq.userRelation, {
     onDelete: 'SET NULL',

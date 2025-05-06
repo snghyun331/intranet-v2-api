@@ -2,12 +2,12 @@ import { Body, Controller, Get, Param, ParseIntPipe, Patch, Query, UseGuards } f
 import { ApprovalService } from './approval.service';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { USERS_INTRANET_APPROVAL } from './swagger/approval.swagger';
-import { UserRole } from '../../../common/decorator/role.decorator';
-import { UserAuthGuard } from '../../auth/guard/authGuard/userAuth.guard';
-import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
-import { UserGradeEnum } from '../../../common/constant/enum';
-import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
-import { ResponseInterface } from '../../../common/interface/response.interface';
+import { UserRole } from '@common/decorator/role.decorator';
+import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
+import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
+import { UserGradeEnum } from '@common/constant/enum';
+import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
+import { ResponseInterface } from '@common/interface/response.interface';
 import { UpdateConfirmDto } from './dto/updateConfirm.dto';
 import { UserApprovalFilter } from './dto/query.dto';
 

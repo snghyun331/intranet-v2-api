@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GenderEnum, YNEnum } from '../../../common/constant/enum';
+import { GenderEnum, YNEnum } from '@common/constant/enum';
 import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 

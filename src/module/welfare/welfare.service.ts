@@ -10,7 +10,8 @@ import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { substringYearMonth } from '../../common/utils/utility';
 import { Transactional } from 'typeorm-transactional';
 import { NewWelfareMonthStats, NewWelfareStats } from './interface';
-import { GlobalUserRepository } from '../common/repository/globalUser.repository';
+import { GlobalUserRepository } from '../global/repository/globalUser.repository';
+import * as moment from 'moment';
 
 @Injectable()
 export class WelfareService {
@@ -250,12 +251,12 @@ export class WelfareService {
   }
 
   async getWelfareBudget(filterInfo: AdminWelfareBudgetFilterDto) {
-    const date: Date = new Date();
-    const year: string = date.getFullYear().toString();
+    const today = moment().utcOffset(9);
+    const year: string = today.year().toString();
 
     let halfYear: HalfYearEnum;
     if (!filterInfo.halfYear) {
-      const nowMonth: number = date.getMonth() + 1;
+      const nowMonth: number = today.month() + 1;
       halfYear = nowMonth >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
     } else {
       halfYear = filterInfo.halfYear;

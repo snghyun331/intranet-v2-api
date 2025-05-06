@@ -1,20 +1,21 @@
 import * as moment from 'moment';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { UserRepository } from './repository/user.repository';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { AdminUserFilterDto } from './dto/query.dto';
-import { CreateUserDto } from './dto/createUser.dto';
-import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
-import { UpdatePasswordDto } from './dto/updateMyPw.dto';
-import { decryptPassword, encryptPassword } from '../../common/utils/utility';
-import { YNEnum } from '../../common/constant/enum';
-import { UpdateUserDto } from './dto/updateUser.dto';
-import { RedisSearchService } from '../redis/redisSearch.service';
+import { UserRepository } from '@user/repository/user.repository';
+import { PageNoDto } from '@common/dto/pageNo.dto';
+import { AdminUserFilterDto } from '@user/dto/query.dto';
+import { CreateUserDto } from '@user/dto/createUser.dto';
+import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
+import { UpdatePasswordDto } from '@user/dto/updateMyPw.dto';
+import { decryptPassword, encryptPassword } from '@common/utils/utility';
+import { YNEnum } from '@common/constant/enum';
+import { UpdateUserDto } from '@user/dto/updateUser.dto';
+import { RedisSearchService } from '@redis/redisSearch.service';
 import { Transactional } from 'typeorm-transactional';
-import { NewAdminInfo } from './interface/admin.interface';
-import { NewUserInfo } from './interface/user.interface';
-import { CommuteRepository } from '../intranet/commute/repository/commute.repository';
-import { GlobalUserRepository } from '../common/repository/globalUser.repository';
+import { NewAdminInfo } from '@user/interface/admin.interface';
+import { NewUserInfo } from '@user/interface/user.interface';
+import { CommuteRepository } from '@intranet/commute/repository/commute.repository';
+import { GlobalUserRepository } from '@global/repository/globalUser.repository';
+import { UpdateCommentDto } from '@user/dto/updateComment.dto';
 
 @Injectable()
 export class UserService {
@@ -177,37 +178,26 @@ export class UserService {
       throw new BadRequestException('어드민인 유저는 어드민 등급을 설정해야합니다.');
     }
 
+    /* 유저네임이 바뀌었다면, Redis 유저네임 업데이트 */
+    if (updateInfo.userName !== result.userName) {
+      await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
+      await this.redisSearchService.addUserInRedis(userIdx, updateInfo.userName);
+    }
+
     /* 어드민 정보 수정 */
-    if (updateInfo.adminRole === YNEnum.YES) {
+    // 어드민 N → Y인 경우,
+    if (result.adminRole === YNEnum.NO && updateInfo.adminRole === YNEnum.YES) {
       const newAdminInfo: NewAdminInfo = {
         id: updateInfo.id,
         adminName: updateInfo.userName,
         adminEmail: updateInfo.userEmail,
         adminGradeIdx,
       };
-      const previousAdminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
-      // 활성 상태인 어드민일 경우
-      if (previousAdminInfo && previousAdminInfo.adminAvail === null) {
-        await this.userRepository.updateAdminInfo(previousAdminInfo.adminIdx, newAdminInfo);
-      } else if (previousAdminInfo && previousAdminInfo.adminAvail !== null) {
-        // 비활성 상태인 어드민일 경우
-        await this.userRepository.restoreUpdateAdmin(previousAdminInfo.adminIdx, newAdminInfo);
-      } else {
-        // 어드민이 처음일 경우
-        await this.userRepository.createAdmin(userIdx, newAdminInfo);
-      }
-    } else {
-      const previousAdminInfo = await this.userRepository.getAdminInfoByUserIdx(userIdx);
-      // 어드민 O → 어드민 X로 변경할 경우
-      if (previousAdminInfo && previousAdminInfo.adminAvail === null) {
-        await this.userRepository.deleteAdmin(userIdx);
-      }
+      await this.userRepository.createAdmin(userIdx, newAdminInfo);
     }
-
-    /* 유저네임이 바뀌었다면, Redis 유저네임 업데이트 */
-    if (updateInfo.userName !== result.userName) {
-      await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
-      await this.redisSearchService.addUserInRedis(userIdx, updateInfo.userName);
+    // 어드민 Y → N인 경우,
+    if (result.adminRole === YNEnum.YES && updateInfo.adminRole === YNEnum.NO) {
+      await this.userRepository.deleteAdmin(userIdx);
     }
   }
 
@@ -231,31 +221,52 @@ export class UserService {
 
   @Transactional()
   async updateUserStatus(userIdx: number, userAvail: YNEnum) {
-    const result = await this.userRepository.getUsersIncludeInactiveByIdx(userIdx);
+    const result = await this.userRepository.getUserInfoByIdx(userIdx);
     if (!result) {
       throw new BadRequestException('직원 정보가 없습니다.');
     }
 
-    /* 비활성화 유저를 활성화 */
-    if (userAvail === YNEnum.YES) {
-      // userAvail를 null로 변경
-      await this.userRepository.restoreUser(userIdx);
+    /* userAvail 변경 */
+    await this.userRepository.updateUserStatus(userIdx, userAvail);
 
+    /* 재직(Y)으로 변경하는 경우 */
+    if (userAvail === YNEnum.YES) {
       // 등록일 기준 출퇴근 정보 생성
       const commuteDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
       await this.commuteRepository.createTodayCommute(userIdx, commuteDate);
 
       // Redis에 유저 등록(검색 자동완성)
       await this.redisSearchService.addUserInRedis(userIdx, result.userName);
-    } else {
-      // 활성화 유저를 비활성화
-      await this.userRepository.deleteUser(userIdx);
+    }
+
+    /* 퇴사(N)으로 변경하는 경우 */
+    if (userAvail === YNEnum.NO) {
+      // Redis에 등록된 유저네임 삭제
+      await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
+
+      // 어드민이었다면, 어드민 완전 삭제
       if (result.adminRole === YNEnum.YES) {
         await this.userRepository.deleteAdmin(userIdx);
       }
-
-      // Redis에 등록된 유저네임 삭제
-      await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
     }
+  }
+
+  @Transactional()
+  async updateUserComment(userIdx: number, commentInfo: UpdateCommentDto): Promise<void> {
+    await this.userRepository.updateComment(userIdx, commentInfo);
+
+    return;
+  }
+
+  @Transactional()
+  async deleteUser(userIdx: number): Promise<void> {
+    const userCount: number = await this.globalUserRepository.getUserCountByIdx(userIdx);
+    if (userCount === 0) {
+      throw new BadRequestException('이미 삭제되었거나 존재하지 않은 유저입니다.');
+    }
+
+    await this.userRepository.deleteUser(userIdx);
+
+    return;
   }
 }

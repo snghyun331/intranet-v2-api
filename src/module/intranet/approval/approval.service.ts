@@ -5,7 +5,7 @@ import { addConfirmStatusField, substringYearMonth } from '../../../common/utils
 import { UserApprovalFilter } from './dto/query.dto';
 import { ALTERNATIVE_LEAVE_LISTS, ANNUAL_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from '../../../common/constant/constant';
 import { Transactional } from 'typeorm-transactional';
-import { GlobalMealRepository } from '../../common/repository/globalMeal.repository';
+import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
 
 @Injectable()
 export class ApprovalService {

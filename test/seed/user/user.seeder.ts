@@ -23,7 +23,7 @@ export const seedUser = async (dataSource: DataSource): Promise<void> => {
       adminRole: YNEnum.YES,
       comment: null,
       loginToken: null,
-      userAvail: null,
+      userAvail: 'N',
     },
     {
       userIdx: 2,
@@ -42,7 +42,7 @@ export const seedUser = async (dataSource: DataSource): Promise<void> => {
       adminRole: YNEnum.NO,
       comment: null,
       loginToken: null,
-      userAvail: null,
+      userAvail: 'N',
     },
   ];
 

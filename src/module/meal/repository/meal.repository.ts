@@ -1,23 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
-import { MealEntity } from '../../../entity/meal/meal.entity';
-import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
-import { UserEntity } from '../../../entity/user/user.entity';
+import { getStartAndEndDateByMonth } from '@common/utils/utility';
+import { MealEntity } from '@entity/meal/meal.entity';
+import { MealStatsEntity } from '@entity/meal/mealStats.entity';
+import { UserEntity } from '@entity/user/user.entity';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
-import { HolidayEntity } from '../../../entity/scheduler/holiday.entity';
-import { ClearStatusEnum, MealTypeEnum, YNEnum } from '../../../common/constant/enum';
+import { HolidayEntity } from '@entity/scheduler/holiday.entity';
+import { ClearStatusEnum, MealTypeEnum, YNEnum } from '@common/constant/enum';
 import { DetailedMealData, MealStats } from '../interface/meal.interface';
-import { GradeEntity } from '../../../entity/user/grade.entity';
+import { GradeEntity } from '@entity/user/grade.entity';
 import { AdminMealFilterDto, AdminMealBudgetFilterDto } from '../dto/query.dto';
-import { NewMealStats } from '../../scheduler/interface/mealStats.interface';
-import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
+import { NewMealStats } from '@scheduler/interface/mealStats.interface';
+import { MealBaseEntity } from '@entity/meal/mealBase.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
-import { PageNoDto } from '../../../common/dto/pageNo.dto';
-import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '../../../common/constant/constant';
-import { TeamEntity } from '../../../entity/user/team.entity';
-import { CommuteEntity } from '../../../entity/intranet/commute/commute.entity';
-import { LeaveTypeEntity } from '../../../entity/intranet/leave/leaveType.entity';
+import { PageNoDto } from '@common/dto/pageNo.dto';
+import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '@common/constant/constant';
+import { TeamEntity } from '@entity/user/team.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
+import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 
 @Injectable()
 export class MealRepository {
@@ -318,7 +318,7 @@ export class MealRepository {
         eDate: searchInfo.eDate,
       })
       .andWhere('mealEntity.amount IS NOT NULL')
-      .andWhere('userEntity.userAvail IS NULL');
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (searchInfo.userName) {
       query.andWhere('userEntity.userName = :userName', { userName: searchInfo.userName });
@@ -414,7 +414,7 @@ export class MealRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
-      .andWhere('userEntity.userAvail IS NULL');
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     const total = await query.getCount();
     const totalPage = Math.ceil(total / perPage);
@@ -478,7 +478,7 @@ export class MealRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
-      .andWhere('userEntity.userAvail IS NULL')
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .orderBy('userEntity.gradeIdx', 'ASC')
       .getRawMany();
 

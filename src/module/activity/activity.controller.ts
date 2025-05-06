@@ -22,24 +22,24 @@ import {
   ADMIN_ACTIVITIES_CONFIRM,
   USERS_ACTIVITIES,
 } from './swagger/activity.swagger';
-import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
-import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
-import { AdminGradeEnum, UserGradeEnum } from '../../common/constant/enum';
-import { CurrentUser, CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
+import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
+import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { CurrentUser, CurrentUserIdx } from '@common/decorator/currentUser.decorator';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
-import { ResponseInterface } from '../../common/interface/response.interface';
+import { ResponseInterface } from '@common/interface/response.interface';
 import {
   ActivityFilterDto,
   AdminActivityBalanceFilterDto,
   AdminActivityBudgetFilterDto,
   AdminActivityFilterDto,
 } from './dto/query.dto';
-import { UserPayload } from '../../common/interface/payload.interface';
-import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
-import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { UserPayload } from '@common/interface/payload.interface';
+import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
+import { AdminRoleGuard } from '@auth/guard/roleGuard/adminRole.guard';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { CreateActivityBudgetDto } from './dto/createBudget.dto';
 import { UpdateBudgetDto } from './dto/updateBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';

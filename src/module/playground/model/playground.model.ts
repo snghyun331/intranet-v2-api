@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { LunchGroupConfig, LunchGroupConfigDocument } from '../../../schema/lunchGroup/lunchGroupConfig.schema';
+import { LunchGroupConfig, LunchGroupConfigDocument } from '@schema/lunchGroup/lunchGroupConfig.schema';
 import { HydratedDocument, Model } from 'mongoose';
 import { SetLunchGroup } from '../interface/lunchGroup.interface';
-import { LunchGroupMember, LunchGroupMemberDocument } from '../../../schema/lunchGroup/lunchGroupMember.schema';
+import { LunchGroupMember, LunchGroupMemberDocument } from '@schema/lunchGroup/lunchGroupMember.schema';
 
 @Injectable()
 export class PlayGroundModel {

@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { CommonEntity } from '../../common/entity/common.entity';
-import { UserEntity } from '../user/user.entity';
-import { ClearStatusEnum, HalfYearEnum } from '../../common/constant/enum';
+import { CommonEntity } from '@common/entity/common.entity';
+import { UserEntity } from '@entity/user/user.entity';
+import { ClearStatusEnum, HalfYearEnum } from '@common/constant/enum';
 
 @Entity({ name: 'welfare_stats', comment: '복포 통계 tb' })
 export class WelfareStatsEntity extends CommonEntity {

@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { NoticeHasImageEntity } from './noticeHasImage.entity';
-import { CommuteHasImageEntity } from './commuteHasImage.entity';
+import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
+import { CommuteHasImageEntity } from '@entity/image/commuteHasImage.entity';
 
 @Entity({ name: 'image', comment: '이미지 tb' })
 export class ImageEntity {

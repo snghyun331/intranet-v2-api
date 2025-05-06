@@ -6,7 +6,7 @@ import { LoginAdminResult, LoginUserResult } from './interface/result.interface'
 import { User } from './interface/user.interface';
 import { decryptPassword } from '../../common/utils/utility';
 import { Admin } from './interface/admin.interface';
-import { GlobalUserRepository } from '../common/repository/globalUser.repository';
+import { GlobalUserRepository } from '../global/repository/globalUser.repository';
 
 @Injectable()
 export class AuthService {
