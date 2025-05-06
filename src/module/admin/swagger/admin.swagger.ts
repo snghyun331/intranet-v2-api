@@ -1,4 +1,4 @@
-import { SwaggerMethod } from '../../../common/interface/swagger.interface';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
 
 export const ADMIN_GRADES_IDX: SwaggerMethod = {
   GET: {

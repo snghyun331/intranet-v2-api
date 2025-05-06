@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Strategy } from 'passport-custom';
 import * as jwt from 'jsonwebtoken';
-import { AdminPayload } from '../../../common/interface/payload.interface';
+import { AdminPayload } from '@common/interface/payload.interface';
 
 @Injectable()
 export class JwtAdminStrategy extends PassportStrategy(Strategy, 'admin') {

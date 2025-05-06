@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { HalfYearEnum } from '../../../common/constant/enum';
+import { HalfYearEnum } from '@common/constant/enum';
 
 export class CreateWelfareBudgetDto {
   @ApiProperty({ type: String, description: '적용 년도', required: true })

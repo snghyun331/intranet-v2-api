@@ -1,32 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CommuteEntity } from '../../../../entity/intranet/commute/commute.entity';
+import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { LeaveDetailDto } from '../dto/createLeave.dto';
 import { LeaveImageInfo } from '../interface/leave.interface';
-import { ImageEntity } from '../../../../entity/image/image.entity';
-import { CommuteHasImageEntity } from '../../../../entity/image/commuteHasImage.entity';
+import { ImageEntity } from '@entity/image/image.entity';
+import { CommuteHasImageEntity } from '@entity/image/commuteHasImage.entity';
 import { AdminLeaveFilterDto } from '../dto/query.dto';
-import { LeaveStatsEntity } from '../../../../entity/intranet/leave/leaveStats.entity';
-import { UserEntity } from '../../../../entity/user/user.entity';
-import { GradeEntity } from '../../../../entity/user/grade.entity';
-import { HeadquarterEntity } from '../../../../entity/user/headquarter.entity';
-import { TeamEntity } from '../../../../entity/user/team.entity';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '../../../../common/constant/enum';
-import {
-  getStartAndEndDateByMonth,
-  getStartAndEndDateByYear,
-  removeAllWhiteSpace,
-} from '../../../../common/utils/utility';
-import { LeaveTypeEntity } from '../../../../entity/intranet/leave/leaveType.entity';
-import { CommuteApproverEntity } from '../../../../entity/intranet/commute/commuteApprover.entity';
-import { LeaveUsageEntity } from '../../../../entity/intranet/leave/leaveUsage.entity';
-import { LeaveMonthlyUsageEntity } from '../../../../entity/intranet/leave/leaveMonthlyUsage.entity';
+import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
+import { UserEntity } from '@entity/user/user.entity';
+import { GradeEntity } from '@entity/user/grade.entity';
+import { HeadquarterEntity } from '@entity/user/headquarter.entity';
+import { TeamEntity } from '@entity/user/team.entity';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
+import { getStartAndEndDateByMonth, getStartAndEndDateByYear, removeAllWhiteSpace } from '@common/utils/utility';
+import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
+import { CommuteApproverEntity } from '@entity/intranet/commute/commuteApprover.entity';
+import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import * as moment from 'moment';
-import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
+import { CommuteCCUserEntity } from '@entity/intranet/commute/commuteCCUser.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminLeaveSortEnum } from '../enum/leave.enum';
-import { LeaveExtraEntity } from '../../../../entity/intranet/leave/leaveExtra.entity';
+import { LeaveExtraEntity } from '@entity/intranet/leave/leaveExtra.entity';
 import { NewLeaveExtra } from '../interface/leaveExtra.interface';
 
 @Injectable()
@@ -34,36 +29,13 @@ export class LeaveRepository {
   constructor(
     @InjectRepository(CommuteEntity) private readonly commuteModel: Repository<CommuteEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
-    @InjectRepository(LeaveMonthlyUsageEntity)
-    private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
     @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
-    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(ImageEntity) private readonly imageModel: Repository<ImageEntity>,
     @InjectRepository(CommuteHasImageEntity) private readonly commuteImageModel: Repository<CommuteHasImageEntity>,
     @InjectRepository(CommuteApproverEntity) private readonly commuteApproverModel: Repository<CommuteApproverEntity>,
     @InjectRepository(CommuteCCUserEntity) private readonly commuteCCModel: Repository<CommuteCCUserEntity>,
     @InjectRepository(LeaveExtraEntity) private readonly leaveExtraModel: Repository<LeaveExtraEntity>,
   ) {}
-
-  async getUserInfoByIdx(userIdx: number) {
-    const result = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select([
-        'userEntity.userIdx AS userIdx',
-        'userEntity.userName AS userName',
-        'userEntity.joinDate AS joinDate',
-        'hqEntity.hqName AS hqName',
-        'teamEntity.teamName AS teamName',
-        'gradeEntity.gradeName AS gradeName',
-      ])
-      .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
-      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .getRawOne();
-
-    return result;
-  }
 
   async getLeaveInfoByIdx(commuteIdx: number) {
     const result: any = await this.commuteModel
@@ -268,7 +240,8 @@ export class LeaveRepository {
         'recentLeave.userIdx = leaveStatsEntity.userIdx AND recentLeave.rownum = 1',
       )
       .setParameters(subQuery.getParameters())
-      .where('leaveStatsEntity.year = :year', { year: filterInfo.year });
+      .where('leaveStatsEntity.year = :year', { year: filterInfo.year })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     // 필터링 처리
     if (filterInfo.userName) {
@@ -302,16 +275,6 @@ export class LeaveRepository {
     }));
 
     return { totalPage, total, summaries: result };
-  }
-
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
   }
 
   async getUserLeaveStats(year: string, userIdx: number) {
@@ -535,6 +498,7 @@ export class LeaveRepository {
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .where('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
@@ -619,18 +583,6 @@ export class LeaveRepository {
       .execute();
   }
 
-  async isBirthday(userIdx: number, commuteDate: string): Promise<boolean> {
-    const date: string = commuteDate.slice(5);
-    const result = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx'])
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('DATE_FORMAT(userEntity.userBirth, "%m-%d") = :date', { date })
-      .getRawOne();
-
-    return !!result;
-  }
-
   async getTotalLeaveReduceUnitByDate(userIdx: number, commuteDate: string): Promise<number> {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
@@ -709,6 +661,7 @@ export class LeaveRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveExtraEntity.userIdx')
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = leaveExtraEntity.leaveTypeIdx')
       .where('leaveExtraEntity.year = :year', { year })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .orderBy('leaveExtraEntity.createdAt', 'DESC')
       .getRawMany();
 

@@ -1,10 +1,10 @@
-import { SwaggerMethod } from '../../../common/interface/swagger.interface';
-import { CreateActivityDto } from '../dto/createActivity.dto';
-import { CreateActivityBudgetDto } from '../dto/createBudget.dto';
-import { UpdateActivityDto } from '../dto/updateActivity.dto';
-import { UpdateBudgetDto } from '../dto/updateBudget.dto';
-import { UpdateConfirmDto } from '../dto/updateConfirm.dto';
-import { UpdateNoteDto } from '../dto/updateNote.dto';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
+import { CreateActivityDto } from '@activity/dto/createActivity.dto';
+import { CreateActivityBudgetDto } from '@activity/dto/createBudget.dto';
+import { UpdateActivityDto } from '@activity/dto/updateActivity.dto';
+import { UpdateBudgetDto } from '@activity/dto/updateBudget.dto';
+import { UpdateConfirmDto } from '@activity/dto/updateConfirm.dto';
+import { UpdateNoteDto } from '@activity/dto/updateNote.dto';
 
 export const USERS_ACTIVITIES: SwaggerMethod = {
   POST: {

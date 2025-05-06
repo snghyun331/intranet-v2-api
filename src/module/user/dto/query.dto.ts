@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { YNALLEnum } from '../../../common/constant/enum';
+import { YNALLEnum } from '@common/constant/enum';
 
 export class AdminUserFilterDto {
   @ApiProperty({ type: Number, description: '직급IDX', example: 2, required: false })

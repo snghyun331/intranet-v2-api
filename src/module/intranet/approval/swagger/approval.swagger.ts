@@ -1,5 +1,5 @@
-import { ConfirmEnum } from '../../../../common/constant/enum';
-import { SwaggerMethod } from '../../../../common/interface/swagger.interface';
+import { ConfirmEnum } from '@common/constant/enum';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
 import { UpdateConfirmDto } from '../dto/updateConfirm.dto';
 
 export const USERS_INTRANET_APPROVAL: SwaggerMethod = {

@@ -1,4 +1,4 @@
-import { SwaggerMethod } from '../../../common/interface/swagger.interface';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
 
 export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
   GET: {

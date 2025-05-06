@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { CommonEntity } from '../../common/entity/common.entity';
-import { UserEntity } from '../user/user.entity';
+import { CommonEntity } from '@common/entity/common.entity';
+import { UserEntity } from '@entity/user/user.entity';
 
 @Entity({ name: 'activity_monthly_stats', comment: '활동비 월별 통계 tb' })
 export class ActivityMonthlyStatsEntity extends CommonEntity {

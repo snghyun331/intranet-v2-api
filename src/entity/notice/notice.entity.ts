@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { CommonEntity } from '../../common/entity/common.entity';
-import { NoticeHasImageEntity } from '../image/noticeHasImage.entity';
+import { CommonEntity } from '@common/entity/common.entity';
+import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
 
 @Entity({ name: 'notice', comment: '공지사항 tb' })
 export class NoticeEntity extends CommonEntity {

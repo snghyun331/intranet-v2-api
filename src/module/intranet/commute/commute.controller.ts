@@ -24,7 +24,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { ResponseInterface } from '../../../common/interface/response.interface';
+import { ResponseInterface } from '@common/interface/response.interface';
 import { CommuteService } from './commute.service';
 import { CheckInDto } from './dto/checkIn.dto';
 import {
@@ -36,16 +36,16 @@ import {
   USERS_INTRANET_CHECK_OUT,
   USERS_INTRANET_COMMUTE_WORK_HOURS,
 } from './swagger/commute.swagger';
-import { UserRoleGuard } from '../../auth/guard/roleGuard/userRole.guard';
-import { AdminRole, UserRole } from '../../../common/decorator/role.decorator';
-import { UserAuthGuard } from '../../auth/guard/authGuard/userAuth.guard';
-import { AdminGradeEnum, UserGradeEnum } from '../../../common/constant/enum';
-import { CurrentUserIdx } from '../../../common/decorator/currentUser.decorator';
+import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
+import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
 import { CheckOutDto } from './dto/checkOut.dto';
-import { AdminAuthGuard } from '../../auth/guard/authGuard/adminAuth.guard';
-import { AdminRoleGuard } from '../../auth/guard/roleGuard/adminRole.guard';
+import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
+import { AdminRoleGuard } from '@auth/guard/roleGuard/adminRole.guard';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
-import { PageNoDto } from '../../../common/dto/pageNo.dto';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 

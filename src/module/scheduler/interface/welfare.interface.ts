@@ -1,4 +1,4 @@
-import { HalfYearEnum } from '../../../common/constant/enum';
+import { HalfYearEnum } from '@common/constant/enum';
 
 export interface NewWelfareStats {
   userIdx: number;

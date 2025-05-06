@@ -3,20 +3,20 @@ import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
-import { NUM_OF_ROWS, PAGE_NO } from '../../common/constant/constant';
+import { NUM_OF_ROWS, PAGE_NO } from '@common/constant/constant';
 import {
   getDateFormYYYYMMDD,
   getDaysBetwweenTwoDates,
   getTodayLeaveGrantType,
   getWeekendDates,
   getYearsSinceJoin,
-} from '../../common/utils/utility';
+} from '@common/utils/utility';
 import { AxiosHoliday } from './interface/axiosData.interface';
 import { SchedulerRepository } from './repository/scheduler.repository';
 import { HolidayInfo } from './interface/holiday.interface';
 import { Transactional } from 'typeorm-transactional';
 import * as moment from 'moment';
-import { LeaveGrantTypeEnum } from '../../common/constant/enum';
+import { LeaveGrantTypeEnum } from '@common/constant/enum';
 import { NewLeaveStats } from './interface/leaveStats.interface';
 
 @Injectable()
@@ -34,10 +34,10 @@ export class SchedulerService {
   @Transactional()
   async insertHoliday() {
     this.logger.log('🚀 다음 분기 휴일 정보 수집을 시작합니다 !');
-    const date: Date = new Date();
-    const nowMonth: number = date.getMonth() + 1;
+    const today = moment().utcOffset(9);
+    const nowMonth: number = today.month() + 1;
     let nextMonth: number = nowMonth === 12 ? 1 : nowMonth + 1;
-    const year: number = nowMonth === 12 ? date.getFullYear() + 1 : date.getFullYear();
+    const year: number = nowMonth === 12 ? today.year() + 1 : today.year();
     for (let i = 0; i < 6; i++) {
       const publicHolidayInfoList: HolidayInfo[] = (await this.getPublicHolidayDatas(year, nextMonth)) ?? [];
       const weekendInfoList: HolidayInfo[] = await this.getWeekendDatas(year, nextMonth);
@@ -131,7 +131,7 @@ export class SchedulerService {
   @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_1AM)
   @Transactional()
   async insertAllCommutesForToday() {
-    this.logger.log(`🚀 오늘의 출근 정보 자동 등록을 시작합니다. (현재시간: ${new Date()}) !`);
+    this.logger.log(`🚀 오늘의 출근 정보 자동 등록을 시작합니다. (현재시간: ${moment().utcOffset(9)}) !`);
 
     await this.schedulerRepository.insertCommutesForToday();
 
@@ -141,13 +141,13 @@ export class SchedulerService {
   /*
    * ✅ 전직원 총연차일 일괄 등록 ✅
    * 근속년수 0년차 직원: 부여받은 월차 개수 (= 작년 총연차일)
-   * 근속년수 1년차 이상 직원: 기본 15개, 3년차부터 2년마다 1씩 증가
+   * 근속년수 1년차 이상 직원: 기본 15개, 3년차부터 2년마다 1씩 증가 (해당 연도에 근속년수 3년, 5년..이 되는 직원도 모두 1씩 증가)
    * 기준일은 매년 1월 1일
    */
   @Cron(CronExpression.EVERY_YEAR)
   @Transactional()
   async insertReceivedAnnualLeave() {
-    this.logger.log(`🚀 연차 자동 등록을 시작합니다. (현재시간: ${new Date()}) !`);
+    this.logger.log(`🚀 연차 자동 등록을 시작합니다. (현재시간: ${moment().utcOffset(9)}) !`);
     const currentYear: string = moment().utcOffset(9).year().toString();
     const users = await this.schedulerRepository.getAllUsersInfo();
     for (const user of users) {
@@ -192,7 +192,7 @@ export class SchedulerService {
    * 근속년수 딱 1년(입사 1주년) 직원: 총 연차일 업데이트 (지금까지의 총 연차 잔여개수 + (전년도 재직일수/365) * 15의 올림값)
    * 기준일은 today(오늘)
    */
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
   @Transactional()
   async insertExtraReceivedAnnualLeaveForMidJoiner() {
     const currentYear: number = moment().utcOffset(9).year();
@@ -200,7 +200,9 @@ export class SchedulerService {
     const users = await this.schedulerRepository.getAllUserWithLessThanOneYear();
     for (const user of users) {
       const { userIdx, userName, joinDate } = user;
-      this.logger.log(`🚀 중도입사자 ${userName}에 대한 연차 부여를 시작합니다. (현재시간: ${new Date()}) !`);
+      this.logger.log(
+        `🚀 중도입사자 ${userName}에 대한 월/연차 업데이트를 시작합니다.(현재시간: ${moment().utcOffset(9)}) !`,
+      );
 
       const leaveGrantType: LeaveGrantTypeEnum = getTodayLeaveGrantType(joinDate);
 

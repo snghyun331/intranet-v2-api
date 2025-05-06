@@ -5,10 +5,14 @@ import { addConfirmStatusField, substringYearMonth } from '../../../common/utils
 import { UserApprovalFilter } from './dto/query.dto';
 import { ALTERNATIVE_LEAVE_LISTS, ANNUAL_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from '../../../common/constant/constant';
 import { Transactional } from 'typeorm-transactional';
+import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
 
 @Injectable()
 export class ApprovalService {
-  constructor(private readonly approvalRepository: ApprovalRepository) {}
+  constructor(
+    private readonly approvalRepository: ApprovalRepository,
+    private readonly mealRepository: GlobalMealRepository,
+  ) {}
 
   @Transactional()
   async confirmLeave(commuteIdx: number, confirmPersonIdx: number, confirmYN: ConfirmEnum): Promise<void> {
@@ -70,7 +74,7 @@ export class ApprovalService {
       }
 
       // 식대 해당 월 timeoffDays 업데이트
-      await this.approvalRepository.updateMealTimeOffDays(year, month, userIdx);
+      await this.mealRepository.updateMealTimeOffDays(year, month, userIdx);
     }
 
     /* 승인이었다가 반려될 경우 */

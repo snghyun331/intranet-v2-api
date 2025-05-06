@@ -1,68 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../../entity/user/user.entity';
+import { UserEntity } from '@entity/user/user.entity';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
-import { CreateWelfareDto } from '../dto/createWelfare.dto';
-import { WelfareEntity } from '../../../entity/welfare/welfare.entity';
-import {
-  getStartAndEndDateByHalfYear,
-  getStartAndEndDateByMonth,
-  removeAllWhiteSpace,
-} from '../../../common/utils/utility';
-import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
-import { UpdateWelfareDto } from '../dto/updateWelfare.dto';
-import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
-import { ClearStatusEnum, ConfirmEnum, UserGradeIdxEnum, HalfYearEnum, YNEnum } from '../../../common/constant/enum';
-import { CreateWelfareBudgetDto } from '../dto/createBudget.dto';
-import { GradeEntity } from '../../../entity/user/grade.entity';
-import { UpdateNoteDto } from '../dto/updateNote.dto';
-import { AdminWelfareFilterDto } from '../dto/query.dto';
-import { TeamEntity } from '../../../entity/user/team.entity';
-import { NewWelfareMonthStats, NewWelfareStats } from '../interface';
+import { CreateWelfareDto } from '@welfare/dto/createWelfare.dto';
+import { WelfareEntity } from '@entity/welfare/welfare.entity';
+import { getStartAndEndDateByHalfYear, getStartAndEndDateByMonth, removeAllWhiteSpace } from '@common/utils/utility';
+import { WelfareMonthlyStatsEntity } from '@entity/welfare/welfareMonthlyStats.entity';
+import { UpdateWelfareDto } from '@welfare/dto/updateWelfare.dto';
+import { WelfareStatsEntity } from '@entity/welfare/welfareStats.entity';
+import { ClearStatusEnum, ConfirmEnum, HalfYearEnum, YNEnum } from '@common/constant/enum';
+import { CreateWelfareBudgetDto } from '@welfare/dto/createBudget.dto';
+import { GradeEntity } from '@entity/user/grade.entity';
+import { UpdateNoteDto } from '@welfare/dto/updateNote.dto';
+import { AdminWelfareFilterDto } from '@welfare/dto/query.dto';
+import { TeamEntity } from '@entity/user/team.entity';
+import { NewWelfareMonthStats, NewWelfareStats } from '@welfare/interface';
 
 @Injectable()
 export class WelfareRepository {
   constructor(
-    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(WelfareEntity) private readonly welfareModel: Repository<WelfareEntity>,
     @InjectRepository(WelfareMonthlyStatsEntity)
     private readonly welfareMonthStatsModel: Repository<WelfareMonthlyStatsEntity>,
     @InjectRepository(WelfareStatsEntity)
     private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
   ) {}
-
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
-
-  async getUserNameByIdx(userIdx: number): Promise<{ userName: string }> {
-    const result: { userName: string } = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userName AS userName'])
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getRawOne();
-
-    return result;
-  }
-
-  async getAllUserNames(): Promise<string[]> {
-    const result: { userName: string }[] = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userName AS userName'])
-      .andWhere('userEntity.userAvail IS NULL')
-      .getRawMany();
-
-    const allNames: string[] = result.map((r) => r.userName);
-
-    return allNames;
-  }
 
   async createWelfare(userIdx: number, { targetDay, amount, content, payerName }: CreateWelfareDto): Promise<number> {
     const result: InsertResult = await this.welfareModel
@@ -305,19 +267,6 @@ export class WelfareRepository {
     return statsCnt;
   }
 
-  async getAllUserIdxExceptCEO(): Promise<number[]> {
-    const result: { userIdx: number }[] = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx'])
-      .where('userEntity.userAvail IS NULL')
-      .andWhere('userEntity.gradeIdx != :gradeIdx', { gradeIdx: UserGradeIdxEnum.CEO })
-      .getRawMany();
-
-    const userIdxList: number[] = result.map((r) => r.userIdx);
-
-    return userIdxList;
-  }
-
   async createWelfareStats(newStatsInfo: NewWelfareStats): Promise<InsertResult> {
     return await this.welfareStatsModel
       .createQueryBuilder()
@@ -379,6 +328,7 @@ export class WelfareRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('welfareStatsEntity.year = :year', { year })
       .andWhere('welfareStatsEntity.halfYear = :halfYear', { halfYear })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .orderBy('userEntity.gradeIdx', 'ASC')
       .addOrderBy('userEntity.userName', 'ASC')
       .getRawMany();
@@ -419,7 +369,8 @@ export class WelfareRepository {
       .where('welfareEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
-      });
+      })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
@@ -504,7 +455,8 @@ export class WelfareRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareStatsEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .where('welfareStatsEntity.year = :year', { year });
+      .where('welfareStatsEntity.year = :year', { year })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
     if (halfYear) {
       query.andWhere('welfareStatsEntity.halfYear = :halfYear', { halfYear });

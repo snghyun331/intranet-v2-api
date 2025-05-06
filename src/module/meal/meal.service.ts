@@ -11,13 +11,19 @@ import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '../../common/dto/pageNo.dto';
 import { DEFAULT_BREAKFAST_RATE, DEFAULT_DINNER_RATE } from '../../common/constant/constant';
 import { Transactional } from 'typeorm-transactional';
+import { GlobalUserRepository } from '../global/repository/globalUser.repository';
+import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repository';
 
 @Injectable()
 export class MealService {
-  constructor(private readonly mealRepository: MealRepository) {}
+  constructor(
+    private readonly mealRepository: MealRepository,
+    private readonly userRepository: GlobalUserRepository,
+    private readonly holidayRepository: GlobalHolidayRepository,
+  ) {}
 
   async getMyMeal(year: string, month: string, userIdx: number) {
-    const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -71,7 +77,7 @@ export class MealService {
 
   @Transactional()
   async createMyMeal(userIdx: number, newMealInfo: CreateMealDto): Promise<string> {
-    const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -94,7 +100,7 @@ export class MealService {
     const newLunch: DetailedMealData = newMealInfo.lunch;
     const lunchInfo = await this.mealRepository.getMealIdx(userIdx, newMealInfo.targetDay, MealTypeEnum.LUNCH);
     if (newLunch.payerName) {
-      const allUserNames: string[] = await this.mealRepository.getAllUserNames();
+      const allUserNames: string[] = await this.userRepository.getAllUserNames();
       if (!allUserNames.includes(newLunch.payerName)) {
         throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
       }
@@ -115,7 +121,7 @@ export class MealService {
     const newBreakfast: DetailedMealData = newMealInfo.breakfast;
     const breakfastInfo = await this.mealRepository.getMealIdx(userIdx, newMealInfo.targetDay, MealTypeEnum.BREAKFAST);
     if (newBreakfast.payerName) {
-      const allUserNames: string[] = await this.mealRepository.getAllUserNames();
+      const allUserNames: string[] = await this.userRepository.getAllUserNames();
       if (!allUserNames.includes(newBreakfast.payerName)) {
         throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
       }
@@ -137,7 +143,7 @@ export class MealService {
     const dinnerInfo = await this.mealRepository.getMealIdx(userIdx, newMealInfo.targetDay, MealTypeEnum.DINNER);
 
     if (newDinner.payerName) {
-      const allUserNames: string[] = await this.mealRepository.getAllUserNames();
+      const allUserNames: string[] = await this.userRepository.getAllUserNames();
       if (!allUserNames.includes(newDinner.payerName)) {
         throw new BadRequestException('잘못된 결제자를 입력하였습니다.');
       }
@@ -188,7 +194,7 @@ export class MealService {
 
   @Transactional()
   async deleteMyMeal(userIdx: number, targetDay: string): Promise<void> {
-    const userCnt: number = await this.mealRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
@@ -251,9 +257,9 @@ export class MealService {
     const mealStatsCnt: number = await this.mealRepository.getMealStatsCount(year, month);
     /* 기록이 없다면 create  */
     if (mealStatsCnt < 1) {
-      const holidayDates: string[] = await this.mealRepository.getHolidayDates(year, month);
+      const holidayDates: string[] = await this.holidayRepository.getHolidayDates(year, month);
       const holidays: number = holidayDates.length;
-      const userIdxList: number[] = await this.mealRepository.getAllUserIdxExceptCEO();
+      const userIdxList: number[] = await this.userRepository.getAllUserIdxExceptCEO();
       for (const userIdx of userIdxList) {
         const newMealStats: NewMealStats = {
           year,

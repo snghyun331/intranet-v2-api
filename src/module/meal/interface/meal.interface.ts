@@ -1,4 +1,4 @@
-import { YNEnum } from '../../../common/constant/enum';
+import { YNEnum } from '@common/constant/enum';
 
 export interface BasicMealData {
   payerName: string;

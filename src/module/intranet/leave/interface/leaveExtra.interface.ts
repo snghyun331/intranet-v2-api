@@ -1,4 +1,4 @@
-import { LeaveExtraEntity } from '../../../../entity/intranet/leave/leaveExtra.entity';
+import { LeaveExtraEntity } from '@entity/intranet/leave/leaveExtra.entity';
 
 type RequiredFields = 'userIdx' | 'year' | 'leaveTypeIdx' | 'extraLeave' | 'adminName' | 'note';
 type NewLeaveExtraType = Pick<LeaveExtraEntity, RequiredFields>;

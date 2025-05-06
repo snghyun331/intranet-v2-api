@@ -1,4 +1,4 @@
-import { AdminGradeEnum } from '../../../common/constant/enum';
+import { AdminGradeEnum } from '@common/constant/enum';
 
 export interface Admin {
   adminIdx: number;

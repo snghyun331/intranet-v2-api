@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -24,23 +24,26 @@ import {
   ADMIN_USERS_IDXS,
   USERS_BIRTH,
   ADMIN_SEARCH_PREFIX_USERNAME,
+  ADMIN_USERS_COMMENT,
 } from './swagger/user.swagger';
 import { UserService } from './user.service';
-import { AdminRole, UserRole } from '../../common/decorator/role.decorator';
-import { AdminGradeEnum, UserGradeEnum, YNEnum } from '../../common/constant/enum';
-import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
-import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
-import { ResponseInterface } from '../../common/interface/response.interface';
-import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
-import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
+import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
+import { ResponseInterface } from '@common/interface/response.interface';
+import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
+import { AdminRoleGuard } from '@auth/guard/roleGuard/adminRole.guard';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminUserFilterDto } from './dto/query.dto';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateMyInfoDto } from './dto/updateMyInfo.dto';
 import { UpdatePasswordDto } from './dto/updateMyPw.dto';
-import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { SearchUserDto } from './dto/searchUser.dto';
+import { UpdateCommentDto } from './dto/updateComment.dto';
+import { UpdateUserAvailDto } from './dto/updateUserAvail.dto';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -247,6 +250,24 @@ export class AdminUserController {
     return response;
   }
 
+  @ApiOperation(ADMIN_USERS_COMMENT.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_USERS_COMMENT.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_USERS_COMMENT.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch(':userIdx/comment')
+  async updateUserComment(
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+    @Body() commentInfo: UpdateCommentDto,
+  ): Promise<ResponseInterface> {
+    await this.userService.updateUserComment(userIdx, commentInfo);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
   @ApiOperation(ADMIN_USERS.PATCH.API_OPERATION)
   @ApiParam(ADMIN_USERS.PATCH.API_PARAM1)
   @ApiOkResponse(ADMIN_USERS.PATCH.API_OK_RESPONSE)
@@ -257,9 +278,24 @@ export class AdminUserController {
   @Patch(':userIdx')
   async updateUserStatus(
     @Param('userIdx', ParseIntPipe) userIdx: number,
-    @Query('userAvail') userAvail: YNEnum,
+    @Body() { userAvail }: UpdateUserAvailDto,
   ): Promise<ResponseInterface> {
     await this.userService.updateUserStatus(userIdx, userAvail);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_USERS.DELETE.API_OPERATION)
+  @ApiParam(ADMIN_USERS.DELETE.API_PARAM1)
+  @ApiOkResponse(ADMIN_USERS.DELETE.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Delete(':userIdx')
+  async deleteUser(@Param('userIdx', ParseIntPipe) userIdx: number): Promise<ResponseInterface> {
+    await this.userService.deleteUser(userIdx);
 
     const response: ResponseInterface = { message: 'success' };
 

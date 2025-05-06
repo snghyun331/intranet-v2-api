@@ -1,12 +1,12 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { ResponseInterface } from '../../common/interface/response.interface';
-import { AdminGradeEnum } from '../../common/constant/enum';
-import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
+import { ResponseInterface } from '@common/interface/response.interface';
+import { AdminGradeEnum } from '@common/constant/enum';
+import { AdminRoleGuard } from '@auth/guard/roleGuard/adminRole.guard';
 import { ADMIN_GRADES_IDX } from './swagger/admin.swagger';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AdminRole } from '../../common/decorator/role.decorator';
-import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { AdminRole } from '@common/decorator/role.decorator';
+import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
 
 @ApiTags('어드민')
 @Controller('admin')

@@ -11,6 +11,7 @@ import { MealModule } from '../src/module/meal/meal.module';
 import { CommuteModule } from '../src/module/intranet/commute/commute.module';
 import { LeaveModule } from '../src/module/intranet/leave/leave.module';
 import { WelfareModule } from '../src/module/welfare/welfare.module';
+import { GlobalModule } from '../src/module/global/global.module';
 
 const createTestApp = async (modules: any[]) => {
   const module: TestingModule = await Test.createTestingModule({
@@ -22,6 +23,7 @@ const createTestApp = async (modules: any[]) => {
       TypeOrmModule.forRootAsync(TEST_TYPEORM_CONFIG),
       AuthModule,
       MockUserModule,
+      GlobalModule,
       ...modules,
     ],
   }).compile();

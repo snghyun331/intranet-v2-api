@@ -1,5 +1,5 @@
-import { WithOptional } from '../../../common/utils/type';
-import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
+import { WithOptional } from '@common/utils/type';
+import { ActivityStatsEntity } from '@entity/activity/activityStats.entity';
 
 type RequiredFields = 'year' | 'userIdx' | 'halfYear' | 'activityBudget';
 

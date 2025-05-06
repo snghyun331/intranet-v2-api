@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { YNEnum } from '../../../common/constant/enum';
+import { YNEnum } from '@common/constant/enum';
 
 export class CreateWelfareDto {
   @ApiProperty({ type: String, description: '복포 사용일', required: true })

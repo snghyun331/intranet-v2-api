@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && tsc-alias",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "test:db:start": "docker compose --env-file .env.test -f docker-compose.test.yaml up -d",
@@ -43,6 +43,7 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "tsc-alias": "^1.8.15",
     "typeorm": "^0.3.20",
     "typeorm-transactional": "^0.5.0",
     "winston": "^3.14.2",
@@ -79,6 +80,29 @@
       "ts"
     ],
     "rootDir": ".",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1",
+      "^@src/(.*)$": "<rootDir>/src/$1",
+      "^@common/(.*)$": "<rootDir>/src/common/$1",
+      "^@config/(.*)$": "<rootDir>/src/config/$1",
+      "^@entity/(.*)$": "<rootDir>/src/entity/$1",
+      "^@schema/(.*)$": "<rootDir>/src/schema/$1",
+      "^@activity/(.*)$": "<rootDir>/src/module/activity/$1",
+      "^@admin/(.*)$": "<rootDir>/src/module/admin/$1",
+      "^@auth/(.*)$": "<rootDir>/src/module/auth/$1",
+      "^@aws/(.*)$": "<rootDir>/src/module/aws/$1",
+      "^@file/(.*)$": "<rootDir>/src/module/file/$1",
+      "^@global/(.*)$": "<rootDir>/src/module/global/$1",
+      "^@health/(.*)$": "<rootDir>/src/module/health/$1",
+      "^@intranet/(.*)$": "<rootDir>/src/module/intranet/$1",
+      "^@meal/(.*)$": "<rootDir>/src/module/meal/$1",
+      "^@notice/(.*)$": "<rootDir>/src/module/notice/$1",
+      "^@playground/(.*)$": "<rootDir>/src/module/playground/$1",
+      "^@redis/(.*)$": "<rootDir>/src/module/redis/$1",
+      "^@scheduler/(.*)$": "<rootDir>/src/module/scheduler/$1",
+      "^@user/(.*)$": "<rootDir>/src/module/user/$1",
+      "^@welfare/(.*)$": "<rootDir>/src/module/welfare/$1"
+    },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

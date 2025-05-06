@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../../entity/user/user.entity';
-import { HeadquarterEntity } from '../../../entity/user/headquarter.entity';
-import { TeamEntity } from '../../../entity/user/team.entity';
-import { GradeEntity } from '../../../entity/user/grade.entity';
-import { User } from '../interface/user.interface';
-import { AdminEntity } from '../../../entity/admin/admin.entity';
-import { AdminGradeEntity } from '../../../entity/admin/grade.entity';
-import { Admin } from '../interface/admin.interface';
+import { UserEntity } from '@entity/user/user.entity';
+import { HeadquarterEntity } from '@entity/user/headquarter.entity';
+import { TeamEntity } from '@entity/user/team.entity';
+import { GradeEntity } from '@entity/user/grade.entity';
+import { User } from '@auth/interface/user.interface';
+import { AdminEntity } from '@entity/admin/admin.entity';
+import { AdminGradeEntity } from '@entity/admin/grade.entity';
+import { Admin } from '@auth/interface/admin.interface';
 
 @Injectable()
 export class AuthRepository {
@@ -37,7 +37,6 @@ export class AuthRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('userEntity.id = :id', { id })
-      .andWhere('userEntity.userAvail IS NULL')
       .getRawOne();
 
     return result;
@@ -61,16 +60,6 @@ export class AuthRepository {
       .execute();
   }
 
-  async getUserCountByIdx(userIdx: number): Promise<number> {
-    const userCnt: number = await this.userModel
-      .createQueryBuilder('userEntity')
-      .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('userEntity.userAvail IS NULL')
-      .getCount();
-
-    return userCnt;
-  }
-
   async getAdminPersonal(id: string): Promise<Admin> {
     const result: Admin = await this.adminModel
       .createQueryBuilder('adminEntity')
@@ -91,7 +80,6 @@ export class AuthRepository {
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('adminEntity.id = :id', { id })
-      .andWhere('adminEntity.adminAvail IS NULL')
       .getRawOne();
 
     return result;

@@ -31,10 +31,14 @@ import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { Transactional } from 'typeorm-transactional';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from './interface';
+import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
 
 @Injectable()
 export class CommuteService {
-  constructor(private readonly commuteRepository: CommuteRepository) {}
+  constructor(
+    private readonly commuteRepository: CommuteRepository,
+    private readonly userRepository: GlobalUserRepository,
+  ) {}
 
   @Transactional()
   async checkInWork(
@@ -244,7 +248,7 @@ export class CommuteService {
       filterInfo.eDate = nowDate;
     }
 
-    const userCnt: number = await this.commuteRepository.getUserCountByIdx(userIdx);
+    const userCnt: number = await this.userRepository.getUserCountByIdx(userIdx);
     if (userCnt === 0) {
       throw new NotFoundException('해당 사용자는 존재하지 않습니다.');
     }

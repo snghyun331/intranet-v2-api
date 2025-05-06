@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AdminGradeEntity } from '../../../entity/admin/grade.entity';
+import { AdminGradeEntity } from '@entity/admin/grade.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()

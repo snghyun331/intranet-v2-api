@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Brackets, DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CreateNoticeDto } from '../dto/createNotice.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { NoticeEntity } from '../../../entity/notice/notice.entity';
+import { NoticeEntity } from '@entity/notice/notice.entity';
 import { UpdateNoticeDto } from '../dto/updateNotice.dto';
-import { ImageEntity } from '../../../entity/image/image.entity';
-import { NoticeHasImageEntity } from '../../../entity/image/noticeHasImage.entity';
+import { ImageEntity } from '@entity/image/image.entity';
+import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
 import { NoticeImageInfo } from '../interface/notice.interface';
 import { AdminNoticeFilterDto } from '../dto/query.dto';
 

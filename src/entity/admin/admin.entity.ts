@@ -1,7 +1,7 @@
-import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { CommonEntity } from '../../common/entity/common.entity';
-import { AdminGradeEntity } from './grade.entity';
-import { UserEntity } from '../user/user.entity';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { CommonEntity } from '@common/entity/common.entity';
+import { AdminGradeEntity } from '@entity/admin/grade.entity';
+import { UserEntity } from '@entity/user/user.entity';
 
 @Entity({ name: 'admin', comment: '어드민 tb' })
 export class AdminEntity extends CommonEntity {
@@ -28,9 +28,6 @@ export class AdminEntity extends CommonEntity {
 
   @Column({ name: 'login_token', comment: '로그인 토큰', length: 1000, nullable: true })
   loginToken: string;
-
-  @DeleteDateColumn({ type: 'datetime', name: 'admin_avail', comment: '유효성 여부', nullable: true })
-  adminAvail: Date | null;
 
   @ManyToOne(() => AdminGradeEntity, (adminGrade) => adminGrade.adminRelation, {
     onDelete: 'CASCADE',

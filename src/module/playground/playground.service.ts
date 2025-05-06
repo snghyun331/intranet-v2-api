@@ -3,8 +3,8 @@ import { BadRequestException, Inject, Injectable, Logger, LoggerService } from '
 import { CreateLunchGroupDto } from './dto/createLunchGroup.dto';
 import { PlayGroundModel } from './model/playground.model';
 import { SetLunchGroup } from './interface/lunchGroup.interface';
-import { RedisLockService } from '../redis/redisLock.service';
-import { PICK_LUNCH_LOCK_DURATION } from '../../common/constant/constant';
+import { RedisLockService } from '@redis/redisLock.service';
+import { PICK_LUNCH_LOCK_DURATION } from '@common/constant/constant';
 
 @Injectable()
 export class PlaygroundService {

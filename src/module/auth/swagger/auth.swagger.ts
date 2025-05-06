@@ -1,5 +1,5 @@
-import { LoginDto } from '../dto/login.dto';
-import { SwaggerMethod } from '../../../common/interface/swagger.interface';
+import { LoginDto } from '@auth/dto/login.dto';
+import { SwaggerMethod } from '@common/interface/swagger.interface';
 
 export const LOGIN: SwaggerMethod = {
   POST: {
