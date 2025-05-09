@@ -151,7 +151,18 @@ export class CommuteService {
     checkOutIpAddr: string,
     checkOutLogAgent: string,
   ): Promise<void> {
-    const commuteDate: string = moment(checkOutDto.checkOutTime).utcOffset(9).format('YYYY-MM-DD');
+    /* 근태날짜 설정
+     *  오전 0시 ~ 오전6시 : '야근 후 퇴근'으로 간주
+     *  오전 6시 이후 : '당일 퇴근'으로 간주
+     */
+    let commuteDate: string;
+    const checkOutMoment = moment(checkOutDto.checkOutTime).utcOffset(9);
+    const currentHour: number = checkOutMoment.hour();
+    if (currentHour >= 0 && currentHour < 6) {
+      commuteDate = checkOutMoment.subtract(1, 'day').format('YYYY-MM-DD'); // 전날을 근태날짜로 설정
+    } else {
+      commuteDate = checkOutMoment.format('YYYY-MM-DD');
+    }
 
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
