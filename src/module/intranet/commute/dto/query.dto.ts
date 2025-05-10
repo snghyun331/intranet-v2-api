@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { AdminCommuteSortEnum } from '../enum/commute.enum';
 
 export class UserCommuteFilterDto {
   @ApiProperty({
@@ -26,25 +27,30 @@ export class UserCommuteFilterDto {
 export class AdminCommuteFilterDto {
   @ApiProperty({
     name: 'sDate',
-    required: false,
+    required: true,
     type: String,
     description: '시작 일자',
     example: '2025-01-01',
   })
-  @IsOptional()
+  @IsNotEmpty()
   sDate: string;
 
   @ApiProperty({
     name: 'eDate',
-    required: false,
+    required: true,
     type: String,
     description: '종료 일자',
     example: '2025-01-31',
   })
-  @IsOptional()
+  @IsNotEmpty()
   eDate: string;
 
   @ApiProperty({ type: String, required: false })
   @IsOptional()
   userName?: string;
+
+  @ApiProperty({ type: 'enum', enum: AdminCommuteSortEnum, description: '정렬 기준', required: false })
+  @IsOptional()
+  @IsEnum(AdminCommuteSortEnum)
+  sortby?: AdminCommuteSortEnum;
 }

@@ -11,6 +11,7 @@ import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField, removeAllWhiteSpace } from '@common/utils/utility';
 import { IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
+import { AdminCommuteSortEnum } from '../enum/commute.enum';
 
 @Injectable()
 export class CommuteRepository {
@@ -120,13 +121,18 @@ export class CommuteRepository {
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);
 
-    query
-      .orderBy('commuteEntity.commuteDate', 'DESC')
-      .addOrderBy('userEntity.userName', 'ASC')
-      .limit(perPage)
-      .offset((pageNo - 1) * perPage);
+    // 정렬 조건 처리
+    if (filterInfo.sortby === AdminCommuteSortEnum.CHECK_IN_TIME) {
+      query.orderBy('commuteEntity.checkInTime', 'DESC');
+    } else {
+      query.orderBy('commuteEntity.commuteDate', 'DESC').addOrderBy('userEntity.userName', 'ASC');
+    }
 
-    const records = await query.getRawMany();
+    // 페이징 처리
+    const records = await query
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage)
+      .getRawMany();
 
     // 승인여부와 날짜를 합친 새 필드 추가
     const result = await Promise.all(

@@ -258,7 +258,7 @@ export class LeaveRepository {
       const orderby: 'ASC' | 'DESC' = filterInfo.orderby.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
       query.orderBy('recentLeave.lastLeaveDate', orderby);
     } else {
-      query.orderBy('userEntity.createdAt', 'DESC');
+      query.orderBy('userEntity.createdAt', 'DESC').addOrderBy('userEntity.userName', 'ASC');
     }
 
     // 페이징 처리
@@ -497,12 +497,12 @@ export class LeaveRepository {
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
-      .where('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
-      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
-      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
+      // .where('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      // .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      // .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
+      //   startDate,
+      //   endDate,
+      // })
       .orderBy('commuteEntity.commuteDate', 'ASC')
       .getRawMany();
 

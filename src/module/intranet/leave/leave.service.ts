@@ -455,6 +455,7 @@ export class LeaveService {
 
   async getAllUsersLeaveByMonth(year: string, month: string) {
     const leaveInfo = await this.leaveRepository.getAllLeaveCalender(year, month);
+    console.log(leaveInfo);
 
     // 날짜별로 그룹화하여 leaves를 구성
     const leaves: any[] = leaveInfo.reduce((acc, item) => {
