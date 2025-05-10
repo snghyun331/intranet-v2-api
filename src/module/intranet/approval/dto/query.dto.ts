@@ -8,10 +8,10 @@ export class UserApprovalFilter {
   @IsString()
   year: string;
 
-  @ApiProperty({ type: String, description: '검색월', required: true })
-  @IsNotEmpty({ message: '검색월은 쿼리에 반드시 포함되어야합니다.' })
+  @ApiProperty({ type: String, description: '검색월', required: false })
+  @IsOptional()
   @IsString()
-  month: string;
+  month?: string;
 
   @ApiProperty({ type: Number, description: '대상자 IDX', required: false })
   @IsOptional()
