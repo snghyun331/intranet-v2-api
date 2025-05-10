@@ -52,12 +52,12 @@ export class AdminActivityBudgetFilterDto {
 
 export class AdminActivityBalanceFilterDto {
   @ApiProperty({ type: String, description: '올해 년도', required: true })
-  @IsNotEmpty({ message: '올해년도는 쿼리에 반드시 포함되어야합니다.' })
+  @IsNotEmpty({ message: '올해년도 입력은 필수입니다.' })
   @IsString()
   year: string;
 
-  @ApiProperty({ type: 'enum', enum: HalfYearEnum, description: '상하반기 구분', required: false })
-  @IsOptional()
+  @ApiProperty({ type: 'enum', enum: HalfYearEnum, description: '상하반기 구분', required: true })
+  @IsNotEmpty({ message: '상하빈기 입력은 필수입니다.' })
   @IsEnum(HalfYearEnum)
   halfYear: HalfYearEnum;
 }
