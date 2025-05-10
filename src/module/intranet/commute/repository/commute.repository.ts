@@ -100,8 +100,7 @@ export class CommuteRepository {
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
-        'commuteEntity.createdAt AS createdAt',
-        'commuteEntity.updatedAt AS updatedAt',
+        'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
@@ -184,19 +183,23 @@ export class CommuteRepository {
   }
 
   async updateCommuteTime(commuteIdx: number, updateInfo: UpdateCommuteTimeInfo): Promise<UpdateResult> {
+    const adminUpdatedAt: Date = new Date();
+
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set(updateInfo)
+      .set({ ...updateInfo, adminUpdatedAt })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
 
   async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto): Promise<UpdateResult> {
+    const adminUpdatedAt: Date = new Date();
+
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set(noteInfo)
+      .set({ ...noteInfo, adminUpdatedAt })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
@@ -222,8 +225,7 @@ export class CommuteRepository {
         'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
         'commuteEntity.checkInLogAgent AS checkInLogAgent',
         'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
-        'commuteEntity.createdAt AS createdAt',
-        'commuteEntity.updatedAt AS updatedAt',
+        'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })

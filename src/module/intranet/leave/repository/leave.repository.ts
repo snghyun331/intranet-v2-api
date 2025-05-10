@@ -327,79 +327,6 @@ export class LeaveRepository {
     return result;
   }
 
-  // // 추후 쿼리 튜닝 필요,,
-  // async getUserLeaveDetail(filterInfo: UserLeaveDetailFilterDto | AdminLeaveDetailFilterDto, userIdx: number) {
-  //   // startDate과 endDate 계산
-  //   const { year, month, leaveTypeIdx } = filterInfo;
-  //   const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
-  //     .createQueryBuilder('commuteEntity')
-  //     .select([
-  //       'commuteEntity.commuteIdx AS commuteIdx',
-  //       'commuteEntity.userIdx AS userIdx',
-  //       'commuteEntity.commuteDate AS commuteDate',
-  //       'DAYNAME(commuteEntity.commuteDate) AS commuteDayName',
-  //       'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
-  //       'leaveTypeEntity.leaveType AS leaveType',
-  //       'commuteImageEntity.imageIdx AS imageIdx',
-  //       'imageEntity.imageName AS imageName',
-  //       'imageEntity.imageSize AS imageSize',
-  //       'imageEntity.imageUrl AS imageUrl',
-  //       'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
-  //       'commuteEntity.note AS note',
-  //       'commuteEntity.confirmYN AS confirmYN',
-  //       'commuteEntity.confirmDate AS confirmDate',
-  //       'commuteEntity.rejectDate AS rejectDate',
-  //       'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
-  //       'confirmUserEntity.userName AS confirmPersonName',
-  //       'commuteEntity.createdAt AS createdAt',
-  //       'commuteEntity.updatedAt AS updatedAt',
-
-  //       // 추가: 승인 가능자 정보 가져오기
-  //       'commuteApproverEntity.approverIdx AS approverIdx',
-  //       'approverUserEntity.userName AS approverName',
-
-  //       // 추가: 참조자 정보 가져오기
-  //       'commuteCCUserEntity.ccUserIdx AS ccUserIdx',
-  //       'ccUserEntity.userName AS ccUserName',
-  //     ])
-  //     .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
-  //     .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
-  //     .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
-  //     .leftJoin(UserEntity, 'confirmUserEntity', 'confirmUserEntity.userIdx = commuteEntity.confirmPersonIdx')
-  //     .leftJoin(
-  //       CommuteApproverEntity,
-  //       'commuteApproverEntity',
-  //       'commuteApproverEntity.commuteIdx = commuteEntity.commuteIdx',
-  //     )
-  //     .leftJoin(UserEntity, 'approverUserEntity', 'approverUserEntity.userIdx = commuteApproverEntity.approverIdx')
-  //     .leftJoin(CommuteCCUserEntity, 'commuteCCUserEntity', 'commuteCCUserEntity.commuteIdx = commuteEntity.commuteIdx')
-  //     .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = commuteCCUserEntity.ccUserIdx')
-  //     .where('commuteEntity.userIdx = :userIdx', { userIdx })
-  //     .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year });
-
-  //   query.orderBy('commuteEntity.createdAt', 'ASC'); // 누적 잔여 연차 수 계산을 위한 createdAt 기준 오름차순 정렬
-
-  //   if (month) {
-  //     query.andWhere('MONTH(commuteEntity.commuteDate) IN (:...month)', { month });
-  //   }
-
-  //   if (leaveTypeIdx) {
-  //     query.andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx });
-  //   } else {
-  //     query.andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
-  //       leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
-  //     });
-  //   }
-
-  //   if ('confirmYN' in filterInfo && filterInfo.confirmYN) {
-  //     query.andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
-  //   }
-
-  //   const result = await query.getRawMany();
-
-  //   return result;
-  // }
-
   // 추후 쿼리 튜닝 필요,,
   async getUserLeaveDetail(year: string, userIdx: number) {
     // startDate과 endDate 계산
@@ -423,8 +350,6 @@ export class LeaveRepository {
         'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
         'confirmUserEntity.userName AS confirmPersonName',
-        'commuteEntity.createdAt AS createdAt',
-        'commuteEntity.updatedAt AS updatedAt',
 
         // 추가: 승인 가능자 정보 가져오기
         'commuteApproverEntity.approverIdx AS approverIdx',
@@ -493,16 +418,15 @@ export class LeaveRepository {
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.confirmYN AS confirmYN',
-        'commuteEntity.createdAt AS createdAt',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
-      // .where('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
-      // .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
-      // .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
-      //   startDate,
-      //   endDate,
-      // })
+      .where('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
       .orderBy('commuteEntity.commuteDate', 'ASC')
       .getRawMany();
 
@@ -575,10 +499,12 @@ export class LeaveRepository {
   }
 
   async updateLeaveNote(commuteIdx: number, { note }: UpdateNoteDto): Promise<UpdateResult> {
+    const adminUpdatedAt: Date = new Date();
+
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ note })
+      .set({ note, adminUpdatedAt })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }

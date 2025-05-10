@@ -244,7 +244,6 @@ export class ApprovalRepository {
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
-        'commuteEntity.createdAt AS createdAt',
         `
           CASE 
             WHEN EXISTS (

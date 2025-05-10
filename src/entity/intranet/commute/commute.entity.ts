@@ -78,6 +78,9 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'leave_reduce_unit', comment: '휴가 차감 단위', type: 'float', default: 0, nullable: false })
   leaveReduceUnit: number;
 
+  @Column({ name: 'admin_updated_at', comment: '관리자가 직접 수정한 시간', nullable: true })
+  adminUpdatedAt: Date;
+
   @ManyToOne(() => UserEntity, (user) => user.commuteRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
