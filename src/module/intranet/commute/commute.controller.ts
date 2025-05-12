@@ -1,4 +1,3 @@
-import * as moment from 'moment';
 import {
   Body,
   Controller,
@@ -150,10 +149,6 @@ export class AdminCommuteController {
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo: AdminCommuteFilterDto,
   ): Promise<ResponseInterface> {
-    if (!filterInfo.sDate || !filterInfo.eDate) {
-      filterInfo.sDate = moment().utcOffset(9).format('YYYY-MM-DD');
-      filterInfo.eDate = moment().utcOffset(9).format('YYYY-MM-DD');
-    }
     const data = await this.commuteService.getCommuteRecords(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };

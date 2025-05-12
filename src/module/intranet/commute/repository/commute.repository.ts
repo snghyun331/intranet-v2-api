@@ -11,6 +11,7 @@ import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField, removeAllWhiteSpace } from '@common/utils/utility';
 import { IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
+import { AdminCommuteSortEnum } from '../enum/commute.enum';
 
 @Injectable()
 export class CommuteRepository {
@@ -99,8 +100,7 @@ export class CommuteRepository {
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
-        'commuteEntity.createdAt AS createdAt',
-        'commuteEntity.updatedAt AS updatedAt',
+        'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
@@ -120,13 +120,18 @@ export class CommuteRepository {
     const total: number = await query.getCount();
     const totalPage: number = Math.ceil(total / perPage);
 
-    query
-      .orderBy('commuteEntity.commuteDate', 'DESC')
-      .addOrderBy('userEntity.userName', 'ASC')
-      .limit(perPage)
-      .offset((pageNo - 1) * perPage);
+    // 정렬 조건 처리
+    if (filterInfo.sortby === AdminCommuteSortEnum.CHECK_IN_TIME) {
+      query.orderBy('commuteEntity.checkInTime', 'DESC');
+    } else {
+      query.orderBy('commuteEntity.commuteDate', 'DESC').addOrderBy('userEntity.userName', 'ASC');
+    }
 
-    const records = await query.getRawMany();
+    // 페이징 처리
+    const records = await query
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage)
+      .getRawMany();
 
     // 승인여부와 날짜를 합친 새 필드 추가
     const result = await Promise.all(
@@ -178,19 +183,23 @@ export class CommuteRepository {
   }
 
   async updateCommuteTime(commuteIdx: number, updateInfo: UpdateCommuteTimeInfo): Promise<UpdateResult> {
+    const adminUpdatedAt: Date = new Date();
+
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set(updateInfo)
+      .set({ ...updateInfo, adminUpdatedAt })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
 
   async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto): Promise<UpdateResult> {
+    const adminUpdatedAt: Date = new Date();
+
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set(noteInfo)
+      .set({ ...noteInfo, adminUpdatedAt })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
@@ -216,8 +225,7 @@ export class CommuteRepository {
         'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
         'commuteEntity.checkInLogAgent AS checkInLogAgent',
         'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
-        'commuteEntity.createdAt AS createdAt',
-        'commuteEntity.updatedAt AS updatedAt',
+        'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })

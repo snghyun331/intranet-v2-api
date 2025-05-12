@@ -250,23 +250,23 @@ export class AdminLeaveController {
     return response;
   }
 
-  @ApiOperation(ADMIN_INTRANET_LEAVE_ALL_CALENDER.GET.API_OPERATION)
-  @ApiQuery(ADMIN_INTRANET_LEAVE_ALL_CALENDER.GET.API_QUERY1)
-  @ApiOkResponse(ADMIN_INTRANET_LEAVE_ALL_CALENDER.GET.API_OK_RESPONSE)
-  @ApiBearerAuth('accessToken')
-  @UseGuards(AdminAuthGuard, AdminRoleGuard)
-  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Get('all/calender')
-  async getAllUsersLeaveByCalender(
-    @Query('year') year: string,
-    @Query('month') month: string,
-  ): Promise<ResponseInterface> {
-    const data = await this.leaveService.getAllUsersLeaveByMonth(year, month);
+  // @ApiOperation(ADMIN_INTRANET_LEAVE_ALL_CALENDER.GET.API_OPERATION)
+  // @ApiQuery(ADMIN_INTRANET_LEAVE_ALL_CALENDER.GET.API_QUERY1)
+  // @ApiOkResponse(ADMIN_INTRANET_LEAVE_ALL_CALENDER.GET.API_OK_RESPONSE)
+  // @ApiBearerAuth('accessToken')
+  // @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  // @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  // @Get('all/calender')
+  // async getAllUsersLeaveByCalender(
+  //   @Query('year') year: string,
+  //   @Query('month') month: string,
+  // ): Promise<ResponseInterface> {
+  //   const data = await this.leaveService.getAllUsersLeaveByMonth(year, month);
 
-    const response: ResponseInterface = { message: 'success', data };
+  //   const response: ResponseInterface = { message: 'success', data };
 
-    return response;
-  }
+  //   return response;
+  // }
 
   @ApiOperation(ADMIN_INTRANET_LEAVE_DETAIL.DELETE.API_OPERATION)
   @ApiParam(ADMIN_INTRANET_LEAVE_DETAIL.DELETE.API_PARAM1)

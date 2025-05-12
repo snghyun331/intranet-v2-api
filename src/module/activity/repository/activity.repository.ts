@@ -325,8 +325,8 @@ export class ActivityRepository {
     }
   }
 
-  async getUserActivityStats(year: string, halfYear?: HalfYearEnum) {
-    const query: SelectQueryBuilder<ActivityStatsEntity> = this.activityStatsModel
+  async getUserActivityStats(year: string, halfYear: HalfYearEnum) {
+    const userStatsInfo = await this.activityStatsModel
       .createQueryBuilder('activityStatsEntity')
       .select([
         'activityStatsEntity.activityStatsIdx AS activityStatsIdx',
@@ -347,15 +347,10 @@ export class ActivityRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .where('activityStatsEntity.year = :year', { year })
-      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
-
-    if (halfYear) {
-      query.andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear });
-    }
-
-    query.orderBy('userEntity.gradeIdx', 'ASC').addOrderBy('activityStatsEntity.halfYear', 'ASC');
-
-    const userStatsInfo = await query.getRawMany();
+      .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .orderBy('userEntity.gradeIdx', 'ASC')
+      .getRawMany();
 
     const result = userStatsInfo.map((stats) => ({
       ...stats,

@@ -16,6 +16,7 @@ import { NewUserInfo } from '@user/interface/user.interface';
 import { CommuteRepository } from '@intranet/commute/repository/commute.repository';
 import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { UpdateCommentDto } from '@user/dto/updateComment.dto';
+import { NewMealStats } from '../scheduler/interface/mealStats.interface';
 
 @Injectable()
 export class UserService {
@@ -91,6 +92,13 @@ export class UserService {
 
     /* leaveMonthlyUsage 엔티티에 데이터(default: 0) 추가 */
     await this.userRepository.createLeaveMonthlyUsageInfo(userIdx, currentYear);
+
+    /* mealStats 엔티티에 데이터(당월) 추가 */
+
+    /* welfareMonthlyStats 엔티티에 데이터 추가 */
+
+    /* welfareStats 엔티티에 데이터 추가 */
+    // global로 빼기
 
     /* 등록일 기준 출퇴근 데이터 생성 */
     const commuteDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
