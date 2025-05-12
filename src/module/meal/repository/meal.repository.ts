@@ -479,7 +479,7 @@ export class MealRepository {
       .where('mealStatsEntity.year = :year', { year })
       .andWhere('mealStatsEntity.month = :month', { month })
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
-      .orderBy('userEntity.gradeIdx', 'ASC')
+      .orderBy('userEntity.userName', 'ASC')
       .getRawMany();
 
     const transformedResult = results.map((result) => ({

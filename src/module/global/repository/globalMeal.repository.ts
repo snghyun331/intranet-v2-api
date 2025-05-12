@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { getStartAndEndDateByMonth } from '@common/utils/utility';
 import { ConfirmEnum } from '@common/constant/enum';
 import { MealStatsEntity } from '@entity/meal/mealStats.entity';
-import { Repository, UpdateResult } from 'typeorm';
+import { InsertResult, Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()

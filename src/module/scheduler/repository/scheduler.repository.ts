@@ -80,7 +80,7 @@ export class SchedulerRepository {
     await this.dataSource.query(`INSERT INTO commute (user_idx, commute_date)
       SELECT u.user_idx,  CURDATE()
       FROM user u
-      WHERE u.user_avail IS NULL
+      WHERE u.user_avail = 'Y'
         AND NOT EXISTS (
         SELECT 1 FROM commute c
         WHERE c.user_idx = u.user_idx AND c.commute_date = CURDATE()
