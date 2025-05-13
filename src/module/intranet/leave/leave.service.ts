@@ -288,7 +288,7 @@ export class LeaveService {
 
     // 총 특별휴무 수, 총 대체휴무 수 추가 (요구사항)
     leaveUsageStats.totalReceivedSpecialLeave = leaveStats.totalReceivedSpecialLeave;
-    leaveUsageStats.totalReceivedSpecialLeave = leaveStats.totalReceivedSpecialLeave;
+    leaveUsageStats.totalReceivedAlternativeLeave = leaveStats.totalReceivedAlternativeLeave;
 
     // 휴가 종류별 사용현황 조회
     const leaveUsageInfo = await this.leaveRepository.getUserLeaveUsageInfo(year, userIdx);
