@@ -1,15 +1,19 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { LOGIN, LOGIN_ADMIN, LOGOUT } from './swagger/auth.swagger';
+import { LOGIN, LOGIN_ADMIN, LOGOUT, LOGOUT_ADMIN } from './swagger/auth.swagger';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { LoginAdminResult, LoginUserResult } from './interface/result.interface';
 import { ResponseInterface } from '@common/interface/response.interface';
-import { UserRole } from '@common/decorator/role.decorator';
-import { UserGradeEnum } from '@common/constant/enum';
+import { AdminRole, UserRole } from '@common/decorator/role.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
 import { UserAuthGuard } from './guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from './guard/roleGuard/userRole.guard';
 import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
+import { AdminAuthGuard } from './guard/authGuard/adminAuth.guard';
+import { AdminRoleGuard } from './guard/roleGuard/adminRole.guard';
+import { CurrentAdmin } from '../../common/decorator/currentAdmin.decorator';
+import { AdminPayload } from '../../common/interface/payload.interface';
 
 @ApiTags('AUTH')
 @Controller()
@@ -55,6 +59,22 @@ export class AuthController {
     const admin: LoginAdminResult = await this.authService.adminLogin(loginInfo);
 
     const response: ResponseInterface = { message: '로그인 성공', data: admin };
+
+    return response;
+  }
+
+  @ApiOperation(LOGOUT_ADMIN.POST.API_OPERATION)
+  @ApiOkResponse(LOGOUT_ADMIN.POST.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @Post('logout/admin')
+  async adminLogout(@CurrentAdmin() { adminIdx }: AdminPayload): Promise<ResponseInterface> {
+    await this.authService.adminLogout(adminIdx);
+
+    const response: ResponseInterface = { message: '로그아웃 성공', data: { adminIdx } };
 
     return response;
   }

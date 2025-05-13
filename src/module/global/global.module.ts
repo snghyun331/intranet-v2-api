@@ -6,10 +6,11 @@ import { GlobalHolidayRepository } from './repository/globalHoliday.repository';
 import { HolidayEntity } from '@entity/scheduler/holiday.entity';
 import { GlobalMealRepository } from './repository/globalMeal.repository';
 import { MealStatsEntity } from '@entity/meal/mealStats.entity';
+import { AdminEntity } from '../../entity/admin/admin.entity';
 
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, HolidayEntity, MealStatsEntity])],
+  imports: [TypeOrmModule.forFeature([UserEntity, AdminEntity, HolidayEntity, MealStatsEntity])],
   providers: [GlobalUserRepository, GlobalHolidayRepository, GlobalMealRepository],
   exports: [GlobalUserRepository, GlobalHolidayRepository, GlobalMealRepository],
 })

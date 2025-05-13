@@ -3,7 +3,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { LeaveRepository } from './repository/leave.repository';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum, UserGradeEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo, LeaveSummary, LeaveUsageStats } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
@@ -52,60 +52,6 @@ export class LeaveService {
     const nowYear: number = moment().utcOffset(9).year();
     const nowMonth: number = moment().utcOffset(9).month() + 1;
 
-    /** CEO이면, 아무 조건 없이 휴가 등록 및 자동승인 **/
-    if (user.gradeName === UserGradeEnum.CEO) {
-      for (const leave of leaveInfo) {
-        const commuteDate: string = leave.commuteDate;
-        const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
-        if (!dateStringFormat.test(commuteDate)) {
-          throw new BadRequestException('commuteDate는 0000-00-00 날짜 형식으로 입력해주세요');
-        }
-        const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
-        if (!Object.values(IntranetLeaveTypeIdxEnum).includes(leaveTypeIdx)) {
-          throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
-        }
-
-        /* 휴가등록 */
-        let commuteIdx: number;
-        const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
-        // 당일에 등록할 경우
-        if (commuteDate === today) {
-          commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, commuteDate);
-          await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx);
-        } else {
-          commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note);
-        }
-
-        if (leaveImage) {
-          const env: string = this.configService.get<string>('NODE_ENV');
-          const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
-          // 1. S3에 저장
-          const { buffer, mimetype } = leaveImage;
-          const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
-          const fileName: string = mimetype === 'application/pdf' ? 'proof.pdf' : `proof.${mimetype.split('/')[1]}`;
-          const uploadS3FilePath: string = `${rootDir}/LEAVE/${commuteIdx}/${fileName}`;
-          const imageUrl: string = await this.awsService.uploadImageToS3(
-            bucketName,
-            uploadS3FilePath,
-            buffer,
-            mimetype,
-          );
-          const imageInfo: LeaveImageInfo = {
-            imageName: fileName,
-            imageSize: leaveImage.size,
-            imageUrl,
-          };
-          // 2. DB에 저장
-          await this.leaveRepository.createLeaveImage(commuteIdx, imageInfo);
-        }
-        // 3. 자동승인
-        await this.leaveRepository.autoApprove(commuteIdx, userIdx);
-      }
-
-      return;
-    }
-
-    /** CEO 제외한 사용자의 휴가 등록 **/
     // 연차 잔여 개수 조회
     const { totalAnnualLeaveBalance } = await this.leaveRepository.getAnnualLeaveSummary(userIdx, nowYear.toString());
     // 등록하려는 휴가 누적 차감단위
@@ -342,7 +288,7 @@ export class LeaveService {
 
     // 총 특별휴무 수, 총 대체휴무 수 추가 (요구사항)
     leaveUsageStats.totalReceivedSpecialLeave = leaveStats.totalReceivedSpecialLeave;
-    leaveUsageStats.totalReceivedSpecialLeave = leaveStats.totalReceivedSpecialLeave;
+    leaveUsageStats.totalReceivedAlternativeLeave = leaveStats.totalReceivedAlternativeLeave;
 
     // 휴가 종류별 사용현황 조회
     const leaveUsageInfo = await this.leaveRepository.getUserLeaveUsageInfo(year, userIdx);

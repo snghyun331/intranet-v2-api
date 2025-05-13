@@ -3,6 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment';
 import { AES, enc } from 'crypto-js';
 import { ConfirmEnum, HalfYearEnum, LeaveGrantTypeEnum } from '@common/constant/enum';
+import {
+  AM_QUARTER_REST_LISTS,
+  AM_REST_LISTS,
+  HALF_LEAVE_WORKING_MINUTES,
+  NORMAL_WORKING_MINUTES,
+  PM_QUARTER_REST_LISTS,
+  PM_REST_LISTS,
+  QUARTER_LEAVE_WORKING_MINUTES,
+} from '../constant/constant';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (dateString: string): string => {
@@ -248,4 +257,39 @@ export const getDaysBetwweenTwoDates = (startDate: string, endDate: string): num
   const days: number = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
   return days;
+};
+
+export const addMinutes = (date: Date, minutes: number): Date => {
+  const result: Date = new Date(date);
+  result.setMinutes(result.getMinutes() + minutes);
+
+  return result;
+};
+
+export const calculateAvailCheckOutTime = (
+  checkInTime: Date | null,
+  leaveTypeIdx: number | null,
+  confirmYN: ConfirmEnum | null,
+): Date => {
+  let standardWorkingMinutes: number;
+  let availCheckOutTime: Date | null;
+  if (checkInTime === null || leaveTypeIdx === null) {
+    availCheckOutTime = null;
+  } else {
+    if (confirmYN === ConfirmEnum.NO || confirmYN === ConfirmEnum.REJECT) {
+      standardWorkingMinutes = NORMAL_WORKING_MINUTES;
+    } else {
+      if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
+        standardWorkingMinutes = HALF_LEAVE_WORKING_MINUTES;
+      } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
+        standardWorkingMinutes = QUARTER_LEAVE_WORKING_MINUTES;
+      } else {
+        standardWorkingMinutes = NORMAL_WORKING_MINUTES;
+      }
+    }
+
+    availCheckOutTime = addMinutes(checkInTime, standardWorkingMinutes);
+  }
+
+  return availCheckOutTime;
 };

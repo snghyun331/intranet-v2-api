@@ -6,16 +6,29 @@ import { UserGradeIdxEnum, YNEnum } from '@common/constant/enum';
 import { HeadquarterEntity } from '@entity/user/headquarter.entity';
 import { TeamEntity } from '@entity/user/team.entity';
 import { GradeEntity } from '@entity/user/grade.entity';
+import { AdminEntity } from '../../../entity/admin/admin.entity';
 
 @Injectable()
 export class GlobalUserRepository {
-  constructor(@InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>) {}
+  constructor(
+    @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
+    @InjectRepository(AdminEntity) private readonly adminModel: Repository<AdminEntity>,
+  ) {}
 
   async getUserCountByIdx(userIdx: number): Promise<number> {
     const userCnt: number = await this.userModel
       .createQueryBuilder('userEntity')
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .getCount();
+
+    return userCnt;
+  }
+
+  async getAdminCountByIdx(adminIdx: number): Promise<number> {
+    const userCnt: number = await this.adminModel
+      .createQueryBuilder('adminEntity')
+      .where('adminEntity.adminIdx = :adminIdx', { adminIdx })
       .getCount();
 
     return userCnt;
