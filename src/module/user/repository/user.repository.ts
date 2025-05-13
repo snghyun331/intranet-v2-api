@@ -7,7 +7,7 @@ import { TeamEntity } from '@entity/user/team.entity';
 import { GradeEntity } from '@entity/user/grade.entity';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminUserFilterDto } from '@user/dto/query.dto';
-import { encryptPassword, removeAllWhiteSpace } from '@common/utils/utility';
+import { calculateAvailCheckOutTime, encryptPassword, removeAllWhiteSpace } from '@common/utils/utility';
 import { CreateUserDto } from '@user/dto/createUser.dto';
 import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
 import { AdminEntity } from '@entity/admin/admin.entity';
@@ -96,14 +96,20 @@ export class UserRepository {
         'commuteEntity.attendance AS attendance',
         'commuteEntity.workingMinutes AS workingMinutes',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.confirmYN AS confirmYN',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .getRawOne();
 
+    const checkInTime = commuteInfo?.checkInTime ?? null;
+    const leaveTypeIdx = commuteInfo?.leaveTypeIdx ?? null;
+    const confirmYN = commuteInfo?.confirmYN ?? null;
+    const availCheckOutTime = checkInTime ? calculateAvailCheckOutTime(checkInTime, leaveTypeIdx, confirmYN) : null;
     const result = {
       ...queryResult,
-      checkInTime: commuteInfo?.checkInTime ?? null,
+      checkInTime,
+      availCheckOutTime,
       attendance: commuteInfo?.attendance ?? null,
       workingMinutes: commuteInfo?.workingMinutes ?? null,
       leaveTypeIdx: commuteInfo?.leaveTypeIdx ?? null,

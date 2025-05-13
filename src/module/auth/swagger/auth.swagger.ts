@@ -173,3 +173,25 @@ export const LOGIN_ADMIN: SwaggerMethod = {
     API_UNAUTHORIZED_RESPONSE: {},
   },
 };
+
+export const LOGOUT_ADMIN: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 로그아웃 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: '로그아웃 성공',
+            data: {
+              adminIdx: 1,
+            },
+          },
+        },
+      },
+      description: '토큰 만료 시에도 로그아웃 가능',
+    },
+  },
+};

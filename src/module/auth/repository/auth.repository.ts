@@ -60,6 +60,15 @@ export class AuthRepository {
       .execute();
   }
 
+  async deleteAdminToken(adminIdx: number): Promise<UpdateResult> {
+    return await this.userModel
+      .createQueryBuilder()
+      .update(AdminEntity)
+      .set({ loginToken: null })
+      .where('adminIdx = :adminIdx', { adminIdx })
+      .execute();
+  }
+
   async getAdminPersonal(id: string): Promise<Admin> {
     const result: Admin = await this.adminModel
       .createQueryBuilder('adminEntity')
