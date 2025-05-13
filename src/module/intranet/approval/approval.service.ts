@@ -75,6 +75,8 @@ export class ApprovalService {
 
       // 식대 해당 월 timeoffDays 업데이트
       await this.mealRepository.updateMealTimeOffDays(year, month, userIdx);
+      // timeoffDays업데이트에 따른 식대 사용가능금액 업데이트
+      await this.mealRepository.updateMealBudget(year.toString(), month.toString());
     }
 
     /* 승인이었다가 반려될 경우 */
