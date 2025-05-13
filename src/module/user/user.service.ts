@@ -16,7 +16,6 @@ import { NewUserInfo } from '@user/interface/user.interface';
 import { CommuteRepository } from '@intranet/commute/repository/commute.repository';
 import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { UpdateCommentDto } from '@user/dto/updateComment.dto';
-import { NewMealStats } from '../scheduler/interface/mealStats.interface';
 
 @Injectable()
 export class UserService {
