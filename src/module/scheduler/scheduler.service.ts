@@ -18,6 +18,7 @@ import { Transactional } from 'typeorm-transactional';
 import * as moment from 'moment';
 import { LeaveGrantTypeEnum } from '@common/constant/enum';
 import { NewLeaveStats } from './interface/leaveStats.interface';
+import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repository';
 
 @Injectable()
 export class SchedulerService {
@@ -26,6 +27,7 @@ export class SchedulerService {
     private readonly logger: LoggerService,
     private readonly httpService: HttpService,
     private readonly schedulerRepository: SchedulerRepository,
+    private readonly holidayRepository: GlobalHolidayRepository,
     public readonly configService: ConfigService,
   ) {}
 
@@ -127,10 +129,19 @@ export class SchedulerService {
     return weekendInfoList;
   }
 
-  /* 매일 자정마다 당일 전직원 근태 내역 저장 */
+  /* 매일 자정마다 당일 전직원 근태 내역 생성 */
   @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_1AM)
   @Transactional()
   async insertAllCommutesForToday() {
+    /* 공휴일, 휴일에는 생성 제외 */
+    const today = moment().utcOffset(9);
+    const currentYear: string = today.year().toString();
+    const currentMonth: string = (today.month() + 1).toString();
+    const monthHolidays: string[] = await this.holidayRepository.getHolidayDates(currentYear, currentMonth);
+    if (monthHolidays.includes(today.format('YYYY-MM-DD'))) {
+      return;
+    }
+
     this.logger.log(`🚀 오늘의 출근 정보 자동 등록을 시작합니다. (현재시간: ${moment().utcOffset(9)}) !`);
 
     await this.schedulerRepository.insertCommutesForToday();

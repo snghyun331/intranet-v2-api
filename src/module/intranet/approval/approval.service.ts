@@ -75,6 +75,8 @@ export class ApprovalService {
 
       // 식대 해당 월 timeoffDays 업데이트
       await this.mealRepository.updateMealTimeOffDays(year, month, userIdx);
+      // timeoffDays업데이트에 따른 식대 사용가능금액 업데이트
+      await this.mealRepository.updateMealBudget(year.toString(), month.toString());
     }
 
     /* 승인이었다가 반려될 경우 */
@@ -92,18 +94,23 @@ export class ApprovalService {
       // 해당 연도 사용개수
       await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx);
 
-      // 연도별 연차 총 사용량 업데이트
+      // 해당 연도 연차 총 사용량 업데이트
       if (ANNUAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
         await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx);
       }
-      // 연도별 특별휴무 총 사용량 업데이트
+      // 해당 연도 특별휴무 총 사용량 업데이트
       if (SPECIAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
         await this.approvalRepository.updateTotalSpecialLeaveUsage(year, userIdx);
       }
-      // 연도별 대체휴무 총 사용량 업데이트
+      // 해당 연도 대체휴무 총 사용량 업데이트
       if (ALTERNATIVE_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
         await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx);
       }
+
+      // 식대 해당 월 timeoffDays 업데이트
+      await this.mealRepository.updateMealTimeOffDays(year, month, userIdx);
+      // timeoffDays업데이트에 따른 식대 사용가능금액 업데이트
+      await this.mealRepository.updateMealBudget(year.toString(), month.toString());
     }
   }
 

@@ -3,8 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, InsertResult, Repository, UpdateResult } from 'typeorm';
 import { HolidayEntity } from '@entity/scheduler/holiday.entity';
 import { UserEntity } from '@entity/user/user.entity';
-import { MealStatsEntity } from '@entity/meal/mealStats.entity';
-import { WelfareStatsEntity } from '@entity/welfare/welfareStats.entity';
 import { HolidayInfo } from '@scheduler/interface/holiday.interface';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
@@ -17,8 +15,6 @@ export class SchedulerRepository {
   constructor(
     @InjectRepository(HolidayEntity) private readonly holidayModel: Repository<HolidayEntity>,
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
-    @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
-    @InjectRepository(WelfareStatsEntity) private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
     @InjectRepository(LeaveStatsEntity) private readonly leaveStatsModel: Repository<LeaveStatsEntity>,
     @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
     @InjectRepository(LeaveMonthlyUsageEntity)

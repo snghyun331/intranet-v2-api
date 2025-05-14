@@ -5,7 +5,6 @@ import { MealEntity } from '@entity/meal/meal.entity';
 import { MealStatsEntity } from '@entity/meal/mealStats.entity';
 import { UserEntity } from '@entity/user/user.entity';
 import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
-import { HolidayEntity } from '@entity/scheduler/holiday.entity';
 import { ClearStatusEnum, MealTypeEnum, YNEnum } from '@common/constant/enum';
 import { DetailedMealData, MealStats } from '../interface/meal.interface';
 import { GradeEntity } from '@entity/user/grade.entity';
@@ -25,7 +24,6 @@ export class MealRepository {
     @InjectRepository(MealEntity) private readonly mealModel: Repository<MealEntity>,
     @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
     @InjectRepository(MealBaseEntity) private readonly mealBaseModel: Repository<MealBaseEntity>,
-    @InjectRepository(HolidayEntity) private readonly holidayModel: Repository<HolidayEntity>,
   ) {}
 
   async getMyMealCalender(year: string, month: string, userIdx: number) {
@@ -101,28 +99,6 @@ export class MealRepository {
       .into(MealEntity)
       .values({ userIdx, targetDay, mealType, amount: Number(newMealInfo.amount), ...newMealInfo })
       .execute();
-  }
-
-  async getMonthHolidays(year: string, month: string): Promise<string[]> {
-    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
-    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
-    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
-    const result: HolidayEntity[] = await this.holidayModel
-      .createQueryBuilder('holidayEntity')
-      .select([
-        'holidayEntity.holidayIdx AS holidayIdx',
-        'holidayEntity.holidayDate AS holidayDate',
-        'holidayEntity.holidayName AS holidayName',
-      ])
-      .where('holidayEntity.holidayDate BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
-      .getRawMany();
-
-    const monthHolidays: string[] = result.map((r) => r.holidayDate);
-
-    return monthHolidays;
   }
 
   async getMyTotalMealExpense(year: string, month: string, userIdx: number): Promise<number> {

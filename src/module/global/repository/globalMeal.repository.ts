@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { getStartAndEndDateByMonth } from '@common/utils/utility';
 import { ConfirmEnum } from '@common/constant/enum';
 import { MealStatsEntity } from '@entity/meal/mealStats.entity';
-import { InsertResult, Repository, UpdateResult } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -31,6 +31,21 @@ export class GlobalMealRepository {
       })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .execute();
+  }
+
+  async updateMealBudget(year: string, month: string) {
+    const query = `
+        (workdays + holiday_workdays - time_off_days) * 
+        (SELECT base_amount FROM meal_base WHERE meal_base.year = :year AND meal_base.month = :month)
+    `;
+
+    return await this.mealStatsModel
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ mealBudget: () => query })
+      .where('year = :year', { year })
       .andWhere('month = :month', { month })
       .execute();
   }
