@@ -206,14 +206,15 @@ export class SchedulerService {
    * 근속년수 딱 1년(입사 1주년) 직원: 총 연차일 업데이트 (지금까지의 총 연차 잔여개수 + (전년도 재직일수/365) * 15의 올림값)
    * 기준일은 today(오늘)
    */
-  // @Cron(CronExpression.EVERY_DAY_AT_1AM)
-  // @Cron('0 08 16 * * * ')
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   @Transactional()
   async insertExtraReceivedAnnualLeaveForMidJoiner() {
     const today: moment.Moment = moment().utcOffset(9);
     const currentYear: number = today.year();
     const currentYearString: string = currentYear.toString();
     const users = await this.schedulerRepository.getAllUserWithLessThanOneYear(today.format('YYYY-MM-DD'));
+    if (users.length === 0) return;
+
     for (const user of users) {
       const { userIdx, userName, joinDate } = user;
       this.logger.log(`🚀 중도입사자 ${userName}에 대한 월/연차 업데이트를 시작합니다.(현재시간: ${today}) !`);
@@ -249,5 +250,7 @@ export class SchedulerService {
         await this.schedulerRepository.updateLeaveStatsInfo(userIdx, currentYearString, updateLeaveStats);
       }
     }
+
+    this.logger.log('🏁 월/연차 업데이트를 모두 마칩니다. !');
   }
 }
