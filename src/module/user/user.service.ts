@@ -191,6 +191,8 @@ export class UserService {
       await this.redisSearchService.addUserInRedis(userIdx, updateInfo.userName);
     }
 
+    /* 입사일이 바뀌었다면, */
+
     /* 어드민 정보 수정 */
     // 어드민 N → Y인 경우,
     if (result.adminRole === YNEnum.NO && updateInfo.adminRole === YNEnum.YES) {
