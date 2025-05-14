@@ -21,6 +21,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { ResponseInterface } from '@common/interface/response.interface';
@@ -34,6 +35,7 @@ import {
   USERS_INTRANET_CHECK_IN,
   USERS_INTRANET_CHECK_OUT,
   USERS_INTRANET_COMMUTE_WORK_HOURS,
+  USERS_INTRANET_HOLIDAY,
 } from './swagger/commute.swagger';
 import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '@common/decorator/role.decorator';
@@ -127,6 +129,19 @@ export class UserCommuteController {
     @CurrentUserIdx() userIdx: number,
   ) {
     const data = await this.commuteService.getUserWeelyWorkHours(userIdx, year, month);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_HOLIDAY.GET.API_OPERATION)
+  @ApiQuery(USERS_INTRANET_HOLIDAY.GET.API_QUERY1)
+  @ApiQuery(USERS_INTRANET_HOLIDAY.GET.API_QUERY2)
+  @ApiOkResponse(USERS_INTRANET_HOLIDAY.GET.API_OK_RESPONSE)
+  @Get('holiday')
+  async getHolidayDates(@Query('year') year: string, @Query('month') month: string): Promise<ResponseInterface> {
+    const data = await this.commuteService.getHolidayDates(year, month);
 
     const response: ResponseInterface = { message: 'success', data };
 

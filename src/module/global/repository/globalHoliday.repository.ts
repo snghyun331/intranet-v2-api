@@ -26,7 +26,7 @@ export class GlobalHolidayRepository {
       })
       .getRawMany();
 
-    const holidayDates: string[] = result.map((r) => r.holidayDate);
+    const holidayDates: string[] = [...new Set(result.map((r) => r.holidayDate))];
 
     return holidayDates;
   }
