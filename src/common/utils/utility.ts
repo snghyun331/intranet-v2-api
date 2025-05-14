@@ -200,7 +200,7 @@ export const getNormalEarlyBoundary = (timestamp: Date): Date => {
 
 // 근속년수 계산
 export const getYearsSinceJoin = (joinDateString: string): number => {
-  const now: moment.Moment = moment().utcOffset(9);
+  const now: moment.Moment = moment('2025-01-01').utcOffset(9);
   const joinDate = moment(joinDateString).utcOffset(9);
   const yearsSinceJoin: number = now.diff(joinDate, 'years');
 
@@ -213,6 +213,23 @@ export const getOneYearAfterJoin = (joinDateString: string): string => {
   const oneYearAfterJoin: string = joinDate.add(1, 'years').subtract(1, 'days').format('YYYY-MM-DD');
 
   return oneYearAfterJoin;
+};
+
+export const calculateExtraAnnualLeave = (joinDateString: string): number => {
+  const joinDate: moment.Moment = moment(joinDateString).utcOffset(9);
+
+  // 올해 말 기준 근속년수 계산 (당일 기준 근속년수 계산은 getYearsSinceJoin함수)
+  const endOfYear = moment().utcOffset(9).endOf('year');
+  const yearsSinceJoinUntilEndOfYear: number = endOfYear.diff(joinDate, 'years', true); // 소수점 포함
+
+  if (yearsSinceJoinUntilEndOfYear < 3) {
+    return 0;
+  }
+
+  // 3년차부터 2년마다 연차 1씩 증가
+  const extraAnnualLeave: number = Math.floor((yearsSinceJoinUntilEndOfYear - 1) / 2);
+
+  return extraAnnualLeave;
 };
 
 export const addConfirmStatusField = (confirmYN: ConfirmEnum, confirmDate: string, rejectDate: string): string => {
@@ -236,14 +253,15 @@ export const removeDuplicateIdxs = (array: any[], originalArray: any[]): any[] =
  * - 오늘이 매월 입사일과 같은 날이면: MONTHLY
  * - 위 둘 모두 해당하지 않으면: NONE
  */
-export const getTodayLeaveGrantType = (joinDateString: string): LeaveGrantTypeEnum => {
-  const today = moment().utcOffset(9);
+export const getTodayLeaveGrantType = (joinDateString: string, today: moment.Moment): LeaveGrantTypeEnum => {
   const joinDate = moment(joinDateString).utcOffset(9);
   const joinOneYearLater = joinDate.clone().add(1, 'year').format('YYYY-MM-DD');
 
+  // 입사 1주년에 해당하면
   if (today.format('YYYY-MM-DD') === joinOneYearLater) {
     return LeaveGrantTypeEnum.ANNUAL;
   }
+  // 월차에 해당하면
   if (today.date() === joinDate.date()) {
     return LeaveGrantTypeEnum.MONTHLY;
   }
