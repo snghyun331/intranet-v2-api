@@ -5,11 +5,10 @@ import { AdminMealController, UserMealController } from './meal.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MealEntity } from '@entity/meal/meal.entity';
 import { MealStatsEntity } from '@entity/meal/mealStats.entity';
-import { HolidayEntity } from '@entity/scheduler/holiday.entity';
 import { MealBaseEntity } from '@entity/meal/mealBase.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MealEntity, MealStatsEntity, MealBaseEntity, HolidayEntity])],
+  imports: [TypeOrmModule.forFeature([MealEntity, MealStatsEntity, MealBaseEntity])],
   providers: [MealService, MealRepository],
   controllers: [UserMealController, AdminMealController],
 })

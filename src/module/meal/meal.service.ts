@@ -91,7 +91,7 @@ export class MealService {
     }
 
     // 근무&휴일 (휴일근무)일 때 처리
-    const monthHolidays: string[] = await this.mealRepository.getMonthHolidays(year, month);
+    const monthHolidays: string[] = await this.holidayRepository.getHolidayDates(year, month);
     if (monthHolidays.includes(newMealInfo.targetDay)) {
       newMealInfo.holidayYN = YNEnum.YES;
     }
