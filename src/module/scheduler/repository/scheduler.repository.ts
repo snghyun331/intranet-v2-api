@@ -32,11 +32,11 @@ export class SchedulerRepository {
     return result;
   }
 
-  async getAllUserWithLessThanOneYear(): Promise<UserEntity[]> {
+  async getAllUserWithLessThanOneYear(today: string): Promise<UserEntity[]> {
     const result = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userIdx AS userIdx', 'userEntity.userName AS userName', 'userEntity.joinDate AS joinDate'])
-      .where('DATEDIFF(CURDATE(), userEntity.joinDate) <= 365')
+      .where('DATEDIFF(:today, userEntity.joinDate) <= 365', { today })
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawMany();
 

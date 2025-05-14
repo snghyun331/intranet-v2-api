@@ -5,6 +5,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { AxiosResponse } from 'axios';
 import { NUM_OF_ROWS, PAGE_NO } from '@common/constant/constant';
 import {
+  calculateExtraAnnualLeave,
   getDateFormYYYYMMDD,
   getDaysBetwweenTwoDates,
   getTodayLeaveGrantType,
@@ -32,7 +33,7 @@ export class SchedulerService {
   ) {}
 
   /* 다음 분기 휴일 정보 수집 및 저장 */
-  @Cron('0 0 25 6,12 *')
+  @Cron('30 0 25 6,12 *')
   @Transactional()
   async insertHoliday() {
     this.logger.log('🚀 다음 분기 휴일 정보 수집을 시작합니다 !');
@@ -130,7 +131,7 @@ export class SchedulerService {
   }
 
   /* 매일 자정마다 당일 전직원 근태 내역 생성 */
-  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_1AM)
+  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_2AM)
   @Transactional()
   async insertAllCommutesForToday() {
     /* 공휴일, 휴일에는 생성 제외 */
@@ -155,7 +156,8 @@ export class SchedulerService {
    * 근속년수 1년차 이상 직원: 기본 15개, 3년차부터 2년마다 1씩 증가 (해당 연도에 근속년수 3년, 5년..이 되는 직원도 모두 1씩 증가)
    * 기준일은 매년 1월 1일
    */
-  @Cron(CronExpression.EVERY_YEAR)
+  // @Cron(CronExpression.EVERY_YEAR)
+  // @Cron('0 08 16 * * * ')
   @Transactional()
   async insertReceivedAnnualLeave() {
     this.logger.log(`🚀 연차 자동 등록을 시작합니다. (현재시간: ${moment().utcOffset(9)}) !`);
@@ -171,10 +173,10 @@ export class SchedulerService {
       const yearsSinceJoin: number = getYearsSinceJoin(joinDate); // 근속년수
 
       if (yearsSinceJoin < 1) {
-        totalReceivedAnnualLeave = lastYearStats.totalReceivedAnnualLeave;
-        totalAnnualLeaveUsage = lastYearStats.totalAnnualLeaveUsage;
+        totalReceivedAnnualLeave = lastYearStats.totalAnnualLeaveBalance;
+        totalAnnualLeaveUsage = 0;
       } else {
-        const extraAnnualLeave: number = Math.floor((yearsSinceJoin - 1) / 2); // 3년차부터 2년마다 1씩 증가
+        const extraAnnualLeave = calculateExtraAnnualLeave(joinDate);
         totalReceivedAnnualLeave = 15 + extraAnnualLeave;
         totalAnnualLeaveUsage = 0;
       }
@@ -199,23 +201,25 @@ export class SchedulerService {
 
   /*
    * ✅ 월차 및 총연차일 업데이트 ✅
+   * 입사일자는 1일, 16일로 고정
    * 근속년수 0년차 직원: 매달 월차 1일 자동 부여
    * 근속년수 딱 1년(입사 1주년) 직원: 총 연차일 업데이트 (지금까지의 총 연차 잔여개수 + (전년도 재직일수/365) * 15의 올림값)
    * 기준일은 today(오늘)
    */
-  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   @Transactional()
   async insertExtraReceivedAnnualLeaveForMidJoiner() {
-    const currentYear: number = moment().utcOffset(9).year();
+    const today: moment.Moment = moment().utcOffset(9);
+    const currentYear: number = today.year();
     const currentYearString: string = currentYear.toString();
-    const users = await this.schedulerRepository.getAllUserWithLessThanOneYear();
+    const users = await this.schedulerRepository.getAllUserWithLessThanOneYear(today.format('YYYY-MM-DD'));
+    if (users.length === 0) return;
+
     for (const user of users) {
       const { userIdx, userName, joinDate } = user;
-      this.logger.log(
-        `🚀 중도입사자 ${userName}에 대한 월/연차 업데이트를 시작합니다.(현재시간: ${moment().utcOffset(9)}) !`,
-      );
+      this.logger.log(`🚀 중도입사자 ${userName}에 대한 월/연차 업데이트를 시작합니다.(현재시간: ${today}) !`);
 
-      const leaveGrantType: LeaveGrantTypeEnum = getTodayLeaveGrantType(joinDate);
+      const leaveGrantType: LeaveGrantTypeEnum = getTodayLeaveGrantType(joinDate, today);
 
       // 입사 1주년 직원의 경우,
       if (leaveGrantType === LeaveGrantTypeEnum.ANNUAL) {
@@ -246,5 +250,7 @@ export class SchedulerService {
         await this.schedulerRepository.updateLeaveStatsInfo(userIdx, currentYearString, updateLeaveStats);
       }
     }
+
+    this.logger.log('🏁 월/연차 업데이트를 모두 마칩니다. !');
   }
 }
