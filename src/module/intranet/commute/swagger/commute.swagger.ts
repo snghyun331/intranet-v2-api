@@ -431,3 +431,44 @@ export const ADMIN_INTRANET_COMMUTE_NOTE: SwaggerMethod = {
     },
   },
 };
+
+export const USERS_INTRANET_HOLIDAY: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '월별 주말 및 공휴일 날짜 조회 API',
+    },
+    API_QUERY1: {
+      type: String,
+      name: 'year',
+      required: true,
+    },
+    API_QUERY2: {
+      type: String,
+      name: 'month',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: [
+              '2025-05-05',
+              '2025-05-06',
+              '2025-05-03',
+              '2025-05-04',
+              '2025-05-10',
+              '2025-05-11',
+              '2025-05-17',
+              '2025-05-25',
+              '2025-05-18',
+              '2025-05-24',
+              '2025-05-31',
+            ],
+          },
+        },
+      },
+    },
+  },
+};
