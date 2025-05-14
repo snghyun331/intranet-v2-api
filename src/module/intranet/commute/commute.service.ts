@@ -32,12 +32,14 @@ import { UpdateNoteDto } from './dto/updateNote.dto';
 import { Transactional } from 'typeorm-transactional';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from './interface';
 import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
+import { GlobalHolidayRepository } from '../../global/repository/globalHoliday.repository';
 
 @Injectable()
 export class CommuteService {
   constructor(
     private readonly commuteRepository: CommuteRepository,
     private readonly userRepository: GlobalUserRepository,
+    private readonly holidayRepository: GlobalHolidayRepository,
   ) {}
 
   @Transactional()
@@ -423,5 +425,11 @@ export class CommuteService {
     };
 
     return result;
+  }
+
+  async getHolidayDates(year: string, month: string) {
+    const data = await this.holidayRepository.getHolidayDates(year, month);
+
+    return data;
   }
 }
