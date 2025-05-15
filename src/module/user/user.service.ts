@@ -144,8 +144,8 @@ export class UserService {
     return;
   }
 
-  async checkIdIfAvailable(loginId: string, userIdx: number): Promise<string> {
-    const result: number = await this.userRepository.getLoginIdCountExceptMe(loginId, userIdx);
+  async checkIdIfAvailable(loginId: string): Promise<string> {
+    const result: number = await this.userRepository.getLoginIdCount(loginId);
     if (result >= 1) {
       throw new ConflictException('중복된 ID입니다. 다른 ID를 입력해 주세요.');
     }
@@ -207,10 +207,6 @@ export class UserService {
     if (!result) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
-    console.log('updateInfo');
-    console.log(updateInfo);
-    console.log('result');
-    console.log(result);
 
     /* 유저 정보 수정 */
     const { adminGradeIdx, ...rest } = updateInfo;
