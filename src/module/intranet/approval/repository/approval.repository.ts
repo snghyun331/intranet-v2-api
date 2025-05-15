@@ -214,17 +214,17 @@ export class ApprovalRepository {
     let startDate: string;
     let endDate: string;
 
-    if (filterInfo.month) {
-      const { year, month } = filterInfo;
-      const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
-      startDate = firstDayOfMonth.format('YYYY-MM-DD');
-      endDate = lastDayOfMonth.format('YYYY-MM-DD');
-    } else {
-      const { year } = filterInfo;
-      const { firstDayOfYear, lastDayOfYear } = getStartAndEndDateByYear(year);
-      startDate = firstDayOfYear;
-      endDate = lastDayOfYear;
-    }
+    // if (filterInfo.month) {
+    //   const { year, month } = filterInfo;
+    //   const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    //   startDate = firstDayOfMonth.format('YYYY-MM-DD');
+    //   endDate = lastDayOfMonth.format('YYYY-MM-DD');
+    // } else {
+    //   const { year } = filterInfo;
+    //   const { firstDayOfYear, lastDayOfYear } = getStartAndEndDateByYear(year);
+    //   startDate = firstDayOfYear;
+    //   endDate = lastDayOfYear;
+    // }
 
     const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
       .createQueryBuilder('commuteEntity')
@@ -262,7 +262,7 @@ export class ApprovalRepository {
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
       .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
-      .where('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .where('YEAR(commuteEntity.commuteDate) = :year', { year: filterInfo.year })
       .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
       .andWhere(
         new Brackets((qb) => {
@@ -282,6 +282,10 @@ export class ApprovalRepository {
 
     if (filterInfo.userIdx) {
       query.andWhere('commuteEntity.userIdx = :userIdx', { userIdx: filterInfo.userIdx });
+    }
+
+    if (filterInfo.month) {
+      query.andWhere('MONTH(commuteEntity.commuteDate) IN (:...month)', { month: filterInfo.month });
     }
 
     query

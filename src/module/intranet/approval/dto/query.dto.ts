@@ -8,10 +8,10 @@ export class UserApprovalFilter {
   @IsString()
   year: string;
 
-  @ApiProperty({ type: String, description: '검색월', required: false })
+  @ApiProperty({ name: 'month', required: false, description: '검색월(개별 및 복수)', type: String })
   @IsOptional()
-  @IsString()
-  month?: string;
+  @Transform(({ value }) => decodeURIComponent(value).split(',')) // 쉼표로 구분된 문자열을 배열로 변환
+  month?: string[];
 
   @ApiProperty({ type: Number, description: '대상자 IDX', required: false })
   @IsOptional()
