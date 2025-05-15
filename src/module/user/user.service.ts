@@ -6,7 +6,7 @@ import { AdminUserFilterDto } from '@user/dto/query.dto';
 import { CreateUserDto } from '@user/dto/createUser.dto';
 import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
 import { UpdatePasswordDto } from '@user/dto/updateMyPw.dto';
-import { decryptPassword, encryptPassword } from '@common/utils/utility';
+import { decryptPassword, encryptPassword, getDaysInMonth, substringYearMonth } from '@common/utils/utility';
 import { HalfYearEnum, YNEnum } from '@common/constant/enum';
 import { UpdateUserDto } from '@user/dto/updateUser.dto';
 import { RedisSearchService } from '@redis/redisSearch.service';
@@ -18,6 +18,7 @@ import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { UpdateCommentDto } from '@user/dto/updateComment.dto';
 import { NewMealStats } from '../scheduler/interface/mealStats.interface';
 import { NewWelfareMonthStats, NewWelfareStats } from '../welfare/interface';
+import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repository';
 
 @Injectable()
 export class UserService {
@@ -26,6 +27,7 @@ export class UserService {
     private readonly globalUserRepository: GlobalUserRepository,
     private readonly commuteRepository: CommuteRepository,
     private readonly redisSearchService: RedisSearchService,
+    private readonly holidayRepository: GlobalHolidayRepository,
   ) {}
 
   async getAllUserIdxInfo() {
@@ -97,19 +99,7 @@ export class UserService {
     await this.userRepository.createLeaveMonthlyUsageInfo(userIdx, currentYear);
 
     /* mealStats 엔티티에 데이터(당월) 추가 (이미 존재하면, pass)*/
-    // 해당 월의 다른 유저 mealStats 데이터 하나만 가져오기
-    const anotherUserMealStats = await this.userRepository.getAnotherUserMealStats(currentYear, currentMonth);
-    if (anotherUserMealStats) {
-      const newMealStats: NewMealStats = {
-        year: currentYear,
-        month: currentMonth,
-        workdays: anotherUserMealStats.workdays,
-        userIdx,
-        holidays: anotherUserMealStats.holidays,
-      };
-
-      await this.userRepository.createMealStats(newMealStats);
-    }
+    await this.createMealStats(userInfo, userIdx);
 
     /* welfareStats 엔티티에 데이터 추가 (이미 존재하면, pass) */
     const halfYear: HalfYearEnum = Number(currentMonth) >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
@@ -142,6 +132,109 @@ export class UserService {
     await this.redisSearchService.addUserInRedis(userIdx, userInfo.userName);
 
     return;
+  }
+
+  private async createMealStats(userInfo, userIdx) {
+    const today = moment().utcOffset(9);
+    const joinDate = moment(userInfo.joinDate).utcOffset(9);
+
+    // 현재 월과 입사월 정보
+    const isSameMonth = today.isSame(joinDate, 'month');
+    const isAfterJoinMonth = today.isAfter(joinDate, 'month');
+    const isBeforeJoinMonth = today.isBefore(joinDate, 'month');
+
+    if (isSameMonth) {
+      // 입사월과 현재월이 같을 때 → 당월만 계산
+      const year = today.year();
+      const month = today.month() + 1; // 0-based
+      const totalDays = getDaysInMonth(year.toString(), month.toString());
+      const joinDay = joinDate.date();
+      const holidays = await this.getHolidaysInRange(year, month, joinDay);
+      const workdays = totalDays - (joinDay - 1) - holidays;
+
+      const newMealStats: NewMealStats = {
+        year: year.toString(),
+        month: month.toString(),
+        workdays,
+        userIdx,
+        holidays,
+      };
+
+      await this.userRepository.createMealStats(newMealStats);
+      await this.userRepository.updateMealBudget(userIdx, year.toString(), month.toString());
+    } else if (isAfterJoinMonth) {
+      // 입사월부터 현재월까지 순회
+      const current = joinDate.clone().startOf('month');
+      const end = today.clone().startOf('month');
+
+      while (current.isSameOrBefore(end, 'month')) {
+        const year = current.year();
+        const month = current.month() + 1;
+        const totalDays = getDaysInMonth(year.toString(), month.toString());
+
+        let workdays = 0;
+        let holidays: number;
+        if (current.isSame(joinDate, 'month')) {
+          const joinDay = joinDate.date();
+          holidays = await this.getHolidaysInRange(year, month, joinDay);
+          workdays = totalDays - (joinDay - 1) - holidays;
+        } else {
+          const holidayDates: string[] = await this.holidayRepository.getHolidayDates(
+            year.toString(),
+            month.toString(),
+          );
+          holidays = holidayDates.length;
+          workdays = totalDays - holidays;
+        }
+        const newMealStats: NewMealStats = {
+          year: year.toString(),
+          month: month.toString(),
+          workdays,
+          userIdx,
+          holidays,
+        };
+
+        await this.userRepository.createMealStats(newMealStats);
+        await this.userRepository.updateMealBudget(userIdx, year.toString(), month.toString());
+
+        current.add(1, 'month');
+      }
+    } else if (isBeforeJoinMonth) {
+      const year = joinDate.year();
+      const month = joinDate.month() + 1;
+      const totalDays = getDaysInMonth(year.toString(), month.toString());
+      const joinDay = joinDate.date();
+      const holidays = await this.getHolidaysInRange(year, month, joinDay);
+      const workdays = totalDays - (joinDay - 1) - holidays;
+
+      const newMealStats: NewMealStats = {
+        year: year.toString(),
+        month: month.toString(),
+        workdays,
+        userIdx,
+        holidays,
+      };
+
+      await this.userRepository.createMealStats(newMealStats);
+      await this.userRepository.updateMealBudget(userIdx, year.toString(), month.toString());
+    }
+  }
+
+  private async getHolidaysInRange(year: number, month: number, startDay: number): Promise<number> {
+    const monthStr = month.toString().padStart(2, '0');
+    console.log('monthStr', monthStr);
+    const holidayDates: string[] = await this.holidayRepository.getHolidayDates(year.toString(), monthStr);
+
+    const startDate = moment(`${year}-${monthStr}-${startDay}`, 'YYYY-MM-DD');
+    const endDate = moment(`${year}-${monthStr}`, 'YYYY-MM').endOf('month');
+
+    const filteredHolidays = holidayDates.filter((dateStr) => {
+      const date = moment(dateStr, 'YYYY-MM-DD');
+      return date.isSameOrAfter(startDate) && date.isSameOrBefore(endDate);
+    });
+    console.log(filteredHolidays);
+
+    return filteredHolidays.length;
   }
 
   async checkIdIfAvailable(loginId: string): Promise<string> {
