@@ -603,4 +603,13 @@ export class MealRepository {
       .andWhere('month = :month', { month })
       .execute();
   }
+
+  async updateUserMealBudget(mealStatsIdx: number, mealBudget: number): Promise<UpdateResult> {
+    return await this.mealStatsModel
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ mealBudget })
+      .where('mealStatsIdx = :mealStatsIdx', { mealStatsIdx })
+      .execute();
+  }
 }
