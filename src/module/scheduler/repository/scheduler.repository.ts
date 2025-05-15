@@ -9,6 +9,9 @@ import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
 import { NewLeaveStats } from '@scheduler/interface/leaveStats.interface';
 import { YNEnum } from '../../../common/constant/enum';
+import { NewActivityMonthStats, NewActivityStats } from '../../activity/interface';
+import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
+import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
 
 @Injectable()
 export class SchedulerRepository {
@@ -20,6 +23,10 @@ export class SchedulerRepository {
     @InjectRepository(LeaveMonthlyUsageEntity)
     private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
     private readonly dataSource: DataSource,
+    @InjectRepository(ActivityMonthlyStatsEntity)
+    private readonly activityMonthStatsModel: Repository<ActivityMonthlyStatsEntity>,
+    @InjectRepository(ActivityStatsEntity)
+    private readonly activityStatsModel: Repository<ActivityStatsEntity>,
   ) {}
 
   async getAllUsersInfo(): Promise<UserEntity[]> {
@@ -133,5 +140,23 @@ export class SchedulerRepository {
           .execute();
       }
     }
+  }
+
+  async createActivityMonthStats(monthStatsInfo: NewActivityMonthStats): Promise<InsertResult> {
+    return await this.activityMonthStatsModel
+      .createQueryBuilder()
+      .insert()
+      .into(ActivityMonthlyStatsEntity)
+      .values({ ...monthStatsInfo })
+      .execute();
+  }
+
+  async createActivityStats(statsInfo: NewActivityStats): Promise<InsertResult> {
+    return await this.activityStatsModel
+      .createQueryBuilder()
+      .insert()
+      .into(ActivityStatsEntity)
+      .values(statsInfo)
+      .execute();
   }
 }

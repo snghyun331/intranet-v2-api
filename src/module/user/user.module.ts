@@ -17,6 +17,9 @@ import { CommuteRepository } from '@intranet/commute/repository/commute.reposito
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
+import { MealStatsEntity } from '../../entity/meal/mealStats.entity';
+import { WelfareStatsEntity } from '../../entity/welfare/welfareStats.entity';
+import { WelfareMonthlyStatsEntity } from '../../entity/welfare/welfareMonthlyStats.entity';
 
 @Module({
   imports: [
@@ -30,6 +33,9 @@ import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsag
       LeaveStatsEntity,
       LeaveUsageEntity,
       LeaveMonthlyUsageEntity,
+      MealStatsEntity,
+      WelfareStatsEntity,
+      WelfareMonthlyStatsEntity,
     ]),
     RedisModule,
   ],

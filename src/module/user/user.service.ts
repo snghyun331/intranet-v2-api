@@ -7,7 +7,7 @@ import { CreateUserDto } from '@user/dto/createUser.dto';
 import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
 import { UpdatePasswordDto } from '@user/dto/updateMyPw.dto';
 import { decryptPassword, encryptPassword } from '@common/utils/utility';
-import { YNEnum } from '@common/constant/enum';
+import { HalfYearEnum, YNEnum } from '@common/constant/enum';
 import { UpdateUserDto } from '@user/dto/updateUser.dto';
 import { RedisSearchService } from '@redis/redisSearch.service';
 import { Transactional } from 'typeorm-transactional';
@@ -16,6 +16,8 @@ import { NewUserInfo } from '@user/interface/user.interface';
 import { CommuteRepository } from '@intranet/commute/repository/commute.repository';
 import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { UpdateCommentDto } from '@user/dto/updateComment.dto';
+import { NewMealStats } from '../scheduler/interface/mealStats.interface';
+import { NewWelfareMonthStats, NewWelfareStats } from '../welfare/interface';
 
 @Injectable()
 export class UserService {
@@ -56,7 +58,9 @@ export class UserService {
 
   @Transactional()
   async createUser(userInfo: CreateUserDto): Promise<void> {
-    const currentYear: string = moment().utcOffset(9).year().toString();
+    const today: moment.Moment = moment().utcOffset(9);
+    const currentYear: string = today.year().toString();
+    const currentMonth: string = today.month().toString();
     const result: number = await this.userRepository.getLoginIdCount(userInfo.id);
     if (result >= 1) {
       throw new ConflictException('이미 가입된 유저입니다.(아이디 중복)');
@@ -92,12 +96,43 @@ export class UserService {
     /* leaveMonthlyUsage 엔티티에 데이터(default: 0) 추가 */
     await this.userRepository.createLeaveMonthlyUsageInfo(userIdx, currentYear);
 
-    /* mealStats 엔티티에 데이터(당월) 추가 */
+    /* mealStats 엔티티에 데이터(당월) 추가 (이미 존재하면, pass)*/
+    // 해당 월의 다른 유저 mealStats 데이터 하나만 가져오기
+    const anotherUserMealStats = await this.userRepository.getAnotherUserMealStats(currentYear, currentMonth);
+    if (anotherUserMealStats) {
+      const newMealStats: NewMealStats = {
+        year: currentYear,
+        month: currentMonth,
+        workdays: anotherUserMealStats.workdays,
+        userIdx,
+        holidays: anotherUserMealStats.holidays,
+      };
 
-    /* welfareMonthlyStats 엔티티에 데이터 추가 */
+      await this.userRepository.createMealStats(newMealStats);
+    }
 
-    /* welfareStats 엔티티에 데이터 추가 */
-    // global로 빼기
+    /* welfareStats 엔티티에 데이터 추가 (이미 존재하면, pass) */
+    const halfYear: HalfYearEnum = Number(currentMonth) >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
+    const newWelfareStats: NewWelfareStats = {
+      userIdx,
+      year: currentYear,
+      halfYear,
+      welfareBudget: 0,
+    };
+    await this.userRepository.createWelfareStats(newWelfareStats);
+
+    /* welfareMonthlyStats 엔티티에 데이터 추가 (이미 존재하면, pass) */
+    if (halfYear === HalfYearEnum.H1) {
+      for (let i = 1; i < 7; i++) {
+        const newWelfareMonthStatsInfo: NewWelfareMonthStats = {
+          userIdx,
+          year: currentYear,
+          month: i.toString(),
+          welfareMonthExpense: 0,
+        };
+        await this.userRepository.createWelfareMonthStats(newWelfareMonthStatsInfo);
+      }
+    }
 
     /* 등록일 기준 출퇴근 데이터 생성 */
     const commuteDate: string = moment().utcOffset(9).format('YYYY-MM-DD');

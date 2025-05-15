@@ -127,4 +127,17 @@ export class GlobalUserRepository {
 
     return !!result;
   }
+
+  async getManagerLevelUserIdxs(): Promise<number[]> {
+    const result: { userIdx: number }[] = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userIdx AS userIdx'])
+      .where('userEntity.gradeIdx <= :gradeIdx', { gradeIdx: UserGradeIdxEnum.MANAGER })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .getRawMany();
+
+    const userIdxList: number[] = result.map((r) => r.userIdx);
+
+    return userIdxList;
+  }
 }
