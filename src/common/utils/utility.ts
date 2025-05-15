@@ -311,3 +311,7 @@ export const calculateAvailCheckOutTime = (
 
   return availCheckOutTime;
 };
+
+export const getDaysInMonth = (year: string, month: string): number => {
+  return moment(`${year}-${month}`, 'YYYY-MM').daysInMonth();
+};
