@@ -227,7 +227,7 @@ export class LeaveRepository {
         'leaveStatsEntity.totalReceivedAnnualLeave AS totalReceivedAnnualLeave',
         'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage',
         '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance',
-        'leaveStatsEntity.note AS note',
+        'userEntity.comment AS note',
         'recentLeave.lastLeaveDate AS lastLeaveDate',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = leaveStatsEntity.userIdx')
