@@ -256,7 +256,8 @@ export class SchedulerService {
     this.logger.log('🏁 월/연차 업데이트를 모두 마칩니다. !');
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  /*매년 1월 1일 3시 활동비 현황 일괄 등록 */
+  @Cron('0 3 1 1 *')
   @Transactional()
   async insertActivityStatsInfo() {
     this.logger.log(`🚀 활동비 현황 등록을 시작합니다. (현재시간: ${moment().utcOffset(9)}) !`);

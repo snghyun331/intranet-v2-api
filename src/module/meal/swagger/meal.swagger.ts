@@ -2,6 +2,7 @@ import { SwaggerMethod } from '@common/interface/swagger.interface';
 import { CreateMealBudgetDto } from '../dto/createBudget.dto';
 import { CreateMealDto } from '../dto/createMeal.dto';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
+import { UpdateBudgetDto } from '../dto/updateBudget.dto';
 
 export const USERS_MEALS: SwaggerMethod = {
   GET: {
@@ -694,6 +695,26 @@ export const ADMIN_MEALS_BALANCES_DETAIL: SwaggerMethod = {
                 payerName: '',
               },
             ],
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_MEALS_BUDGET_TOTAL: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 식대 총금액 수정 API',
+    },
+    API_BODY: {
+      type: UpdateBudgetDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            mealBudget: 600000000,
           },
         },
       },
