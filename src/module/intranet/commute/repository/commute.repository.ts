@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
-import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from '../dto/query.dto';
 import { UserEntity } from '@entity/user/user.entity';
 import { GradeEntity } from '@entity/user/grade.entity';
@@ -9,7 +9,7 @@ import { TeamEntity } from '@entity/user/team.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField, removeAllWhiteSpace } from '@common/utils/utility';
-import { IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
 import { AdminCommuteSortEnum } from '../enum/commute.enum';
 
@@ -173,13 +173,42 @@ export class CommuteRepository {
     return result;
   }
 
-  async deleteCommute(commuteIdx: number): Promise<DeleteResult> {
+  async deleteCommute(commuteIdx: number): Promise<UpdateResult> {
+    const commuteNull = {
+      checkInTime: null,
+      checkOutTime: null,
+      attendance: null,
+      leaveTypeIdx: null,
+      workingMinutes: null,
+      overtimeWorkingMinutes: null,
+      updateReason: null,
+      earlyLeaveReason: null,
+      note: null,
+      checkInIpAddr: null,
+      checkOutIpAddr: null,
+      checkInLogAgent: null,
+      checkOutLogAgent: null,
+      confirmYN: ConfirmEnum.NO,
+      confirmDate: null,
+      rejectDate: null,
+      confirmPersonIdx: null,
+      adminUpdatedAt: null,
+      leaveReduceUnit: 0,
+    };
+
     return await this.commuteModel
       .createQueryBuilder()
-      .delete()
-      .from(CommuteEntity)
+      .update(CommuteEntity)
+      .set({ ...commuteNull })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
+
+    // return await this.commuteModel
+    //   .createQueryBuilder()
+    //   .delete()
+    //   .from(CommuteEntity)
+    //   .where('commuteIdx = :commuteIdx', { commuteIdx })
+    //   .execute();
   }
 
   async updateCommuteTime(commuteIdx: number, updateInfo: UpdateCommuteTimeInfo): Promise<UpdateResult> {

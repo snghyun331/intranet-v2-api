@@ -19,6 +19,7 @@ import {
   ADMIN_MEALS_BALANCES_CANCEL,
   ADMIN_MEALS_BALANCES_DETAIL,
   ADMIN_MEALS_BUDGET,
+  ADMIN_MEALS_BUDGET_TOTAL,
   USERS_MEALS,
 } from './swagger/meal.swagger';
 import { CreateMealDto } from './dto/createMeal.dto';
@@ -34,6 +35,7 @@ import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
+import { UpdateBudgetDto } from './dto/updateBudget.dto';
 
 @ApiTags('사용자')
 @Controller('users/meals')
@@ -240,4 +242,21 @@ export class AdminMealController {
 
     return response;
   }
+
+  // @ApiOperation(ADMIN_MEALS_BUDGET_TOTAL.PATCH.API_OPERATION)
+  // @ApiBody(ADMIN_MEALS_BUDGET_TOTAL.PATCH.API_BODY)
+  // @ApiBearerAuth('accessToken')
+  // @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  // @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  // @Patch('budget/:mealStatsIdx/total')
+  // async updateUserMealBudget(
+  //   @Param('mealStatsIdx', ParseIntPipe) mealStatsIdx: number,
+  //   @Body() { mealBudget }: UpdateBudgetDto,
+  // ): Promise<ResponseInterface> {
+  //   await this.mealService.updateUserMealBudget(mealStatsIdx, mealBudget);
+
+  //   const response: ResponseInterface = { message: 'success' };
+
+  //   return response;
+  // }
 }

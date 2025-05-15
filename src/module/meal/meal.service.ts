@@ -339,4 +339,9 @@ export class MealService {
 
     return mealDetailInfo;
   }
+
+  @Transactional()
+  async updateUserMealBudget(mealStatsIdx: number, mealBudget: number): Promise<void> {
+    await this.mealRepository.updateUserMealBudget(mealStatsIdx, mealBudget);
+  }
 }
