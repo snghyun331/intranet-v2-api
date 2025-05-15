@@ -143,7 +143,7 @@ export class LeaveService {
       }
 
       // 승인 가능자 모두 저장
-      if (ccUserIdxs !== null && ccUserIdxs !== undefined) {
+      if (approverIdxs !== null && approverIdxs !== undefined) {
         await this.leaveRepository.createLeaveApproverList(commuteIdx, approverIdxs);
       }
       // 참조자 모두 저장
@@ -401,7 +401,6 @@ export class LeaveService {
 
   async getAllUsersLeaveByMonth(year: string, month: string) {
     const leaveInfo = await this.leaveRepository.getAllLeaveCalender(year, month);
-    console.log(leaveInfo);
 
     // 날짜별로 그룹화하여 leaves를 구성
     const leaves: any[] = leaveInfo.reduce((acc, item) => {

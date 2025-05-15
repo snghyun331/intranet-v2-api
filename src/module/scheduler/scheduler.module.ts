@@ -10,10 +10,20 @@ import { UserEntity } from '@entity/user/user.entity';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
+import { ActivityMonthlyStatsEntity } from '../../entity/activity/activityMonthlyStats.entity';
+import { ActivityStatsEntity } from '../../entity/activity/activityStats.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([HolidayEntity, UserEntity, LeaveStatsEntity, LeaveUsageEntity, LeaveMonthlyUsageEntity]),
+    TypeOrmModule.forFeature([
+      HolidayEntity,
+      UserEntity,
+      LeaveStatsEntity,
+      LeaveUsageEntity,
+      LeaveMonthlyUsageEntity,
+      ActivityMonthlyStatsEntity,
+      ActivityStatsEntity,
+    ]),
     ScheduleModule.forRoot(),
     HttpModule.registerAsync(AXIOS_CONFIG),
   ],
