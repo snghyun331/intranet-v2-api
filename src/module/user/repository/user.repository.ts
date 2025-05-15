@@ -272,21 +272,23 @@ export class UserRepository {
       .execute();
   }
 
+  async updateAdmin(userIdx: number, adminInfo: NewAdminInfo): Promise<UpdateResult> {
+    const password: string = encryptPassword(adminInfo.id + '2467');
+
+    return await this.adminModel
+      .createQueryBuilder()
+      .update(AdminEntity)
+      .set({ password, ...adminInfo })
+      .where('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
   async updateUserInfo(userIdx: number, updateInfo: NewUserInfo): Promise<UpdateResult> {
     return await this.userModel
       .createQueryBuilder()
       .update(UserEntity)
       .set(updateInfo)
       .where('userIdx = :userIdx', { userIdx })
-      .execute();
-  }
-
-  async updateAdminInfo(adminIdx: number, updateInfo: NewAdminInfo): Promise<UpdateResult> {
-    return await this.adminModel
-      .createQueryBuilder()
-      .update(AdminEntity)
-      .set(updateInfo)
-      .where('adminIdx = :adminIdx', { adminIdx })
       .execute();
   }
 

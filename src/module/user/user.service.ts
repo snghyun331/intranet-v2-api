@@ -207,6 +207,10 @@ export class UserService {
     if (!result) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
+    console.log('updateInfo');
+    console.log(updateInfo);
+    console.log('result');
+    console.log(result);
 
     /* 유저 정보 수정 */
     const { adminGradeIdx, ...rest } = updateInfo;
@@ -229,13 +233,25 @@ export class UserService {
     /* 입사일이 바뀌었다면, */
 
     /* 어드민 정보 수정 */
+    // 어드민 Y → Y인 경우, (어드민 등급 변경)
+    if (result.adminRole === YNEnum.YES && updateInfo.adminRole) {
+      const newAdminInfo: NewAdminInfo = {
+        id: updateInfo.id,
+        adminName: updateInfo.userName,
+        adminEmail: updateInfo.userEmail,
+        adminGradeIdx: updateInfo.adminGradeIdx,
+      };
+
+      await this.userRepository.updateAdmin(userIdx, newAdminInfo);
+    }
+
     // 어드민 N → Y인 경우,
     if (result.adminRole === YNEnum.NO && updateInfo.adminRole === YNEnum.YES) {
       const newAdminInfo: NewAdminInfo = {
         id: updateInfo.id,
         adminName: updateInfo.userName,
         adminEmail: updateInfo.userEmail,
-        adminGradeIdx,
+        adminGradeIdx: updateInfo.adminGradeIdx,
       };
       await this.userRepository.createAdmin(userIdx, newAdminInfo);
     }

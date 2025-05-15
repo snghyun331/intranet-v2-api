@@ -215,6 +215,8 @@ export class SchedulerService {
     const currentYear: number = today.year();
     const currentYearString: string = currentYear.toString();
     const users = await this.schedulerRepository.getAllUserWithLessThanOneYear(today.format('YYYY-MM-DD'));
+    if (users.length === 0) return;
+
     for (const user of users) {
       const { userIdx, userName, joinDate } = user;
       this.logger.log(`🚀 중도입사자 ${userName}에 대한 월/연차 업데이트를 시작합니다.(현재시간: ${today}) !`);
@@ -250,6 +252,8 @@ export class SchedulerService {
         await this.schedulerRepository.updateLeaveStatsInfo(userIdx, currentYearString, updateLeaveStats);
       }
     }
+
+    this.logger.log('🏁 월/연차 업데이트를 모두 마칩니다. !');
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
