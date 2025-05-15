@@ -19,6 +19,11 @@ import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
 import { UpdateCommentDto } from '@user/dto/updateComment.dto';
+import { NewMealStats } from '../../scheduler/interface/mealStats.interface';
+import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
+import { NewWelfareMonthStats, NewWelfareStats } from '../../welfare/interface';
+import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
+import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
 
 @Injectable()
 export class UserRepository {
@@ -33,6 +38,10 @@ export class UserRepository {
     @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
     @InjectRepository(LeaveMonthlyUsageEntity)
     private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
+    @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
+    @InjectRepository(WelfareStatsEntity) private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
+    @InjectRepository(WelfareMonthlyStatsEntity)
+    private readonly welfareMonthStatsModel: Repository<WelfareMonthlyStatsEntity>,
   ) {}
 
   async getLoginIdCount(loginId: string): Promise<number> {
@@ -391,6 +400,55 @@ export class UserRepository {
       .update(UserEntity)
       .set(commentInfo)
       .where('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async createMealStats(newMealStats: NewMealStats): Promise<InsertResult> {
+    return await this.mealStatsModel.createQueryBuilder().insert().into(MealStatsEntity).values(newMealStats).execute();
+  }
+
+  async getAnotherUserMealStats(year: string, month: string) {
+    const result = await this.mealStatsModel
+      .createQueryBuilder('mealStatsEntity')
+      .select(['mealStatsEntity.holidays AS holidays', 'mealStatsEntity.workdays AS workdays'])
+      .where('mealStatsEntity.year = :year', { year })
+      .andWhere('mealStatsEntity.month = :month', { month })
+      .getRawOne();
+
+    return result;
+  }
+
+  async createWelfareStats(newStatsInfo: NewWelfareStats): Promise<InsertResult> {
+    return await this.welfareStatsModel
+      .createQueryBuilder()
+      .insert()
+      .into(WelfareStatsEntity)
+      .values({ ...newStatsInfo })
+      .execute();
+  }
+
+  async createWelfareMonthStats(newMonthStatsInfo: NewWelfareMonthStats): Promise<InsertResult> {
+    return await this.welfareMonthStatsModel
+      .createQueryBuilder()
+      .insert()
+      .into(WelfareMonthlyStatsEntity)
+      .values({ ...newMonthStatsInfo })
+      .execute();
+  }
+
+  async updateMealBudget(userIdx: number, year: string, month: string) {
+    const query = `
+        (workdays + holiday_workdays - time_off_days) * 
+        (SELECT base_amount FROM meal_base WHERE meal_base.year = :year AND meal_base.month = :month)
+    `;
+
+    return await this.mealStatsModel
+      .createQueryBuilder()
+      .update(MealStatsEntity)
+      .set({ mealBudget: () => query })
+      .where('year = :year', { year })
+      .andWhere('month = :month', { month })
+      .andWhere('userIdx = :userIdx', { userIdx })
       .execute();
   }
 }

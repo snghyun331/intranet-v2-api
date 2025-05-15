@@ -17,9 +17,11 @@ import { SchedulerRepository } from './repository/scheduler.repository';
 import { HolidayInfo } from './interface/holiday.interface';
 import { Transactional } from 'typeorm-transactional';
 import * as moment from 'moment';
-import { LeaveGrantTypeEnum } from '@common/constant/enum';
+import { HalfYearEnum, LeaveGrantTypeEnum } from '@common/constant/enum';
 import { NewLeaveStats } from './interface/leaveStats.interface';
 import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repository';
+import { GlobalUserRepository } from '../global/repository/globalUser.repository';
+import { NewActivityMonthStats, NewActivityStats } from '../activity/interface';
 
 @Injectable()
 export class SchedulerService {
@@ -29,6 +31,7 @@ export class SchedulerService {
     private readonly httpService: HttpService,
     private readonly schedulerRepository: SchedulerRepository,
     private readonly holidayRepository: GlobalHolidayRepository,
+    private readonly userRepository: GlobalUserRepository,
     public readonly configService: ConfigService,
   ) {}
 
@@ -156,8 +159,7 @@ export class SchedulerService {
    * 근속년수 1년차 이상 직원: 기본 15개, 3년차부터 2년마다 1씩 증가 (해당 연도에 근속년수 3년, 5년..이 되는 직원도 모두 1씩 증가)
    * 기준일은 매년 1월 1일
    */
-  // @Cron(CronExpression.EVERY_YEAR)
-  // @Cron('0 08 16 * * * ')
+  @Cron(CronExpression.EVERY_YEAR)
   @Transactional()
   async insertReceivedAnnualLeave() {
     this.logger.log(`🚀 연차 자동 등록을 시작합니다. (현재시간: ${moment().utcOffset(9)}) !`);
@@ -206,8 +208,7 @@ export class SchedulerService {
    * 근속년수 딱 1년(입사 1주년) 직원: 총 연차일 업데이트 (지금까지의 총 연차 잔여개수 + (전년도 재직일수/365) * 15의 올림값)
    * 기준일은 today(오늘)
    */
-  // @Cron(CronExpression.EVERY_DAY_AT_1AM)
-  // @Cron('0 08 16 * * * ')
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   @Transactional()
   async insertExtraReceivedAnnualLeaveForMidJoiner() {
     const today: moment.Moment = moment().utcOffset(9);
@@ -249,5 +250,54 @@ export class SchedulerService {
         await this.schedulerRepository.updateLeaveStatsInfo(userIdx, currentYearString, updateLeaveStats);
       }
     }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  @Transactional()
+  async insertActivityStatsInfo() {
+    this.logger.log(`🚀 활동비 현황 등록을 시작합니다. (현재시간: ${moment().utcOffset(9)}) !`);
+    const today: moment.Moment = moment().utcOffset(9);
+    const currentYear: string = today.year().toString();
+
+    const userIdxs = await this.userRepository.getManagerLevelUserIdxs();
+    for (const userIdx of userIdxs) {
+      // 상반기
+      for (let i = 1; i < 7; i++) {
+        const newActivityMonthStatsInfo: NewActivityMonthStats = {
+          userIdx,
+          year: currentYear,
+          month: i.toString(),
+          activityMonthExpense: 0,
+        };
+        await this.schedulerRepository.createActivityMonthStats(newActivityMonthStatsInfo);
+      }
+      const newH1ActivityStats: NewActivityStats = {
+        userIdx,
+        year: currentYear,
+        halfYear: HalfYearEnum.H1,
+        activityBudget: 0,
+      };
+      await this.schedulerRepository.createActivityStats(newH1ActivityStats);
+
+      // 하반기
+      for (let i = 7; i < 13; i++) {
+        const newActivityMonthStatsInfo: NewActivityMonthStats = {
+          userIdx,
+          year: currentYear,
+          month: i.toString(),
+          activityMonthExpense: 0,
+        };
+        await this.schedulerRepository.createActivityMonthStats(newActivityMonthStatsInfo);
+      }
+      const newH2ActivityStats: NewActivityStats = {
+        userIdx,
+        year: currentYear,
+        halfYear: HalfYearEnum.H2,
+        activityBudget: 0,
+      };
+      await this.schedulerRepository.createActivityStats(newH2ActivityStats);
+    }
+
+    this.logger.log('🏁 활동비 현황 등록을 마칩니다. !');
   }
 }
