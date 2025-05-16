@@ -20,6 +20,8 @@ import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsag
 import { MealStatsEntity } from '../../entity/meal/mealStats.entity';
 import { WelfareStatsEntity } from '../../entity/welfare/welfareStats.entity';
 import { WelfareMonthlyStatsEntity } from '../../entity/welfare/welfareMonthlyStats.entity';
+import { ActivityStatsEntity } from '../../entity/activity/activityStats.entity';
+import { ActivityMonthlyStatsEntity } from '../../entity/activity/activityMonthlyStats.entity';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { WelfareMonthlyStatsEntity } from '../../entity/welfare/welfareMonthlySt
       MealStatsEntity,
       WelfareStatsEntity,
       WelfareMonthlyStatsEntity,
+      ActivityStatsEntity,
+      ActivityMonthlyStatsEntity,
     ]),
     RedisModule,
   ],
