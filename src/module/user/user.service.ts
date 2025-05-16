@@ -6,8 +6,8 @@ import { AdminUserFilterDto } from '@user/dto/query.dto';
 import { CreateUserDto } from '@user/dto/createUser.dto';
 import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
 import { UpdatePasswordDto } from '@user/dto/updateMyPw.dto';
-import { decryptPassword, encryptPassword, getDaysInMonth, substringYearMonth } from '@common/utils/utility';
-import { HalfYearEnum, YNEnum } from '@common/constant/enum';
+import { decryptPassword, encryptPassword, getDaysInMonth } from '@common/utils/utility';
+import { HalfYearEnum, UserGradeIdxEnum, YNEnum } from '@common/constant/enum';
 import { UpdateUserDto } from '@user/dto/updateUser.dto';
 import { RedisSearchService } from '@redis/redisSearch.service';
 import { Transactional } from 'typeorm-transactional';
@@ -19,6 +19,7 @@ import { UpdateCommentDto } from '@user/dto/updateComment.dto';
 import { NewMealStats } from '../scheduler/interface/mealStats.interface';
 import { NewWelfareMonthStats, NewWelfareStats } from '../welfare/interface';
 import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repository';
+import { NewActivityMonthStats, NewActivityStats } from '../activity/interface';
 
 @Injectable()
 export class UserService {
@@ -296,6 +297,10 @@ export class UserService {
 
   @Transactional()
   async updateUser(userIdx: number, updateInfo: UpdateUserDto): Promise<void> {
+    const today: moment.Moment = moment().utcOffset(9);
+    const currentYear: string = today.year().toString();
+    const currentMonth: string = today.month().toString();
+
     const result: any = await this.userRepository.getUserInfoByIdx(userIdx);
     if (!result) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
@@ -317,6 +322,44 @@ export class UserService {
     if (updateInfo.userName !== result.userName) {
       await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
       await this.redisSearchService.addUserInRedis(userIdx, updateInfo.userName);
+    }
+
+    /* 직급이 바뀌었다면, */
+    // 팀장 이상 직급이면 활동비 현황 생성
+    if (result.gradeIdx > UserGradeIdxEnum.MANAGER && updateInfo.gradeIdx <= UserGradeIdxEnum.MANAGER) {
+      const halfYear: HalfYearEnum = Number(currentMonth) >= 7 ? HalfYearEnum.H2 : HalfYearEnum.H1;
+      const statsCnt = await this.userRepository.getUserActivityStatsCount(currentYear, halfYear, userIdx);
+      if (statsCnt === 0) {
+        const newActivityStats: NewActivityStats = {
+          userIdx,
+          year: currentYear,
+          halfYear,
+          activityBudget: 0,
+        };
+        await this.userRepository.createActivityStats(newActivityStats);
+
+        if (halfYear === HalfYearEnum.H1) {
+          for (let i = 1; i < 7; i++) {
+            const newActivityMonthStats: NewActivityMonthStats = {
+              userIdx,
+              year: currentYear,
+              month: i.toString(),
+              activityMonthExpense: 0,
+            };
+            await this.userRepository.createActivityMonthStats(newActivityMonthStats);
+          }
+        } else {
+          for (let i = 7; i < 13; i++) {
+            const newActivityMonthStats: NewActivityMonthStats = {
+              userIdx,
+              year: currentYear,
+              month: i.toString(),
+              activityMonthExpense: 0,
+            };
+            await this.userRepository.createActivityMonthStats(newActivityMonthStats);
+          }
+        }
+      }
     }
 
     /* 입사일이 바뀌었다면, */

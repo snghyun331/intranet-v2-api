@@ -14,7 +14,7 @@ import { AdminEntity } from '@entity/admin/admin.entity';
 import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 import { NewAdminInfo } from '@user/interface/admin.interface';
 import { NewUserInfo } from '@user/interface/user.interface';
-import { YNALLEnum, YNEnum } from '@common/constant/enum';
+import { HalfYearEnum, YNALLEnum, YNEnum } from '@common/constant/enum';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
@@ -24,6 +24,9 @@ import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
 import { NewWelfareMonthStats, NewWelfareStats } from '../../welfare/interface';
 import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
 import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
+import { NewActivityMonthStats, NewActivityStats } from '../../activity/interface';
+import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
+import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
 
 @Injectable()
 export class UserRepository {
@@ -42,6 +45,9 @@ export class UserRepository {
     @InjectRepository(WelfareStatsEntity) private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
     @InjectRepository(WelfareMonthlyStatsEntity)
     private readonly welfareMonthStatsModel: Repository<WelfareMonthlyStatsEntity>,
+    @InjectRepository(ActivityStatsEntity) private readonly activityStatsModel: Repository<ActivityStatsEntity>,
+    @InjectRepository(ActivityMonthlyStatsEntity)
+    private readonly activityMonthStatsModel: Repository<ActivityMonthlyStatsEntity>,
   ) {}
 
   async getLoginIdCount(loginId: string): Promise<number> {
@@ -314,7 +320,11 @@ export class UserRepository {
   async getUserInfoByIdx(userIdx: number) {
     const result = await this.userModel
       .createQueryBuilder('userEntity')
-      .select(['userEntity.userName AS userName', 'userEntity.adminRole AS adminRole'])
+      .select([
+        'userEntity.userName AS userName',
+        'userEntity.adminRole AS adminRole',
+        'userEntity.gradeIdx AS gradeIdx',
+      ])
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .getRawOne();
 
@@ -452,5 +462,34 @@ export class UserRepository {
       .andWhere('month = :month', { month })
       .andWhere('userIdx = :userIdx', { userIdx })
       .execute();
+  }
+
+  async createActivityStats(statsInfo: NewActivityStats): Promise<InsertResult> {
+    return await this.activityStatsModel
+      .createQueryBuilder()
+      .insert()
+      .into(ActivityStatsEntity)
+      .values(statsInfo)
+      .execute();
+  }
+
+  async createActivityMonthStats(monthStatsInfo: NewActivityMonthStats): Promise<InsertResult> {
+    return await this.activityMonthStatsModel
+      .createQueryBuilder()
+      .insert()
+      .into(ActivityMonthlyStatsEntity)
+      .values({ ...monthStatsInfo })
+      .execute();
+  }
+
+  async getUserActivityStatsCount(year: string, halfYear: HalfYearEnum, userIdx: number) {
+    const result: number = await this.activityStatsModel
+      .createQueryBuilder('activityStatsEntity')
+      .where('activityStatsEntity.year = :year', { year })
+      .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear })
+      .andWhere('activityStatsEntity.userIdx = :userIdx', { userIdx })
+      .getCount();
+
+    return result;
   }
 }
