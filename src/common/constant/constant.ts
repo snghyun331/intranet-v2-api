@@ -16,9 +16,13 @@ export const PICK_LUNCH_LOCK_DURATION: number = 20;
 
 export const NORMAL_WORKING_MINUTES: number = 9 * 60;
 
-export const HALF_LEAVE_WORKING_MINUTES: number = 4 * 60;
+export const SEVEN_HOURS_WORKING_MINUTES: number = 7 * 60;
 
-export const QUARTER_LEAVE_WORKING_MINUTES: number = 7 * 60;
+export const FOUR_HOURS_WORKING_MINUTES: number = 4 * 60;
+
+export const THREE_HOURS_WORKING_MINUTES: number = 3 * 60;
+
+export const TWO_HOURS_WORKING_MINUTES: number = 2 * 60;
 
 export const AM_REST_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([
   IntranetLeaveTypeIdxEnum.AM_HALF,

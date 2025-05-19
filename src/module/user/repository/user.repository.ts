@@ -7,14 +7,14 @@ import { TeamEntity } from '@entity/user/team.entity';
 import { GradeEntity } from '@entity/user/grade.entity';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminUserFilterDto } from '@user/dto/query.dto';
-import { calculateAvailCheckOutTime, encryptPassword, removeAllWhiteSpace } from '@common/utils/utility';
+import { encryptPassword, removeAllWhiteSpace } from '@common/utils/utility';
 import { CreateUserDto } from '@user/dto/createUser.dto';
 import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
 import { AdminEntity } from '@entity/admin/admin.entity';
 import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 import { NewAdminInfo } from '@user/interface/admin.interface';
 import { NewUserInfo } from '@user/interface/user.interface';
-import { HalfYearEnum, YNALLEnum, YNEnum } from '@common/constant/enum';
+import { ConfirmEnum, HalfYearEnum, YNALLEnum, YNEnum } from '@common/constant/enum';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
@@ -112,6 +112,7 @@ export class UserRepository {
         'commuteEntity.workingMinutes AS workingMinutes',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'commuteEntity.confirmYN AS confirmYN',
+        'commuteEntity.availCheckOutTime AS availCheckOutTime',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
@@ -119,15 +120,18 @@ export class UserRepository {
 
     const checkInTime = commuteInfo?.checkInTime ?? null;
     const leaveTypeIdx = commuteInfo?.leaveTypeIdx ?? null;
-    const confirmYN = commuteInfo?.confirmYN ?? null;
-    const availCheckOutTime = checkInTime ? calculateAvailCheckOutTime(checkInTime, leaveTypeIdx, confirmYN) : null;
+    const availCheckOutTime = commuteInfo?.availCheckOutTime ?? null;
+    const attendance = commuteInfo?.attendance ?? null;
+    const workingMinutes = commuteInfo?.workingMinutes ?? null;
+    const confirmYN = commuteInfo?.confirmYN ?? ConfirmEnum.NO;
     const result = {
       ...queryResult,
       checkInTime,
       availCheckOutTime,
-      attendance: commuteInfo?.attendance ?? null,
-      workingMinutes: commuteInfo?.workingMinutes ?? null,
-      leaveTypeIdx: commuteInfo?.leaveTypeIdx ?? null,
+      attendance,
+      workingMinutes,
+      leaveTypeIdx,
+      confirmYN,
     };
 
     return result;

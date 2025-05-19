@@ -165,6 +165,39 @@ export class LeaveRepository {
       .execute();
   }
 
+  async getAllLeaveSummary(userIdx: number, year: string) {
+    const defaultResult = {};
+
+    const result = await this.leaveStatsModel
+      .createQueryBuilder('leaveStatsEntity')
+      .select([
+        'leaveStatsEntity.year AS year',
+        'leaveStatsEntity.userIdx AS userIdx',
+        'leaveStatsEntity.totalReceivedAnnualLeave AS totalReceivedAnnualLeave',
+        'leaveStatsEntity.totalAnnualLeaveUsage AS totalAnnualLeaveUsage',
+        '(leaveStatsEntity.totalReceivedAnnualLeave - leaveStatsEntity.totalAnnualLeaveUsage) AS totalAnnualLeaveBalance',
+        'leaveStatsEntity.totalReceivedSpecialLeave AS totalReceivedSpecialLeave',
+        'leaveStatsEntity.totalSpecialLeaveUsage AS totalSpecialLeaveUsage',
+        '(leaveStatsEntity.totalReceivedSpecialLeave - leaveStatsEntity.totalSpecialLeaveUsage) AS totalSpecialLeaveBalance',
+        'leaveStatsEntity.totalReceivedAlternativeLeave AS totalReceivedAlternativeLeave',
+        'leaveStatsEntity.totalAlternativeLeaveUsage AS totalAlternativeLeaveUsage',
+        '(leaveStatsEntity.totalReceivedAlternativeLeave - leaveStatsEntity.totalAlternativeLeaveUsage) AS totalAlternativeLeaveBalance',
+      ])
+      .where('leaveStatsEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('leaveStatsEntity.year = :year', { year })
+      .getRawOne();
+
+    if (!result) {
+      return defaultResult;
+    }
+
+    result.totalAnnualLeaveBalance = Number(result.totalAnnualLeaveBalance);
+    result.totalSpecialLeaveBalance = Number(result.totalSpecialLeaveBalance);
+    result.totalAlternativeLeaveBalance = Number(result.totalAlternativeLeaveBalance);
+
+    return result;
+  }
+
   async getAnnualLeaveSummary(userIdx: number, year: string) {
     const defaultResult = {};
 

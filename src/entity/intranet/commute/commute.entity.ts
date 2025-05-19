@@ -23,6 +23,9 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'check_out_time', comment: '퇴근 시간', nullable: true })
   checkOutTime: Date;
 
+  @Column({ name: 'avail_check_out_time', comment: '퇴근 가능 시간', nullable: true })
+  availCheckOutTime: Date;
+
   @Column({ name: 'attendance', comment: '근태 상태', nullable: true })
   attendance: IntranetAttendanceEnum;
 

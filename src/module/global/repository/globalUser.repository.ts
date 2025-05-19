@@ -7,12 +7,15 @@ import { HeadquarterEntity } from '@entity/user/headquarter.entity';
 import { TeamEntity } from '@entity/user/team.entity';
 import { GradeEntity } from '@entity/user/grade.entity';
 import { AdminEntity } from '../../../entity/admin/admin.entity';
+import * as moment from 'moment';
+import { GlobalHolidayRepository } from './globalHoliday.repository';
 
 @Injectable()
 export class GlobalUserRepository {
   constructor(
     @InjectRepository(UserEntity) private readonly userModel: Repository<UserEntity>,
     @InjectRepository(AdminEntity) private readonly adminModel: Repository<AdminEntity>,
+    private readonly holidayRepository: GlobalHolidayRepository,
   ) {}
 
   async getUserCountByIdx(userIdx: number): Promise<number> {
@@ -115,17 +118,24 @@ export class GlobalUserRepository {
     return result;
   }
 
+  // 생일인지 판별하는 함수 (생일이 휴일이면 생일 전의 영업일로 간주)
   async isBirthday(userIdx: number, commuteDate: string): Promise<boolean> {
-    const date: string = commuteDate.slice(5);
-    const result = await this.userModel
+    const { userBirth } = await this.userModel
       .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx'])
+      .select(['userEntity.userBirth AS userBirth'])
       .where('userEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('DATE_FORMAT(userEntity.userBirth, "%m-%d") = :date', { date })
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawOne();
 
-    return !!result;
+    const birth = moment(userBirth);
+    const commute = moment(commuteDate);
+    let birthday = moment(`${commute.year()}-${birth.format('MM-DD')}`);
+
+    while (await this.holidayRepository.isHolidayOrWeekend(birthday.format('YYYY-MM-DD'))) {
+      birthday = birthday.subtract(1, 'day');
+    }
+
+    return birthday.format('YYYY-MM-DD') === commute.format('YYYY-MM-DD');
   }
 
   async getManagerLevelUserIdxs(): Promise<number[]> {
