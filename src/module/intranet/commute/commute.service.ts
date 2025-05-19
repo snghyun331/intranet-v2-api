@@ -6,18 +6,21 @@ import { CheckOutDto } from './dto/checkOut.dto';
 import {
   NORMAL_WORKING_MINUTES,
   FULL_DAY_REST_LISTS,
-  HALF_LEAVE_WORKING_MINUTES,
-  QUARTER_LEAVE_WORKING_MINUTES,
+  FOUR_HOURS_WORKING_MINUTES,
+  SEVEN_HOURS_WORKING_MINUTES,
   PARTIAL_DAY_REST_LISTS,
   PM_QUARTER_REST_LISTS,
   AM_REST_LISTS,
   PM_REST_LISTS,
   AM_QUARTER_REST_LISTS,
+  TWO_HOURS_WORKING_MINUTES,
+  THREE_HOURS_WORKING_MINUTES,
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
 import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
 import {
+  addMinutes,
   getAmHalfEarlyBoundary,
   getAmHalfLateBoundary,
   getAmQuarterEarlyBoundary,
@@ -55,6 +58,8 @@ export class CommuteService {
      */
 
     const commuteDate: string = moment(checkInDto.checkInTime).utcOffset(9).format('YYYY-MM-DD');
+    const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, commuteDate); // 생일여부 확인
+
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
     /* commuteInfo가 존재: 일반적인 상황 */
@@ -90,12 +95,20 @@ export class CommuteService {
             ? IntranetAttendanceEnum.CHECK_IN_LATE
             : IntranetAttendanceEnum.CHECK_IN;
 
+        const availCheckOutTime: Date = await this.calculateAvailCheckOutTime(
+          checkInDto.checkInTime,
+          commuteInfo.leaveTypeIdx,
+          commuteInfo.confirmYN,
+          isBirthday,
+        );
+
         const updateCheckInInfo: UpdateCheckInInfo = {
           ...checkInDto,
           attendance,
           commuteDate,
           checkInIpAddr,
           checkInLogAgent,
+          availCheckOutTime,
         };
 
         /* 근태 업데이트 */
@@ -110,6 +123,13 @@ export class CommuteService {
           ? IntranetAttendanceEnum.CHECK_IN_LATE
           : IntranetAttendanceEnum.CHECK_IN;
 
+        const availCheckOutTime: Date = await this.calculateAvailCheckOutTime(
+          checkInDto.checkInTime,
+          IntranetLeaveTypeIdxEnum.NORMAL,
+          ConfirmEnum.NO,
+          isBirthday,
+        );
+
         const updateCheckInInfo: UpdateCheckInInfo = {
           ...checkInDto,
           attendance,
@@ -117,6 +137,7 @@ export class CommuteService {
           checkInIpAddr,
           checkInLogAgent,
           leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+          availCheckOutTime,
         };
 
         /* 일반 근무에 대한 근태 업데이트 */
@@ -130,6 +151,13 @@ export class CommuteService {
         ? IntranetAttendanceEnum.CHECK_IN_LATE
         : IntranetAttendanceEnum.CHECK_IN;
 
+      const availCheckOutTime: Date = await this.calculateAvailCheckOutTime(
+        checkInDto.checkInTime,
+        IntranetLeaveTypeIdxEnum.NORMAL,
+        ConfirmEnum.NO,
+        isBirthday,
+      );
+
       const insertCheckInInfo: InsertCheckInInfo = {
         ...checkInDto,
         attendance,
@@ -137,6 +165,7 @@ export class CommuteService {
         checkInIpAddr,
         checkInLogAgent,
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+        availCheckOutTime,
       };
 
       /* 근태 생성 */
@@ -181,9 +210,9 @@ export class CommuteService {
     const { checkInTime, leaveTypeIdx } = commuteInfo;
     let standardWorkingMinutes: number;
     if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = HALF_LEAVE_WORKING_MINUTES;
+      standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
     } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = QUARTER_LEAVE_WORKING_MINUTES;
+      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
     } else {
       standardWorkingMinutes = NORMAL_WORKING_MINUTES;
     }
@@ -323,12 +352,12 @@ export class CommuteService {
 
     let standardWorkingMinutes: number;
     if (AM_REST_LISTS.has(commuteInfo.leaveTypeIdx) || PM_REST_LISTS.has(commuteInfo.leaveTypeIdx)) {
-      standardWorkingMinutes = HALF_LEAVE_WORKING_MINUTES;
+      standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
     } else if (
       AM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx) ||
       PM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx)
     ) {
-      standardWorkingMinutes = QUARTER_LEAVE_WORKING_MINUTES;
+      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
     } else {
       standardWorkingMinutes = NORMAL_WORKING_MINUTES;
     }
@@ -431,5 +460,46 @@ export class CommuteService {
     const data = await this.holidayRepository.getHolidayDates(year, month);
 
     return data;
+  }
+
+  private async calculateAvailCheckOutTime(
+    checkInTime: Date,
+    leaveTypeIdx: number | null,
+    confirmYN: ConfirmEnum | null,
+    isBirthday: boolean,
+  ): Promise<Date> {
+    let standardWorkingMinutes: number;
+
+    if (confirmYN === ConfirmEnum.NO || confirmYN === ConfirmEnum.REJECT) {
+      if (isBirthday) {
+        standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES; // 정상근무일 때, 생일 반반차 적용
+      } else {
+        standardWorkingMinutes = NORMAL_WORKING_MINUTES;
+      }
+    } else {
+      if (isBirthday) {
+        if (AM_REST_LISTS.has(leaveTypeIdx)) {
+          standardWorkingMinutes = TWO_HOURS_WORKING_MINUTES;
+        } else if (PM_REST_LISTS.has(leaveTypeIdx)) {
+          standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+        } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
+          standardWorkingMinutes = THREE_HOURS_WORKING_MINUTES;
+        } else {
+          standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
+        }
+      } else {
+        if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
+          standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+        } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
+          standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
+        } else {
+          standardWorkingMinutes = NORMAL_WORKING_MINUTES;
+        }
+      }
+    }
+
+    const availCheckOutTime = addMinutes(checkInTime, standardWorkingMinutes);
+
+    return availCheckOutTime;
   }
 }

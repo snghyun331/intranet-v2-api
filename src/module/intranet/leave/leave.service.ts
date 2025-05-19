@@ -84,38 +84,7 @@ export class LeaveService {
         }
       }
 
-      // // 잔여 연차가 1미만이면 연차 사용 불가
-      // if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE) {
-      //   if (totalAnnualLeaveBalance < 1) {
-      //     throw new BadRequestException(
-      //       '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-      //     );
-      //   }
-      // }
-
-      // // 잔여 연차가 0.5미만이면 반차 사용 불가
-      // if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_HALF || leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF) {
-      //   if (totalAnnualLeaveBalance < 0.5) {
-      //     throw new BadRequestException(
-      //       '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-      //     );
-      //   }
-      // }
-
-      // // 잔여 연차가 0.25미만이면 반반차 사용 불가
-      // if (
-      //   leaveTypeIdx === IntranetLeaveTypeIdxEnum.AM_QUARTER ||
-      //   leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER
-      // ) {
-      //   if (totalAnnualLeaveBalance < 0.25) {
-      //     throw new BadRequestException(
-      //       '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-      //     );
-      //   }
-      // }
-
       const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, commuteDate); // 생일여부 확인
-      console.log(isBirthday);
       const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday); // 연차 차감단위
 
       // 신청한 연차로 인해 잔여 연차가 0미만이 되는 경우 사용불가
@@ -518,7 +487,7 @@ export class LeaveService {
         case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
           return 0.75;
         case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
-          return 0.75;
+          return 1;
         case IntranetLeaveTypeIdxEnum.AM_HALF:
           return 0.5;
         case IntranetLeaveTypeIdxEnum.PM_HALF:

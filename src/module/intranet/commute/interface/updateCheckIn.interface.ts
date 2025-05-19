@@ -7,6 +7,7 @@ type RequiredFields =
   | 'checkInTime'
   | 'checkInIpAddr'
   | 'checkInLogAgent'
+  | 'availCheckOutTime'
   | 'leaveTypeIdx';
 
 type OptionalFields = 'leaveTypeIdx';

@@ -223,7 +223,6 @@ export class UserService {
 
   private async getHolidaysInRange(year: number, month: number, startDay: number): Promise<number> {
     const monthStr = month.toString().padStart(2, '0');
-    console.log('monthStr', monthStr);
     const holidayDates: string[] = await this.holidayRepository.getHolidayDates(year.toString(), monthStr);
 
     const startDate = moment(`${year}-${monthStr}-${startDay}`, 'YYYY-MM-DD');
@@ -233,7 +232,6 @@ export class UserService {
       const date = moment(dateStr, 'YYYY-MM-DD');
       return date.isSameOrAfter(startDate) && date.isSameOrBefore(endDate);
     });
-    console.log(filteredHolidays);
 
     return filteredHolidays.length;
   }
