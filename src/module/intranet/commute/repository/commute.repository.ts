@@ -51,6 +51,7 @@ export class CommuteRepository {
       .select([
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
+        'commuteEntity.availCheckOutTime AS availCheckOutTime',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'commuteEntity.attendance AS attendance',
         'commuteEntity.confirmYN AS confirmYN',
