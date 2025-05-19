@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { getStartAndEndDateByMonth } from '@common/utils/utility';
+import { getStartAndEndDateByMonth, substringYearMonth } from '@common/utils/utility';
 import { HolidayEntity } from '@entity/scheduler/holiday.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -29,5 +29,12 @@ export class GlobalHolidayRepository {
     const holidayDates: string[] = [...new Set(result.map((r) => r.holidayDate))];
 
     return holidayDates;
+  }
+
+  async isHolidayOrWeekend(dateString: string): Promise<boolean> {
+    const { year, month } = substringYearMonth(dateString);
+    const holidayDates: string[] = await this.getHolidayDates(year, month);
+
+    return holidayDates.includes(dateString);
   }
 }

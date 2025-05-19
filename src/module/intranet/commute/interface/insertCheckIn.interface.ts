@@ -6,6 +6,7 @@ type RequiredFields =
   | 'checkInTime'
   | 'checkInIpAddr'
   | 'checkInLogAgent'
+  | 'availCheckOutTime'
   | 'leaveTypeIdx';
 
 type InsertCheckInType = Pick<CommuteEntity, RequiredFields>;
