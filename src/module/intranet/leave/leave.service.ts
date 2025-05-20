@@ -53,8 +53,8 @@ export class LeaveService {
     const nowYear: number = moment().utcOffset(9).year();
     const nowMonth: number = moment().utcOffset(9).month() + 1;
 
-    // 특별휴무, 대체휴무, 연차 잔여 개수 조회
-    const { totalAnnualLeaveBalance, totalSpecialLeaveBalance, totalAlternativeLeaveBalance } =
+    // 특별휴무, 대체휴무, 연차 총/잔여 개수 조회
+    let { totalAnnualLeaveBalance, totalSpecialLeaveBalance, totalAlternativeLeaveBalance } =
       await this.leaveRepository.getAllLeaveSummary(userIdx, nowYear.toString());
     // 등록하려는 휴가 누적 차감단위
     let totalRegisterLeaveReduceUnit: number = 0;
@@ -89,24 +89,33 @@ export class LeaveService {
       const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday); // 연차 차감단위
 
       // 신청한 연차로 인해 잔여 연차가 0미만이 되는 경우 사용불가
-      if (ANNUAL_LEAVE_LISTS.has(leaveTypeIdx) && totalAnnualLeaveBalance - leaveReduceUnit < 0) {
-        throw new BadRequestException(
-          '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-        );
+      if (ANNUAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+        if (totalAnnualLeaveBalance - leaveReduceUnit < 0) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
+        }
+        totalAnnualLeaveBalance -= leaveReduceUnit;
       }
 
       // 신청한 특별휴무로 인해 잔여 특별휴무가 0미만이 되는 경우 사용불가
-      if (SPECIAL_LEAVE_LISTS.has(leaveTypeIdx) && totalSpecialLeaveBalance - leaveReduceUnit < 0) {
-        throw new BadRequestException(
-          '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-        );
+      if (SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+        if (totalSpecialLeaveBalance - leaveReduceUnit < 0) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
+        }
+        totalSpecialLeaveBalance -= leaveReduceUnit;
       }
 
       // 신청한 대체휴무로 인해 잔여 대체휴무가 0미만이 되는 경우 사용불가
-      if (ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx) && totalAlternativeLeaveBalance - leaveReduceUnit < 0) {
-        throw new BadRequestException(
-          '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-        );
+      if (ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx)) {
+        if (totalAlternativeLeaveBalance - leaveReduceUnit < 0) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
+        }
+        totalAlternativeLeaveBalance -= leaveReduceUnit;
       }
 
       // 하루에 사용한 휴가 총합이 1.0을 초과하면 사용불가
