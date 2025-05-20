@@ -3,7 +3,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { LeaveRepository } from './repository/leave.repository';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '../../../common/constant/enum';
+import {
+  ConfirmEnum,
+  IntranetAttendanceEnum,
+  IntranetLeaveTypeIdxEnum,
+  NodeEnvEnum,
+} from '../../../common/constant/enum';
 import { AwsService } from '../../aws/aws.service';
 import { LeaveImageInfo, LeaveSummary, LeaveUsageStats } from './interface/leave.interface';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
@@ -11,6 +16,7 @@ import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDt
 import {
   addConfirmStatusField,
   calculateAvailCheckOutTime,
+  getNormalLateBoundary,
   getOneYearAfterJoin,
   getYearsSinceJoin,
   removeDuplicateIdxs,
@@ -204,12 +210,21 @@ export class LeaveService {
       await this.leaveRepository.deleteCommuteApprover(commuteIdx);
       await this.leaveRepository.deleteCommuteCCUser(commuteIdx);
       // 근태 업데이트
+      let attendance = null;
+      if (leaveInfo.checkInTime) {
+        const isNormalLate: boolean =
+          new Date(leaveInfo.checkInTime) >= getNormalLateBoundary(new Date(leaveInfo.checkInTime));
+
+        attendance = isNormalLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
+      }
+
       const updateInfo = {
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
         confirmYN: ConfirmEnum.NO,
         confirmPersonIdx: null,
         confirmDate: null,
         leaveReduceUnit: 0,
+        attendance,
         availCheckOutTime: leaveInfo.checkInTime
           ? calculateAvailCheckOutTime(
               leaveInfo.checkInTime,
