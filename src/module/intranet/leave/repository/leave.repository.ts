@@ -43,6 +43,7 @@ export class LeaveRepository {
       .select([
         'commuteEntity.userIdx AS userIdx',
         'commuteEntity.commuteDate AS commuteDate',
+        'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
       ])
       .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
@@ -501,6 +502,15 @@ export class LeaveRepository {
       .execute();
   }
 
+  async updateLeaveToNormal(commuteIdx: number, updateInfo): Promise<UpdateResult> {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(updateInfo)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
+  }
+
   async createLeaveForE2ETest(
     leaveInfo: LeaveDetailDto,
     userIdx: number,
@@ -647,6 +657,24 @@ export class LeaveRepository {
       .delete()
       .from(LeaveExtraEntity)
       .where('leaveExtraIdx = :leaveExtraIdx', { leaveExtraIdx })
+      .execute();
+  }
+
+  async deleteCommuteApprover(commuteIdx: number): Promise<DeleteResult> {
+    return await this.commuteApproverModel
+      .createQueryBuilder()
+      .delete()
+      .from(CommuteApproverEntity)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
+  }
+
+  async deleteCommuteCCUser(commuteIdx: number): Promise<DeleteResult> {
+    return await this.commuteCCModel
+      .createQueryBuilder()
+      .delete()
+      .from(CommuteCCUserEntity)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
 }

@@ -13,14 +13,12 @@ import {
   AM_REST_LISTS,
   PM_REST_LISTS,
   AM_QUARTER_REST_LISTS,
-  TWO_HOURS_WORKING_MINUTES,
-  THREE_HOURS_WORKING_MINUTES,
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
 import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
 import {
-  addMinutes,
+  calculateAvailCheckOutTime,
   getAmHalfEarlyBoundary,
   getAmHalfLateBoundary,
   getAmQuarterEarlyBoundary,
@@ -95,7 +93,7 @@ export class CommuteService {
             ? IntranetAttendanceEnum.CHECK_IN_LATE
             : IntranetAttendanceEnum.CHECK_IN;
 
-        const availCheckOutTime: Date = await this.calculateAvailCheckOutTime(
+        const availCheckOutTime: Date = calculateAvailCheckOutTime(
           checkInDto.checkInTime,
           commuteInfo.leaveTypeIdx,
           commuteInfo.confirmYN,
@@ -123,7 +121,7 @@ export class CommuteService {
           ? IntranetAttendanceEnum.CHECK_IN_LATE
           : IntranetAttendanceEnum.CHECK_IN;
 
-        const availCheckOutTime: Date = await this.calculateAvailCheckOutTime(
+        const availCheckOutTime: Date = calculateAvailCheckOutTime(
           checkInDto.checkInTime,
           IntranetLeaveTypeIdxEnum.NORMAL,
           ConfirmEnum.NO,
@@ -151,7 +149,7 @@ export class CommuteService {
         ? IntranetAttendanceEnum.CHECK_IN_LATE
         : IntranetAttendanceEnum.CHECK_IN;
 
-      const availCheckOutTime: Date = await this.calculateAvailCheckOutTime(
+      const availCheckOutTime: Date = calculateAvailCheckOutTime(
         checkInDto.checkInTime,
         IntranetLeaveTypeIdxEnum.NORMAL,
         ConfirmEnum.NO,
@@ -460,46 +458,5 @@ export class CommuteService {
     const data = await this.holidayRepository.getHolidayDates(year, month);
 
     return data;
-  }
-
-  private async calculateAvailCheckOutTime(
-    checkInTime: Date,
-    leaveTypeIdx: number | null,
-    confirmYN: ConfirmEnum | null,
-    isBirthday: boolean,
-  ): Promise<Date> {
-    let standardWorkingMinutes: number;
-
-    if (confirmYN === ConfirmEnum.NO || confirmYN === ConfirmEnum.REJECT) {
-      if (isBirthday) {
-        standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES; // 정상근무일 때, 생일 반반차 적용
-      } else {
-        standardWorkingMinutes = NORMAL_WORKING_MINUTES;
-      }
-    } else {
-      if (isBirthday) {
-        if (AM_REST_LISTS.has(leaveTypeIdx)) {
-          standardWorkingMinutes = TWO_HOURS_WORKING_MINUTES;
-        } else if (PM_REST_LISTS.has(leaveTypeIdx)) {
-          standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
-        } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-          standardWorkingMinutes = THREE_HOURS_WORKING_MINUTES;
-        } else {
-          standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
-        }
-      } else {
-        if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
-          standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
-        } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-          standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
-        } else {
-          standardWorkingMinutes = NORMAL_WORKING_MINUTES;
-        }
-      }
-    }
-
-    const availCheckOutTime = addMinutes(checkInTime, standardWorkingMinutes);
-
-    return availCheckOutTime;
   }
 }

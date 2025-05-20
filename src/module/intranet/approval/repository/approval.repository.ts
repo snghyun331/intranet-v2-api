@@ -5,7 +5,7 @@ import { Brackets, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm'
 import { CommuteApproverEntity } from '@entity/intranet/commute/commuteApprover.entity';
 import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
 import * as moment from 'moment';
-import { getStartAndEndDateByMonth, getStartAndEndDateByYear } from '@common/utils/utility';
+import { getStartAndEndDateByMonth } from '@common/utils/utility';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
@@ -32,6 +32,7 @@ export class ApprovalRepository {
         'commuteEntity.commuteIdx AS commuteIdx',
         'commuteEntity.userIdx AS userIdx',
         'commuteEntity.commuteDate AS commuteDate',
+        'commuteEntity.checkInTime AS checkInTime',
         'commuteApproverEntity.approverIdx AS approverIdx',
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
@@ -211,21 +212,6 @@ export class ApprovalRepository {
   }
 
   async getApprovalHistory(userIdx: number, filterInfo: UserApprovalFilter) {
-    let startDate: string;
-    let endDate: string;
-
-    // if (filterInfo.month) {
-    //   const { year, month } = filterInfo;
-    //   const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
-    //   startDate = firstDayOfMonth.format('YYYY-MM-DD');
-    //   endDate = lastDayOfMonth.format('YYYY-MM-DD');
-    // } else {
-    //   const { year } = filterInfo;
-    //   const { firstDayOfYear, lastDayOfYear } = getStartAndEndDateByYear(year);
-    //   startDate = firstDayOfYear;
-    //   endDate = lastDayOfYear;
-    // }
-
     const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
@@ -295,5 +281,14 @@ export class ApprovalRepository {
     const result = await query.getRawMany();
 
     return result;
+  }
+
+  async updateAvailCheckOutTime(commuteIdx: number, availCheckOutTime: Date): Promise<UpdateResult> {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set({ availCheckOutTime })
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
   }
 }

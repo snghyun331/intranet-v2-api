@@ -1,17 +1,19 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalRepository } from './repository/approval.repository';
 import { ConfirmEnum } from '../../../common/constant/enum';
-import { addConfirmStatusField, substringYearMonth } from '../../../common/utils/utility';
+import { addConfirmStatusField, calculateAvailCheckOutTime, substringYearMonth } from '../../../common/utils/utility';
 import { UserApprovalFilter } from './dto/query.dto';
 import { ALTERNATIVE_LEAVE_LISTS, ANNUAL_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from '../../../common/constant/constant';
 import { Transactional } from 'typeorm-transactional';
 import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
+import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
 
 @Injectable()
 export class ApprovalService {
   constructor(
     private readonly approvalRepository: ApprovalRepository,
     private readonly mealRepository: GlobalMealRepository,
+    private readonly userRepository: GlobalUserRepository,
   ) {}
 
   @Transactional()
@@ -47,6 +49,19 @@ export class ApprovalService {
 
     /* 승인일 경우, */
     if (confirmYN === ConfirmEnum.YES) {
+      // 이미 출근을 한 상태인 경우, 퇴근가능시간 업데이트
+      if (existing.checkInTime) {
+        const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, existing.commuteDate); // 생일여부 확인
+        const availCheckOutTime: Date = calculateAvailCheckOutTime(
+          existing.checkInTime,
+          leaveTypeIdx,
+          ConfirmEnum.YES,
+          isBirthday,
+        );
+
+        await this.approvalRepository.updateAvailCheckOutTime(commuteIdx, availCheckOutTime);
+      }
+
       const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
         // 휴가 유형에 대한 해당 월 사용개수
         year,
@@ -81,6 +96,19 @@ export class ApprovalService {
 
     /* 승인이었다가 반려될 경우 */
     if (confirmYN === ConfirmEnum.REJECT && existing.confirmYN === ConfirmEnum.YES) {
+      // 이미 출근을 한 상태인 경우, 퇴근가능시간 업데이트
+      if (existing.checkInTime) {
+        const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, existing.commuteDate); // 생일여부 확인
+        const availCheckOutTime: Date = calculateAvailCheckOutTime(
+          existing.checkInTime,
+          leaveTypeIdx,
+          ConfirmEnum.REJECT,
+          isBirthday,
+        );
+
+        await this.approvalRepository.updateAvailCheckOutTime(commuteIdx, availCheckOutTime);
+      }
+
       const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
         // 휴가 유형에 대한 해당 월 사용개수
         year,

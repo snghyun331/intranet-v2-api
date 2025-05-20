@@ -10,6 +10,7 @@ import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import {
   addConfirmStatusField,
+  calculateAvailCheckOutTime,
   getOneYearAfterJoin,
   getYearsSinceJoin,
   removeDuplicateIdxs,
@@ -89,7 +90,6 @@ export class LeaveService {
 
       // 신청한 연차로 인해 잔여 연차가 0미만이 되는 경우 사용불가
       if (ANNUAL_LEAVE_LISTS.has(leaveTypeIdx) && totalAnnualLeaveBalance - leaveReduceUnit < 0) {
-        console.log(totalAnnualLeaveBalance - leaveReduceUnit);
         throw new BadRequestException(
           '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
         );
@@ -127,8 +127,10 @@ export class LeaveService {
       /* 휴가등록 */
       let commuteIdx: number;
       const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
-
-      // 당일에 등록할 경우
+      if (commuteDate < today) {
+        throw new BadRequestException('오늘 이전 날짜는 휴가 등록이 불가능합니다.');
+      }
+      // 당일 날짜에 등록할 경우
       if (commuteDate === today) {
         commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, commuteDate);
         await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, leaveReduceUnit);
@@ -169,13 +171,48 @@ export class LeaveService {
     return;
   }
 
+  /*
+   * 오늘 날짜 이후의 연차 내역을 삭제한다 → DELETE
+   * 오늘 날짜 혹은 이전의 연차 내역을 삭제한다 → UPDATE 일반근무
+   * 이미 출근을 찍었을 경우,
+   */
   @Transactional()
   async deleteLeave(commuteIdx: number): Promise<void> {
+    const todayDate = moment().utcOffset(9).format('YYYY-MM-DD');
     const leaveInfo = await this.leaveRepository.getLeaveInfoByIdx(commuteIdx);
     if (!leaveInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
-    await this.leaveRepository.deleteLeave(commuteIdx);
+    if (todayDate < leaveInfo.commuteDate) {
+      await this.leaveRepository.deleteLeave(commuteIdx);
+    } else {
+      const leaveImageInfo = await this.leaveRepository.getLeaveImageInfoByIdx(commuteIdx);
+      const isBirthday: boolean = await this.userRepository.isBirthday(leaveInfo.userIdx, leaveInfo.commuteDate); // 생일여부 확인
+      // 승인 및 참조 및 이미지 데이터 모두 삭제
+      if (leaveImageInfo.imageIdx) {
+        await this.leaveRepository.deleteLeaveImage(leaveImageInfo.imageIdx);
+      }
+      await this.leaveRepository.deleteCommuteApprover(commuteIdx);
+      await this.leaveRepository.deleteCommuteCCUser(commuteIdx);
+      // 근태 업데이트
+      const updateInfo = {
+        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+        confirmYN: ConfirmEnum.NO,
+        confirmPersonIdx: null,
+        confirmDate: null,
+        leaveReduceUnit: 0,
+        availCheckOutTime: leaveInfo.checkInTime
+          ? calculateAvailCheckOutTime(
+              leaveInfo.checkInTime,
+              IntranetLeaveTypeIdxEnum.NORMAL,
+              ConfirmEnum.NO,
+              isBirthday,
+            )
+          : null,
+      };
+      await this.leaveRepository.updateLeaveToNormal(commuteIdx, updateInfo);
+    }
+
     const { userIdx, commuteDate, leaveTypeIdx } = leaveInfo;
     const { year, month } = substringYearMonth(commuteDate);
     const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
@@ -524,6 +561,8 @@ export class LeaveService {
           return 0.25;
         case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
           return 0.25;
+        default:
+          return 0;
       }
     } else {
       switch (leaveTypeIdx) {
@@ -565,9 +604,10 @@ export class LeaveService {
           return 0.25;
         case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
           return 0.25;
+        default:
+          return 0;
       }
     }
-    return 0;
   }
 
   private async groupByCommuteIdx(rows: any[]) {

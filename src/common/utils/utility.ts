@@ -3,6 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment';
 import { AES, enc } from 'crypto-js';
 import { ConfirmEnum, HalfYearEnum, LeaveGrantTypeEnum } from '@common/constant/enum';
+import {
+  AM_QUARTER_REST_LISTS,
+  AM_REST_LISTS,
+  FOUR_HOURS_WORKING_MINUTES,
+  NORMAL_WORKING_MINUTES,
+  PM_QUARTER_REST_LISTS,
+  PM_REST_LISTS,
+  SEVEN_HOURS_WORKING_MINUTES,
+  THREE_HOURS_WORKING_MINUTES,
+  TWO_HOURS_WORKING_MINUTES,
+} from '../constant/constant';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
 export const getDateFormYYYYMMDD = (yyyymmdd: string): string => {
@@ -277,4 +288,45 @@ export const addMinutes = (date: Date, minutes: number): Date => {
 
 export const getDaysInMonth = (year: string, month: string): number => {
   return moment(`${year}-${month}`, 'YYYY-MM').daysInMonth();
+};
+
+export const calculateAvailCheckOutTime = (
+  checkInTime: Date,
+  leaveTypeIdx: number | null,
+  confirmYN: ConfirmEnum,
+  isBirthday: boolean,
+): Date => {
+  let standardWorkingMinutes: number;
+
+  if (confirmYN === ConfirmEnum.NO || confirmYN === ConfirmEnum.REJECT) {
+    if (isBirthday) {
+      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES; // 정상근무일 때, 생일 반반차 적용
+    } else {
+      standardWorkingMinutes = NORMAL_WORKING_MINUTES;
+    }
+  } else {
+    if (isBirthday) {
+      if (AM_REST_LISTS.has(leaveTypeIdx)) {
+        standardWorkingMinutes = TWO_HOURS_WORKING_MINUTES;
+      } else if (PM_REST_LISTS.has(leaveTypeIdx)) {
+        standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+      } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
+        standardWorkingMinutes = THREE_HOURS_WORKING_MINUTES;
+      } else {
+        standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
+      }
+    } else {
+      if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
+        standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+      } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
+        standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
+      } else {
+        standardWorkingMinutes = NORMAL_WORKING_MINUTES;
+      }
+    }
+  }
+
+  const availCheckOutTime = addMinutes(checkInTime, standardWorkingMinutes);
+
+  return availCheckOutTime;
 };
