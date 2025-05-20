@@ -206,18 +206,8 @@ export class CommuteService {
       throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
     }
     const { checkInTime, leaveTypeIdx } = commuteInfo;
-    let standardWorkingMinutes: number;
-    if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
-    } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
-    } else {
-      standardWorkingMinutes = NORMAL_WORKING_MINUTES;
-    }
 
-    /* 최종 근무시간 혹은 초과근무시간 저장 */
-    const finalCheckOutTime: Date = new Date(checkOutDto.checkOutTime);
-
+    /* 출근가능시간보다 일찍 찍은 경우, 출근시간은 출근가능시간으로 처리된다. */
     let finalCheckInTime: Date;
     if (AM_REST_LISTS.has(leaveTypeIdx) && checkInTime < getAmHalfEarlyBoundary(new Date(checkInTime))) {
       finalCheckInTime = getAmHalfEarlyBoundary(new Date(checkInTime));
@@ -237,12 +227,18 @@ export class CommuteService {
       finalCheckInTime = new Date(checkInTime);
     }
 
+    /* 최종 근무시간 혹은 초과근무시간 저장 */
+    const finalCheckOutTime: Date = new Date(checkOutDto.checkOutTime);
+    const finalAvailCheckOutTime: Date = new Date(commuteInfo.availCheckOutTime);
     const workingMinutes: number = (finalCheckOutTime.getTime() - finalCheckInTime.getTime()) / (1000 * 60);
-    const overtimeWorkingMinutes: number =
-      workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
+    // 초과근무시간이 음수이면, 0분으로 통일
+    const overtimeWorkingMinutes: number = Math.max(
+      0,
+      (finalCheckOutTime.getTime() - finalAvailCheckOutTime.getTime()) / (1000 * 60),
+    );
 
     /* 최종 근무시간이 기준시간 미만이면 사유를 필수 입력 */
-    if (workingMinutes < standardWorkingMinutes && !checkOutDto.earlyLeaveReason) {
+    if (finalCheckOutTime < finalAvailCheckOutTime && !checkOutDto.earlyLeaveReason) {
       throw new BadRequestException('조기퇴근 시, 사유 입력은 필수입니다.');
     }
 
@@ -250,12 +246,12 @@ export class CommuteService {
     let attendance: IntranetAttendanceEnum;
     if (commuteInfo.attendance === IntranetAttendanceEnum.CHECK_IN_LATE) {
       attendance =
-        workingMinutes < standardWorkingMinutes
+        finalCheckOutTime < finalAvailCheckOutTime
           ? IntranetAttendanceEnum.EARLY_CHECK_OUT_LATE
           : IntranetAttendanceEnum.CHECK_OUT_LATE;
     } else {
       attendance =
-        workingMinutes < standardWorkingMinutes
+        finalCheckOutTime < finalAvailCheckOutTime
           ? IntranetAttendanceEnum.EARLY_CHECK_OUT
           : IntranetAttendanceEnum.CHECK_OUT;
     }
