@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { MealTypeEnum } from '../../../common/constant/enum';
 
 export class AdminMealFilterDto {
   @ApiProperty({
@@ -28,6 +29,18 @@ export class AdminMealFilterDto {
   @IsOptional()
   @IsString()
   userName?: string;
+
+  @ApiProperty({
+    name: 'mealType',
+    description: '식대 종류',
+    example: 'dinner',
+    type: 'enum',
+    enum: MealTypeEnum,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(MealTypeEnum)
+  mealType?: MealTypeEnum;
 }
 
 export class AdminMealBudgetFilterDto {

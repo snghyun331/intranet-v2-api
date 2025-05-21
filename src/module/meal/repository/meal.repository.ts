@@ -282,7 +282,7 @@ export class MealRepository {
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealEntity.userIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .innerJoin(
         CommuteEntity,
         'commuteEntity',
@@ -298,6 +298,10 @@ export class MealRepository {
 
     if (searchInfo.userName) {
       query.andWhere('userEntity.userName = :userName', { userName: searchInfo.userName });
+    }
+
+    if (searchInfo.mealType) {
+      query.andWhere('mealEntity.mealType = :mealType', { mealType: searchInfo.mealType });
     }
 
     const total = await query.getCount();

@@ -19,7 +19,6 @@ import {
   ADMIN_MEALS_BALANCES_CANCEL,
   ADMIN_MEALS_BALANCES_DETAIL,
   ADMIN_MEALS_BUDGET,
-  ADMIN_MEALS_BUDGET_TOTAL,
   USERS_MEALS,
 } from './swagger/meal.swagger';
 import { CreateMealDto } from './dto/createMeal.dto';
@@ -35,7 +34,6 @@ import { CreateMealBudgetDto } from './dto/createBudget.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminAuthGuard } from '../auth/guard/authGuard/adminAuth.guard';
-import { UpdateBudgetDto } from './dto/updateBudget.dto';
 
 @ApiTags('사용자')
 @Controller('users/meals')
