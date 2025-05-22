@@ -5,12 +5,17 @@ import { PlayGroundModel } from './model/playground.model';
 import { SetLunchGroup } from './interface/lunchGroup.interface';
 import { RedisLockService } from '@redis/redisLock.service';
 import { PICK_LUNCH_LOCK_DURATION } from '@common/constant/constant';
+import { CreateMonthlyBaverageDto } from './dto/createMonthlyBaverage.dto';
+import { GlobalUserRepository } from '../global/repository/globalUser.repository';
+import { BaverageConfig } from '../../schema/baverage/baverageConfig.schema';
+import { BaverageMember } from '../../schema/baverage/baverageMember.schema';
 
 @Injectable()
 export class PlaygroundService {
   constructor(
     private readonly playgroupundModel: PlayGroundModel,
     private readonly redisLockService: RedisLockService,
+    private readonly userRepository: GlobalUserRepository,
     @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
@@ -19,12 +24,6 @@ export class PlaygroundService {
     const lock: boolean = await this.redisLockService.waitAndSetLock(lockKey, PICK_LUNCH_LOCK_DURATION);
 
     try {
-      // const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-      // // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
-      // const lunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
-      // if (!lunchGroupConfig) {
-      //   throw new BadRequestException('지금은 뽑기 가능 시간이 아닙니다.');
-      // }
       const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
       if (!lunchGroupConfig) {
         throw new BadRequestException('지금은 뽑기 가능 시간이 아닙니다.');
@@ -78,13 +77,6 @@ export class PlaygroundService {
   }
 
   async setLunchGroup({ total, perGroup, sDate, eDate, notice }: CreateLunchGroupDto): Promise<void> {
-    // // 이미 설정한 데이터가 있는지 확인
-    // const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    // const existLunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
-    // if (existLunchGroupConfig) {
-    //   throw new BadRequestException('기존 점심조 설정이 남아있습니다. 삭제 후 다시 시도해주세요.');
-    // }
-
     const maxGroup: number = Math.floor(total / perGroup);
     const extraGroupCount: number = total % perGroup === 0 ? 0 : total % perGroup;
     const expireAt: Date = moment(eDate).utcOffset(9).endOf('day').toDate(); // eDate 값을 Date형으로 변환
@@ -104,13 +96,6 @@ export class PlaygroundService {
   }
 
   async getLunchGroupForAdmin(): Promise<any> {
-    // const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    // // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
-    // const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig(nowDate);
-    // if (!lunchGroupConfig) {
-    //   return [];
-    // }
-
     // 가장 최신의 점심조 설정 데이터 조회
     const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
     if (!lunchGroupConfig) {
@@ -136,13 +121,6 @@ export class PlaygroundService {
   }
 
   async getLunchGroupForUser(userName: string): Promise<any> {
-    // const nowDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    // // 유효한 점심조 설정 찾기 (마감일이 지나지 않은 점심조)
-    // const lunchGroupConfig = await this.playgroupundModel.findAvailableLunchGroupConfig(nowDate);
-    // if (!lunchGroupConfig) {
-    //   return [];
-    // }
-
     // 가장 최신의 점심조 설정 데이터 조회
     const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
     if (!lunchGroupConfig) {
@@ -181,6 +159,29 @@ export class PlaygroundService {
     }
     const configId: object = existLunchGroupConfig._id;
     await this.playgroupundModel.deleteLunchGroupConfig(configId);
+
+    return;
+  }
+
+  async setMonthlyBaverage(monthlyBaverage: CreateMonthlyBaverageDto): Promise<void> {
+    /* 설정 config을 생성한다. */
+    const insertValue: BaverageConfig = { ...monthlyBaverage };
+    const configId = await this.playgroupundModel.createMonthlyBaverageConfig(insertValue);
+
+    /* 모든 직원에 대한 음료 주문 내역을 생성한다 */
+    const userNames: string[] = await this.userRepository.getAllUserNames();
+    const insertValues: BaverageMember[] = [];
+    await Promise.all(
+      userNames.map(async (userName) => {
+        insertValues.push({
+          configId,
+          userName,
+          baverage: null,
+        });
+      }),
+    );
+
+    await this.playgroupundModel.createBaverageMember(insertValues);
 
     return;
   }

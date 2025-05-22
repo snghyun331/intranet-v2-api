@@ -8,7 +8,11 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_PLAYGROUND_LUNCH_GROUP, USERS_PLAYGROUND_LUNCH_GROUP } from './swagger/playground.swagger';
+import {
+  ADMIN_PLAYGROUND_LUNCH_GROUP,
+  ADMIN_PLAYGROUND_MONTHLY_BAVERAGE,
+  USERS_PLAYGROUND_LUNCH_GROUP,
+} from './swagger/playground.swagger';
 import { ResponseInterface } from '@common/interface/response.interface';
 import { AdminRole, UserRole } from '@common/decorator/role.decorator';
 import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
@@ -19,6 +23,7 @@ import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
 import { CreateLunchGroupDto } from './dto/createLunchGroup.dto';
 import { CurrentUser } from '@common/decorator/currentUser.decorator';
 import { UserPayload } from '@common/interface/payload.interface';
+import { CreateMonthlyBaverageDto } from './dto/createMonthlyBaverage.dto';
 
 @ApiTags('사용자')
 @Controller('users/playground')
@@ -97,6 +102,20 @@ export class AdminPlaygroundController {
   @Delete('lunch-group')
   async deleteLunchGroup(): Promise<ResponseInterface> {
     await this.playgroundService.deleteLunchGroupConfig();
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_PLAYGROUND_MONTHLY_BAVERAGE.POST.API_OPERATION)
+  @ApiCreatedResponse(ADMIN_PLAYGROUND_MONTHLY_BAVERAGE.POST.API_CREATED_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Post('monthly-baverage')
+  async setMonthlyBaverage(@Body() monthlyBaverageInfo: CreateMonthlyBaverageDto): Promise<ResponseInterface> {
+    await this.playgroundService.setMonthlyBaverage(monthlyBaverageInfo);
 
     const response: ResponseInterface = { message: 'success' };
 

@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { LunchGroupConfig, LunchGroupConfigDocument } from '@schema/lunchGroup/lunchGroupConfig.schema';
-import { HydratedDocument, Model } from 'mongoose';
+import { HydratedDocument, Model, Types } from 'mongoose';
 import { SetLunchGroup } from '../interface/lunchGroup.interface';
 import { LunchGroupMember, LunchGroupMemberDocument } from '@schema/lunchGroup/lunchGroupMember.schema';
+import { BaverageConfig, BaverageConfigDocument } from '../../../schema/baverage/baverageConfig.schema';
+import { BaverageMember, BaverageMemberDocument } from '../../../schema/baverage/baverageMember.schema';
 
 @Injectable()
 export class PlayGroundModel {
   constructor(
     @InjectModel(LunchGroupConfig.name) private readonly lunchGroupConfigModel: Model<LunchGroupConfigDocument>,
     @InjectModel(LunchGroupMember.name) private readonly lunchGroupMemberModel: Model<LunchGroupMemberDocument>,
+    @InjectModel(BaverageConfig.name) private readonly baverageConfigModel: Model<BaverageConfigDocument>,
+    @InjectModel(BaverageMember.name) private readonly baverageMemberModel: Model<BaverageMemberDocument>,
   ) {}
 
   async createLunchGroupConfig(insertValue: SetLunchGroup): Promise<void> {
@@ -67,5 +71,18 @@ export class PlayGroundModel {
       .exec();
 
     return result;
+  }
+
+  async createMonthlyBaverageConfig(insertValue: BaverageConfig): Promise<Types.ObjectId> {
+    const result = await this.baverageConfigModel.create(insertValue);
+    const id: Types.ObjectId = result._id;
+
+    return id;
+  }
+
+  async createBaverageMember(insertValues: BaverageMember[]): Promise<void> {
+    await this.baverageMemberModel.insertMany(insertValues);
+
+    return;
   }
 }

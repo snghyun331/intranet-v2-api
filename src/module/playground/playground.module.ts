@@ -9,6 +9,8 @@ import { LunchGroupMember, LunchGroupMemberSchema } from '@schema/lunchGroup/lun
 import { PlayGroundModel } from './model/playground.model';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { RedisLockService } from '@redis/redisLock.service';
+import { BaverageConfig, BaverageConfigSchema } from '../../schema/baverage/baverageConfig.schema';
+import { BaverageMember, BaverageMemberSchema } from '../../schema/baverage/baverageMember.schema';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { RedisLockService } from '@redis/redisLock.service';
     MongooseModule.forFeature([
       { name: LunchGroupConfig.name, schema: LunchGroupConfigSchema },
       { name: LunchGroupMember.name, schema: LunchGroupMemberSchema },
+      { name: BaverageConfig.name, schema: BaverageConfigSchema },
+      { name: BaverageMember.name, schema: BaverageMemberSchema },
     ]),
     RedisModule,
   ],
