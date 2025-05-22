@@ -62,8 +62,6 @@ export class LeaveService {
     // 특별휴무, 대체휴무, 연차 총/잔여 개수 조회
     let { totalAnnualLeaveBalance, totalSpecialLeaveBalance, totalAlternativeLeaveBalance } =
       await this.leaveRepository.getAllLeaveSummary(userIdx, nowYear.toString());
-    // 등록하려는 휴가 누적 차감단위
-    let totalRegisterLeaveReduceUnit: number = 0;
 
     for (const leave of leaveInfo) {
       const commuteDate: string = leave.commuteDate;
@@ -128,15 +126,6 @@ export class LeaveService {
       const totalReduceUnit = await this.leaveRepository.getTotalLeaveReduceUnitByDate(userIdx, commuteDate);
       if (totalReduceUnit + leaveReduceUnit > 1.0) {
         throw new BadRequestException('휴가는 하루에 최대 1.0까지만 사용할 수 있습니다.');
-      }
-
-      // 등록하려는 휴가의 총합이 잔여 연차를 초과하면 사용불가
-      totalRegisterLeaveReduceUnit += leaveReduceUnit;
-
-      if (totalAnnualLeaveBalance - totalRegisterLeaveReduceUnit < 0) {
-        throw new BadRequestException(
-          '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-        );
       }
 
       /* 휴가등록 */

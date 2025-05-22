@@ -74,6 +74,20 @@ export class UserPlaygroundController {
 
     return response;
   }
+
+  @ApiOperation(USERS_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_OPERATION)
+  @ApiOkResponse(USERS_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('monthly-baverage')
+  async getMonthlyBaverageForUser(@CurrentUser() { userName }: UserPayload): Promise<ResponseInterface> {
+    const data: any = await this.playgroundService.getMonthlyBaverageForUser(userName);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
 }
 
 @ApiTags('어드민')

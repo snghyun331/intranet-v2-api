@@ -188,7 +188,11 @@ export class PlaygroundService {
   }
 
   async getMonthlyBaverageForAdmin() {
-    const { _id, ...config } = await this.playgroupundModel.findLatestBaverageConfig();
+    const configInfo = await this.playgroupundModel.findLatestBaverageConfig();
+    if (!configInfo) {
+      return null;
+    }
+    const { _id, ...config } = configInfo;
     const countStats = await this.playgroupundModel.getBaverageCountStats(_id);
     const details = await this.playgroupundModel.getBaverageDetails(_id);
     const result = { config, countStats, details };
@@ -200,5 +204,18 @@ export class PlaygroundService {
     await this.playgroupundModel.updateBaverage(configId, userName, baverage);
 
     return;
+  }
+
+  async getMonthlyBaverageForUser(userName: string) {
+    const configInfo = await this.playgroupundModel.findLatestBaverageConfig();
+    if (!configInfo) {
+      return null;
+    }
+    const { _id, ...config } = configInfo;
+    const details = await this.playgroupundModel.getBaverageDetails(_id);
+    const myBaverage = await this.playgroupundModel.getMyBaverage(_id, userName);
+    const result = { config, details, myBaverage: myBaverage ? myBaverage.baverage : 'NONE' };
+
+    return result;
   }
 }

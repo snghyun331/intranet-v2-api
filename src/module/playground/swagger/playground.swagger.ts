@@ -216,7 +216,93 @@ export const ADMIN_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          examples: {
+            a: {
+              summary: '설정 없음',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: null,
+              },
+            },
+            b: {
+              summary: '설정 있음',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  config: {
+                    month: '6',
+                    pickup: ['이승현', '김현민'],
+                    dueDate: '2025-05-22',
+                    configId: '682ed21d269e771d240ed2cc',
+                  },
+                  countStats: [
+                    {
+                      count: 49,
+                      baverage: 'NONE',
+                    },
+                    {
+                      count: 1,
+                      baverage: '바닐라크림 콜드브루',
+                    },
+                  ],
+                  details: [
+                    {
+                      _id: '682ed21d269e771d240ed2ce',
+                      userName: '김현민',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682ed21d269e771d240ed2cf',
+                      userName: '이승현',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682ed21d269e771d240ed2d0',
+                      userName: '신효은',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682ed21d269e771d240ed2d1',
+                      userName: '김현근',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682ed21d269e771d240ed2d2',
+                      userName: '박민수',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682ed21d269e771d240ed2d3',
+                      userName: '안지훈',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682ed21d269e771d240ed2d4',
+                      userName: '김정현',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682ed21d269e771d240ed2d5',
+                      userName: '윤이나',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682ed21d269e771d240ed2d6',
+                      userName: '김현해',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682ed21d269e771d240ed2d7',
+                      userName: '이혜빈',
+                      baverage: 'NONE',
+                    },
+                  ],
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -239,6 +325,80 @@ export const ADMIN_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
 };
 
 export const USERS_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 먼슬리 음료 현황 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '설정 있음',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  config: {
+                    month: '6',
+                    pickup: ['이승현', '김현민'],
+                    dueDate: '2025-05-22',
+                    configId: '682e922174696d056f66f201',
+                  },
+                  details: [
+                    {
+                      _id: '682e922174696d056f66f203',
+                      userName: '김현민',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682e922174696d056f66f204',
+                      userName: '이승현',
+                      baverage: '바닐라크림 콜드브루',
+                    },
+                    {
+                      _id: '682e922174696d056f66f205',
+                      userName: '신효은',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682e922174696d056f66f206',
+                      userName: '김현근',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682e922174696d056f66f207',
+                      userName: '박민수',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682e922174696d056f66f208',
+                      userName: '안지훈',
+                      baverage: 'NONE',
+                    },
+                    {
+                      _id: '682e922174696d056f66f209',
+                      userName: '김정현',
+                      baverage: 'NONE',
+                    },
+                  ],
+                  myBaverage: '바닐라크림 콜드브루',
+                },
+              },
+            },
+            b: {
+              summary: '설정 없음',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: null,
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   PUT: {
     API_OPERATION: {
       summary: '사용자 먼슬리 음료 신청 API',

@@ -123,6 +123,15 @@ export class PlayGroundModel {
     return result;
   }
 
+  async getMyBaverage(configId: object, userName: string) {
+    const result = await this.baverageMemberModel
+      .findOne({ configId, userName })
+      .select({ userName: 1, baverage: 1 })
+      .exec();
+
+    return result;
+  }
+
   async updateBaverage(id: string, userName: string, baverage: string): Promise<void> {
     // configId는 ObjectId로 변환
     const configId = new Types.ObjectId(id);
