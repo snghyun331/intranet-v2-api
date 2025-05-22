@@ -176,7 +176,7 @@ export class PlaygroundService {
         insertValues.push({
           configId,
           userName,
-          baverage: null,
+          baverage: 'NONE',
         });
       }),
     );
@@ -184,5 +184,14 @@ export class PlaygroundService {
     await this.playgroupundModel.createBaverageMember(insertValues);
 
     return;
+  }
+
+  async getMonthlyBaverageForAdmin() {
+    const config = await this.playgroupundModel.findLatestBaverageConfig();
+    const countStats = await this.playgroupundModel.getBaverageCountStats(config._id);
+    const details = await this.playgroupundModel.getBaverageDetails(config._id);
+    const result = { config, countStats, details };
+
+    return result;
   }
 }

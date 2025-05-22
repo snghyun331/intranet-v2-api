@@ -85,4 +85,33 @@ export class PlayGroundModel {
 
     return;
   }
+
+  async findLatestBaverageConfig(): Promise<HydratedDocument<BaverageConfig>> {
+    const result: HydratedDocument<BaverageConfig> = await this.baverageConfigModel
+      .findOne()
+      .select({ month: 1, pickup: 1, dueDate: 1 })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return result;
+  }
+
+  async getBaverageCountStats(configId: object) {
+    const result = await this.baverageMemberModel.aggregate([
+      { $match: { configId } },
+      { $group: { _id: '$baverage', count: { $sum: 1 } } },
+      { $project: { _id: 0, baverage: '$_id', count: 1 } },
+    ]);
+
+    return result;
+  }
+
+  async getBaverageDetails(configId: object) {
+    const result: HydratedDocument<BaverageMember>[] = await this.baverageMemberModel
+      .find({ configId })
+      .select({ userName: 1, baverage: 1 })
+      .exec();
+
+    return result;
+  }
 }

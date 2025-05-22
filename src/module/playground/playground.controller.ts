@@ -121,4 +121,18 @@ export class AdminPlaygroundController {
 
     return response;
   }
+
+  @ApiOperation(ADMIN_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_OPERATION)
+  @ApiOkResponse(ADMIN_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Get('monthly-baverage')
+  async getMonthlyBaverageForAdmin(): Promise<ResponseInterface> {
+    const data: any = await this.playgroundService.getMonthlyBaverageForAdmin();
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
 }
