@@ -86,14 +86,22 @@ export class PlayGroundModel {
     return;
   }
 
-  async findLatestBaverageConfig(): Promise<HydratedDocument<BaverageConfig>> {
+  async findLatestBaverageConfig() {
     const result: HydratedDocument<BaverageConfig> = await this.baverageConfigModel
       .findOne()
       .select({ month: 1, pickup: 1, dueDate: 1 })
       .sort({ createdAt: -1 })
+      .lean()
       .exec();
 
-    return result;
+    if (!result) {
+      return null;
+    }
+
+    return {
+      ...result,
+      configId: result._id.toString(),
+    };
   }
 
   async getBaverageCountStats(configId: object) {
@@ -113,5 +121,13 @@ export class PlayGroundModel {
       .exec();
 
     return result;
+  }
+
+  async updateBaverage(id: string, userName: string, baverage: string): Promise<void> {
+    // configId는 ObjectId로 변환
+    const configId = new Types.ObjectId(id);
+    await this.baverageMemberModel.updateOne({ configId, userName }, { $set: { baverage } });
+
+    return;
   }
 }

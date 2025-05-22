@@ -9,6 +9,7 @@ import { CreateMonthlyBaverageDto } from './dto/createMonthlyBaverage.dto';
 import { GlobalUserRepository } from '../global/repository/globalUser.repository';
 import { BaverageConfig } from '../../schema/baverage/baverageConfig.schema';
 import { BaverageMember } from '../../schema/baverage/baverageMember.schema';
+import { UpdateBaverage } from './dto/updateBaverage.dto';
 
 @Injectable()
 export class PlaygroundService {
@@ -187,11 +188,17 @@ export class PlaygroundService {
   }
 
   async getMonthlyBaverageForAdmin() {
-    const config = await this.playgroupundModel.findLatestBaverageConfig();
-    const countStats = await this.playgroupundModel.getBaverageCountStats(config._id);
-    const details = await this.playgroupundModel.getBaverageDetails(config._id);
+    const { _id, ...config } = await this.playgroupundModel.findLatestBaverageConfig();
+    const countStats = await this.playgroupundModel.getBaverageCountStats(_id);
+    const details = await this.playgroupundModel.getBaverageDetails(_id);
     const result = { config, countStats, details };
 
     return result;
+  }
+
+  async updateMonthlyBaverage({ configId, userName, baverage }: UpdateBaverage): Promise<void> {
+    await this.playgroupundModel.updateBaverage(configId, userName, baverage);
+
+    return;
   }
 }

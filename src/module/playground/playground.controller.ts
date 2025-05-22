@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, UseGuards } from '@nestjs/common';
 import { PlaygroundService } from './playground.service';
 import {
   ApiBadRequestResponse,
@@ -12,6 +12,7 @@ import {
   ADMIN_PLAYGROUND_LUNCH_GROUP,
   ADMIN_PLAYGROUND_MONTHLY_BAVERAGE,
   USERS_PLAYGROUND_LUNCH_GROUP,
+  USERS_PLAYGROUND_MONTHLY_BAVERAGE,
 } from './swagger/playground.swagger';
 import { ResponseInterface } from '@common/interface/response.interface';
 import { AdminRole, UserRole } from '@common/decorator/role.decorator';
@@ -24,6 +25,7 @@ import { CreateLunchGroupDto } from './dto/createLunchGroup.dto';
 import { CurrentUser } from '@common/decorator/currentUser.decorator';
 import { UserPayload } from '@common/interface/payload.interface';
 import { CreateMonthlyBaverageDto } from './dto/createMonthlyBaverage.dto';
+import { UpdateBaverage } from './dto/updateBaverage.dto';
 
 @ApiTags('사용자')
 @Controller('users/playground')
@@ -55,6 +57,20 @@ export class UserPlaygroundController {
     const data: any = await this.playgroundService.getLunchGroupForUser(userName);
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_PLAYGROUND_MONTHLY_BAVERAGE.PUT.API_OPERATION)
+  @ApiOkResponse(USERS_PLAYGROUND_MONTHLY_BAVERAGE.PUT.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Put('monthly-baverage')
+  async updateMonthlyBaverage(@Body() dto: UpdateBaverage): Promise<ResponseInterface> {
+    await this.playgroundService.updateMonthlyBaverage(dto);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }

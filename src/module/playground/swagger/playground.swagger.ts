@@ -237,3 +237,21 @@ export const ADMIN_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
     },
   },
 };
+
+export const USERS_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
+  PUT: {
+    API_OPERATION: {
+      summary: '사용자 먼슬리 음료 신청 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};
