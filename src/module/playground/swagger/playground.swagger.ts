@@ -276,6 +276,21 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
 };
 
 export const ADMIN_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
+  PUT: {
+    API_OPERATION: {
+      summary: '어드민 먼슬리 음료 수정 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
   GET: {
     API_OPERATION: {
       summary: '어드민 먼슬리 음료 현황 API',
