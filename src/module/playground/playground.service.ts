@@ -181,6 +181,11 @@ export class PlaygroundService {
   }
 
   async setMonthlyBaverage(monthlyBaverage: CreateMonthlyBaverageDto): Promise<void> {
+    const configInfo = await this.playgroupundModel.findBaverageConfigByMonth(monthlyBaverage.month);
+    if (configInfo) {
+      throw new BadRequestException('이미 해당 월에 대한 음료 설정이 존재합니다.');
+    }
+
     /* 설정 config을 생성한다. */
     const insertValue: BaverageConfig = { ...monthlyBaverage };
     const configId = await this.playgroupundModel.createMonthlyBaverageConfig(insertValue);
@@ -203,13 +208,14 @@ export class PlaygroundService {
     return;
   }
 
-  async getMonthlyBaverageForAdmin() {
-    const configInfo = await this.playgroupundModel.findLatestBaverageConfig();
-    if (!configInfo) {
+  async getMonthlyBaverageForAdmin(month: string) {
+    /* 음료 설정 정보 */
+    const config = await this.playgroupundModel.findBaverageConfigByMonth(month);
+    if (!config) {
       return null;
     }
-    /* 음료 설정 정보 */
-    const { _id, ...config } = configInfo;
+    const { _id, ...rest } = config;
+    const renamedConfig = { configId: _id, ...rest };
 
     /* 음료 종류별 총 잔 수 집계 */
     const countStatsRaw = await this.playgroupundModel.getBaverageCountStats(_id);
@@ -225,7 +231,7 @@ export class PlaygroundService {
     /* 직원별 음료 신청 현황 내역 */
     const details = await this.playgroupundModel.getBaverageDetails(_id);
 
-    const result = { config, countStats, details };
+    const result = { config: renamedConfig, countStats, details };
 
     return result;
   }
@@ -236,15 +242,21 @@ export class PlaygroundService {
     return;
   }
 
-  async getMonthlyBaverageForUser(userName: string) {
-    const configInfo = await this.playgroupundModel.findLatestBaverageConfig();
-    if (!configInfo) {
+  async getMonthlyBaverageForUser(month: string, userName: string) {
+    /* 음료 설정 정보 */
+    const config = await this.playgroupundModel.findBaverageConfigByMonth(month);
+    if (!config) {
       return null;
     }
-    const { _id, ...config } = configInfo;
+    const { _id, ...rest } = config;
+    const renamedConfig = { configId: _id, ...rest };
+
+    /* 직원별 음료 신청 현황 내역 */
     const details = await this.playgroupundModel.getBaverageDetails(_id);
+    /* 내가 신청한 음료 */
     const myBaverage = await this.playgroupundModel.getMyBaverage(_id, userName);
-    const result = { config, details, myBaverage: myBaverage ? myBaverage.baverage : 'NONE' };
+
+    const result = { config: renamedConfig, details, myBaverage: myBaverage ? myBaverage.baverage : 'NONE' };
 
     return result;
   }

@@ -87,22 +87,14 @@ export class PlayGroundModel {
     return;
   }
 
-  async findLatestBaverageConfig() {
-    const result: HydratedDocument<BaverageConfig> = await this.baverageConfigModel
-      .findOne()
+  async findBaverageConfigByMonth(month: string): Promise<HydratedDocument<BaverageConfig>> {
+    const result = await this.baverageConfigModel
+      .findOne({ month })
       .select({ month: 1, pickup: 1, dueDate: 1 })
-      .sort({ createdAt: -1 })
       .lean()
       .exec();
 
-    if (!result) {
-      return null;
-    }
-
-    return {
-      ...result,
-      configId: result._id.toString(),
-    };
+    return result;
   }
 
   async getBaverageCountStats(configId: object) {
@@ -123,7 +115,7 @@ export class PlayGroundModel {
   async getBaverageDetails(configId: object) {
     const result: HydratedDocument<BaverageMember>[] = await this.baverageMemberModel
       .find({ configId })
-      .select({ userName: 1, baverage: 1 })
+      .select({ userName: 1, baverage: 1, _id: 0 })
       .exec();
 
     return result;

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { PlaygroundService } from './playground.service';
 import {
   ApiBadRequestResponse,
@@ -6,6 +6,7 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import {
@@ -76,13 +77,17 @@ export class UserPlaygroundController {
   }
 
   @ApiOperation(USERS_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_OPERATION)
+  @ApiParam(USERS_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_PARAM1)
   @ApiOkResponse(USERS_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @Get('monthly-baverage')
-  async getMonthlyBaverageForUser(@CurrentUser() { userName }: UserPayload): Promise<ResponseInterface> {
-    const data: any = await this.playgroundService.getMonthlyBaverageForUser(userName);
+  @Get('monthly-baverage/:month')
+  async getMonthlyBaverageForUser(
+    @Param('month', ParseIntPipe) month: string,
+    @CurrentUser() { userName }: UserPayload,
+  ): Promise<ResponseInterface> {
+    const data: any = await this.playgroundService.getMonthlyBaverageForUser(month, userName);
 
     const response: ResponseInterface = { message: 'success', data };
 
@@ -153,13 +158,14 @@ export class AdminPlaygroundController {
   }
 
   @ApiOperation(ADMIN_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_OPERATION)
+  @ApiParam(ADMIN_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_PARAM1)
   @ApiOkResponse(ADMIN_PLAYGROUND_MONTHLY_BAVERAGE.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  @Get('monthly-baverage')
-  async getMonthlyBaverageForAdmin(): Promise<ResponseInterface> {
-    const data: any = await this.playgroundService.getMonthlyBaverageForAdmin();
+  @Get('monthly-baverage/:month')
+  async getMonthlyBaverageForAdmin(@Param('month', ParseIntPipe) month: string): Promise<ResponseInterface> {
+    const data: any = await this.playgroundService.getMonthlyBaverageForAdmin(month);
 
     const response: ResponseInterface = { message: 'success', data };
 
