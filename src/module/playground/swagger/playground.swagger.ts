@@ -15,15 +15,30 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 statusCode: 200,
                 message: 'success',
                 data: {
-                  sDate: '2024-12-09',
-                  eDate: '2024-12-10',
+                  sDate: '2025-05-10',
+                  eDate: '2025-05-12',
+                  total: 10,
+                  perGroup: 3,
                   notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
+                  groupInfo: [
+                    {
+                      groupNo: 1,
+                      availMemberCount: 4,
+                    },
+                    {
+                      groupNo: 2,
+                      availMemberCount: 3,
+                    },
+                    {
+                      groupNo: 3,
+                      availMemberCount: 3,
+                    },
+                  ],
                   groups: {
                     '1': [],
                     '2': [],
                     '3': [],
                   },
-                  groupToAssign: null,
                 },
               },
             },
@@ -33,13 +48,27 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 statusCode: 200,
                 message: 'success',
                 data: {
-                  sDate: '2024-12-09',
-                  eDate: '2024-12-10',
+                  sDate: '2025-05-10',
+                  eDate: '2025-05-12',
                   notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
+                  groupInfo: [
+                    {
+                      groupNo: 1,
+                      availMemberCount: 4,
+                    },
+                    {
+                      groupNo: 2,
+                      availMemberCount: 3,
+                    },
+                    {
+                      groupNo: 3,
+                      availMemberCount: 3,
+                    },
+                  ],
                   groups: {
-                    '1': [],
-                    '2': [],
-                    '3': ['이승현'],
+                    '1': ['이승현', '신효은', '안지훈', '정진우'],
+                    '2': ['김현민', '김단아', '김정현'],
+                    '3': ['김현근', '이혜빈', '김선경'],
                   },
                   groupToAssign: '3',
                 },
@@ -92,6 +121,15 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 path: '/users/playground/lunch-group',
               },
             },
+            c: {
+              summary: '정원 초과',
+              value: {
+                message: '배정 가능한 그룹이 없습니다.',
+                error: 'Bad Request',
+                statusCode: 400,
+                path: '/users/playground/lunch-group',
+              },
+            },
           },
         },
       },
@@ -129,11 +167,25 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 statusCode: 200,
                 message: 'success',
                 data: {
-                  sDate: '2024-12-09',
-                  eDate: '2024-12-10',
-                  total: 5,
-                  perGroup: 2,
+                  sDate: '2025-05-10',
+                  eDate: '2025-05-12',
+                  total: 10,
+                  perGroup: 3,
                   notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
+                  groupInfo: [
+                    {
+                      groupNo: 1,
+                      availMemberCount: 4,
+                    },
+                    {
+                      groupNo: 2,
+                      availMemberCount: 3,
+                    },
+                    {
+                      groupNo: 3,
+                      availMemberCount: 3,
+                    },
+                  ],
                   groups: {
                     '1': [],
                     '2': [],
@@ -148,14 +200,29 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 statusCode: 200,
                 message: 'success',
                 data: {
-                  sDate: '2025-03-05',
-                  eDate: '2025-03-06',
-                  total: 5,
-                  perGroup: 2,
+                  sDate: '2025-05-10',
+                  eDate: '2025-05-12',
+                  total: 10,
+                  perGroup: 3,
                   notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
+                  groupInfo: [
+                    {
+                      groupNo: 1,
+                      availMemberCount: 4,
+                    },
+                    {
+                      groupNo: 2,
+                      availMemberCount: 3,
+                    },
+                    {
+                      groupNo: 3,
+                      availMemberCount: 3,
+                    },
+                  ],
                   groups: {
-                    '1': ['신효은', '박민수', '이승현'],
-                    '2': ['김현근', '정진우'],
+                    '1': ['이승현', '신효은', '안지훈', '정진우'],
+                    '2': ['김현민', '김단아', '김정현'],
+                    '3': ['김현근', '이혜빈', '김선경'],
                   },
                 },
               },

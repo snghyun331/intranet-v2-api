@@ -9,13 +9,18 @@ export class LunchGroupConfig {
   total: number;
 
   @Prop({ type: Number, required: true }) // 최대 그룹 수
-  maxGroup: number;
+  totalGroups: number;
 
   @Prop({ type: Number, required: true }) // 그룹당 인원
   perGroup: number;
 
-  @Prop({ type: Number, required: true }) // 추가 인원 그룹 수
-  extraGroupCount: number;
+  @Prop({
+    type: [
+      { groupNo: { type: Number, required: true }, availMemberCount: { type: Number, required: true }, _id: false },
+    ],
+    required: true,
+  }) // 그룹 정보
+  groupInfo: Array<{ groupNo: number; availMemberCount: number }>;
 
   @Prop({ type: String, required: true }) // 점심조 시작 일자
   sDate: string;

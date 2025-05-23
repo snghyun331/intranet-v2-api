@@ -30,7 +30,7 @@ export class PlaygroundService {
         throw new BadRequestException('지금은 뽑기 가능 시간이 아닙니다.');
       }
 
-      const { _id: configId, maxGroup, perGroup, extraGroupCount } = lunchGroupConfig;
+      const { _id: configId, groupInfo } = lunchGroupConfig;
 
       // 이미 배정되었는지 확인
       const isExistingAssignment = await this.playgroupundModel.checkUserAssignedToLunchGroup(configId, userName);
@@ -48,20 +48,20 @@ export class PlaygroundService {
         const groupSizeMap = new Map<number, number>();
         groupCounts.forEach((group) => groupSizeMap.set(group._id, group.count));
 
-        while (true) {
-          const groupNo: number = Math.floor(Math.random() * maxGroup) + 1;
-          const currentSize = groupSizeMap.get(groupNo) || 0;
-
-          // 기본 그룹 배정
-          if (currentSize < perGroup && groupToAssign === null) {
-            groupToAssign = groupNo;
-            break;
+        // 배정 가능한 그룹들 찾기
+        const availableGroups: number[] = [];
+        groupInfo.forEach((info) => {
+          const currentSize = groupSizeMap.get(info.groupNo) || 0;
+          if (currentSize < info.availMemberCount) {
+            availableGroups.push(info.groupNo);
           }
-          // 초과 인원 그룹 배정 (여유가 있을 경우)
-          if (currentSize < perGroup + 1 && extraGroupCount > 0) {
-            groupToAssign = groupNo;
-            break;
-          }
+        });
+        // 배정 가능한 그룹이 있으면 랜덤하게 선택
+        if (availableGroups.length > 0) {
+          const randomIndex = Math.floor(Math.random() * availableGroups.length);
+          groupToAssign = availableGroups[randomIndex];
+        } else {
+          throw new BadRequestException('배정 가능한 그룹이 없습니다.');
         }
 
         // 배정된 그룹에 멤버 추가
@@ -78,14 +78,32 @@ export class PlaygroundService {
   }
 
   async setLunchGroup({ total, perGroup, sDate, eDate, notice }: CreateLunchGroupDto): Promise<void> {
-    const maxGroup: number = Math.floor(total / perGroup);
-    const extraGroupCount: number = total % perGroup === 0 ? 0 : total % perGroup;
+    const totalGroups: number = Math.floor(total / perGroup);
+    const remainingMembers: number = total % perGroup;
+    // 나머지 인원이 있으면 기존 그룹들 중 랜덤하게 선택해서 1명씩 추가
+    const groupInfo = [];
+    for (let i = 1; i <= totalGroups; i++) {
+      groupInfo.push({
+        groupNo: i,
+        availMemberCount: perGroup,
+      });
+    }
+
+    // 나머지 인원을 랜덤하게 분배
+    if (remainingMembers > 0) {
+      for (let i = 0; i < remainingMembers; i++) {
+        // 0 ~ totalGroups - 1 사이의 랜덤한 인덱스 선택
+        const randomIndex = Math.floor(Math.random() * totalGroups);
+        groupInfo[randomIndex].availMemberCount += 1;
+      }
+    }
+
     const expireAt: Date = moment(eDate).utcOffset(9).endOf('day').toDate(); // eDate 값을 Date형으로 변환
     const insertValue: SetLunchGroup = {
       total,
       perGroup,
-      maxGroup,
-      extraGroupCount,
+      totalGroups,
+      groupInfo,
       sDate,
       eDate,
       notice,
@@ -102,12 +120,9 @@ export class PlaygroundService {
     if (!lunchGroupConfig) {
       return [];
     }
-
-    const { sDate, eDate, notice, maxGroup, _id: configId, total, perGroup } = lunchGroupConfig;
-
+    const { sDate, eDate, notice, totalGroups, _id: configId, total, perGroup, groupInfo } = lunchGroupConfig;
     const groups: Record<string, string[]> = {};
-
-    for (let i = 1; i <= maxGroup; i++) {
+    for (let i = 1; i <= totalGroups; i++) {
       groups[i.toString()] = [];
     }
 
@@ -118,7 +133,7 @@ export class PlaygroundService {
       groups[groupNo].push(member.userName);
     }
 
-    return { sDate, eDate, total, perGroup, notice, groups };
+    return { sDate, eDate, total, perGroup, notice, groupInfo, groups };
   }
 
   async getLunchGroupForUser(userName: string): Promise<any> {
@@ -128,12 +143,12 @@ export class PlaygroundService {
       return [];
     }
 
-    const { sDate, eDate, notice, maxGroup, _id: configId } = lunchGroupConfig;
+    const { sDate, eDate, notice, totalGroups, _id: configId, groupInfo } = lunchGroupConfig;
 
     let groupToAssign: string | null = null;
     const groups: Record<string, string[]> = {};
 
-    for (let i = 1; i <= maxGroup; i++) {
+    for (let i = 1; i <= totalGroups; i++) {
       groups[i.toString()] = [];
     }
 
@@ -149,7 +164,7 @@ export class PlaygroundService {
       }
     }
 
-    return { sDate, eDate, notice, groups, groupToAssign };
+    return { sDate, eDate, notice, groupInfo, groups, groupToAssign };
   }
 
   async deleteLunchGroupConfig(): Promise<void> {

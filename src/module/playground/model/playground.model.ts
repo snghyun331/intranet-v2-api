@@ -17,7 +17,7 @@ export class PlayGroundModel {
   ) {}
 
   async createLunchGroupConfig(insertValue: SetLunchGroup): Promise<void> {
-    await this.lunchGroupConfigModel.create([insertValue]);
+    await this.lunchGroupConfigModel.create(insertValue);
 
     return;
   }
