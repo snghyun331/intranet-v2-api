@@ -116,10 +116,20 @@ export class PlaygroundService {
   }
 
   async getLunchGroupForAdmin(): Promise<any> {
+    const defaultResult = {
+      sDate: null,
+      eDate: null,
+      total: null,
+      perGroup: null,
+      notice: null,
+      groupInfo: [],
+      groups: {},
+    };
+
     // 가장 최신의 점심조 설정 데이터 조회
     const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
     if (!lunchGroupConfig) {
-      return [];
+      return defaultResult;
     }
     const { sDate, eDate, notice, totalGroups, _id: configId, total, perGroup, groupInfo } = lunchGroupConfig;
     const groups: Record<string, string[]> = {};
@@ -138,10 +148,20 @@ export class PlaygroundService {
   }
 
   async getLunchGroupForUser(userName: string): Promise<any> {
+    const defaultResult = {
+      sDate: null,
+      eDate: null,
+      total: null,
+      perGroup: null,
+      notice: null,
+      groupInfo: [],
+      groups: {},
+    };
+
     // 가장 최신의 점심조 설정 데이터 조회
     const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
     if (!lunchGroupConfig) {
-      return [];
+      return defaultResult;
     }
 
     const { sDate, eDate, notice, totalGroups, _id: configId, groupInfo } = lunchGroupConfig;
@@ -209,10 +229,22 @@ export class PlaygroundService {
   }
 
   async getMonthlyBaverageForAdmin(month: string) {
+    const defaultResult = {
+      config: {
+        month,
+        pickup: [],
+        dueDate: null,
+        configId: null,
+      },
+      countStats: [],
+      details: [],
+      myBaverage: null,
+    };
+
     /* 음료 설정 정보 */
     const config = await this.playgroupundModel.findBaverageConfigByMonth(month);
     if (!config) {
-      return null;
+      return defaultResult;
     }
     const { _id, ...rest } = config;
     const renamedConfig = { configId: _id, ...rest };
@@ -243,11 +275,23 @@ export class PlaygroundService {
   }
 
   async getMonthlyBaverageForUser(month: string, userName: string) {
-    /* 음료 설정 정보 */
+    const defaultResult = {
+      config: {
+        month,
+        pickup: [],
+        dueDate: null,
+        configId: null,
+      },
+      details: [],
+      myBaverage: null,
+    };
     const config = await this.playgroupundModel.findBaverageConfigByMonth(month);
+    // 어드민에서 설정한 정보가 없다면,
     if (!config) {
-      return null;
+      return defaultResult;
     }
+
+    /* 음료 설정 정보 */
     const { _id, ...rest } = config;
     const renamedConfig = { configId: _id, ...rest };
 

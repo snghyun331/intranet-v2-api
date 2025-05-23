@@ -358,37 +358,30 @@ export const ADMIN_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
                   ],
                   details: [
                     {
-                      _id: '682ff9eecc2782e690fbcc81',
                       userName: '김현민',
                       baverage: null,
                     },
                     {
-                      _id: '682ff9eecc2782e690fbcc82',
                       userName: '이승현',
                       baverage: null,
                     },
                     {
-                      _id: '682ff9eecc2782e690fbcc83',
                       userName: '신효은',
                       baverage: null,
                     },
                     {
-                      _id: '682ff9eecc2782e690fbcc84',
                       userName: '김현근',
                       baverage: null,
                     },
                     {
-                      _id: '682ff9eecc2782e690fbcc85',
                       userName: '박민수',
                       baverage: null,
                     },
                     {
-                      _id: '682ff9eecc2782e690fbcc86',
                       userName: '안지훈',
                       baverage: null,
                     },
                     {
-                      _id: '682ff9eecc2782e690fbcc87',
                       userName: '김정현',
                       baverage: null,
                     },
@@ -448,37 +441,30 @@ export const USERS_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
                   },
                   details: [
                     {
-                      _id: '682e922174696d056f66f203',
                       userName: '김현민',
                       baverage: null,
                     },
                     {
-                      _id: '682e922174696d056f66f204',
                       userName: '이승현',
                       baverage: '바닐라크림 콜드브루',
                     },
                     {
-                      _id: '682e922174696d056f66f205',
                       userName: '신효은',
                       baverage: null,
                     },
                     {
-                      _id: '682e922174696d056f66f206',
                       userName: '김현근',
                       baverage: null,
                     },
                     {
-                      _id: '682e922174696d056f66f207',
                       userName: '박민수',
                       baverage: null,
                     },
                     {
-                      _id: '682e922174696d056f66f208',
                       userName: '안지훈',
                       baverage: null,
                     },
                     {
-                      _id: '682e922174696d056f66f209',
                       userName: '김정현',
                       baverage: null,
                     },
