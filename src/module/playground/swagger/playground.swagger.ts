@@ -295,7 +295,7 @@ export const ADMIN_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
     API_OPERATION: {
       summary: '어드민 먼슬리 음료 현황 API',
     },
-    API_PARAM1: {
+    API_QUERY1: {
       name: 'month',
       required: true,
       description: '월',
@@ -422,7 +422,7 @@ export const USERS_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
     API_OPERATION: {
       summary: '사용자 먼슬리 음료 현황 API',
     },
-    API_PARAM1: {
+    API_QUERY1: {
       name: 'month',
       required: true,
       description: '월',
