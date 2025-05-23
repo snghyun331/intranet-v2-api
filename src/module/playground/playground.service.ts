@@ -10,6 +10,7 @@ import { GlobalUserRepository } from '../global/repository/globalUser.repository
 import { BaverageConfig } from '../../schema/baverage/baverageConfig.schema';
 import { BaverageMember } from '../../schema/baverage/baverageMember.schema';
 import { UpdateBaverage } from './dto/updateBaverage.dto';
+import { BaverageEnum } from './enum/playground.enum';
 
 @Injectable()
 export class PlaygroundService {
@@ -192,7 +193,7 @@ export class PlaygroundService {
         insertValues.push({
           configId,
           userName,
-          baverage: 'NONE',
+          baverage: null,
         });
       }),
     );
@@ -207,9 +208,23 @@ export class PlaygroundService {
     if (!configInfo) {
       return null;
     }
+    /* 음료 설정 정보 */
     const { _id, ...config } = configInfo;
-    const countStats = await this.playgroupundModel.getBaverageCountStats(_id);
+
+    /* 음료 종류별 총 잔 수 집계 */
+    const countStatsRaw = await this.playgroupundModel.getBaverageCountStats(_id);
+    const allBaverages = Object.values(BaverageEnum);
+    // 집계 결과를 Map으로 변환
+    const countMap = new Map(countStatsRaw.map((item) => [item.baverage, item.count]));
+    // 모든 음료 종류에 대해 count 채워넣기
+    const countStats = allBaverages.map((baverage: string | null) => ({
+      baverage: baverage ?? BaverageEnum.NONE,
+      count: countMap.get(baverage) ?? 0,
+    }));
+
+    /* 직원별 음료 신청 현황 내역 */
     const details = await this.playgroupundModel.getBaverageDetails(_id);
+
     const result = { config, countStats, details };
 
     return result;

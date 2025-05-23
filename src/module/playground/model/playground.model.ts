@@ -6,6 +6,7 @@ import { SetLunchGroup } from '../interface/lunchGroup.interface';
 import { LunchGroupMember, LunchGroupMemberDocument } from '@schema/lunchGroup/lunchGroupMember.schema';
 import { BaverageConfig, BaverageConfigDocument } from '../../../schema/baverage/baverageConfig.schema';
 import { BaverageMember, BaverageMemberDocument } from '../../../schema/baverage/baverageMember.schema';
+import { BaverageEnum } from '../enum/playground.enum';
 
 @Injectable()
 export class PlayGroundModel {
@@ -105,11 +106,16 @@ export class PlayGroundModel {
   }
 
   async getBaverageCountStats(configId: object) {
-    const result = await this.baverageMemberModel.aggregate([
+    const raw = await this.baverageMemberModel.aggregate([
       { $match: { configId } },
       { $group: { _id: '$baverage', count: { $sum: 1 } } },
       { $project: { _id: 0, baverage: '$_id', count: 1 } },
     ]);
+
+    const result = raw.map((item) => ({
+      baverage: item.baverage ?? BaverageEnum.NONE,
+      count: item.count,
+    }));
 
     return result;
   }

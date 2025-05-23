@@ -11,8 +11,8 @@ export class BaverageMember {
   @Prop({ type: String, required: true })
   userName: string;
 
-  @Prop({ type: String, required: true })
-  baverage: string;
+  @Prop({ type: String, required: false })
+  baverage: string | null;
 }
 
 export const BaverageMemberSchema = SchemaFactory.createForClass(BaverageMember);
