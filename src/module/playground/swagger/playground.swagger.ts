@@ -300,6 +300,7 @@ export const ADMIN_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
       required: true,
       description: '월',
       example: '6',
+      type: String,
     },
     API_OK_RESPONSE: {
       content: {
@@ -427,6 +428,7 @@ export const USERS_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
       required: true,
       description: '월',
       example: '6',
+      type: String,
     },
     API_OK_RESPONSE: {
       content: {

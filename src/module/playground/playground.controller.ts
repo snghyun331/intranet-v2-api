@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { PlaygroundService } from './playground.service';
 import {
   ApiBadRequestResponse,
@@ -6,7 +6,6 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -85,7 +84,7 @@ export class UserPlaygroundController {
   @UserRole(UserGradeEnum.INTERN)
   @Get('monthly-baverage')
   async getMonthlyBaverageForUser(
-    @Query('month', ParseIntPipe) month: string,
+    @Query('month') month: string,
     @CurrentUser() { userName }: UserPayload,
   ): Promise<ResponseInterface> {
     const data: any = await this.playgroundService.getMonthlyBaverageForUser(month, userName);
@@ -165,7 +164,7 @@ export class AdminPlaygroundController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get('monthly-baverage')
-  async getMonthlyBaverageForAdmin(@Query('month', ParseIntPipe) month: string): Promise<ResponseInterface> {
+  async getMonthlyBaverageForAdmin(@Query('month') month: string): Promise<ResponseInterface> {
     const data: any = await this.playgroundService.getMonthlyBaverageForAdmin(month);
 
     const response: ResponseInterface = { message: 'success', data };

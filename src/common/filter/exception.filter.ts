@@ -52,7 +52,7 @@ export class ServerErrorFilter implements ExceptionFilter {
       return response.status(status).json(errResponseBody);
     } else {
       const status: number = HttpStatus.INTERNAL_SERVER_ERROR;
-      const message: string = exception instanceof QueryFailedError ? '쿼리 장애 발생' : '알 수 없는 에러 발생';
+      const message: string = exception instanceof QueryFailedError ? 'QueryFailedError' : `${exception.message}`;
 
       const errResponseBody: object = {
         statusCode: status,
