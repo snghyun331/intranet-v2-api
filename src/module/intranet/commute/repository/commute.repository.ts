@@ -9,7 +9,7 @@ import { TeamEntity } from '@entity/user/team.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { addConfirmStatusField, removeAllWhiteSpace } from '@common/utils/utility';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum, RequestTypeEnum, YNEnum } from '@common/constant/enum';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
 import { AdminCommuteSortEnum } from '../enum/commute.enum';
 
@@ -223,13 +223,19 @@ export class CommuteRepository {
       .execute();
   }
 
-  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto): Promise<UpdateResult> {
-    const adminUpdatedAt: Date = new Date();
+  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto, type: RequestTypeEnum): Promise<UpdateResult> {
+    let adminUpdatedAt: Date | null = null;
+    let userUpdatedAt: Date | null = null;
+    if (type === RequestTypeEnum.ADMIN) {
+      adminUpdatedAt = new Date();
+    } else {
+      userUpdatedAt = new Date();
+    }
 
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ ...noteInfo, adminUpdatedAt })
+      .set({ ...noteInfo, adminUpdatedAt, userUpdatedAt })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
@@ -256,8 +262,9 @@ export class CommuteRepository {
         'commuteEntity.checkInLogAgent AS checkInLogAgent',
         'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
         'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
+        'commuteEntity.userUpdatedAt AS userUpdatedAt',
       ])
-      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,

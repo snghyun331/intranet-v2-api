@@ -31,6 +31,7 @@ import {
   ADMIN_INTRANET_COMMUTE,
   ADMIN_INTRANET_COMMUTE_NOTE,
   ADMIN_INTRANET_COMMUTE_TIME,
+  USER_INTRANET_COMMUTE_NOTE,
   USERS_INTRAENT_COMMUTE,
   USERS_INTRANET_CHECK_IN,
   USERS_INTRANET_CHECK_OUT,
@@ -40,7 +41,7 @@ import {
 import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '@common/decorator/role.decorator';
 import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
-import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { AdminGradeEnum, RequestTypeEnum, UserGradeEnum } from '@common/constant/enum';
 import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
 import { CheckOutDto } from './dto/checkOut.dto';
 import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
@@ -135,6 +136,25 @@ export class UserCommuteController {
     return response;
   }
 
+  @ApiOperation(USER_INTRANET_COMMUTE_NOTE.PATCH.API_OPERATION)
+  @ApiParam(USER_INTRANET_COMMUTE_NOTE.PATCH.API_PARAM1)
+  @ApiBody(USER_INTRANET_COMMUTE_NOTE.PATCH.API_BODY)
+  @ApiOkResponse(USER_INTRANET_COMMUTE_NOTE.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Patch('commute/:commuteIdx/note')
+  async updateCommuteNote(
+    @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
+    @Body() noteInfo: UpdateNoteDto,
+  ): Promise<ResponseInterface> {
+    await this.commuteService.updateCommuteNote(commuteIdx, noteInfo, RequestTypeEnum.USER);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
   @ApiOperation(USERS_INTRANET_HOLIDAY.GET.API_OPERATION)
   @ApiQuery(USERS_INTRANET_HOLIDAY.GET.API_QUERY1)
   @ApiQuery(USERS_INTRANET_HOLIDAY.GET.API_QUERY2)
@@ -217,7 +237,7 @@ export class AdminCommuteController {
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() noteInfo: UpdateNoteDto,
   ): Promise<ResponseInterface> {
-    await this.commuteService.updateCommuteNote(commuteIdx, noteInfo);
+    await this.commuteService.updateCommuteNote(commuteIdx, noteInfo, RequestTypeEnum.ADMIN);
 
     const response: ResponseInterface = { message: 'success' };
 

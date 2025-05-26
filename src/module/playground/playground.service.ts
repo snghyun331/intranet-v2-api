@@ -212,7 +212,7 @@ export class PlaygroundService {
     const operations = userNames.map((userName) => ({
       updateOne: {
         filter: { configId, userName },
-        update: { $set: { baverage: null } },
+        update: { $setOnIsert: { baverage: null } },
         upsert: true,
       },
     }));

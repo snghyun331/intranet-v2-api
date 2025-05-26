@@ -142,3 +142,8 @@ export enum LeaveGrantTypeEnum {
   MONTHLY = 'MONTHLY',
   NONE = 'NONE',
 }
+
+export enum RequestTypeEnum {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}

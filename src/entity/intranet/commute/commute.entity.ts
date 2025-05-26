@@ -84,6 +84,9 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'admin_updated_at', comment: '관리자가 직접 수정한 시간', nullable: true })
   adminUpdatedAt: Date;
 
+  @Column({ name: 'user_updated_at', comment: '사용자가 직접 수정한 시간', nullable: true })
+  userUpdatedAt: Date;
+
   @ManyToOne(() => UserEntity, (user) => user.commuteRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

@@ -472,3 +472,41 @@ export const USERS_INTRANET_HOLIDAY: SwaggerMethod = {
     },
   },
 };
+
+export const USER_INTRANET_COMMUTE_NOTE: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '사용자 출퇴근 특이사항 수정 API',
+    },
+    API_PARAM1: {
+      name: 'commuteIdx',
+      type: Number,
+      required: true,
+      description: '근태내역IDX',
+    },
+    API_BODY: {
+      type: UpdateNoteDto,
+      required: true,
+      examples: {
+        a: {
+          summary: '예시',
+          value: {
+            note: '특이사항입니다.',
+            earlyLeaveReason: '조기퇴근사유입니다.',
+            updateReason: '근태수정사유입니다..',
+          },
+        },
+      },
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};

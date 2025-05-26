@@ -16,7 +16,12 @@ import {
 } from '../../../common/constant/constant';
 import { PageNoDto } from '../../../common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
-import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '../../../common/constant/enum';
+import {
+  ConfirmEnum,
+  IntranetAttendanceEnum,
+  IntranetLeaveTypeIdxEnum,
+  RequestTypeEnum,
+} from '../../../common/constant/enum';
 import {
   calculateAvailCheckOutTime,
   getAmHalfEarlyBoundary,
@@ -396,13 +401,13 @@ export class CommuteService {
   }
 
   @Transactional()
-  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto): Promise<void> {
+  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto, type: RequestTypeEnum): Promise<void> {
     const commuteCnt: number = await this.commuteRepository.getCommuteCountByIdx(commuteIdx);
     if (commuteCnt === 0) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
-    await this.commuteRepository.updateCommuteNote(commuteIdx, noteInfo);
+    await this.commuteRepository.updateCommuteNote(commuteIdx, noteInfo, type);
 
     return;
   }
