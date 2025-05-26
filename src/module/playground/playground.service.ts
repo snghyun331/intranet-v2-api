@@ -8,7 +8,6 @@ import { PICK_LUNCH_LOCK_DURATION } from '@common/constant/constant';
 import { CreateMonthlyBaverageDto } from './dto/createMonthlyBaverage.dto';
 import { GlobalUserRepository } from '../global/repository/globalUser.repository';
 import { BaverageConfig } from '../../schema/baverage/baverageConfig.schema';
-import { BaverageMember } from '../../schema/baverage/baverageMember.schema';
 import { UpdateBaverage } from './dto/updateBaverage.dto';
 import { BaverageEnum } from './enum/playground.enum';
 
@@ -79,6 +78,9 @@ export class PlaygroundService {
   }
 
   async setLunchGroup({ total, perGroup, sDate, eDate, notice }: CreateLunchGroupDto): Promise<void> {
+    if (total <= 0 || perGroup <= 0) {
+      throw new BadRequestException('총 인원과 한 조에 들어갈 인원은 1명 이상이어야 합니다.');
+    }
     const totalGroups: number = Math.floor(total / perGroup);
     const remainingMembers: number = total % perGroup;
     // 나머지 인원이 있으면 기존 그룹들 중 랜덤하게 선택해서 1명씩 추가
@@ -201,34 +203,27 @@ export class PlaygroundService {
   }
 
   async setMonthlyBaverage(monthlyBaverage: CreateMonthlyBaverageDto): Promise<void> {
-    const configInfo = await this.playgroupundModel.findBaverageConfigByMonth(monthlyBaverage.month);
-    if (configInfo) {
-      throw new BadRequestException('이미 해당 월에 대한 음료 설정이 존재합니다.');
-    }
-
-    /* 설정 config을 생성한다. */
+    /* 설정 config을 생성 및 업데이트 한다. */
     const insertValue: BaverageConfig = { ...monthlyBaverage };
-    const configId = await this.playgroupundModel.createMonthlyBaverageConfig(insertValue);
+    const configId = await this.playgroupundModel.findAndUpdateBaverageConfig(insertValue);
 
-    /* 모든 직원에 대한 음료 주문 내역을 생성한다 */
+    /* 모든 직원에 대한 음료 주문 내역을 생성 및 업데이트 한다 */
     const userNames: string[] = await this.userRepository.getAllUserNames();
-    const insertValues: BaverageMember[] = [];
-    await Promise.all(
-      userNames.map(async (userName) => {
-        insertValues.push({
-          configId,
-          userName,
-          baverage: null,
-        });
-      }),
-    );
+    const operations = userNames.map((userName) => ({
+      updateOne: {
+        filter: { configId, userName },
+        update: { $set: { baverage: null } },
+        upsert: true,
+      },
+    }));
 
-    await this.playgroupundModel.createBaverageMember(insertValues);
+    await this.playgroupundModel.createAndUpdateBaverageMember(operations);
 
     return;
   }
 
   async getMonthlyBaverageForAdmin(month: string) {
+    const allBaverages = Object.values(BaverageEnum);
     const defaultResult = {
       config: {
         month,
@@ -238,7 +233,10 @@ export class PlaygroundService {
       },
       countStats: [],
       details: [],
-      myBaverage: null,
+      myBaverage: allBaverages.map((baverage) => ({
+        baverage,
+        count: 0,
+      })),
     };
 
     /* 음료 설정 정보 */
@@ -251,7 +249,6 @@ export class PlaygroundService {
 
     /* 음료 종류별 총 잔 수 집계 */
     const countStatsRaw = await this.playgroupundModel.getBaverageCountStats(_id);
-    const allBaverages = Object.values(BaverageEnum);
     // 집계 결과를 Map으로 변환
     const countMap = new Map(countStatsRaw.map((item) => [item.baverage, item.count]));
     // 모든 음료 종류에 대해 count 채워넣기

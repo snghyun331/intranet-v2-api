@@ -74,17 +74,20 @@ export class PlayGroundModel {
     return result;
   }
 
-  async createMonthlyBaverageConfig(insertValue: BaverageConfig): Promise<Types.ObjectId> {
-    const result = await this.baverageConfigModel.create(insertValue);
+  async findAndUpdateBaverageConfig(insertValue: BaverageConfig): Promise<Types.ObjectId> {
+    const result = await this.baverageConfigModel.findOneAndUpdate({ month: insertValue.month }, insertValue, {
+      upsert: true,
+      new: true,
+      runValidators: true,
+    });
+
     const id: Types.ObjectId = result._id;
 
     return id;
   }
 
-  async createBaverageMember(insertValues: BaverageMember[]): Promise<void> {
-    await this.baverageMemberModel.insertMany(insertValues);
-
-    return;
+  async createAndUpdateBaverageMember(operations) {
+    await this.baverageMemberModel.bulkWrite(operations);
   }
 
   async findBaverageConfigByMonth(month: string): Promise<HydratedDocument<BaverageConfig>> {
