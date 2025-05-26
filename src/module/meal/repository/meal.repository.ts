@@ -279,6 +279,7 @@ export class MealRepository {
         'mealEntity.payerName AS payerName',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
+        'mealEntity.note AS note',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealEntity.userIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
@@ -608,12 +609,12 @@ export class MealRepository {
       .execute();
   }
 
-  async updateUserMealBudget(mealStatsIdx: number, mealBudget: number): Promise<UpdateResult> {
-    return await this.mealStatsModel
+  async updateMealNoteByIdx(mealIdx: number, note: string): Promise<UpdateResult> {
+    return await this.mealModel
       .createQueryBuilder()
-      .update(MealStatsEntity)
-      .set({ mealBudget })
-      .where('mealStatsIdx = :mealStatsIdx', { mealStatsIdx })
+      .update(MealEntity)
+      .set({ note })
+      .where('mealIdx = :mealIdx', { mealIdx })
       .execute();
   }
 }

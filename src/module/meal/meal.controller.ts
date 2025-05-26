@@ -19,6 +19,7 @@ import {
   ADMIN_MEALS_BALANCES_CANCEL,
   ADMIN_MEALS_BALANCES_DETAIL,
   ADMIN_MEALS_BUDGET,
+  ADMIN_MEALS_NOTE,
   USERS_MEALS,
 } from './swagger/meal.swagger';
 import { CreateMealDto } from './dto/createMeal.dto';
@@ -241,20 +242,20 @@ export class AdminMealController {
     return response;
   }
 
-  // @ApiOperation(ADMIN_MEALS_BUDGET_TOTAL.PATCH.API_OPERATION)
-  // @ApiBody(ADMIN_MEALS_BUDGET_TOTAL.PATCH.API_BODY)
-  // @ApiBearerAuth('accessToken')
-  // @UseGuards(AdminAuthGuard, AdminRoleGuard)
-  // @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
-  // @Patch('budget/:mealStatsIdx/total')
-  // async updateUserMealBudget(
-  //   @Param('mealStatsIdx', ParseIntPipe) mealStatsIdx: number,
-  //   @Body() { mealBudget }: UpdateBudgetDto,
-  // ): Promise<ResponseInterface> {
-  //   await this.mealService.updateUserMealBudget(mealStatsIdx, mealBudget);
+  @ApiOperation(ADMIN_MEALS_NOTE.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_MEALS_NOTE.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_MEALS_NOTE.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch(':mealIdx/note')
+  async updateMealNote(
+    @Param('mealIdx', ParseIntPipe) mealIdx: number,
+    @Body() { note }: UpdateNoteDto,
+  ): Promise<ResponseInterface> {
+    await this.mealService.updateMealNote(mealIdx, note);
+    const response: ResponseInterface = { message: 'success' };
 
-  //   const response: ResponseInterface = { message: 'success' };
-
-  //   return response;
-  // }
+    return response;
+  }
 }

@@ -341,7 +341,9 @@ export class MealService {
   }
 
   @Transactional()
-  async updateUserMealBudget(mealStatsIdx: number, mealBudget: number): Promise<void> {
-    await this.mealRepository.updateUserMealBudget(mealStatsIdx, mealBudget);
+  async updateMealNote(mealIdx: number, note: string): Promise<void> {
+    await this.mealRepository.updateMealNoteByIdx(mealIdx, note);
+
+    return;
   }
 }

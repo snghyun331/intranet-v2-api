@@ -102,6 +102,7 @@ export class CommuteRepository {
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
+        'commuteEntity.userUpdatedAt AS userUpdatedAt',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')

@@ -39,6 +39,9 @@ export class MealEntity extends CommonEntity {
   @Column({ name: 'payer_name', comment: '결제자 이름', nullable: true })
   payerName: string;
 
+  @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
+  note: string;
+
   @ManyToOne(() => UserEntity, (user) => user.mealRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

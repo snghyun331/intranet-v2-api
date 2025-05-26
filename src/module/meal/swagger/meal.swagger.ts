@@ -721,3 +721,27 @@ export const ADMIN_MEALS_BUDGET_TOTAL: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_MEALS_NOTE: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 식대 내역 비고 수정 API',
+    },
+    API_PARAM1: {
+      name: 'mealIdx',
+      type: Number,
+      required: true,
+      description: '식대 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};
