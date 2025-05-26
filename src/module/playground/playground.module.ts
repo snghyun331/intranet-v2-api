@@ -25,5 +25,6 @@ import { BaverageMember, BaverageMemberSchema } from '../../schema/baverage/bave
   ],
   providers: [PlaygroundService, RedisLockService, PlayGroundModel, Logger],
   controllers: [UserPlaygroundController, AdminPlaygroundController],
+  exports: [PlayGroundModel],
 })
 export class PlaygroundModule {}

@@ -22,6 +22,11 @@ import { NewLeaveStats } from './interface/leaveStats.interface';
 import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repository';
 import { GlobalUserRepository } from '../global/repository/globalUser.repository';
 import { NewActivityMonthStats, NewActivityStats } from '../activity/interface';
+import { InjectModel } from '@nestjs/mongoose';
+import { LunchGroupConfig, LunchGroupConfigDocument } from '../../schema/lunchGroup/lunchGroupConfig.schema';
+import { LunchGroupMember, LunchGroupMemberDocument } from '../../schema/lunchGroup/lunchGroupMember.schema';
+import { Model } from 'mongoose';
+import { PlayGroundModel } from '../playground/model/playground.model';
 
 @Injectable()
 export class SchedulerService {
@@ -32,6 +37,9 @@ export class SchedulerService {
     private readonly schedulerRepository: SchedulerRepository,
     private readonly holidayRepository: GlobalHolidayRepository,
     private readonly userRepository: GlobalUserRepository,
+    // @InjectModel(LunchGroupConfig.name) private readonly lunchGroupConfigModel: Model<LunchGroupConfigDocument>,
+    // @InjectModel(LunchGroupMember.name) private readonly lunchGroupMemberModel: Model<LunchGroupMemberDocument>,
+    private readonly playGroundModel: PlayGroundModel,
     public readonly configService: ConfigService,
   ) {}
 
