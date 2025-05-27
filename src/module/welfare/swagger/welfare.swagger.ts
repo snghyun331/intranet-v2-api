@@ -602,24 +602,24 @@ export const ADMIN_WELFARES_CONFIRM: SwaggerMethod = {
       type: UpdateConfirmDto,
       examples: {
         a: {
-          summary: '확인 전',
+          summary: '확정 전',
           value: {
             welfareIdxList: [1],
             confirmYN: 'N',
           },
         },
         b: {
-          summary: '확인완료',
+          summary: '최종 확정',
           value: {
             welfareIdxList: [1, 2],
             confirmYN: 'Y',
           },
         },
         c: {
-          summary: '반려',
+          summary: '가확정',
           value: {
             welfareIdxList: [1, 2],
-            confirmYN: 'H',
+            confirmYN: 'T',
           },
         },
       },

@@ -1,7 +1,8 @@
 import { CommonEntity } from '@common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from '@entity/user/user.entity';
-import { ConfirmEnum, YNEnum } from '@common/constant/enum';
+import { YNEnum } from '@common/constant/enum';
+import { ConfirmEnum } from '@/module/welfare/enum/welfare.enum';
 
 @Entity({ name: 'welfare', comment: '복지포인트 사용내역 tb' })
 export class WelfareEntity extends CommonEntity {
@@ -31,7 +32,7 @@ export class WelfareEntity extends CommonEntity {
 
   @Column({
     name: 'confirm_yn',
-    comment: 'P&C 확인여부',
+    comment: 'P&C 확정여부',
     type: 'enum',
     enum: ConfirmEnum,
     default: ConfirmEnum.NO,
@@ -39,7 +40,10 @@ export class WelfareEntity extends CommonEntity {
   })
   confirmYN: ConfirmEnum;
 
-  @Column({ name: 'confirm_date', comment: 'P&C 확인 날짜', nullable: true })
+  @Column({ name: 'temp_confirm_date', comment: 'P&C 가확정 날짜', nullable: true })
+  tempConfirmDate: Date;
+
+  @Column({ name: 'confirm_date', comment: 'P&C 확정 날짜', nullable: true })
   confirmDate: Date;
 
   @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })

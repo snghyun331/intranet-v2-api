@@ -2,12 +2,13 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { CreateWelfareDto } from './dto/createWelfare.dto';
 import { WelfareRepository } from './repository/welfare.repository';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
-import { ConfirmEnum, HalfYearEnum, YNEnum } from '../../common/constant/enum';
+import { HalfYearEnum, YNEnum } from '@common/constant/enum';
+import { ConfirmEnum } from './enum/welfare.enum';
 import { CreateWelfareBudgetDto } from './dto/createBudget.dto';
 import { AdminWelfareBalanceFilterDto, AdminWelfareBudgetFilterDto, AdminWelfareFilterDto } from './dto/query.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
-import { PageNoDto } from '../../common/dto/pageNo.dto';
-import { substringYearMonth } from '../../common/utils/utility';
+import { PageNoDto } from '@common/dto/pageNo.dto';
+import { substringYearMonth } from '@common/utils/utility';
 import { Transactional } from 'typeorm-transactional';
 import { NewWelfareMonthStats, NewWelfareStats } from './interface';
 import { GlobalUserRepository } from '../global/repository/globalUser.repository';

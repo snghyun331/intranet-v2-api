@@ -231,12 +231,11 @@ export class PlaygroundService {
         dueDate: null,
         configId: null,
       },
-      countStats: [],
-      details: [],
-      myBaverage: allBaverages.map((baverage) => ({
+      countStats: allBaverages.map((baverage) => ({
         baverage,
         count: 0,
       })),
+      details: [],
     };
 
     /* 음료 설정 정보 */

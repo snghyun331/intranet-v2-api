@@ -8,7 +8,8 @@ import { getStartAndEndDateByHalfYear, getStartAndEndDateByMonth, removeAllWhite
 import { WelfareMonthlyStatsEntity } from '@entity/welfare/welfareMonthlyStats.entity';
 import { UpdateWelfareDto } from '@welfare/dto/updateWelfare.dto';
 import { WelfareStatsEntity } from '@entity/welfare/welfareStats.entity';
-import { ClearStatusEnum, ConfirmEnum, HalfYearEnum, YNEnum } from '@common/constant/enum';
+import { ClearStatusEnum, HalfYearEnum, YNEnum } from '@common/constant/enum';
+import { ConfirmEnum } from '../enum/welfare.enum';
 import { CreateWelfareBudgetDto } from '@welfare/dto/createBudget.dto';
 import { GradeEntity } from '@entity/user/grade.entity';
 import { UpdateNoteDto } from '@welfare/dto/updateNote.dto';
@@ -362,6 +363,7 @@ export class WelfareRepository {
         'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
         'welfareEntity.confirmYN AS confirmYN',
         'welfareEntity.confirmDate AS confirmDate',
+        'welfareEntity.note AS note',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
@@ -408,6 +410,7 @@ export class WelfareRepository {
           payerWelfareIdx: welfare.payerWelfareIdx,
           confirmYN: welfare.confirmYN,
           confirmDate: welfare.confirmDate,
+          note: welfare.note,
           payeeList: payeeList.length > 0 ? payeeList : [],
         };
       }),
@@ -418,18 +421,35 @@ export class WelfareRepository {
 
   async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum): Promise<UpdateResult> {
     if (confirmYN === ConfirmEnum.YES) {
-      const confirmDate: Date = new Date();
+      // 확정일 때,
+      const confirmDate = new Date();
+
       return await this.welfareModel
         .createQueryBuilder()
         .update(WelfareEntity)
         .set({ confirmYN, confirmDate })
         .where('welfareIdx = :welfareIdx', { welfareIdx })
         .execute();
-    } else {
+    } else if (confirmYN === ConfirmEnum.NO) {
+      // 미확정으로 다시 수정할 때,
+      const confirmDate = null;
+      const tempConfirmDate = null;
+
       return await this.welfareModel
         .createQueryBuilder()
         .update(WelfareEntity)
-        .set({ confirmYN, confirmDate: null })
+        .set({ confirmYN, tempConfirmDate, confirmDate })
+        .where('welfareIdx = :welfareIdx', { welfareIdx })
+        .execute();
+    } else {
+      // ConfirmEnum.TEMP(가확정)) 일 때,
+      const tempConfirmDate = new Date();
+      const confirmDate = null;
+
+      return await this.welfareModel
+        .createQueryBuilder()
+        .update(WelfareEntity)
+        .set({ confirmYN, tempConfirmDate, confirmDate })
         .where('welfareIdx = :welfareIdx', { welfareIdx })
         .execute();
     }
