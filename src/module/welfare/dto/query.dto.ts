@@ -37,10 +37,10 @@ export class AdminWelfareFilterDto {
   @IsDateString()
   eDate: string;
 
-  @ApiProperty({ name: 'userName', description: '검색 이름', example: '이승현', type: String, required: false })
+  @ApiProperty({ name: 'content', description: '사용처', example: '버거킹', type: String, required: false })
   @IsOptional()
   @IsString()
-  userName?: string;
+  content?: string;
 }
 
 export class AdminWelfareBudgetFilterDto {

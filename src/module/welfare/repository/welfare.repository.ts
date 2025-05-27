@@ -372,9 +372,10 @@ export class WelfareRepository {
       })
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
 
-    if (filterInfo.userName) {
-      const userName: string = removeAllWhiteSpace(filterInfo.userName);
-      query.andWhere('userEntity.userName = :userName', { userName });
+    if (filterInfo.content) {
+      query.andWhere("REPLACE(welfareEntity.content, ' ', '') LIKE :content", {
+        content: `%${removeAllWhiteSpace(filterInfo.content)}%`,
+      });
     }
 
     const total: number = await query.getCount();
