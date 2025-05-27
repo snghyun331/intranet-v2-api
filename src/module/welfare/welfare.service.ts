@@ -324,4 +324,9 @@ export class WelfareService {
       await this.welfareRepository.updateClearStatusNotYet(welfareStatsIdx);
     }
   }
+
+  @Transactional()
+  async updateWelfareNote(welfareIdx: number, note: string): Promise<void> {
+    await this.welfareRepository.updateWelfareNote(welfareIdx, note);
+  }
 }

@@ -42,6 +42,9 @@ export class WelfareEntity extends CommonEntity {
   @Column({ name: 'confirm_date', comment: 'P&C 확인 날짜', nullable: true })
   confirmDate: Date;
 
+  @Column({ name: 'note', comment: '비고', type: 'text', nullable: true })
+  note: string | null;
+
   @ManyToOne(() => UserEntity, (user) => user.welfareRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

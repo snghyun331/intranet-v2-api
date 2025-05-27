@@ -547,4 +547,13 @@ export class WelfareRepository {
         .execute();
     }
   }
+
+  async updateWelfareNote(welfareIdx: number, note: string): Promise<UpdateResult> {
+    return await this.welfareModel
+      .createQueryBuilder()
+      .update(WelfareEntity)
+      .set({ note })
+      .where('welfareIdx = :welfareIdx', { welfareIdx })
+      .execute();
+  }
 }

@@ -1009,3 +1009,27 @@ export const ADMIN_WELFARES_BALANCES_CANCEL: SwaggerMethod = {
     },
   },
 };
+
+export const ADMIN_WELFARES_NOTE: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '어드민 복포 내역 비고 수정 API',
+    },
+    API_PARAM1: {
+      name: 'welfareIdx',
+      type: Number,
+      required: true,
+      description: '복포 IDX',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};

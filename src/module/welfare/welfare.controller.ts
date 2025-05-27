@@ -20,6 +20,7 @@ import {
   ADMIN_WELFARES_BUDGET,
   ADMIN_WELFARES_BUDGET_NOTE,
   ADMIN_WELFARES_CONFIRM,
+  ADMIN_WELFARES_NOTE,
   USERS_WELFARES,
 } from './swagger/welfare.swagger';
 import { UpdateWelfareDto } from './dto/updateWelfare.dto';
@@ -280,6 +281,24 @@ export class AdminWelfareController {
     @Body('welfareStatsIdxList') welfareStatsIdxList: number[],
   ): Promise<ResponseInterface> {
     await this.welfareService.updateClearStatusNotYet(welfareStatsIdxList);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_WELFARES_NOTE.PATCH.API_OPERATION)
+  @ApiParam(ADMIN_WELFARES_NOTE.PATCH.API_PARAM1)
+  @ApiOkResponse(ADMIN_WELFARES_NOTE.PATCH.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Patch(':welfareIdx/note')
+  async updateWelfareNote(
+    @Param('welfareIdx', ParseIntPipe) welfareIdx: number,
+    @Body() { note }: UpdateNoteDto,
+  ): Promise<ResponseInterface> {
+    await this.welfareService.updateWelfareNote(welfareIdx, note);
 
     const response: ResponseInterface = { message: 'success' };
 
