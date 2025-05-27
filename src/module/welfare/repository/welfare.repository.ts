@@ -242,7 +242,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  private async getPayeeWelfareFromPayerWelfareIdx(welfareIdx: number) {
+  async getPayeeWelfareFromPayerWelfareIdx(welfareIdx: number) {
     const result = await this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
@@ -363,6 +363,7 @@ export class WelfareRepository {
         'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
         'welfareEntity.confirmYN AS confirmYN',
         'welfareEntity.confirmDate AS confirmDate',
+        'welfareEntity.tempConfirmDate AS tempConfirmDate',
         'welfareEntity.note AS note',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
@@ -391,32 +392,35 @@ export class WelfareRepository {
 
     const result = await query.getRawMany();
 
-    // 데이터를 변환하여 payeeList를 추가
-    const transformedResult = await Promise.all(
-      result.map(async (welfare) => {
-        const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
-        const payeeList = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
+    return { totalPage, total, result };
 
-        return {
-          welfareIdx: welfare.welfareIdx,
-          userIdx: welfare.userIdx,
-          userName: welfare.userName,
-          teamName: welfare.teamName,
-          gradeName: welfare.gradeName,
-          targetDay: welfare.targetDay,
-          content: welfare.content,
-          amount: welfare.amount,
-          payerName: welfare.payerName,
-          payerWelfareIdx: welfare.payerWelfareIdx,
-          confirmYN: welfare.confirmYN,
-          confirmDate: welfare.confirmDate,
-          note: welfare.note,
-          payeeList: payeeList.length > 0 ? payeeList : [],
-        };
-      }),
-    );
+    // // 데이터를 변환하여 payeeList를 추가
+    // const transformedResult = await Promise.all(
+    //   result.map(async (welfare) => {
+    //     const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
+    //     const payeeList = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
 
-    return { totalPage, total, welfare: transformedResult };
+    //     return {
+    //       welfareIdx: welfare.welfareIdx,
+    //       userIdx: welfare.userIdx,
+    //       userName: welfare.userName,
+    //       teamName: welfare.teamName,
+    //       gradeName: welfare.gradeName,
+    //       targetDay: welfare.targetDay,
+    //       content: welfare.content,
+    //       amount: welfare.amount,
+    //       payerName: welfare.payerName,
+    //       payerWelfareIdx: welfare.payerWelfareIdx,
+    //       confirmYN: welfare.confirmYN,
+    //       tempConfirmDate: welfare.tempConfirmDate,
+    //       confirmDate: welfare.confirmDate,
+    //       note: welfare.note,
+    //       payeeList: payeeList.length > 0 ? payeeList : [],
+    //     };
+    //   }),
+    // );
+
+    // return { totalPage, total, welfare: transformedResult };
   }
 
   async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum): Promise<UpdateResult> {

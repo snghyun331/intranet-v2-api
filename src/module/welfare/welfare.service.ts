@@ -280,9 +280,39 @@ export class WelfareService {
   }
 
   async getWelfare({ pageNo, perPage }: PageNoDto, filterInfo: AdminWelfareFilterDto) {
-    const { totalPage, total, welfare } = await this.welfareRepository.getWelfare(pageNo, perPage, filterInfo);
+    const { totalPage, total, result } = await this.welfareRepository.getWelfare(pageNo, perPage, filterInfo);
 
-    return { totalPage, total, welfare };
+    const transformedResult = await Promise.all(
+      result.map(async (welfare) => {
+        // payeeList 추가
+        const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
+        const payeeList = await this.welfareRepository.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
+
+        // 동반결제 groupKey 추가
+        const groupKey: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
+
+        return {
+          welfareIdx: welfare.welfareIdx,
+          userIdx: welfare.userIdx,
+          userName: welfare.userName,
+          teamName: welfare.teamName,
+          gradeName: welfare.gradeName,
+          targetDay: welfare.targetDay,
+          content: welfare.content,
+          amount: welfare.amount,
+          payerName: welfare.payerName,
+          payerWelfareIdx: welfare.payerWelfareIdx,
+          confirmYN: welfare.confirmYN,
+          tempConfirmDate: welfare.tempConfirmDate,
+          confirmDate: welfare.confirmDate,
+          note: welfare.note,
+          payeeList: payeeList.length > 0 ? payeeList : [],
+          groupKey,
+        };
+      }),
+    );
+
+    return { totalPage, total, welfare: transformedResult };
   }
 
   @Transactional()
