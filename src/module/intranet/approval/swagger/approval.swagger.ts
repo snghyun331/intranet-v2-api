@@ -100,3 +100,39 @@ export const USERS_INTRANET_APPROVAL: SwaggerMethod = {
     },
   },
 };
+
+export const USERS_INTRANET_APPROVAL_HAS_NEW: SwaggerMethod = {
+  GET: {
+    API_OPERATION: {
+      summary: '사용자 결제승인 NEW 존재 확인 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          examples: {
+            a: {
+              summary: '새로운 항목 없을 때',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  hasNew: false,
+                },
+              },
+            },
+            b: {
+              summary: '새로운 항목 있을 때',
+              value: {
+                statusCode: 200,
+                message: 'success',
+                data: {
+                  hasNew: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};

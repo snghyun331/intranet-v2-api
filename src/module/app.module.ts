@@ -22,6 +22,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { REDIS_CONFIG } from '../config/redis.config';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { GlobalModule } from './global/global.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { GlobalModule } from './global/global.module';
     TypeOrmModule.forRootAsync(TYPEORM_CONFIG),
     MongooseModule.forRootAsync(MONGOOSE_CONFIG),
     RedisModule.forRootAsync(REDIS_CONFIG),
+    CacheModule.register(),
     SchedulerModule,
     AuthModule,
     MealModule,

@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { CommuteEntity } from './commute.entity';
 import { UserEntity } from '@entity/user/user.entity';
 
@@ -9,6 +9,9 @@ export class CommuteCCUserEntity {
 
   @PrimaryColumn({ name: 'cc_user_idx', comment: '참조 사용자IDX' })
   ccUserIdx: number;
+
+  @Column({ name: 'last_checked_at', comment: '마지막 확인 시간', nullable: true })
+  lastCheckedAt: Date;
 
   @ManyToOne(() => CommuteEntity, (commute) => commute.commuteApproverRelation, {
     onDelete: 'CASCADE',

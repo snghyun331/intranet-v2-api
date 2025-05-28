@@ -145,6 +145,11 @@ export class ApprovalService {
   async getApprovalHistory(userIdx: number, filterInfo: UserApprovalFilter) {
     const histories = await this.approvalRepository.getApprovalHistory(userIdx, filterInfo);
 
+    // 마지막 승인자 확인 시간 업데이트
+    await this.approvalRepository.updateLastApproverCheckedAt(userIdx);
+    // 마지막 참조자 확인 시간 업데이트
+    await this.approvalRepository.updateLastCCUserCheckedAt(userIdx);
+
     const result = await Promise.all(
       histories.map(async (history) => {
         const confirmStatus: string = addConfirmStatusField(history.confirmYN, history.confirmDate, history.rejectDate);
@@ -152,10 +157,18 @@ export class ApprovalService {
         return {
           ...history,
           confirmStatus,
+          isNew: history.approverLastCheckedAt || history.ccUserLastCheckedAt ? false : true, // 마지막 확인 시간 이후에 생성된 내역인지 여부
         };
       }),
     );
 
     return result;
+  }
+
+  async hasNewApproval(userIdx: number) {
+    const count: number = await this.approvalRepository.getNewApprovalCount(userIdx);
+    const hasNew: boolean = count > 0;
+
+    return hasNew;
   }
 }

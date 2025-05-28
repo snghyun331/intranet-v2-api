@@ -7,9 +7,20 @@ import { ApprovalService } from './approval.service';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
+import { CommuteApproverEntity } from '../../../entity/intranet/commute/commuteApprover.entity';
+import { CommuteCCUserEntity } from '../../../entity/intranet/commute/commuteCCUser.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CommuteEntity, LeaveStatsEntity, LeaveMonthlyUsageEntity, LeaveUsageEntity])],
+  imports: [
+    TypeOrmModule.forFeature([
+      CommuteEntity,
+      LeaveStatsEntity,
+      LeaveMonthlyUsageEntity,
+      LeaveUsageEntity,
+      CommuteApproverEntity,
+      CommuteCCUserEntity,
+    ]),
+  ],
   controllers: [ApprovalController],
   providers: [ApprovalRepository, ApprovalService],
 })

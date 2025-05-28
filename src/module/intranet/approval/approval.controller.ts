@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Query, UseGuards } from '@nestjs/common';
 import { ApprovalService } from './approval.service';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { USERS_INTRANET_APPROVAL } from './swagger/approval.swagger';
+import { USERS_INTRANET_APPROVAL, USERS_INTRANET_APPROVAL_HAS_NEW } from './swagger/approval.swagger';
 import { UserRole } from '@common/decorator/role.decorator';
 import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
@@ -49,6 +49,23 @@ export class ApprovalController {
     const data = await this.approvalService.getApprovalHistory(userIdx, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_INTRANET_APPROVAL_HAS_NEW.GET.API_OPERATION)
+  @ApiOkResponse(USERS_INTRANET_APPROVAL_HAS_NEW.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('has-new')
+  async hasNewApprovalHistory(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
+    const hasNew: boolean = await this.approvalService.hasNewApproval(userIdx);
+
+    const response: ResponseInterface = {
+      message: 'success',
+      data: { hasNew },
+    };
 
     return response;
   }

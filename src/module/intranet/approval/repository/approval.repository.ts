@@ -14,6 +14,7 @@ import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { UserEntity } from '@entity/user/user.entity';
 import { ImageEntity } from '@entity/image/image.entity';
 import { CommuteHasImageEntity } from '@entity/image/commuteHasImage.entity';
+import { CommuteCCUserEntity } from '../../../../entity/intranet/commute/commuteCCUser.entity';
 
 @Injectable()
 export class ApprovalRepository {
@@ -23,6 +24,8 @@ export class ApprovalRepository {
     @InjectRepository(LeaveMonthlyUsageEntity)
     private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
     @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
+    @InjectRepository(CommuteApproverEntity) private readonly commuteApproverModel: Repository<CommuteApproverEntity>,
+    @InjectRepository(CommuteCCUserEntity) private readonly commuteCCUserModel: Repository<CommuteCCUserEntity>,
   ) {}
 
   async getCommuteInfoWithApprover(commuteIdx: number) {
@@ -230,6 +233,7 @@ export class ApprovalRepository {
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.confirmPersonIdx AS confirmPersonIdx',
+        // relationType 지정(승인인지 참조인지)
         `
           CASE 
             WHEN EXISTS (
@@ -243,6 +247,20 @@ export class ApprovalRepository {
             ELSE '-' 
           END AS relationType
         `,
+
+        // APPROVER인 경우 lastCheckedAt 가져오기
+        `(SELECT approverEntity.last_checked_at 
+          FROM commute_approver approverEntity 
+          WHERE approverEntity.commute_idx = commuteEntity.commute_idx 
+          AND approverEntity.approver_idx = ${userIdx}
+        ) AS approverLastCheckedAt`,
+
+        // CC인 경우 lastCheckedAt 가져오기
+        `(SELECT ccUserEntity.last_checked_at 
+          FROM commute_cc_user ccUserEntity 
+          WHERE ccUserEntity.commute_idx = commuteEntity.commute_idx 
+          AND ccUserEntity.cc_user_idx = ${userIdx}
+        ) AS ccUserLastCheckedAt`,
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
@@ -290,5 +308,39 @@ export class ApprovalRepository {
       .set({ availCheckOutTime })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
+  }
+
+  async updateLastApproverCheckedAt(userIdx: number): Promise<UpdateResult> {
+    return await this.commuteApproverModel
+      .createQueryBuilder()
+      .update(CommuteApproverEntity)
+      .set({ lastCheckedAt: new Date() })
+      .where('approverIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async updateLastCCUserCheckedAt(userIdx: number): Promise<UpdateResult> {
+    return await this.commuteCCUserModel
+      .createQueryBuilder()
+      .update(CommuteCCUserEntity)
+      .set({ lastCheckedAt: new Date() })
+      .where('ccUserIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async getNewApprovalCount(userIdx: number): Promise<number> {
+    const newCcCnt = await this.commuteCCUserModel
+      .createQueryBuilder('ccUserEntity')
+      .where('ccUserEntity.ccUserIdx = :userIdx', { userIdx })
+      .andWhere('ccUserEntity.lastCheckedAt IS NULL')
+      .getCount();
+
+    const newApprovalCnt = await this.commuteApproverModel
+      .createQueryBuilder('approvalEntity')
+      .where('approvalEntity.approverIdx = :userIdx', { userIdx })
+      .andWhere('approvalEntity.lastCheckedAt IS NULL')
+      .getCount();
+
+    return newCcCnt + newApprovalCnt;
   }
 }
