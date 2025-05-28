@@ -280,19 +280,24 @@ export class WelfareService {
   }
 
   async getWelfare({ pageNo, perPage }: PageNoDto, filterInfo: AdminWelfareFilterDto) {
-    const { totalPage, total, result } = await this.welfareRepository.getWelfare(pageNo, perPage, filterInfo);
+    const { totalPage, total, result } = await this.welfareRepository.getSelfWrittenWelfares(
+      pageNo,
+      perPage,
+      filterInfo,
+    );
 
     const transformedResult = await Promise.all(
       result.map(async (welfare) => {
-        // payeeList 추가
-        const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
-        const payeeList = await this.welfareRepository.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
-
-        // 동반결제 groupKey 추가
-        const groupKey: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
+        /* 동반결제정보 및 총 합산금액 추가 */
+        const welfareIdx: number = welfare.welfareIdx;
+        // welfareIdx를 payerWelfareIdx로 하는 모든 내역들 조회
+        const payeeList = await this.welfareRepository.getWelfareFromPayerWelfareIdx(welfareIdx);
+        const payeeTotalAmount: number = payeeList.reduce((sum, item) => sum + (item.amount ?? 0), 0); // 동반결제자 금액 합산
+        const selfWriterAmount: number = welfare.amount ?? 0; // 결제자 금액
+        const groupTotalAmount: number = selfWriterAmount + payeeTotalAmount;
 
         return {
-          welfareIdx: welfare.welfareIdx,
+          welfareIdx,
           userIdx: welfare.userIdx,
           userName: welfare.userName,
           teamName: welfare.teamName,
@@ -306,8 +311,8 @@ export class WelfareService {
           tempConfirmDate: welfare.tempConfirmDate,
           confirmDate: welfare.confirmDate,
           note: welfare.note,
-          payeeList: payeeList.length > 0 ? payeeList : [],
-          groupKey,
+          groupTotalAmount,
+          details: payeeList.length > 0 ? payeeList : null,
         };
       }),
     );

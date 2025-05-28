@@ -169,7 +169,7 @@ export class WelfareRepository {
     const transformedResult = await Promise.all(
       result.map(async (welfare) => {
         const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
-        const payeeList = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
+        const payeeList = await this.getWelfareFromPayerWelfareIdx(welfareIdx);
 
         return {
           welfareIdx: welfare.welfareIdx,
@@ -242,17 +242,29 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getPayeeWelfareFromPayerWelfareIdx(welfareIdx: number) {
+  async getWelfareFromPayerWelfareIdx(payerWelfareIdx: number) {
     const result = await this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
+        'welfareEntity.welfareIdx AS welfareIdx',
         'welfareEntity.userIdx AS userIdx',
         'userEntity.userName AS userName',
+        'teamEntity.teamName AS teamName',
+        'gradeEntity.gradeName AS gradeName',
+        'welfareEntity.targetDay AS targetDay',
+        'welfareEntity.content AS content',
         'welfareEntity.amount AS amount',
+        'welfareEntity.payerName AS payerName',
+        'welfareEntity.confirmYN AS confirmYN',
+        'welfareEntity.tempConfirmDate AS tempConfirmDate',
+        'welfareEntity.confirmDate AS confirmDate',
+        'welfareEntity.note AS note',
         'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
-      .where('welfareEntity.payerWelfareIdx = :welfareIdx', { welfareIdx })
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('welfareEntity.payerWelfareIdx = :payerWelfareIdx', { payerWelfareIdx })
       .getRawMany();
 
     return result;
@@ -346,7 +358,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getWelfare(pageNo: number, perPage: number, filterInfo: AdminWelfareFilterDto) {
+  async getSelfWrittenWelfares(pageNo: number, perPage: number, filterInfo: AdminWelfareFilterDto) {
     const query: SelectQueryBuilder<WelfareEntity> = this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
@@ -369,11 +381,12 @@ export class WelfareRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .where('welfareEntity.targetDay BETWEEN :sDate AND :eDate', {
+      .where('welfareEntity.selfWrittenYN = :selfWrittenYN', { selfWrittenYN: YNEnum.YES })
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .andWhere('welfareEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
-      })
-      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
+      });
 
     if (filterInfo.content) {
       query.andWhere("REPLACE(welfareEntity.content, ' ', '') LIKE :content", {
@@ -393,34 +406,6 @@ export class WelfareRepository {
     const result = await query.getRawMany();
 
     return { totalPage, total, result };
-
-    // // 데이터를 변환하여 payeeList를 추가
-    // const transformedResult = await Promise.all(
-    //   result.map(async (welfare) => {
-    //     const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
-    //     const payeeList = await this.getPayeeWelfareFromPayerWelfareIdx(welfareIdx);
-
-    //     return {
-    //       welfareIdx: welfare.welfareIdx,
-    //       userIdx: welfare.userIdx,
-    //       userName: welfare.userName,
-    //       teamName: welfare.teamName,
-    //       gradeName: welfare.gradeName,
-    //       targetDay: welfare.targetDay,
-    //       content: welfare.content,
-    //       amount: welfare.amount,
-    //       payerName: welfare.payerName,
-    //       payerWelfareIdx: welfare.payerWelfareIdx,
-    //       confirmYN: welfare.confirmYN,
-    //       tempConfirmDate: welfare.tempConfirmDate,
-    //       confirmDate: welfare.confirmDate,
-    //       note: welfare.note,
-    //       payeeList: payeeList.length > 0 ? payeeList : [],
-    //     };
-    //   }),
-    // );
-
-    // return { totalPage, total, welfare: transformedResult };
   }
 
   async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum): Promise<UpdateResult> {
