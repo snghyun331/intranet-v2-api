@@ -165,27 +165,7 @@ export class WelfareRepository {
       .addOrderBy('welfareEntity.createdAt', 'DESC')
       .getRawMany();
 
-    // 데이터를 변환하여 payeeList를 추가
-    const transformedResult = await Promise.all(
-      result.map(async (welfare) => {
-        const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
-        const payeeList = await this.getWelfareFromPayerWelfareIdx(welfareIdx);
-
-        return {
-          welfareIdx: welfare.welfareIdx,
-          userIdx: welfare.userIdx,
-          targetDay: welfare.targetDay,
-          content: welfare.content,
-          amount: welfare.amount,
-          payerName: welfare.payerName,
-          selfWrittenYN: welfare.selfWrittenYN,
-          confirmYN: welfare.confirmYN,
-          payeeList: payeeList.length > 0 ? payeeList : [],
-        };
-      }),
-    );
-
-    return transformedResult;
+    return result;
   }
 
   async getWelfareStats(year: string, halfYear: HalfYearEnum, userIdx: number) {

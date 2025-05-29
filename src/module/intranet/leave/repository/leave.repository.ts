@@ -64,15 +64,19 @@ export class LeaveRepository {
     return result;
   }
 
-  async getCommuteIdxByDate(userIdx: number, commuteDate: string): Promise<number> {
-    const { commuteIdx } = await this.commuteModel
+  async getCommuteInfoByDate(userIdx: number, commuteDate: string) {
+    const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
-      .select(['commuteEntity.commuteIdx AS commuteIdx'])
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.confirmYN AS confirmYN',
+      ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .getRawOne();
 
-    return commuteIdx;
+    return result;
   }
 
   async createLeave(
@@ -93,12 +97,18 @@ export class LeaveRepository {
     return commuteIdx;
   }
 
-  /* 당일에 휴가를 등록할 때 사용하는 함수 */
+  /* 기존 근태이력이 있을 때 휴가 등록하는 함수 */
   async updateLeave(commuteIdx: number, leaveTypeIdx: number, leaveReduceUnit?: number | 0): Promise<UpdateResult> {
+    const confirmReset = { confirmYN: ConfirmEnum.NO, confirmDate: null, rejectDate: null, confirmPersonIdx: null };
+
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ leaveTypeIdx, leaveReduceUnit })
+      .set({
+        leaveTypeIdx,
+        leaveReduceUnit,
+        ...confirmReset,
+      })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }

@@ -343,4 +343,13 @@ export class ApprovalRepository {
 
     return newCcCnt + newApprovalCnt;
   }
+
+  async updateLeaveReduceUnit(commuteIdx: number, leaveReduceUnit: number): Promise<UpdateResult> {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set({ leaveReduceUnit })
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
+  }
 }

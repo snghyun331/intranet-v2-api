@@ -128,15 +128,30 @@ export class LeaveService {
         throw new BadRequestException('휴가는 하루에 최대 1.0까지만 사용할 수 있습니다.');
       }
 
-      /* 휴가등록 */
-      let commuteIdx: number;
+      // 오전반차-오전반반차 OR 오후반차-오후반반차 같이 사용불가
+
+      // 과거 날짜에 대해 휴가 등록 불가
       const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
       if (commuteDate < today) {
         throw new BadRequestException('오늘 이전 날짜는 휴가 등록이 불가능합니다.');
       }
-      // 당일 날짜에 등록할 경우
-      if (commuteDate === today) {
-        commuteIdx = await this.leaveRepository.getCommuteIdxByDate(userIdx, commuteDate);
+
+      /* 휴가등록 시작 */
+      let commuteIdx: number;
+      const commuteInfo = await this.leaveRepository.getCommuteInfoByDate(userIdx, commuteDate);
+
+      // 등록하려는 날짜에 반려기록이 있을 경우
+      if (commuteInfo.confirmYN === ConfirmEnum.REJECT) {
+        commuteIdx = commuteInfo.commuteIdx;
+        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, leaveReduceUnit);
+        await this.leaveRepository.deleteCommuteApprover(commuteIdx);
+        await this.leaveRepository.deleteCommuteCCUser(commuteIdx);
+        const leaveImageInfo = await this.leaveRepository.getLeaveImageInfoByIdx(commuteIdx);
+        if (leaveImageInfo) {
+          await this.leaveRepository.deleteLeaveImage(leaveImageInfo.imageIdx);
+        }
+      } else if (commuteDate === today && commuteInfo.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL) {
+        // 당일 날짜에 등록할 경우
         await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, leaveReduceUnit);
       } else {
         commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);

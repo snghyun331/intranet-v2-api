@@ -109,6 +109,10 @@ export class ApprovalService {
         await this.approvalRepository.updateAvailCheckOutTime(commuteIdx, availCheckOutTime);
       }
 
+      // 휴가 차감 단위 업데이트
+      const leaveReduceUnit = 0; // 초기화
+      await this.approvalRepository.updateLeaveReduceUnit(commuteIdx, leaveReduceUnit);
+
       const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
         // 휴가 유형에 대한 해당 월 사용개수
         year,

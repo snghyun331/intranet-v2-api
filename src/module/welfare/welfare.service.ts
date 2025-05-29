@@ -172,11 +172,30 @@ export class WelfareService {
     if (userCnt !== 1) {
       throw new BadRequestException('올바른 유저가 아닙니다.');
     }
-
-    const welfareInfo = await this.welfareRepository.getUserHalfYearWelfares(year, halfYear, userIdx);
     const welfareStats = await this.welfareRepository.getWelfareStats(year, halfYear, userIdx);
+    const welfareInfo = await this.welfareRepository.getUserHalfYearWelfares(year, halfYear, userIdx);
 
-    const result = { welfareStats, welfares: welfareInfo };
+    // 데이터를 변환하여 payeeList를 추가
+    const transformedResult = await Promise.all(
+      welfareInfo.map(async (welfare) => {
+        const welfareIdx: number = welfare.selfWrittenYN === YNEnum.YES ? welfare.welfareIdx : welfare.payerWelfareIdx;
+        const payeeList = await this.welfareRepository.getWelfareFromPayerWelfareIdx(welfareIdx);
+
+        return {
+          welfareIdx: welfare.welfareIdx,
+          userIdx: welfare.userIdx,
+          targetDay: welfare.targetDay,
+          content: welfare.content,
+          amount: welfare.amount,
+          payerName: welfare.payerName,
+          selfWrittenYN: welfare.selfWrittenYN,
+          confirmYN: welfare.confirmYN,
+          payeeList: payeeList.length > 0 ? payeeList : [],
+        };
+      }),
+    );
+
+    const result = { welfareStats, welfares: transformedResult };
 
     return result;
   }
@@ -312,7 +331,7 @@ export class WelfareService {
           confirmDate: welfare.confirmDate,
           note: welfare.note,
           groupTotalAmount,
-          details: payeeList.length > 0 ? payeeList : null,
+          details: payeeList.length > 0 ? { payeeList } : null,
         };
       }),
     );

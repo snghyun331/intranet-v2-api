@@ -1,9 +1,10 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { CommuteEntity } from './commute.entity';
 import { UserEntity } from '@entity/user/user.entity';
+import { CommonEntity } from '@common/entity/common.entity';
 
 @Entity({ name: 'commute_approver', comment: '근태 승인 가능 목록 tb' })
-export class CommuteApproverEntity {
+export class CommuteApproverEntity extends CommonEntity {
   @PrimaryColumn({ name: 'commute_idx', comment: '근태내역IDX' })
   commuteIdx: number;
 
