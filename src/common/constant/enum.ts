@@ -53,9 +53,12 @@ export enum IntranetLeaveTypeIdxEnum {
 export enum IntranetAttendanceEnum {
   CHECK_IN = '정상 출근',
   CHECK_IN_LATE = '정상 출근(지각)',
+  CHECK_IN_ON_SITE = '정상 출근(현장근무)',
   CHECK_OUT = '정상 퇴근',
   CHECK_OUT_LATE = '정상 퇴근(지각)',
+  CHECK_OUT_ON_SITE = '정상 퇴근(현장근무)',
   EARLY_CHECK_OUT = '조기 퇴근',
+  EARLY_CHECK_OUT_ON_SITE = '조기 퇴근(현장근무)',
   EARLY_CHECK_OUT_LATE = '조기 퇴근(지각)',
 }
 

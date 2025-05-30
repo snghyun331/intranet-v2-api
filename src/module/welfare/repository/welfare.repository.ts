@@ -338,7 +338,7 @@ export class WelfareRepository {
       .execute();
   }
 
-  async getSelfWrittenWelfares(pageNo: number, perPage: number, filterInfo: AdminWelfareFilterDto) {
+  async getWelfares(pageNo: number, perPage: number, filterInfo: AdminWelfareFilterDto) {
     const query: SelectQueryBuilder<WelfareEntity> = this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
@@ -361,8 +361,7 @@ export class WelfareRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .where('welfareEntity.selfWrittenYN = :selfWrittenYN', { selfWrittenYN: YNEnum.YES })
-      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .where('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .andWhere('welfareEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
@@ -372,6 +371,10 @@ export class WelfareRepository {
       query.andWhere("REPLACE(welfareEntity.content, ' ', '') LIKE :content", {
         content: `%${removeAllWhiteSpace(filterInfo.content)}%`,
       });
+    }
+
+    if (!filterInfo.confirmYN && !filterInfo.userName) {
+      query.andWhere('welfareEntity.selfWrittenYN = :selfWrittenYN', { selfWrittenYN: YNEnum.YES });
     }
 
     const total: number = await query.getCount();

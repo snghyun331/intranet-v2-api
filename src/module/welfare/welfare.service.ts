@@ -299,42 +299,43 @@ export class WelfareService {
   }
 
   async getWelfare({ pageNo, perPage }: PageNoDto, filterInfo: AdminWelfareFilterDto) {
-    const { totalPage, total, result } = await this.welfareRepository.getSelfWrittenWelfares(
-      pageNo,
-      perPage,
-      filterInfo,
-    );
+    const { totalPage, total, result } = await this.welfareRepository.getWelfares(pageNo, perPage, filterInfo);
 
-    const transformedResult = await Promise.all(
-      result.map(async (welfare) => {
-        /* 동반결제정보 및 총 합산금액 추가 */
-        const welfareIdx: number = welfare.welfareIdx;
-        // welfareIdx를 payerWelfareIdx로 하는 모든 내역들 조회
-        const payeeList = await this.welfareRepository.getWelfareFromPayerWelfareIdx(welfareIdx);
-        const payeeTotalAmount: number = payeeList.reduce((sum, item) => sum + (item.amount ?? 0), 0); // 동반결제자 금액 합산
-        const selfWriterAmount: number = welfare.amount ?? 0; // 결제자 금액
-        const groupTotalAmount: number = selfWriterAmount + payeeTotalAmount;
+    let transformedResult: any[];
+    if (!filterInfo.confirmYN && !filterInfo.userName) {
+      transformedResult = await Promise.all(
+        result.map(async (welfare) => {
+          /* 동반결제정보 및 총 합산금액 추가 */
+          const welfareIdx: number = welfare.welfareIdx;
+          // welfareIdx를 payerWelfareIdx로 하는 모든 내역들 조회
+          const payeeList = await this.welfareRepository.getWelfareFromPayerWelfareIdx(welfareIdx);
+          const payeeTotalAmount: number = payeeList.reduce((sum, item) => sum + (item.amount ?? 0), 0); // 동반결제자 금액 합산
+          const selfWriterAmount: number = welfare.amount ?? 0; // 결제자 금액
+          const groupTotalAmount: number = selfWriterAmount + payeeTotalAmount;
 
-        return {
-          welfareIdx,
-          userIdx: welfare.userIdx,
-          userName: welfare.userName,
-          teamName: welfare.teamName,
-          gradeName: welfare.gradeName,
-          targetDay: welfare.targetDay,
-          content: welfare.content,
-          amount: welfare.amount,
-          payerName: welfare.payerName,
-          payerWelfareIdx: welfare.payerWelfareIdx,
-          confirmYN: welfare.confirmYN,
-          tempConfirmDate: welfare.tempConfirmDate,
-          confirmDate: welfare.confirmDate,
-          note: welfare.note,
-          groupTotalAmount,
-          details: payeeList.length > 0 ? { payeeList } : null,
-        };
-      }),
-    );
+          return {
+            welfareIdx,
+            userIdx: welfare.userIdx,
+            userName: welfare.userName,
+            teamName: welfare.teamName,
+            gradeName: welfare.gradeName,
+            targetDay: welfare.targetDay,
+            content: welfare.content,
+            amount: welfare.amount,
+            payerName: welfare.payerName,
+            payerWelfareIdx: welfare.payerWelfareIdx,
+            confirmYN: welfare.confirmYN,
+            tempConfirmDate: welfare.tempConfirmDate,
+            confirmDate: welfare.confirmDate,
+            note: welfare.note,
+            groupTotalAmount,
+            details: payeeList.length > 0 ? { payeeList } : null,
+          };
+        }),
+      );
+    } else {
+      transformedResult = result;
+    }
 
     return { totalPage, total, welfare: transformedResult };
   }

@@ -3,34 +3,31 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { LeaveRepository } from './repository/leave.repository';
 import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
-import {
-  ConfirmEnum,
-  IntranetAttendanceEnum,
-  IntranetLeaveTypeIdxEnum,
-  NodeEnvEnum,
-} from '../../../common/constant/enum';
-import { AwsService } from '../../aws/aws.service';
+import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '@common/constant/enum';
+import { AwsService } from '@aws/aws.service';
 import { LeaveImageInfo, LeaveSummary, LeaveUsageStats } from './interface/leave.interface';
-import { PageNoDto } from '../../../common/dto/pageNo.dto';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import {
   addConfirmStatusField,
   calculateAvailCheckOutTime,
+  calculateStandardWorkingMinutes,
   getNormalLateBoundary,
   getOneYearAfterJoin,
   getYearsSinceJoin,
   removeDuplicateIdxs,
   substringYearMonth,
-} from '../../../common/utils/utility';
+} from '@common/utils/utility';
 import {
   ALTERNATIVE_LEAVE_LISTS,
   ANNUAL_LEAVE_LISTS,
   HALF_ANNUAL_LEAVE_LISTS,
   QUARTER_ANNUAL_LEAVE_LISTS,
   SPECIAL_LEAVE_LISTS,
+  THREE_HOURS_WORKING_MINUTES,
   TRAINING_LEAVE_LISTS,
-} from '../../../common/constant/constant';
-import { UserPayload } from '../../../common/interface/payload.interface';
+} from '@common/constant/constant';
+import { UserPayload } from '@common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
 import { ApprovalRepository } from '../approval/repository/approval.repository';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -38,8 +35,8 @@ import { Transactional } from 'typeorm-transactional';
 import { CreateExtraLeaveDto } from './dto/createExtraLeave.dto';
 import { NewLeaveExtra } from './interface/leaveExtra.interface';
 import { UpdateExtraLeaveDto } from './dto/updateExtraLeave.dto';
-import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
-import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
+import { GlobalUserRepository } from '@global/repository/globalUser.repository';
+import { GlobalMealRepository } from '@global/repository/globalMeal.repository';
 
 @Injectable()
 export class LeaveService {
@@ -129,6 +126,12 @@ export class LeaveService {
       }
 
       // 오전반차-오전반반차 OR 오후반차-오후반반차 같이 사용불가
+
+      // 총 근무시간이 3시간 미만인 경우 사용불가
+      const standardWorkingMinutes = calculateStandardWorkingMinutes(leaveTypeIdx, ConfirmEnum.YES, isBirthday);
+      if (standardWorkingMinutes < THREE_HOURS_WORKING_MINUTES) {
+        throw new BadRequestException('근무 시간이 3시간 미만이면 사용하실 수 없습니다.');
+      }
 
       // 과거 날짜에 대해 휴가 등록 불가
       const today: string = moment().utcOffset(9).format('YYYY-MM-DD');

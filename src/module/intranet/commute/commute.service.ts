@@ -13,15 +13,10 @@ import {
   AM_REST_LISTS,
   PM_REST_LISTS,
   AM_QUARTER_REST_LISTS,
-} from '../../../common/constant/constant';
-import { PageNoDto } from '../../../common/dto/pageNo.dto';
+} from '@common/constant/constant';
+import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
-import {
-  ConfirmEnum,
-  IntranetAttendanceEnum,
-  IntranetLeaveTypeIdxEnum,
-  RequestTypeEnum,
-} from '../../../common/constant/enum';
+import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum, RequestTypeEnum } from '@common/constant/enum';
 import {
   calculateAvailCheckOutTime,
   getAmHalfEarlyBoundary,
@@ -32,13 +27,13 @@ import {
   getNormalLateBoundary,
   getPmHalfLateBoundary,
   getStartAndEndDateByMonth,
-} from '../../../common/utils/utility';
+} from '@common/utils/utility';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
 import { Transactional } from 'typeorm-transactional';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from './interface';
-import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
-import { GlobalHolidayRepository } from '../../global/repository/globalHoliday.repository';
+import { GlobalUserRepository } from '@global/repository/globalUser.repository';
+import { GlobalHolidayRepository } from '@global/repository/globalHoliday.repository';
 
 @Injectable()
 export class CommuteService {
@@ -63,6 +58,12 @@ export class CommuteService {
     const commuteDate: string = moment(checkInDto.checkInTime).utcOffset(9).format('YYYY-MM-DD');
     const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, commuteDate); // 생일여부 확인
 
+    /* 오전 6시 ~ 오전 8시는 현장 근무, 오전 6시 이전은 출근 불가 */
+    const checkInHour: number = new Date(checkInDto.checkInTime).getHours();
+    if (checkInHour < 6) {
+      throw new BadRequestException('출근은 오전 6시 이후부터 가능합니다.');
+    }
+
     /* 오늘의 출근 정보가 있는지 확인 */
     const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
     /* commuteInfo가 존재: 일반적인 상황 */
@@ -74,6 +75,7 @@ export class CommuteService {
       if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
         throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
       }
+
       /* 근태가 반/반반차 일 경우 */
       if (PARTIAL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
         /* 지각 판별 */
@@ -96,7 +98,9 @@ export class CommuteService {
         const attendance: IntranetAttendanceEnum =
           isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
             ? IntranetAttendanceEnum.CHECK_IN_LATE
-            : IntranetAttendanceEnum.CHECK_IN;
+            : checkInHour >= 6 && checkInHour < 8
+              ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
+              : IntranetAttendanceEnum.CHECK_IN;
 
         const availCheckOutTime: Date = calculateAvailCheckOutTime(
           checkInDto.checkInTime,
@@ -124,7 +128,9 @@ export class CommuteService {
           new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
         const attendance: IntranetAttendanceEnum = isNormalLate
           ? IntranetAttendanceEnum.CHECK_IN_LATE
-          : IntranetAttendanceEnum.CHECK_IN;
+          : checkInHour >= 6 && checkInHour < 8
+            ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
+            : IntranetAttendanceEnum.CHECK_IN;
 
         const availCheckOutTime: Date = calculateAvailCheckOutTime(
           checkInDto.checkInTime,
@@ -152,7 +158,9 @@ export class CommuteService {
         new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
       const attendance: IntranetAttendanceEnum = isNormalLate
         ? IntranetAttendanceEnum.CHECK_IN_LATE
-        : IntranetAttendanceEnum.CHECK_IN;
+        : checkInHour >= 6 && checkInHour < 8
+          ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
+          : IntranetAttendanceEnum.CHECK_IN;
 
       const availCheckOutTime: Date = calculateAvailCheckOutTime(
         checkInDto.checkInTime,
@@ -254,6 +262,11 @@ export class CommuteService {
         finalCheckOutTime < finalAvailCheckOutTime
           ? IntranetAttendanceEnum.EARLY_CHECK_OUT_LATE
           : IntranetAttendanceEnum.CHECK_OUT_LATE;
+    } else if (commuteInfo.attendance === IntranetAttendanceEnum.CHECK_IN_ON_SITE) {
+      attendance =
+        finalCheckOutTime < finalAvailCheckOutTime
+          ? IntranetAttendanceEnum.EARLY_CHECK_OUT_ON_SITE
+          : IntranetAttendanceEnum.CHECK_OUT_ON_SITE;
     } else {
       attendance =
         finalCheckOutTime < finalAvailCheckOutTime
