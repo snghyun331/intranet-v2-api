@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '@common/entity/common.entity';
 import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
+import { NoticeReadLogEntity } from './noticeReadLog.entity';
 
 @Entity({ name: 'notice', comment: '공지사항 tb' })
 export class NoticeEntity extends CommonEntity {
@@ -21,4 +22,7 @@ export class NoticeEntity extends CommonEntity {
 
   @OneToMany(() => NoticeHasImageEntity, (noticeImage) => noticeImage.noticeIdxRelation)
   noticeImageRelation: NoticeHasImageEntity[];
+
+  @OneToMany(() => NoticeReadLogEntity, (noticeReadLog) => noticeReadLog.noticeIdxRelation)
+  noticeReadLogRelation: NoticeReadLogEntity[];
 }

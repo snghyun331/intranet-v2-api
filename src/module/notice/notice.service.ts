@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { AwsService } from '../aws/aws.service';
 import { NodeEnvEnum } from '@common/constant/enum';
 import { Transactional } from 'typeorm-transactional';
-import { AdminNoticeFilterDto } from './dto/query.dto';
+import { AdminNoticeFilterDto, UserNoticeFilterDto } from './dto/query.dto';
 
 @Injectable()
 export class NoticeService {
@@ -40,13 +40,31 @@ export class NoticeService {
     return;
   }
 
-  async getNoticeList({ pageNo, perPage }: PageNoDto, filterInfo?: AdminNoticeFilterDto) {
+  async getNoticeListForUser({ pageNo, perPage }: PageNoDto, filterInfo?: UserNoticeFilterDto) {
     const noticeList = await this.noticeRepository.getNoticeList(pageNo, perPage, filterInfo);
 
     return noticeList;
   }
 
-  async getNoticeDetail(noticeIdx: number) {
+  async getNoticeListForAdmin({ pageNo, perPage }: PageNoDto, filterInfo?: AdminNoticeFilterDto) {
+    const noticeList = await this.noticeRepository.getNoticeList(pageNo, perPage, filterInfo);
+
+    return noticeList;
+  }
+
+  async getNoticeDetailForUser(noticeIdx: number, userIdx: number) {
+    const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    if (!noticeInfo) {
+      throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
+    }
+
+    // 마지막 확인시간 업데이트
+    await this.noticeRepository.updateLastNoticeCheckedAt(noticeIdx, userIdx);
+
+    return noticeInfo;
+  }
+
+  async getNoticeDetailForAdmin(noticeIdx: number) {
     const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
     if (!noticeInfo) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
@@ -146,5 +164,12 @@ export class NoticeService {
     }
 
     return;
+  }
+
+  async hasNewNotice(userIdx: number): Promise<boolean> {
+    const newNoticeCnt: number = await this.noticeRepository.getNewNoticeCount(userIdx);
+    const hasNew: boolean = newNoticeCnt > 0;
+
+    return hasNew;
   }
 }

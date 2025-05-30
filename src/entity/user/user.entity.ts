@@ -20,6 +20,7 @@ import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { CommuteCCUserEntity } from '@entity/intranet/commute/commuteCCUser.entity';
 import { LeaveExtraEntity } from '@entity/intranet/leave/leaveExtra.entity';
+import { NoticeReadLogEntity } from '../notice/noticeReadLog.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -180,4 +181,7 @@ export class UserEntity extends CommonEntity {
 
   @OneToMany(() => LeaveExtraEntity, (leaveExtra) => leaveExtra.userIdxRelation)
   leaveExtraRelation: LeaveExtraEntity[];
+
+  @OneToMany(() => NoticeReadLogEntity, (noticeReadLog) => noticeReadLog.userIdxRelation)
+  noticeReadLogRelation: NoticeReadLogEntity[];
 }

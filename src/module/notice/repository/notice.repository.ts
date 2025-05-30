@@ -8,6 +8,7 @@ import { ImageEntity } from '@entity/image/image.entity';
 import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
 import { NoticeImageInfo } from '../interface/notice.interface';
 import { AdminNoticeFilterDto } from '../dto/query.dto';
+import { NoticeReadLogEntity } from '@/entity/notice/noticeReadLog.entity';
 
 @Injectable()
 export class NoticeRepostiory {
@@ -15,6 +16,7 @@ export class NoticeRepostiory {
     @InjectRepository(NoticeEntity) private readonly noticeModel: Repository<NoticeEntity>,
     @InjectRepository(ImageEntity) private readonly imageModel: Repository<ImageEntity>,
     @InjectRepository(NoticeHasImageEntity) private readonly noticeImageModel: Repository<NoticeHasImageEntity>,
+    @InjectRepository(NoticeReadLogEntity) private readonly noticeReadLogModel: Repository<NoticeReadLogEntity>,
   ) {}
 
   async createNotice(noticeInfo: CreateNoticeDto, adminName: string): Promise<number> {
@@ -152,5 +154,32 @@ export class NoticeRepostiory {
       .from(ImageEntity)
       .where('imageIdx = :imageIdx', { imageIdx })
       .execute();
+  }
+
+  async updateLastNoticeCheckedAt(noticeIdx: number, userIdx: number): Promise<void> {
+    await this.noticeReadLogModel.save({
+      noticeIdx,
+      userIdx,
+      lastCheckedAt: new Date(),
+    });
+
+    return;
+  }
+
+  async getNewNoticeCount(userIdx: number): Promise<number> {
+    const subQuery: string = this.noticeReadLogModel
+      .createQueryBuilder('noticeReadLogEntity')
+      .select('1')
+      .where('noticeReadLogEntity.noticeIdx = noticeEntity.noticeIdx')
+      .andWhere('noticeReadLogEntity.userIdx = :userIdx')
+      .getQuery();
+
+    const result = await this.noticeModel
+      .createQueryBuilder('noticeEntity')
+      .where(`NOT EXISTS (${subQuery})`)
+      .setParameter('userIdx', userIdx)
+      .getCount();
+
+    return result;
   }
 }

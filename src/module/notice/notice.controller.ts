@@ -22,7 +22,13 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { ADMIN_NOTICES, ADMIN_NOTICES_DETAIL, USERS_NOTICES, USERS_NOTICES_DETAIL } from './swagger/notice.swagger';
+import {
+  ADMIN_NOTICES,
+  ADMIN_NOTICES_DETAIL,
+  USERS_NOTICES,
+  USERS_NOTICES_DETAIL,
+  USERS_NOTICES_HAS_NEW,
+} from './swagger/notice.swagger';
 import { ResponseInterface } from '@common/interface/response.interface';
 import { NoticeService } from './notice.service';
 import { AdminRoleGuard } from '../auth/guard/roleGuard/adminRole.guard';
@@ -39,6 +45,7 @@ import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { noticeImageOptions } from '../file/uploadMulter.options';
 import { AdminNoticeFilterDto, UserNoticeFilterDto } from './dto/query.dto';
+import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
 
 @ApiTags('사용자')
 @Controller('users/notices')
@@ -55,9 +62,26 @@ export class UserNoticeController {
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo?: UserNoticeFilterDto,
   ): Promise<ResponseInterface> {
-    const data = await this.noticeService.getNoticeList(pageNoInfo, filterInfo);
+    const data = await this.noticeService.getNoticeListForUser(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_NOTICES_HAS_NEW.GET.API_OPERATION)
+  @ApiOkResponse(USERS_NOTICES_HAS_NEW.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get('has-new')
+  async hasNewNoticeHistory(@CurrentUserIdx() userIdx: number): Promise<ResponseInterface> {
+    const hasNew: boolean = await this.noticeService.hasNewNotice(userIdx);
+
+    const response: ResponseInterface = {
+      message: 'success',
+      data: { hasNew },
+    };
 
     return response;
   }
@@ -70,8 +94,11 @@ export class UserNoticeController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get(':noticeIdx')
-  async getNoticeDetail(@Param('noticeIdx', ParseIntPipe) noticeIdx: number): Promise<ResponseInterface> {
-    const data = await this.noticeService.getNoticeDetail(noticeIdx);
+  async getNoticeDetail(
+    @Param('noticeIdx', ParseIntPipe) noticeIdx: number,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    const data = await this.noticeService.getNoticeDetailForUser(noticeIdx, userIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
@@ -114,7 +141,7 @@ export class AdminNoticeController {
     @Query() pageNoInfo: PageNoDto,
     @Query() filterInfo?: AdminNoticeFilterDto,
   ): Promise<ResponseInterface> {
-    const data = await this.noticeService.getNoticeList(pageNoInfo, filterInfo);
+    const data = await this.noticeService.getNoticeListForAdmin(pageNoInfo, filterInfo);
 
     const response: ResponseInterface = { message: 'success', data };
 
@@ -130,7 +157,7 @@ export class AdminNoticeController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Get(':noticeIdx')
   async getNoticeDetail(@Param('noticeIdx', ParseIntPipe) noticeIdx: number): Promise<ResponseInterface> {
-    const data = await this.noticeService.getNoticeDetail(noticeIdx);
+    const data = await this.noticeService.getNoticeDetailForAdmin(noticeIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
