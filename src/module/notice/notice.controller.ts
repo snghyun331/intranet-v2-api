@@ -60,9 +60,10 @@ export class UserNoticeController {
   @Get()
   async getNoticeList(
     @Query() pageNoInfo: PageNoDto,
-    @Query() filterInfo?: UserNoticeFilterDto,
+    @Query() filterInfo: UserNoticeFilterDto,
+    @CurrentUserIdx() userIdx: number,
   ): Promise<ResponseInterface> {
-    const data = await this.noticeService.getNoticeListForUser(pageNoInfo, filterInfo);
+    const data = await this.noticeService.getNoticeListForUser(pageNoInfo, filterInfo, userIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 

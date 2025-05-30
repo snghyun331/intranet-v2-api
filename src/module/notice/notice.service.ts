@@ -40,16 +40,25 @@ export class NoticeService {
     return;
   }
 
-  async getNoticeListForUser({ pageNo, perPage }: PageNoDto, filterInfo?: UserNoticeFilterDto) {
-    const noticeList = await this.noticeRepository.getNoticeList(pageNo, perPage, filterInfo);
+  async getNoticeListForUser({ pageNo, perPage }: PageNoDto, filterInfo: UserNoticeFilterDto, userIdx: number) {
+    const { totalPage, total, notices } = await this.noticeRepository.getNoticeListForUser(
+      pageNo,
+      perPage,
+      filterInfo,
+      userIdx,
+    );
+    const result = notices.map((notice) => ({
+      ...notice,
+      isNew: notice.isNew === '1' ? true : false,
+    }));
 
-    return noticeList;
+    return { totalPage, total, result };
   }
 
   async getNoticeListForAdmin({ pageNo, perPage }: PageNoDto, filterInfo?: AdminNoticeFilterDto) {
-    const noticeList = await this.noticeRepository.getNoticeList(pageNo, perPage, filterInfo);
+    const result = await this.noticeRepository.getNoticeListForAdmin(pageNo, perPage, filterInfo);
 
-    return noticeList;
+    return result;
   }
 
   async getNoticeDetailForUser(noticeIdx: number, userIdx: number) {

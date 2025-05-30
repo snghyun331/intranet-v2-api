@@ -7,7 +7,7 @@ import { UpdateNoticeDto } from '../dto/updateNotice.dto';
 import { ImageEntity } from '@entity/image/image.entity';
 import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
 import { NoticeImageInfo } from '../interface/notice.interface';
-import { AdminNoticeFilterDto } from '../dto/query.dto';
+import { AdminNoticeFilterDto, UserNoticeFilterDto } from '../dto/query.dto';
 import { NoticeReadLogEntity } from '@/entity/notice/noticeReadLog.entity';
 
 @Injectable()
@@ -79,7 +79,49 @@ export class NoticeRepostiory {
       .execute();
   }
 
-  async getNoticeList(pageNo: number, perPage: number, filterInfo?: AdminNoticeFilterDto) {
+  async getNoticeListForUser(pageNo: number, perPage: number, filterInfo: UserNoticeFilterDto, userIdx: number) {
+    const query: SelectQueryBuilder<NoticeEntity> = this.noticeModel
+      .createQueryBuilder('noticeEntity')
+      .select([
+        'noticeEntity.noticeIdx AS noticeIdx',
+        'noticeEntity.title AS title',
+        'noticeEntity.creatorName AS creatorName',
+        'noticeEntity.createdAt AS createdAt',
+      ])
+      .leftJoin(
+        NoticeReadLogEntity,
+        'noticeReadLogEntity',
+        'noticeEntity.noticeIdx = noticeReadLogEntity.noticeIdx AND noticeReadLogEntity.userIdx = :userIdx',
+      )
+      .addSelect('CASE WHEN noticeReadLogEntity.noticeIdx IS NULL THEN 1 ELSE 0 END AS isNew')
+      .setParameter('userIdx', userIdx);
+
+    if (filterInfo?.searchWord) {
+      const searchWord: string = filterInfo.searchWord;
+      query.where(
+        new Brackets((qb) => {
+          qb.where('noticeEntity.title LIKE :searchWord', { searchWord: `%${searchWord}%` }).orWhere(
+            'noticeEntity.content LIKE :searchWord',
+            { searchWord: `%${searchWord}%` },
+          );
+        }),
+      );
+    }
+
+    const total: number = await query.getCount();
+    const totalPage: number = Math.ceil(total / perPage);
+
+    query
+      .orderBy('noticeEntity.createdAt', 'DESC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
+
+    const result = await query.getRawMany();
+
+    return { totalPage, total, notices: result };
+  }
+
+  async getNoticeListForAdmin(pageNo: number, perPage: number, filterInfo: AdminNoticeFilterDto) {
     const query: SelectQueryBuilder<NoticeEntity> = this.noticeModel
       .createQueryBuilder('noticeEntity')
       .select([
