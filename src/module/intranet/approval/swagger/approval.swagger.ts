@@ -136,3 +136,26 @@ export const USERS_INTRANET_APPROVAL_HAS_NEW: SwaggerMethod = {
     },
   },
 };
+
+export const USERS_INTRANET_APPROVAL_LAST_CHECK: SwaggerMethod = {
+  PATCH: {
+    API_OPERATION: {
+      summary: '사용자 결재승인 조회 마지막 확인시간 업데이트 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'commuteIdx',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
+};

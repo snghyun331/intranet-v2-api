@@ -7,6 +7,7 @@ import { ALTERNATIVE_LEAVE_LISTS, ANNUAL_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from
 import { Transactional } from 'typeorm-transactional';
 import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
 import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
+import { UpdateLastCheckTimeDto } from './dto/updateLastCheck.dto';
 
 @Injectable()
 export class ApprovalService {
@@ -149,11 +150,6 @@ export class ApprovalService {
   async getApprovalHistory(userIdx: number, filterInfo: UserApprovalFilter) {
     const histories = await this.approvalRepository.getApprovalHistory(userIdx, filterInfo);
 
-    // 마지막 승인자 확인 시간 업데이트
-    await this.approvalRepository.updateLastApproverCheckedAt(userIdx);
-    // 마지막 참조자 확인 시간 업데이트
-    await this.approvalRepository.updateLastCCUserCheckedAt(userIdx);
-
     const result = await Promise.all(
       histories.map(async (history) => {
         const confirmStatus: string = addConfirmStatusField(history.confirmYN, history.confirmDate, history.rejectDate);
@@ -174,5 +170,22 @@ export class ApprovalService {
     const hasNew: boolean = count > 0;
 
     return hasNew;
+  }
+
+  @Transactional()
+  async updateLastApprovalCheckAt(
+    userIdx: number,
+    commuteIdx: number,
+    { relationType, lastCheckedAt }: UpdateLastCheckTimeDto,
+  ): Promise<void> {
+    if (relationType === 'APPROVER') {
+      await this.approvalRepository.updateLastApproverCheckedAt(userIdx, commuteIdx, lastCheckedAt);
+    } else if (relationType == 'CC') {
+      await this.approvalRepository.updateLastCCUserCheckedAt(userIdx, commuteIdx, lastCheckedAt);
+    } else {
+      throw new BadRequestException('잘못된 relationType을 입력하였습니다. ');
+    }
+
+    return;
   }
 }

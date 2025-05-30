@@ -310,21 +310,23 @@ export class ApprovalRepository {
       .execute();
   }
 
-  async updateLastApproverCheckedAt(userIdx: number): Promise<UpdateResult> {
+  async updateLastApproverCheckedAt(userIdx: number, commuteIdx: number, lastCheckedAt: Date): Promise<UpdateResult> {
     return await this.commuteApproverModel
       .createQueryBuilder()
       .update(CommuteApproverEntity)
-      .set({ lastCheckedAt: new Date() })
-      .where('approverIdx = :userIdx', { userIdx })
+      .set({ lastCheckedAt })
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .andWhere('approverIdx = :userIdx', { userIdx })
       .execute();
   }
 
-  async updateLastCCUserCheckedAt(userIdx: number): Promise<UpdateResult> {
+  async updateLastCCUserCheckedAt(userIdx: number, commuteIdx: number, lastCheckedAt: Date): Promise<UpdateResult> {
     return await this.commuteCCUserModel
       .createQueryBuilder()
       .update(CommuteCCUserEntity)
-      .set({ lastCheckedAt: new Date() })
-      .where('ccUserIdx = :userIdx', { userIdx })
+      .set({ lastCheckedAt })
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .andWhere('ccUserIdx = :userIdx', { userIdx })
       .execute();
   }
 
