@@ -222,7 +222,94 @@ export class WelfareRepository {
       .execute();
   }
 
+  async getWelfares(pageNo: number, perPage: number, filterInfo: AdminWelfareFilterDto) {
+    const query: SelectQueryBuilder<WelfareEntity> = this.welfareModel
+      .createQueryBuilder('welfareEntity')
+      .select([
+        'welfareEntity.welfareIdx AS welfareIdx',
+        'welfareEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'gradeEntity.gradeName AS gradeName',
+        'teamEntity.teamName AS teamName',
+        'welfareEntity.targetDay AS targetDay',
+        'welfareEntity.content AS content',
+        'welfareEntity.amount AS amount',
+        'welfareEntity.payerName AS payerName',
+        'welfareEntity.selfWrittenYN AS selfWrittenYN',
+        'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
+        'welfareEntity.confirmYN AS confirmYN',
+        'welfareEntity.confirmDate AS confirmDate',
+        'welfareEntity.tempConfirmDate AS tempConfirmDate',
+        'welfareEntity.note AS note',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .where('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .andWhere('welfareEntity.targetDay BETWEEN :sDate AND :eDate', {
+        sDate: filterInfo.sDate,
+        eDate: filterInfo.eDate,
+      });
+
+    if (filterInfo.content) {
+      query.andWhere("REPLACE(welfareEntity.content, ' ', '') LIKE :content", {
+        content: `%${removeAllWhiteSpace(filterInfo.content)}%`,
+      });
+    }
+    if (filterInfo.userName) {
+      query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
+    }
+    if (filterInfo.confirmYN) {
+      query.andWhere('welfareEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
+    }
+    if (filterInfo.payerName) {
+      query.andWhere('welfareEntity.payerName = :payerName', { payerName: filterInfo.payerName });
+    }
+
+    const total: number = await query.getCount();
+    const totalPage: number = Math.ceil(total / perPage);
+
+    query
+      // .orderBy('welfareEntity.targetDay', 'DESC')
+      // .addOrderBy('userEntity.userName', 'ASC')
+      .limit(perPage)
+      .offset((pageNo - 1) * perPage);
+
+    const result = await query.getRawMany();
+
+    return { totalPage, total, result };
+  }
+
   async getWelfareFromPayerWelfareIdx(payerWelfareIdx: number) {
+    const result = await this.welfareModel
+      .createQueryBuilder('welfareEntity')
+      .select([
+        'welfareEntity.welfareIdx AS welfareIdx',
+        'welfareEntity.userIdx AS userIdx',
+        'userEntity.userName AS userName',
+        'teamEntity.teamName AS teamName',
+        'gradeEntity.gradeName AS gradeName',
+        'welfareEntity.targetDay AS targetDay',
+        'welfareEntity.content AS content',
+        'welfareEntity.amount AS amount',
+        'welfareEntity.payerName AS payerName',
+        'welfareEntity.selfWrittenYN AS selfWrittenYN',
+        'welfareEntity.confirmYN AS confirmYN',
+        'welfareEntity.tempConfirmDate AS tempConfirmDate',
+        'welfareEntity.confirmDate AS confirmDate',
+        'welfareEntity.note AS note',
+        'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
+      ])
+      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
+      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
+      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
+      .where('welfareEntity.payerWelfareIdx = :payerWelfareIdx', { payerWelfareIdx })
+      .getRawMany();
+
+    return result;
+  }
+
+  async getParentWelfareByPayerWelfareIdx(payerWelfareIdx: number) {
     const result = await this.welfareModel
       .createQueryBuilder('welfareEntity')
       .select([
@@ -238,14 +325,15 @@ export class WelfareRepository {
         'welfareEntity.confirmYN AS confirmYN',
         'welfareEntity.tempConfirmDate AS tempConfirmDate',
         'welfareEntity.confirmDate AS confirmDate',
+        'welfareEntity.selfWrittenYN AS selfWrittenYN',
         'welfareEntity.note AS note',
         'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .where('welfareEntity.payerWelfareIdx = :payerWelfareIdx', { payerWelfareIdx })
-      .getRawMany();
+      .where('welfareEntity.welfareIdx = :payerWelfareIdx', { payerWelfareIdx })
+      .getRawOne();
 
     return result;
   }
@@ -336,59 +424,6 @@ export class WelfareRepository {
       .set({ note })
       .where('welfareStatsIdx = :welfareStatsIdx', { welfareStatsIdx })
       .execute();
-  }
-
-  async getWelfares(pageNo: number, perPage: number, filterInfo: AdminWelfareFilterDto) {
-    const query: SelectQueryBuilder<WelfareEntity> = this.welfareModel
-      .createQueryBuilder('welfareEntity')
-      .select([
-        'welfareEntity.welfareIdx AS welfareIdx',
-        'welfareEntity.userIdx AS userIdx',
-        'userEntity.userName AS userName',
-        'gradeEntity.gradeName AS gradeName',
-        'teamEntity.teamName AS teamName',
-        'welfareEntity.targetDay AS targetDay',
-        'welfareEntity.content AS content',
-        'welfareEntity.amount AS amount',
-        'welfareEntity.payerName AS payerName',
-        'welfareEntity.selfWrittenYN AS selfWrittenYN',
-        'welfareEntity.payerWelfareIdx AS payerWelfareIdx',
-        'welfareEntity.confirmYN AS confirmYN',
-        'welfareEntity.confirmDate AS confirmDate',
-        'welfareEntity.tempConfirmDate AS tempConfirmDate',
-        'welfareEntity.note AS note',
-      ])
-      .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = welfareEntity.userIdx')
-      .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
-      .where('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
-      .andWhere('welfareEntity.targetDay BETWEEN :sDate AND :eDate', {
-        sDate: filterInfo.sDate,
-        eDate: filterInfo.eDate,
-      });
-
-    if (filterInfo.content) {
-      query.andWhere("REPLACE(welfareEntity.content, ' ', '') LIKE :content", {
-        content: `%${removeAllWhiteSpace(filterInfo.content)}%`,
-      });
-    }
-
-    if (!filterInfo.confirmYN && !filterInfo.userName) {
-      query.andWhere('welfareEntity.selfWrittenYN = :selfWrittenYN', { selfWrittenYN: YNEnum.YES });
-    }
-
-    const total: number = await query.getCount();
-    const totalPage: number = Math.ceil(total / perPage);
-
-    query
-      .orderBy('welfareEntity.targetDay', 'DESC')
-      .addOrderBy('userEntity.userName', 'ASC')
-      .limit(perPage)
-      .offset((pageNo - 1) * perPage);
-
-    const result = await query.getRawMany();
-
-    return { totalPage, total, result };
   }
 
   async updateConfirmWelfare(welfareIdx: number, confirmYN: ConfirmEnum): Promise<UpdateResult> {

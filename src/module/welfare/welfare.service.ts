@@ -298,21 +298,106 @@ export class WelfareService {
     return;
   }
 
+  /* 필터링 조건
+   * 
+  
+  */
   async getWelfare({ pageNo, perPage }: PageNoDto, filterInfo: AdminWelfareFilterDto) {
     const { totalPage, total, result } = await this.welfareRepository.getWelfares(pageNo, perPage, filterInfo);
 
     let transformedResult: any[];
-    if (!filterInfo.confirmYN && !filterInfo.userName) {
+    const hasUserNameAndConfirmYN = filterInfo.userName || filterInfo.confirmYN;
+    const processedWelfareIdxs = new Set<number>();
+    if (hasUserNameAndConfirmYN) {
       transformedResult = await Promise.all(
         result.map(async (welfare) => {
+          if (welfare.selfWrittenYN === YNEnum.YES) {
+            /* 동반결제정보 및 총 합산금액 추가 */
+            const welfareIdx: number = welfare.welfareIdx;
+            // 부모 내역이 중복된 내역이면, Null로 처리
+            if (processedWelfareIdxs.has(welfare.welfareIdx)) {
+              return null;
+            }
+            processedWelfareIdxs.add(welfare.welfareIdx);
+            // welfareIdx를 payerWelfareIdx로 하는 모든 내역들 조회
+            const payeeList = await this.welfareRepository.getWelfareFromPayerWelfareIdx(welfareIdx);
+            const payeeTotalAmount: number = payeeList.reduce((sum, item) => sum + (item.amount ?? 0), 0); // 동반결제자 금액 합산
+            const selfWriterAmount: number = welfare.amount ?? 0; // 결제자 금액
+            const groupTotalAmount: number = selfWriterAmount + payeeTotalAmount;
+            return {
+              welfareIdx,
+              userIdx: welfare.userIdx,
+              userName: welfare.userName,
+              teamName: welfare.teamName,
+              gradeName: welfare.gradeName,
+              targetDay: welfare.targetDay,
+              content: welfare.content,
+              amount: welfare.amount,
+              payerName: welfare.payerName,
+              payerWelfareIdx: welfare.payerWelfareIdx,
+              confirmYN: welfare.confirmYN,
+              tempConfirmDate: welfare.tempConfirmDate,
+              confirmDate: welfare.confirmDate,
+              selfWrittenYN: welfare.selfWrittenYN,
+              note: welfare.note,
+              groupTotalAmount,
+              details: payeeList.length > 0 ? { payeeList } : null,
+            };
+          }
+          if (welfare.selfWrittenYN === YNEnum.NO) {
+            /* 동반결제정보 및 총 합산금액 추가 */
+            const payerWelfareIdx: number = welfare.payerWelfareIdx;
+            // welfareIdx = payerWelfareIdx에 해당하는 부모 내역 조회
+            const parentWelfare = await this.welfareRepository.getParentWelfareByPayerWelfareIdx(payerWelfareIdx);
+            // 부모 내역이 중복된 내역이면, Null로 처리
+            if (processedWelfareIdxs.has(parentWelfare.welfareIdx)) {
+              return null;
+            }
+            processedWelfareIdxs.add(parentWelfare.welfareIdx);
+            // 해당 부모내역에 대한 자식 내역들 조회
+            const payeeList = await this.welfareRepository.getWelfareFromPayerWelfareIdx(payerWelfareIdx);
+            const payeeTotalAmount: number = payeeList.reduce((sum, item) => sum + (item.amount ?? 0), 0); // 동반결제자 금액 합산
+            const selfWriterAmount: number = parentWelfare.amount ?? 0; // 결제자 금액
+            const groupTotalAmount: number = selfWriterAmount + payeeTotalAmount;
+            return {
+              welfareIdx: parentWelfare.welfareIdx,
+              userIdx: parentWelfare.userIdx,
+              userName: parentWelfare.userName,
+              teamName: parentWelfare.teamName,
+              gradeName: parentWelfare.gradeName,
+              targetDay: parentWelfare.targetDay,
+              content: parentWelfare.content,
+              amount: parentWelfare.amount,
+              payerName: parentWelfare.payerName,
+              payerWelfareIdx: parentWelfare.payerWelfareIdx,
+              confirmYN: parentWelfare.confirmYN,
+              tempConfirmDate: parentWelfare.tempConfirmDate,
+              confirmDate: parentWelfare.confirmDate,
+              selfWrittenYN: parentWelfare.selfWrittenYN,
+              note: parentWelfare.note,
+              groupTotalAmount,
+              details: payeeList.length > 0 ? { payeeList } : null,
+            };
+          }
+        }),
+      );
+    } else {
+      const parentnWelfares = result.filter((welfare) => welfare.selfWrittenYN === YNEnum.YES);
+
+      transformedResult = await Promise.all(
+        parentnWelfares.map(async (welfare) => {
           /* 동반결제정보 및 총 합산금액 추가 */
           const welfareIdx: number = welfare.welfareIdx;
+          // 부모 내역이 중복된 내역이면, Null로 처리
+          if (processedWelfareIdxs.has(welfare.welfareIdx)) {
+            return null;
+          }
+          processedWelfareIdxs.add(welfare.welfareIdx);
           // welfareIdx를 payerWelfareIdx로 하는 모든 내역들 조회
           const payeeList = await this.welfareRepository.getWelfareFromPayerWelfareIdx(welfareIdx);
           const payeeTotalAmount: number = payeeList.reduce((sum, item) => sum + (item.amount ?? 0), 0); // 동반결제자 금액 합산
           const selfWriterAmount: number = welfare.amount ?? 0; // 결제자 금액
           const groupTotalAmount: number = selfWriterAmount + payeeTotalAmount;
-
           return {
             welfareIdx,
             userIdx: welfare.userIdx,
@@ -327,17 +412,35 @@ export class WelfareService {
             confirmYN: welfare.confirmYN,
             tempConfirmDate: welfare.tempConfirmDate,
             confirmDate: welfare.confirmDate,
+            selfWrittenYN: welfare.selfWrittenYN,
             note: welfare.note,
             groupTotalAmount,
             details: payeeList.length > 0 ? { payeeList } : null,
           };
         }),
       );
-    } else {
-      transformedResult = result;
     }
 
-    return { totalPage, total, welfare: transformedResult };
+    // 중복 내역 처리로 인해 생긴 null 제거
+    const filterdResult = transformedResult.filter((result) => result !== null);
+
+    /* targetDay 내림차순 → userName 오름차순 정렬 */
+    const finalResult = filterdResult.sort((a, b) => {
+      const dateA = new Date(a.targetDay);
+      const dateB = new Date(b.targetDay);
+
+      // targetDay 내림차순
+      const dateComparison = dateB.getTime() - dateA.getTime();
+
+      // targetDay가 같으면, userName 오름차순
+      if (dateComparison === 0) {
+        return a.userName.localeCompare(b.userName);
+      }
+
+      return dateComparison;
+    });
+
+    return { totalPage, total, welfare: finalResult };
   }
 
   @Transactional()
