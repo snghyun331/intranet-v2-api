@@ -23,12 +23,7 @@ export class WelfareService {
 
   @Transactional()
   async createMyWelfare(userIdx: number, newWelfareInfo: CreateWelfareDto): Promise<string> {
-    const currentUserInfo: { userName: string } = await this.userRepository.getUserNameByIdx(userIdx);
-    if (!currentUserInfo) {
-      throw new BadRequestException('올바른 유저가 아닙니다.');
-    }
-
-    const { userName } = currentUserInfo;
+    const userName: string = await this.userRepository.getUserNameByIdx(userIdx);
     if (userName !== newWelfareInfo.payerName) {
       throw new BadRequestException('결제자는 본인 이름만 입력 가능합니다.');
     }
@@ -106,12 +101,7 @@ export class WelfareService {
 
   @Transactional()
   async updateMyWelfare(userIdx: number, welfareIdx: number, updateWelfareInfo: UpdateWelfareDto): Promise<string> {
-    const currentUserInfo: { userName: string } = await this.userRepository.getUserNameByIdx(userIdx);
-    if (!currentUserInfo) {
-      throw new BadRequestException('올바른 유저가 아닙니다.');
-    }
-
-    const { userName } = currentUserInfo;
+    const userName: string = await this.userRepository.getUserNameByIdx(userIdx);
     if (updateWelfareInfo.selfWrittenYN === YNEnum.YES && userName !== updateWelfareInfo.payerName) {
       throw new BadRequestException('결제자는 본인 이름만 입력 가능합니다.');
     }
@@ -306,7 +296,7 @@ export class WelfareService {
     const { totalPage, total, result } = await this.welfareRepository.getWelfares(pageNo, perPage, filterInfo);
 
     let transformedResult: any[];
-    const hasUserNameAndConfirmYN = filterInfo.userName || filterInfo.confirmYN;
+    const hasUserNameAndConfirmYN = filterInfo.userIdxs || filterInfo.confirmYN;
     const processedWelfareIdxs = new Set<number>();
     if (hasUserNameAndConfirmYN) {
       transformedResult = await Promise.all(

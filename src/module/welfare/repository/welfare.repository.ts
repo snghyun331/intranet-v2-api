@@ -16,6 +16,7 @@ import { UpdateNoteDto } from '@welfare/dto/updateNote.dto';
 import { AdminWelfareFilterDto } from '@welfare/dto/query.dto';
 import { TeamEntity } from '@entity/user/team.entity';
 import { NewWelfareMonthStats, NewWelfareStats } from '@welfare/interface';
+import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 
 @Injectable()
 export class WelfareRepository {
@@ -25,6 +26,7 @@ export class WelfareRepository {
     private readonly welfareMonthStatsModel: Repository<WelfareMonthlyStatsEntity>,
     @InjectRepository(WelfareStatsEntity)
     private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
+    private readonly userRepository: GlobalUserRepository,
   ) {}
 
   async createWelfare(userIdx: number, { targetDay, amount, content, payerName }: CreateWelfareDto): Promise<number> {
@@ -256,14 +258,20 @@ export class WelfareRepository {
         content: `%${removeAllWhiteSpace(filterInfo.content)}%`,
       });
     }
-    if (filterInfo.userName) {
-      query.andWhere('userEntity.userName = :userName', { userName: filterInfo.userName });
+    if (filterInfo.userIdxs) {
+      console.log(filterInfo.userIdxs);
+      query.andWhere('welfareEntity.userIdx IN (:...userIdxs)', { userIdxs: filterInfo.userIdxs });
     }
     if (filterInfo.confirmYN) {
       query.andWhere('welfareEntity.confirmYN = :confirmYN', { confirmYN: filterInfo.confirmYN });
     }
-    if (filterInfo.payerName) {
-      query.andWhere('welfareEntity.payerName = :payerName', { payerName: filterInfo.payerName });
+    if (filterInfo.payerIdxs) {
+      const payerNames: string[] = await Promise.all(
+        filterInfo.payerIdxs.map(async (payerIdx) => await this.userRepository.getUserNameByIdx(payerIdx)),
+      );
+      query.andWhere('welfareEntity.payerName IN (:...payerNames)', {
+        payerNames,
+      });
     }
 
     const total: number = await query.getCount();

@@ -86,15 +86,15 @@ export class GlobalUserRepository {
     return userIdxList;
   }
 
-  async getUserNameByIdx(userIdx: number): Promise<{ userName: string }> {
-    const result: { userName: string } = await this.userModel
+  async getUserNameByIdx(userIdx: number): Promise<string> {
+    const { userName } = await this.userModel
       .createQueryBuilder('userEntity')
       .select(['userEntity.userName AS userName'])
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
       .getRawOne();
 
-    return result;
+    return userName;
   }
 
   async getUserInfoByIdx(userIdx: number) {

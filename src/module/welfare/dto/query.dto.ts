@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { HalfYearEnum } from '@common/constant/enum';
 import { ConfirmEnum } from '../enum/welfare.enum';
+import { Transform } from 'class-transformer';
 
 export class WelfareFilterDto {
   @ApiProperty({ name: 'year', description: '검색 연도', type: String, required: true })
@@ -43,15 +44,23 @@ export class AdminWelfareFilterDto {
   @IsString()
   content?: string;
 
-  @ApiProperty({ name: 'userName', description: '사용자', type: String, required: false })
+  @ApiProperty({ name: 'userIdxs', required: false, description: '사용자IDX(개별 및 복수)', type: String })
   @IsOptional()
-  @IsString()
-  userName?: string;
+  @Transform(({ value }) =>
+    decodeURIComponent(value)
+      .split(',')
+      .map((item) => Number(item.trim())),
+  ) // 쉼표로 구분된 문자열을 배열로 변환
+  userIdxs?: number[];
 
-  @ApiProperty({ name: 'payerName', description: '결제자', type: String, required: false })
+  @ApiProperty({ name: 'payerIdxs', type: String, description: '결제자IDX(개별 및 복수)', required: false })
   @IsOptional()
-  @IsString()
-  payerName?: string;
+  @Transform(({ value }) =>
+    decodeURIComponent(value)
+      .split(',')
+      .map((item) => Number(item.trim())),
+  ) // 쉼표로 구분된 문자열을 배열로 변환
+  payerIdxs?: number[];
 
   @ApiProperty({ name: 'confirmYN', description: '확정 구분', type: 'enum', enum: ConfirmEnum, required: false })
   @IsOptional()
