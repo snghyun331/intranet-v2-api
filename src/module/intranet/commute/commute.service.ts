@@ -468,8 +468,8 @@ export class CommuteService {
     return result;
   }
 
-  async getHolidayDates(year: string, month: string) {
-    const data = await this.holidayRepository.getHolidayDates(year, month);
+  async getHolidayInfo(year: string, month: string) {
+    const data = await this.holidayRepository.getHolidayInfo(year, month);
 
     return data;
   }

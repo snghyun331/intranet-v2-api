@@ -161,7 +161,7 @@ export class UserCommuteController {
   @ApiOkResponse(USERS_INTRANET_HOLIDAY.GET.API_OK_RESPONSE)
   @Get('holiday')
   async getHolidayDates(@Query('year') year: string, @Query('month') month: string): Promise<ResponseInterface> {
-    const data = await this.commuteService.getHolidayDates(year, month);
+    const data = await this.commuteService.getHolidayInfo(year, month);
 
     const response: ResponseInterface = { message: 'success', data };
 

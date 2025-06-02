@@ -144,7 +144,7 @@ export class LeaveService {
       const commuteInfo = await this.leaveRepository.getCommuteInfoByDate(userIdx, commuteDate);
 
       // 등록하려는 날짜에 반려기록이 있을 경우
-      if (commuteInfo.confirmYN === ConfirmEnum.REJECT) {
+      if (commuteInfo && commuteInfo.confirmYN === ConfirmEnum.REJECT) {
         commuteIdx = commuteInfo.commuteIdx;
         await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, leaveReduceUnit);
         await this.leaveRepository.deleteCommuteApprover(commuteIdx);

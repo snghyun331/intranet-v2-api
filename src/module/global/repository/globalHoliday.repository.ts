@@ -31,6 +31,25 @@ export class GlobalHolidayRepository {
     return holidayDates;
   }
 
+  async getHolidayInfo(year: string, month: string) {
+    // 해당 월의 첫 번째 날과 마지막 날을 구함
+    const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+    const startDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+    const endDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+    const result = await this.holidayModel
+      .createQueryBuilder('holidayEntity')
+      .select(['holidayEntity.holidayDate AS holidayDate', 'holidayEntity.holidayName AS holidayName'])
+      .where('holidayEntity.holidayDate BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .andWhere('holidayEntity.holidayName != :holidayName', { holidayName: '주말' })
+      .orderBy('holidayEntity.holidayDate', 'ASC')
+      .getRawMany();
+
+    return result;
+  }
+
   async isHolidayOrWeekend(dateString: string): Promise<boolean> {
     const { year, month } = substringYearMonth(dateString);
     const holidayDates: string[] = await this.getHolidayDates(year, month);
