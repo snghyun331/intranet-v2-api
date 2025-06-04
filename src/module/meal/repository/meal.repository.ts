@@ -284,12 +284,12 @@ export class MealRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = mealEntity.userIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
       .innerJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
-      .innerJoin(
+      .leftJoin(
         CommuteEntity,
         'commuteEntity',
         'commuteEntity.userIdx = mealEntity.userIdx AND commuteEntity.commuteDate = mealEntity.targetDay',
       )
-      .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
+      .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('mealEntity.targetDay BETWEEN :sDate AND :eDate', {
         sDate: searchInfo.sDate,
         eDate: searchInfo.eDate,
