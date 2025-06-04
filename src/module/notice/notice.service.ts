@@ -49,7 +49,7 @@ export class NoticeService {
     );
     const result = notices.map((notice) => ({
       ...notice,
-      isNew: notice.isNew === '1' ? true : false,
+      isNew: notice.isNew === 1 ? true : false,
     }));
 
     return { totalPage, total, result };
