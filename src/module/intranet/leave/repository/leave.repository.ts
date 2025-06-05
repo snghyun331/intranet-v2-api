@@ -64,17 +64,68 @@ export class LeaveRepository {
     return result;
   }
 
+  async getRejectedLeaveInfoByDate(userIdx: number, commuteDate: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
+        'commuteEntity.confirmYN AS confirmYN',
+      ])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .getRawMany();
+
+    return result;
+  }
+
+  async getValidateLeaveInfoByDate(userIdx: number, commuteDate: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
+        'commuteEntity.confirmYN AS confirmYN',
+      ])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .getRawMany();
+
+    return result;
+  }
+
   async getCommuteInfoByDate(userIdx: number, commuteDate: string) {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
         'commuteEntity.commuteIdx AS commuteIdx',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
         'commuteEntity.confirmYN AS confirmYN',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .getRawOne();
+
+    return result;
+  }
+
+  async getAllCommuteInfoByDate(userIdx: number, commuteDate: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
+        'commuteEntity.confirmYN AS confirmYN',
+      ])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .getRawMany();
 
     return result;
   }

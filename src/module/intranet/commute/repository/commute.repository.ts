@@ -63,6 +63,24 @@ export class CommuteRepository {
     return result;
   }
 
+  async getAllCommuteInfoByDate(userIdx: number, commuteDate: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.checkInTime AS checkInTime',
+        'commuteEntity.checkOutTime AS checkOutTime',
+        'commuteEntity.availCheckOutTime AS availCheckOutTime',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.attendance AS attendance',
+        'commuteEntity.confirmYN AS confirmYN',
+      ])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .getRawOne();
+
+    return result;
+  }
+
   async checkOutWork(userIdx: number, { commuteDate, ...commuteInfo }: UpdateCheckOutInfo): Promise<UpdateResult> {
     return await this.commuteModel
       .createQueryBuilder()
@@ -310,5 +328,15 @@ export class CommuteRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async updateCheckInWorkByCommuteDate(commuteDate: string, userIdx: number, updateCheckInIndo) {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(updateCheckInIndo)
+      .where('commuteDate = :commuteDate', { commuteDate })
+      .andWhere('userIdx = :userIdx', { userIdx })
+      .execute();
   }
 }

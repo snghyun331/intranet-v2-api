@@ -20,8 +20,12 @@ import {
 } from '@common/utils/utility';
 import {
   ALTERNATIVE_LEAVE_LISTS,
+  AM_QUARTER_REST_LISTS,
+  AM_REST_LISTS,
   ANNUAL_LEAVE_LISTS,
   HALF_ANNUAL_LEAVE_LISTS,
+  PM_QUARTER_REST_LISTS,
+  PM_REST_LISTS,
   QUARTER_ANNUAL_LEAVE_LISTS,
   SPECIAL_LEAVE_LISTS,
   THREE_HOURS_WORKING_MINUTES,
@@ -119,18 +123,40 @@ export class LeaveService {
         totalAlternativeLeaveBalance -= leaveReduceUnit;
       }
 
-      // 하루에 사용한 휴가 총합이 1.0을 초과하면 사용불가
-      const totalReduceUnit = await this.leaveRepository.getTotalLeaveReduceUnitByDate(userIdx, commuteDate);
-      if (totalReduceUnit + leaveReduceUnit > 1.0) {
-        throw new BadRequestException('휴가는 하루에 최대 1.0까지만 사용할 수 있습니다.');
+      /* 같은 날에 이미 등록한 1개 휴가가 있는 경우 처리 방법 */
+      const existingValidateLeaves = await this.leaveRepository.getValidateLeaveInfoByDate(userIdx, commuteDate);
+      if (existingValidateLeaves.length > 1) {
+        throw new BadRequestException('하루에 최대 2개의 휴가만 사용할 수 있습니다.');
       }
 
-      // 오전반차-오전반반차 OR 오후반차-오후반반차 같이 사용불가
+      // 같은 시간대 휴가 중복 사용 불가
+      if (existingValidateLeaves.length === 1) {
+        const amLeaves = [...AM_QUARTER_REST_LISTS, ...AM_REST_LISTS];
+        const pmLeaves = [...PM_QUARTER_REST_LISTS, ...PM_REST_LISTS];
+        const existingLeaveTypeIdx = existingValidateLeaves[0].leaveTypeIdx;
+        const newLeaveTypeIdx = leaveTypeIdx;
+        // 기존 휴가가 오전 휴가이고, 새로운 휴가도 오전 휴가인 경우
+        const isExistingAmLeave = amLeaves.includes(existingLeaveTypeIdx);
+        const isNewAmLeave = amLeaves.includes(newLeaveTypeIdx);
 
-      // 총 근무시간이 3시간 미만인 경우 사용불가
-      const standardWorkingMinutes = calculateStandardWorkingMinutes(leaveTypeIdx, ConfirmEnum.YES, isBirthday);
-      if (standardWorkingMinutes < THREE_HOURS_WORKING_MINUTES) {
-        throw new BadRequestException('근무 시간이 3시간 미만이면 사용하실 수 없습니다.');
+        // 기존 휴가가 오후 휴가이고, 새로운 휴가도 오후 휴가인 경우
+        const isExistingPmLeave = pmLeaves.includes(existingLeaveTypeIdx);
+        const isNewPmLeave = pmLeaves.includes(newLeaveTypeIdx);
+
+        if ((isExistingAmLeave && isNewAmLeave) || (isExistingPmLeave && isNewPmLeave)) {
+          throw new BadRequestException('같은 시간대의 휴가는 중복해서 사용할 수 없습니다.');
+        }
+
+        // 하루에 사용한 휴가 총합이 1.0을 초과하면 사용불가
+        if (existingValidateLeaves[0].leaveReduceUnit + leaveReduceUnit > 1.0) {
+          throw new BadRequestException('휴가는 하루에 최대 1.0까지만 사용할 수 있습니다.');
+        }
+
+        // 총 근무시간이 3시간 미만인 경우 사용불가
+        const standardWorkingMinutes = calculateStandardWorkingMinutes(leaveTypeIdx, isBirthday);
+        if (standardWorkingMinutes < THREE_HOURS_WORKING_MINUTES) {
+          throw new BadRequestException('근무 시간이 3시간 미만이면 사용하실 수 없습니다.');
+        }
       }
 
       // 과거 날짜에 대해 휴가 등록 불가
@@ -139,24 +165,41 @@ export class LeaveService {
         throw new BadRequestException('오늘 이전 날짜는 휴가 등록이 불가능합니다.');
       }
 
-      /* 휴가등록 시작 */
+      /** 휴가등록 시작 **/
       let commuteIdx: number;
-      const commuteInfo = await this.leaveRepository.getCommuteInfoByDate(userIdx, commuteDate);
 
-      // 등록하려는 날짜에 반려기록이 있을 경우
-      if (commuteInfo && commuteInfo.confirmYN === ConfirmEnum.REJECT) {
-        commuteIdx = commuteInfo.commuteIdx;
-        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, leaveReduceUnit);
-        await this.leaveRepository.deleteCommuteApprover(commuteIdx);
-        await this.leaveRepository.deleteCommuteCCUser(commuteIdx);
-        const leaveImageInfo = await this.leaveRepository.getLeaveImageInfoByIdx(commuteIdx);
-        if (leaveImageInfo) {
-          await this.leaveRepository.deleteLeaveImage(leaveImageInfo.imageIdx);
+      // 등록하려는 날짜에 반려기록이 있을 경우, 반려기록 모두 삭제
+      const rejectedLeaves = await this.leaveRepository.getRejectedLeaveInfoByDate(userIdx, commuteDate);
+      if (rejectedLeaves.length > 0) {
+        for (const rejectedLeave of rejectedLeaves) {
+          // await this.leaveRepository.deleteCommuteApprover(rejectedLeave.commuteIdx);
+          // await this.leaveRepository.deleteCommuteCCUser(rejectedLeave.commuteIdx);
+          const leaveImageInfo = await this.leaveRepository.getLeaveImageInfoByIdx(rejectedLeave.commuteIdx);
+          if (leaveImageInfo) {
+            await this.leaveRepository.deleteLeaveImage(leaveImageInfo.imageIdx);
+          }
+          await this.leaveRepository.deleteLeave(rejectedLeave.commuteIdx);
         }
-      } else if (commuteDate === today && commuteInfo.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL) {
-        // 당일 날짜에 등록할 경우
-        await this.leaveRepository.updateLeave(commuteIdx, leave.leaveTypeIdx, leaveReduceUnit);
+      }
+
+      const existingCommute = await this.leaveRepository.getCommuteInfoByDate(userIdx, commuteDate);
+      // 출근 당일에 휴가를 등록할 경우,
+      if (commuteDate === today) {
+        // 해당 날짜에 대한 근태가 없다면 create
+        if (!existingCommute) {
+          commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
+        } else {
+          // 해당 날짜에 대한 근태가 존재 & 일반 근무일 경우
+          if (existingCommute.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL) {
+            commuteIdx = existingCommute.commuteIdx;
+            await this.leaveRepository.updateLeave(existingCommute.commuteIdx, leaveTypeIdx, leaveReduceUnit);
+          } else {
+            // 해당 날짜에 대한 근태가 존재 & 휴가있는 근무일 경우
+            commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
+          }
+        }
       } else {
+        // 미래에 대해 휴가를 등록할 경우,
         commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
       }
 
@@ -205,9 +248,11 @@ export class LeaveService {
     if (!leaveInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
+    // 오늘 날짜 이후 (미래시점)
     if (todayDate < leaveInfo.commuteDate) {
       await this.leaveRepository.deleteLeave(commuteIdx);
     } else {
+      // 오늘 혹은 이전 시점
       const leaveImageInfo = await this.leaveRepository.getLeaveImageInfoByIdx(commuteIdx);
       const isBirthday: boolean = await this.userRepository.isBirthday(leaveInfo.userIdx, leaveInfo.commuteDate); // 생일여부 확인
       // 승인 및 참조 및 이미지 데이터 모두 삭제
@@ -217,31 +262,39 @@ export class LeaveService {
       await this.leaveRepository.deleteCommuteApprover(commuteIdx);
       await this.leaveRepository.deleteCommuteCCUser(commuteIdx);
       // 근태 업데이트
-      let attendance = null;
-      if (leaveInfo.checkInTime) {
-        const isNormalLate: boolean =
-          new Date(leaveInfo.checkInTime) >= getNormalLateBoundary(new Date(leaveInfo.checkInTime));
+      const existingCommutes = await this.leaveRepository.getAllCommuteInfoByDate(
+        leaveInfo.userIdx,
+        leaveInfo.commuteDate,
+      );
+      if (existingCommutes.length > 1) {
+        await this.leaveRepository.deleteLeave(commuteIdx);
+      } else {
+        let attendance = null;
+        if (existingCommutes[0].checkInTime) {
+          const isNormalLate: boolean =
+            new Date(leaveInfo.checkInTime) >= getNormalLateBoundary(new Date(leaveInfo.checkInTime));
 
-        attendance = isNormalLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
+          attendance = isNormalLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
+        }
+
+        const updateInfo = {
+          leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+          confirmYN: ConfirmEnum.NO,
+          confirmPersonIdx: null,
+          confirmDate: null,
+          leaveReduceUnit: 0,
+          attendance,
+          availCheckOutTime: leaveInfo.checkInTime
+            ? calculateAvailCheckOutTime(
+                leaveInfo.checkInTime,
+                IntranetLeaveTypeIdxEnum.NORMAL,
+                ConfirmEnum.NO,
+                isBirthday,
+              )
+            : null,
+        };
+        await this.leaveRepository.updateLeaveToNormal(commuteIdx, updateInfo);
       }
-
-      const updateInfo = {
-        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
-        confirmYN: ConfirmEnum.NO,
-        confirmPersonIdx: null,
-        confirmDate: null,
-        leaveReduceUnit: 0,
-        attendance,
-        availCheckOutTime: leaveInfo.checkInTime
-          ? calculateAvailCheckOutTime(
-              leaveInfo.checkInTime,
-              IntranetLeaveTypeIdxEnum.NORMAL,
-              ConfirmEnum.NO,
-              isBirthday,
-            )
-          : null,
-      };
-      await this.leaveRepository.updateLeaveToNormal(commuteIdx, updateInfo);
     }
 
     const { userIdx, commuteDate, leaveTypeIdx } = leaveInfo;
@@ -348,7 +401,7 @@ export class LeaveService {
       leaveSummary.oneYearAfterJoin = getOneYearAfterJoin(userInfo.joinDate); // 만 1년 날짜
     }
 
-    // 총 특별휴무 수, 총 대체휴무 수 추가 (요구사항)
+    // 총 특별휴무 수, 총 대체휴무 수 추가
     leaveUsageStats.totalReceivedSpecialLeave = leaveStats.totalReceivedSpecialLeave;
     leaveUsageStats.totalReceivedAlternativeLeave = leaveStats.totalReceivedAlternativeLeave;
 

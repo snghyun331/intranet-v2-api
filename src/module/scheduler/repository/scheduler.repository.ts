@@ -80,15 +80,27 @@ export class SchedulerRepository {
   }
 
   async insertCommutesForToday(): Promise<void> {
-    await this.dataSource.query(`INSERT INTO commute (user_idx, commute_date)
-      SELECT u.user_idx,  CURDATE()
-      FROM user u
-      WHERE u.user_avail = 'Y'
-        AND NOT EXISTS (
-        SELECT 1 FROM commute c
-        WHERE c.user_idx = u.user_idx AND c.commute_date = CURDATE()
-      );
-    `);
+    await this.dataSource.transaction(async (manager) => {
+      // 1. 오늘 날짜의 반려된 내역들을 삭제
+      await manager.query(`
+        DELETE FROM commute 
+        WHERE commute_date = CURDATE() 
+          AND confirm_yn = 'R'
+      `);
+
+      // 2. 반려 내역 삭제 후, 오늘 날짜에 내역이 없는 사용자들만 INSERT
+      await manager.query(`
+        INSERT INTO commute (user_idx, commute_date)
+        SELECT u.user_idx, CURDATE()
+        FROM user u
+        WHERE u.user_avail = 'Y'
+          AND NOT EXISTS (
+            SELECT 1 FROM commute c
+            WHERE c.user_idx = u.user_idx 
+              AND c.commute_date = CURDATE()
+          )
+      `);
+    });
 
     return;
   }

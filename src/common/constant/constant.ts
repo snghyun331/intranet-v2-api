@@ -22,6 +22,8 @@ export const FOUR_HOURS_WORKING_MINUTES: number = 4 * 60;
 
 export const THREE_HOURS_WORKING_MINUTES: number = 3 * 60;
 
+export const TWO_HOURS_HALF_WORKIMG_MINUTES: number = 2.5 * 60;
+
 export const TWO_HOURS_WORKING_MINUTES: number = 2 * 60;
 
 export const AM_REST_LISTS: Set<IntranetLeaveTypeIdxEnum> = new Set([

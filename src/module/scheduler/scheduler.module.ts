@@ -12,12 +12,6 @@ import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
 import { ActivityMonthlyStatsEntity } from '../../entity/activity/activityMonthlyStats.entity';
 import { ActivityStatsEntity } from '../../entity/activity/activityStats.entity';
-import { PlayGroundModel } from '../playground/model/playground.model';
-import { MongooseModule } from '@nestjs/mongoose';
-import { LunchGroupConfig, LunchGroupConfigSchema } from '../../schema/lunchGroup/lunchGroupConfig.schema';
-import { LunchGroupMember, LunchGroupMemberSchema } from '../../schema/lunchGroup/lunchGroupMember.schema';
-import { BaverageConfig, BaverageConfigSchema } from '../../schema/baverage/baverageConfig.schema';
-import { BaverageMember, BaverageMemberSchema } from '../../schema/baverage/baverageMember.schema';
 
 @Module({
   imports: [
@@ -30,15 +24,9 @@ import { BaverageMember, BaverageMemberSchema } from '../../schema/baverage/bave
       ActivityMonthlyStatsEntity,
       ActivityStatsEntity,
     ]),
-    MongooseModule.forFeature([
-      { name: LunchGroupConfig.name, schema: LunchGroupConfigSchema },
-      { name: LunchGroupMember.name, schema: LunchGroupMemberSchema },
-      { name: BaverageConfig.name, schema: BaverageConfigSchema },
-      { name: BaverageMember.name, schema: BaverageMemberSchema },
-    ]),
     ScheduleModule.forRoot(),
     HttpModule.registerAsync(AXIOS_CONFIG),
   ],
-  providers: [SchedulerService, SchedulerRepository, PlayGroundModel, Logger],
+  providers: [SchedulerService, SchedulerRepository, Logger],
 })
 export class SchedulerModule {}

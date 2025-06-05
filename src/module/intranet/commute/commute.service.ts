@@ -65,111 +65,148 @@ export class CommuteService {
     }
 
     /* 오늘의 출근 정보가 있는지 확인 */
-    const commuteInfo = await this.commuteRepository.getCommuteInfoByDate(userIdx, commuteDate);
-    /* commuteInfo가 존재: 일반적인 상황 */
-    if (commuteInfo) {
-      if (commuteInfo.checkInTime) {
+    const commuteInfoList = await this.commuteRepository.getAllCommuteInfoByDate(userIdx, commuteDate);
+    /* commuteInfoList가 존재: 일반적인 상황 */
+    if (commuteInfoList && commuteInfoList.length > 0) {
+      // 이미 출근이 등록된 내역이 있는지 확인
+      const hasCheckedIn: boolean = commuteInfoList.some((info: any) => info.checkInTime);
+      if (hasCheckedIn) {
         throw new BadRequestException('이미 출근이 등록되었습니다.');
       }
-      /* 근태 상태가 휴무인지 확인 */
-      if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
-        throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
-      }
-
-      /* 근태가 반/반반차 일 경우 */
-      if (PARTIAL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
-        /* 지각 판별 */
-        const isPmQuarterLate: boolean =
-          PM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
-          new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
-
-        const isAmHalfLate: boolean =
-          AM_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
-          new Date(checkInDto.checkInTime) >= getAmHalfLateBoundary(new Date(checkInDto.checkInTime));
-
-        const isPMHalfLate: boolean =
-          PM_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
-          new Date(checkInDto.checkInTime) >= getPmHalfLateBoundary(new Date(checkInDto.checkInTime));
-
-        const isAmQuarterLate: boolean =
-          AM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
-          new Date(checkInDto.checkInTime) >= getAmQuarterLateBoundary(new Date(checkInDto.checkInTime));
-
-        const attendance: IntranetAttendanceEnum =
-          isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
-            ? IntranetAttendanceEnum.CHECK_IN_LATE
-            : checkInHour >= 6 && checkInHour < 8
-              ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
-              : IntranetAttendanceEnum.CHECK_IN;
-
-        const availCheckOutTime: Date = calculateAvailCheckOutTime(
-          checkInDto.checkInTime,
-          commuteInfo.leaveTypeIdx,
-          commuteInfo.confirmYN,
-          isBirthday,
-        );
-
-        const updateCheckInInfo: UpdateCheckInInfo = {
-          ...checkInDto,
-          attendance,
-          commuteDate,
-          checkInIpAddr,
+      if (commuteInfoList.length === 2) {
+        /* 조합휴가 케이스 (2개 휴가) */
+        await this.handleCombinedLeaveCheckIn(
+          commuteInfoList,
+          checkInDto,
           checkInLogAgent,
-          availCheckOutTime,
-        };
-
-        /* 근태 업데이트 */
-        await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
-
-        return;
+          checkInIpAddr,
+          userIdx,
+          commuteDate,
+          isBirthday,
+          checkInHour,
+        );
       } else {
-        /* 일반 근무에 대한 지각 판별 */
-        const isNormalLate: boolean =
-          new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
-        const attendance: IntranetAttendanceEnum = isNormalLate
-          ? IntranetAttendanceEnum.CHECK_IN_LATE
-          : checkInHour >= 6 && checkInHour < 8
-            ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
-            : IntranetAttendanceEnum.CHECK_IN;
-
-        const availCheckOutTime: Date = calculateAvailCheckOutTime(
-          checkInDto.checkInTime,
-          IntranetLeaveTypeIdxEnum.NORMAL,
-          ConfirmEnum.NO,
-          isBirthday,
-        );
-
-        const updateCheckInInfo: UpdateCheckInInfo = {
-          ...checkInDto,
-          attendance,
-          commuteDate,
-          checkInIpAddr,
+        /* 단일 내역 케이스 (1개) */
+        await this.handleSingleCommuteCheckIn(
+          commuteInfoList[0],
+          checkInDto,
           checkInLogAgent,
-          leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
-          availCheckOutTime,
-        };
-
-        /* 일반 근무에 대한 근태 업데이트 */
-        await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
+          checkInIpAddr,
+          userIdx,
+          commuteDate,
+          isBirthday,
+          checkInHour,
+        );
       }
     } else {
       /* commuteInfo가 없는 경우는 비정상적인 상황이며, 일반 근무로 간주됨 */
-      const isNormalLate: boolean =
-        new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
-      const attendance: IntranetAttendanceEnum = isNormalLate
-        ? IntranetAttendanceEnum.CHECK_IN_LATE
-        : checkInHour >= 6 && checkInHour < 8
-          ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
-          : IntranetAttendanceEnum.CHECK_IN;
-
-      const availCheckOutTime: Date = calculateAvailCheckOutTime(
-        checkInDto.checkInTime,
-        IntranetLeaveTypeIdxEnum.NORMAL,
-        ConfirmEnum.NO,
+      await this.handleNoCommuteInfoCheckIn(
+        checkInDto,
+        checkInLogAgent,
+        checkInIpAddr,
+        userIdx,
+        commuteDate,
         isBirthday,
+        checkInHour,
+      );
+    }
+    return;
+  }
+
+  private async handleCombinedLeaveCheckIn(
+    commuteInfoList: any[],
+    checkInDto: CheckInDto,
+    checkInLogAgent: string,
+    checkInIpAddr: string,
+    userIdx: number,
+    commuteDate: string,
+    isBirthday: boolean,
+    checkInHour: number,
+  ) {
+    // 승인된 휴가만 필터링
+    const approvedLeaves = commuteInfoList.filter((info) => info.confirmYN === ConfirmEnum.YES);
+
+    // 둘 다 승인된 휴가인 경우, 반차 + 반차 => 출근 불가, 반반차 + 반반차 => 출근 가능
+    if (approvedLeaves.length === 2) {
+      const leaveTypes = approvedLeaves.map((leave) => leave.leaveTypeIdx);
+
+      // 반차 조합 확인 (오전반차 + 오후반차)
+      const hasAmHalf = leaveTypes.some((type) => AM_REST_LISTS.has(type));
+      const hasPmHalf = leaveTypes.some((type) => PM_REST_LISTS.has(type));
+
+      // 반반차 조합 확인 (오전반반차 + 오후반반차)
+      const hasAmQuarter = leaveTypes.some((type) => AM_QUARTER_REST_LISTS.has(type));
+      const hasPmQuarter = leaveTypes.some((type) => PM_QUARTER_REST_LISTS.has(type));
+
+      // 반차 + 반차 조합인 경우 출근 불가
+      if (hasAmHalf && hasPmHalf) {
+        throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
+      }
+
+      // 반반차 + 반반차 조합인 경우 출근 가능
+      if (hasAmQuarter && hasPmQuarter) {
+        // 오전반반차 기준으로 지각 판별 및 출근 처리
+        const { attendance, availCheckOutTime, targetCommuteIdx } = await this.calculateCombinedLeaveAttendance(
+          commuteInfoList,
+          checkInDto.checkInTime,
+          isBirthday,
+          checkInHour,
+        );
+
+        const updateCheckInInfo: UpdateCheckInInfo = {
+          ...checkInDto,
+          attendance,
+          commuteDate,
+          checkInIpAddr,
+          checkInLogAgent,
+          availCheckOutTime,
+        };
+
+        await this.commuteRepository.updateCheckInWorkByCommuteDate(commuteDate, userIdx, updateCheckInInfo);
+
+        return;
+      }
+
+      // 그 외 조합 (반차 + 반반차, 다른 휴가 조합 등)은 출근 불가
+      throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
+    } else if (approvedLeaves.length === 1) {
+      const approvedLeave = approvedLeaves[0];
+      // 종일 휴가인 경우 출근 불가
+      if (FULL_DAY_REST_LISTS.has(approvedLeave.leaveTypeIdx)) {
+        throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
+      }
+      // 반차/반반차인 경우 지각 판별 및 출근 처리
+      if (PARTIAL_DAY_REST_LISTS.has(approvedLeave.leaveTypeIdx)) {
+        const { attendance, availCheckOutTime, targetCommuteIdx } = await this.calculateCombinedLeaveAttendance(
+          commuteInfoList,
+          checkInDto.checkInTime,
+          isBirthday,
+          checkInHour,
+        );
+
+        const updateCheckInInfo: UpdateCheckInInfo = {
+          ...checkInDto,
+          attendance,
+          commuteDate,
+          checkInIpAddr,
+          checkInLogAgent,
+          availCheckOutTime,
+        };
+
+        /* 조합휴가의 경우 모든 내역에 같은 출근 정보 업데이트 */
+        await this.commuteRepository.updateCheckInWorkByCommuteDate(commuteDate, userIdx, updateCheckInInfo);
+
+        return;
+      }
+    } else {
+      // 승인된 휴가가 없는 경우 일반 근무로 처리
+      const { attendance, availCheckOutTime } = await this.calculateNormalAttendance(
+        checkInDto.checkInTime,
+        isBirthday,
+        checkInHour,
       );
 
-      const insertCheckInInfo: InsertCheckInInfo = {
+      const updateCheckInInfo: UpdateCheckInInfo = {
         ...checkInDto,
         attendance,
         commuteDate,
@@ -179,12 +216,323 @@ export class CommuteService {
         availCheckOutTime,
       };
 
-      /* 근태 생성 */
-      await this.commuteRepository.createCheckInWork(userIdx, insertCheckInInfo);
+      /* 첫 번째 내역을 일반 근무로 업데이트 */
+      await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
+    }
+  }
+
+  private async handleSingleCommuteCheckIn(
+    commuteInfo: any,
+    checkInDto: CheckInDto,
+    checkInLogAgent: string,
+    checkInIpAddr: string,
+    userIdx: number,
+    commuteDate: string,
+    isBirthday: boolean,
+    checkInHour: number,
+  ): Promise<void> {
+    /* 근태 상태가 휴무인지 확인 */
+    if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
+      throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
     }
 
-    return;
+    /* 근태가 반/반반차 일 경우 */
+    if (PARTIAL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
+      const { attendance, availCheckOutTime } = await this.calculatePartialLeaveAttendance(
+        commuteInfo.leaveTypeIdx,
+        checkInDto.checkInTime,
+        isBirthday,
+        checkInHour,
+      );
+
+      const updateCheckInInfo: UpdateCheckInInfo = {
+        ...checkInDto,
+        attendance,
+        commuteDate,
+        checkInIpAddr,
+        checkInLogAgent,
+        availCheckOutTime,
+      };
+
+      /* 근태 업데이트 */
+      await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
+      return;
+    } else {
+      /* 일반 근무에 대한 처리 */
+      const { attendance, availCheckOutTime } = await this.calculateNormalAttendance(
+        checkInDto.checkInTime,
+        isBirthday,
+        checkInHour,
+      );
+
+      const updateCheckInInfo: UpdateCheckInInfo = {
+        ...checkInDto,
+        attendance,
+        commuteDate,
+        checkInIpAddr,
+        checkInLogAgent,
+        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+        availCheckOutTime,
+      };
+
+      /* 일반 근무에 대한 근태 업데이트 */
+      await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
+    }
   }
+
+  private async handleNoCommuteInfoCheckIn(
+    checkInDto: CheckInDto,
+    checkInLogAgent: string,
+    checkInIpAddr: string,
+    userIdx: number,
+    commuteDate: string,
+    isBirthday: boolean,
+    checkInHour: number,
+  ): Promise<void> {
+    const { attendance, availCheckOutTime } = await this.calculateNormalAttendance(
+      checkInDto.checkInTime,
+      isBirthday,
+      checkInHour,
+    );
+
+    const insertCheckInInfo: InsertCheckInInfo = {
+      ...checkInDto,
+      attendance,
+      commuteDate,
+      checkInIpAddr,
+      checkInLogAgent,
+      leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+      availCheckOutTime,
+    };
+
+    /* 근태 생성 */
+    await this.commuteRepository.createCheckInWork(userIdx, insertCheckInInfo);
+  }
+
+  /**
+   * 조합휴가 지각 판별 (오전반반차 기준)
+   */
+  private async calculateCombinedLeaveAttendance(
+    commuteInfoList: any[],
+    checkInTime: Date,
+    isBirthday: boolean,
+    checkInHour: number,
+  ) {
+    // 오전반반차가 있는지 확인
+    const amQuarterLeave = commuteInfoList.find(
+      (info) => AM_QUARTER_REST_LISTS.has(info.leaveTypeIdx) && info.confirmYN === ConfirmEnum.YES,
+    );
+
+    let attendance: IntranetAttendanceEnum;
+    let leaveTypeForCalculation: number;
+    let targetCommuteIdx: number;
+
+    if (amQuarterLeave) {
+      // 오전반반차가 있으면 오전반반차 기준으로 지각 판별
+      const isAmQuarterLate = new Date(checkInTime) >= getAmQuarterLateBoundary(new Date(checkInTime));
+      attendance = isAmQuarterLate
+        ? IntranetAttendanceEnum.CHECK_IN_LATE
+        : checkInHour >= 6 && checkInHour < 8
+          ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
+          : IntranetAttendanceEnum.CHECK_IN;
+
+      leaveTypeForCalculation = amQuarterLeave.leaveTypeIdx;
+      targetCommuteIdx = amQuarterLeave.commuteIdx;
+    } else {
+      // 오전반반차가 없으면 첫 번째 휴가 기준으로 처리
+      const firstLeave = commuteInfoList[0];
+      const { attendance: calculatedAttendance } = await this.calculatePartialLeaveAttendance(
+        firstLeave.leaveTypeIdx,
+        checkInTime,
+        isBirthday,
+        checkInHour,
+      );
+
+      attendance = calculatedAttendance;
+      leaveTypeForCalculation = firstLeave.leaveTypeIdx;
+      targetCommuteIdx = firstLeave.commuteIdx;
+    }
+
+    const availCheckOutTime = calculateAvailCheckOutTime(
+      checkInTime,
+      leaveTypeForCalculation,
+      ConfirmEnum.YES,
+      isBirthday,
+    );
+
+    return { attendance, availCheckOutTime, targetCommuteIdx };
+  }
+
+  /**
+   * 반차/반반차 지각 판별
+   */
+  private async calculatePartialLeaveAttendance(
+    leaveTypeIdx: number,
+    checkInTime: Date,
+    isBirthday: boolean,
+    checkInHour: number,
+  ) {
+    const isPmQuarterLate =
+      PM_QUARTER_REST_LISTS.has(leaveTypeIdx) && new Date(checkInTime) >= getNormalLateBoundary(new Date(checkInTime));
+
+    const isAmHalfLate =
+      AM_REST_LISTS.has(leaveTypeIdx) && new Date(checkInTime) >= getAmHalfLateBoundary(new Date(checkInTime));
+
+    const isPMHalfLate =
+      PM_REST_LISTS.has(leaveTypeIdx) && new Date(checkInTime) >= getPmHalfLateBoundary(new Date(checkInTime));
+
+    const isAmQuarterLate =
+      AM_QUARTER_REST_LISTS.has(leaveTypeIdx) &&
+      new Date(checkInTime) >= getAmQuarterLateBoundary(new Date(checkInTime));
+
+    const attendance =
+      isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
+        ? IntranetAttendanceEnum.CHECK_IN_LATE
+        : checkInHour >= 6 && checkInHour < 8
+          ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
+          : IntranetAttendanceEnum.CHECK_IN;
+
+    const availCheckOutTime = calculateAvailCheckOutTime(checkInTime, leaveTypeIdx, ConfirmEnum.YES, isBirthday);
+
+    return { attendance, availCheckOutTime };
+  }
+
+  /**
+   * 일반 근무 지각 판별
+   */
+  private async calculateNormalAttendance(checkInTime: Date, isBirthday: boolean, checkInHour: number) {
+    const isNormalLate = new Date(checkInTime) >= getNormalLateBoundary(new Date(checkInTime));
+
+    const attendance = isNormalLate
+      ? IntranetAttendanceEnum.CHECK_IN_LATE
+      : checkInHour >= 6 && checkInHour < 8
+        ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
+        : IntranetAttendanceEnum.CHECK_IN;
+
+    const availCheckOutTime = calculateAvailCheckOutTime(
+      checkInTime,
+      IntranetLeaveTypeIdxEnum.NORMAL,
+      ConfirmEnum.NO,
+      isBirthday,
+    );
+
+    return { attendance, availCheckOutTime };
+  }
+
+  //     /* 근태 상태가 휴무인지 확인 */
+  //     if (FULL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
+  //       throw new BadRequestException('오늘은 연차/휴무 날 입니다.');
+  //     }
+
+  //     /* 근태가 반/반반차 일 경우 */
+  //     if (PARTIAL_DAY_REST_LISTS.has(commuteInfo.leaveTypeIdx) && commuteInfo.confirmYN === ConfirmEnum.YES) {
+  //       /* 지각 판별 */
+  //       const isPmQuarterLate: boolean =
+  //         PM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
+  //         new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
+
+  //       const isAmHalfLate: boolean =
+  //         AM_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
+  //         new Date(checkInDto.checkInTime) >= getAmHalfLateBoundary(new Date(checkInDto.checkInTime));
+
+  //       const isPMHalfLate: boolean =
+  //         PM_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
+  //         new Date(checkInDto.checkInTime) >= getPmHalfLateBoundary(new Date(checkInDto.checkInTime));
+
+  //       const isAmQuarterLate: boolean =
+  //         AM_QUARTER_REST_LISTS.has(commuteInfo.leaveTypeIdx) &&
+  //         new Date(checkInDto.checkInTime) >= getAmQuarterLateBoundary(new Date(checkInDto.checkInTime));
+
+  //       const attendance: IntranetAttendanceEnum =
+  //         isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
+  //           ? IntranetAttendanceEnum.CHECK_IN_LATE
+  //           : checkInHour >= 6 && checkInHour < 8
+  //             ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
+  //             : IntranetAttendanceEnum.CHECK_IN;
+
+  //       const availCheckOutTime: Date = calculateAvailCheckOutTime(
+  //         checkInDto.checkInTime,
+  //         commuteInfo.leaveTypeIdx,
+  //         commuteInfo.confirmYN,
+  //         isBirthday,
+  //       );
+
+  //       const updateCheckInInfo: UpdateCheckInInfo = {
+  //         ...checkInDto,
+  //         attendance,
+  //         commuteDate,
+  //         checkInIpAddr,
+  //         checkInLogAgent,
+  //         availCheckOutTime,
+  //       };
+
+  //       /* 근태 업데이트 */
+  //       await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
+
+  //       return;
+  //     } else {
+  //       /* 일반 근무에 대한 지각 판별 */
+  //       const isNormalLate: boolean =
+  //         new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
+  //       const attendance: IntranetAttendanceEnum = isNormalLate
+  //         ? IntranetAttendanceEnum.CHECK_IN_LATE
+  //         : checkInHour >= 6 && checkInHour < 8
+  //           ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
+  //           : IntranetAttendanceEnum.CHECK_IN;
+
+  //       const availCheckOutTime: Date = calculateAvailCheckOutTime(
+  //         checkInDto.checkInTime,
+  //         IntranetLeaveTypeIdxEnum.NORMAL,
+  //         ConfirmEnum.NO,
+  //         isBirthday,
+  //       );
+
+  //       const updateCheckInInfo: UpdateCheckInInfo = {
+  //         ...checkInDto,
+  //         attendance,
+  //         commuteDate,
+  //         checkInIpAddr,
+  //         checkInLogAgent,
+  //         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+  //         availCheckOutTime,
+  //       };
+
+  //       /* 일반 근무에 대한 근태 업데이트 */
+  //       await this.commuteRepository.updateCheckInWork(userIdx, updateCheckInInfo);
+  //     }
+  //   } else {
+  //     /* commuteInfo가 없는 경우는 비정상적인 상황이며, 일반 근무로 간주됨 */
+  //     const isNormalLate: boolean =
+  //       new Date(checkInDto.checkInTime) >= getNormalLateBoundary(new Date(checkInDto.checkInTime));
+  //     const attendance: IntranetAttendanceEnum = isNormalLate
+  //       ? IntranetAttendanceEnum.CHECK_IN_LATE
+  //       : checkInHour >= 6 && checkInHour < 8
+  //         ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
+  //         : IntranetAttendanceEnum.CHECK_IN;
+
+  //     const availCheckOutTime: Date = calculateAvailCheckOutTime(
+  //       checkInDto.checkInTime,
+  //       IntranetLeaveTypeIdxEnum.NORMAL,
+  //       ConfirmEnum.NO,
+  //       isBirthday,
+  //     );
+
+  //     const insertCheckInInfo: InsertCheckInInfo = {
+  //       ...checkInDto,
+  //       attendance,
+  //       commuteDate,
+  //       checkInIpAddr,
+  //       checkInLogAgent,
+  //       leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+  //       availCheckOutTime,
+  //     };
+
+  //     /* 근태 생성 */
+  //     await this.commuteRepository.createCheckInWork(userIdx, insertCheckInInfo);
+  //   }
+
+  //   return;
+  // }
 
   @Transactional()
   async checkOutWork(

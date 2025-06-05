@@ -12,6 +12,7 @@ import {
   PM_REST_LISTS,
   SEVEN_HOURS_WORKING_MINUTES,
   THREE_HOURS_WORKING_MINUTES,
+  TWO_HOURS_HALF_WORKIMG_MINUTES,
   TWO_HOURS_WORKING_MINUTES,
 } from '../constant/constant';
 
@@ -307,7 +308,7 @@ export const calculateAvailCheckOutTime = (
   } else {
     if (isBirthday) {
       if (AM_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = TWO_HOURS_WORKING_MINUTES;
+        standardWorkingMinutes = TWO_HOURS_HALF_WORKIMG_MINUTES;
       } else if (PM_REST_LISTS.has(leaveTypeIdx)) {
         standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
       } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
@@ -331,40 +332,43 @@ export const calculateAvailCheckOutTime = (
   return availCheckOutTime;
 };
 
-export const calculateStandardWorkingMinutes = (
-  leaveTypeIdx: number | null,
-  confirmYN: ConfirmEnum,
-  isBirthday: boolean,
-) => {
+export const calculateSingleLeaveStandardWorkingMinutes = (leaveTypeIdx: number, isBirthday: boolean) => {
   let standardWorkingMinutes: number;
 
-  if (confirmYN === ConfirmEnum.NO || confirmYN === ConfirmEnum.REJECT) {
-    if (isBirthday) {
-      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES; // 정상근무일 때, 생일 반반차 적용
+  if (isBirthday) {
+    if (AM_REST_LISTS.has(leaveTypeIdx)) {
+      standardWorkingMinutes = TWO_HOURS_HALF_WORKIMG_MINUTES;
+    } else if (PM_REST_LISTS.has(leaveTypeIdx)) {
+      standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+    } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
+      standardWorkingMinutes = THREE_HOURS_WORKING_MINUTES;
+    } else {
+      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
+    }
+  } else {
+    if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
+      standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+    } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
+      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
     } else {
       standardWorkingMinutes = NORMAL_WORKING_MINUTES;
     }
-  } else {
-    if (isBirthday) {
-      if (AM_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = TWO_HOURS_WORKING_MINUTES;
-      } else if (PM_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
-      } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = THREE_HOURS_WORKING_MINUTES;
-      } else {
-        standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
-      }
-    } else {
-      if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
-      } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
-      } else {
-        standardWorkingMinutes = NORMAL_WORKING_MINUTES;
-      }
-    }
   }
+
+  return standardWorkingMinutes;
+};
+
+export const calculateCombinedLeaveStandardWorkingMinutes = (
+  existLeaveTypeIdx: number,
+  newLeaveTypeIdx: number,
+  isBirthday: boolean,
+) => {
+  if (isBirthday) {
+    throw new BadRequestException('생일인 날짜에는 휴가 1개만 등록 가능합니다.');
+  }
+  let standardWorkingMinutes: number;
+
+  // if (AM_RES)
 
   return standardWorkingMinutes;
 };
