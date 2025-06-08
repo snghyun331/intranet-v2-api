@@ -301,12 +301,13 @@ export class ApprovalRepository {
     return result;
   }
 
-  async updateAvailCheckOutTime(commuteIdx: number, availCheckOutTime: Date): Promise<UpdateResult> {
+  async updateCommute(userIdx: number, commuteDate: string, updateInfo): Promise<UpdateResult> {
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ availCheckOutTime })
-      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .set(updateInfo)
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
   }
 
@@ -353,5 +354,17 @@ export class ApprovalRepository {
       .set({ leaveReduceUnit })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
+  }
+
+  async getValidCommutesByDate(userIdx: number, commuteDate: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.YES })
+      .getRawMany();
+
+    return result;
   }
 }

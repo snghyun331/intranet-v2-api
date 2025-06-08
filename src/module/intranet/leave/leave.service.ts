@@ -10,10 +10,13 @@ import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import {
   addConfirmStatusField,
-  calculateAvailCheckOutTime,
-  calculateStandardWorkingMinutes,
+  calculateCombinedLeaveStandardWorkingMinutes,
+  calculateSingleCommuteAvailCheckOutTime,
+  getAmHalfLateBoundary,
+  getAmQuarterLateBoundary,
   getNormalLateBoundary,
   getOneYearAfterJoin,
+  getPmHalfLateBoundary,
   getYearsSinceJoin,
   removeDuplicateIdxs,
   substringYearMonth,
@@ -28,8 +31,8 @@ import {
   PM_REST_LISTS,
   QUARTER_ANNUAL_LEAVE_LISTS,
   SPECIAL_LEAVE_LISTS,
-  THREE_HOURS_WORKING_MINUTES,
   TRAINING_LEAVE_LISTS,
+  TWO_HOURS_HALF_WORKIMG_MINUTES,
 } from '@common/constant/constant';
 import { UserPayload } from '@common/interface/payload.interface';
 import { UpdateAnnualLeaveDto } from './dto/updateAnnualLeave.dto';
@@ -57,12 +60,15 @@ export class LeaveService {
   async createLeave(dto: LeaveRequestDto, user: UserPayload, leaveImage?: Express.Multer.File): Promise<void> {
     const userIdx: number = user.userIdx;
     const { leaveInfo, approverIdxs, ccUserIdxs, note } = dto;
-    const nowYear: number = moment().utcOffset(9).year();
-    const nowMonth: number = moment().utcOffset(9).month() + 1;
+    const { year, month } = substringYearMonth(leaveInfo[0].commuteDate);
 
     // 특별휴무, 대체휴무, 연차 총/잔여 개수 조회
     let { totalAnnualLeaveBalance, totalSpecialLeaveBalance, totalAlternativeLeaveBalance } =
-      await this.leaveRepository.getAllLeaveSummary(userIdx, nowYear.toString());
+      await this.leaveRepository.getAllLeaveSummary(userIdx, year);
+
+    // 휴무별 미승인 차감단위 합 조회
+    const { unComfirmedAlternativeReduce, unComfirmedAnnualReduce, unComfirmedSpecialReduce } =
+      await this.leaveRepository.getTotalUnConfirmedReduceUnit(userIdx, year);
 
     for (const leave of leaveInfo) {
       const commuteDate: string = leave.commuteDate;
@@ -75,13 +81,38 @@ export class LeaveService {
         throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
       }
 
+      const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, commuteDate); // 생일여부 확인
+      const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday); // 연차 차감단위
+
+      /* 같은 날에 이미 등록한 1개 휴가가 있는 경우 처리 방법 */
+      const existingValidateLeaves = await this.leaveRepository.getValidateLeaveInfoByDate(userIdx, commuteDate);
+      if (existingValidateLeaves.length >= 2) {
+        throw new BadRequestException('하루에 최대 2개의 휴가만 사용할 수 있습니다.');
+      }
+      if (existingValidateLeaves.length === 1) {
+        // 하루에 사용한 휴가 총합이 1.0을 초과하면 사용불가
+        if (existingValidateLeaves[0].leaveReduceUnit + leaveReduceUnit > 1.0) {
+          throw new BadRequestException('휴가는 하루에 최대 1.0까지만 사용할 수 있습니다.');
+        }
+
+        // 총 근무시간이 3시간 미만인 경우 사용불가
+        const standardWorkingMinutes = calculateCombinedLeaveStandardWorkingMinutes(
+          existingValidateLeaves[0].leaveTypeIdx,
+          leaveTypeIdx,
+          isBirthday,
+        );
+        if (standardWorkingMinutes <= TWO_HOURS_HALF_WORKIMG_MINUTES) {
+          throw new BadRequestException('근무 시간이 2.5시간 미만이면 사용하실 수 없습니다.');
+        }
+      }
+
       /* 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가 */
       if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
         // 보건 휴가 월 사용 개수 조회
         const healthLeaveMonthCount: number = await this.leaveRepository.getHealthLeaveCountInMonth(
           userIdx,
-          nowYear.toString(),
-          nowMonth.toString(),
+          year,
+          month,
         );
         if (healthLeaveMonthCount !== 0) {
           throw new BadRequestException(
@@ -90,22 +121,9 @@ export class LeaveService {
         }
       }
 
-      const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, commuteDate); // 생일여부 확인
-      const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday); // 연차 차감단위
-
-      // 신청한 연차로 인해 잔여 연차가 0미만이 되는 경우 사용불가
-      if (ANNUAL_LEAVE_LISTS.has(leaveTypeIdx)) {
-        if (totalAnnualLeaveBalance - leaveReduceUnit < 0) {
-          throw new BadRequestException(
-            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
-          );
-        }
-        totalAnnualLeaveBalance -= leaveReduceUnit;
-      }
-
       // 신청한 특별휴무로 인해 잔여 특별휴무가 0미만이 되는 경우 사용불가
       if (SPECIAL_LEAVE_LISTS.has(leaveTypeIdx)) {
-        if (totalSpecialLeaveBalance - leaveReduceUnit < 0) {
+        if (totalSpecialLeaveBalance - unComfirmedSpecialReduce - leaveReduceUnit < 0) {
           throw new BadRequestException(
             '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
           );
@@ -115,7 +133,7 @@ export class LeaveService {
 
       // 신청한 대체휴무로 인해 잔여 대체휴무가 0미만이 되는 경우 사용불가
       if (ALTERNATIVE_LEAVE_LISTS.has(leaveTypeIdx)) {
-        if (totalAlternativeLeaveBalance - leaveReduceUnit < 0) {
+        if (totalAlternativeLeaveBalance - unComfirmedAlternativeReduce - leaveReduceUnit < 0) {
           throw new BadRequestException(
             '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
           );
@@ -123,40 +141,14 @@ export class LeaveService {
         totalAlternativeLeaveBalance -= leaveReduceUnit;
       }
 
-      /* 같은 날에 이미 등록한 1개 휴가가 있는 경우 처리 방법 */
-      const existingValidateLeaves = await this.leaveRepository.getValidateLeaveInfoByDate(userIdx, commuteDate);
-      if (existingValidateLeaves.length > 1) {
-        throw new BadRequestException('하루에 최대 2개의 휴가만 사용할 수 있습니다.');
-      }
-
-      // 같은 시간대 휴가 중복 사용 불가
-      if (existingValidateLeaves.length === 1) {
-        const amLeaves = [...AM_QUARTER_REST_LISTS, ...AM_REST_LISTS];
-        const pmLeaves = [...PM_QUARTER_REST_LISTS, ...PM_REST_LISTS];
-        const existingLeaveTypeIdx = existingValidateLeaves[0].leaveTypeIdx;
-        const newLeaveTypeIdx = leaveTypeIdx;
-        // 기존 휴가가 오전 휴가이고, 새로운 휴가도 오전 휴가인 경우
-        const isExistingAmLeave = amLeaves.includes(existingLeaveTypeIdx);
-        const isNewAmLeave = amLeaves.includes(newLeaveTypeIdx);
-
-        // 기존 휴가가 오후 휴가이고, 새로운 휴가도 오후 휴가인 경우
-        const isExistingPmLeave = pmLeaves.includes(existingLeaveTypeIdx);
-        const isNewPmLeave = pmLeaves.includes(newLeaveTypeIdx);
-
-        if ((isExistingAmLeave && isNewAmLeave) || (isExistingPmLeave && isNewPmLeave)) {
-          throw new BadRequestException('같은 시간대의 휴가는 중복해서 사용할 수 없습니다.');
+      // 신청한 연차로 인해 잔여 연차가 0미만이 되는 경우 사용불가
+      if (ANNUAL_LEAVE_LISTS.has(leaveTypeIdx)) {
+        if (totalAnnualLeaveBalance - unComfirmedAnnualReduce - leaveReduceUnit < 0) {
+          throw new BadRequestException(
+            '현재 사용 가능한 휴가/연차 개수가 확인되지 않습니다. 남은 개수를 확인하시거나, P&C팀에 문의하세요.',
+          );
         }
-
-        // 하루에 사용한 휴가 총합이 1.0을 초과하면 사용불가
-        if (existingValidateLeaves[0].leaveReduceUnit + leaveReduceUnit > 1.0) {
-          throw new BadRequestException('휴가는 하루에 최대 1.0까지만 사용할 수 있습니다.');
-        }
-
-        // 총 근무시간이 3시간 미만인 경우 사용불가
-        const standardWorkingMinutes = calculateStandardWorkingMinutes(leaveTypeIdx, isBirthday);
-        if (standardWorkingMinutes < THREE_HOURS_WORKING_MINUTES) {
-          throw new BadRequestException('근무 시간이 3시간 미만이면 사용하실 수 없습니다.');
-        }
+        totalAnnualLeaveBalance -= leaveReduceUnit;
       }
 
       // 과거 날짜에 대해 휴가 등록 불가
@@ -261,14 +253,68 @@ export class LeaveService {
       }
       await this.leaveRepository.deleteCommuteApprover(commuteIdx);
       await this.leaveRepository.deleteCommuteCCUser(commuteIdx);
+
       // 근태 업데이트
       const existingCommutes = await this.leaveRepository.getAllCommuteInfoByDate(
         leaveInfo.userIdx,
         leaveInfo.commuteDate,
       );
-      if (existingCommutes.length > 1) {
+      if (existingCommutes.length === 2) {
+        let availCheckOutTime: Date;
+        let attendance: IntranetAttendanceEnum;
+        /* 조합 휴가일 때 -> 삭제 후, 나머지 휴가에 맞춘다. */
         await this.leaveRepository.deleteLeave(commuteIdx);
+        const restCommute = existingCommutes.find((info) => info.commuteIdx !== commuteIdx);
+        // availCheckOutTime 업데이트
+        if (restCommute.leaveTypeIdx !== IntranetLeaveTypeIdxEnum.NORMAL && restCommute.confirmYN === ConfirmEnum.YES) {
+          // 나머지 근태가 승인된 휴가 포함일 때,
+          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
+            restCommute.checkInTime,
+            restCommute.leaveTypeIdx,
+            isBirthday,
+          );
+        } else {
+          // 나머지 근태가 미승인일 때,
+          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
+            restCommute.checkInTime,
+            IntranetLeaveTypeIdxEnum.NORMAL,
+            isBirthday,
+          );
+        }
+        // attendance 업데이트
+        if (restCommute.leaveTypeIdx !== IntranetLeaveTypeIdxEnum.NORMAL && restCommute.confirmYN === ConfirmEnum.YES) {
+          // 나머지 근태가 승인된 휴가 포함일 때,
+          const isPmQuarterLate =
+            PM_QUARTER_REST_LISTS.has(restCommute.leaveTypeIdx) &&
+            new Date(restCommute.checkInTime) >= getNormalLateBoundary(new Date(restCommute.checkInTime));
+
+          const isAmHalfLate =
+            AM_REST_LISTS.has(restCommute.leaveTypeIdx) &&
+            new Date(restCommute.checkInTime) >= getAmHalfLateBoundary(new Date(restCommute.checkInTime));
+
+          const isPMHalfLate =
+            PM_REST_LISTS.has(restCommute.leaveTypeIdx) &&
+            new Date(restCommute.checkInTime) >= getPmHalfLateBoundary(new Date(restCommute.checkInTime));
+
+          const isAmQuarterLate =
+            AM_QUARTER_REST_LISTS.has(restCommute.leaveTypeIdx) &&
+            new Date(restCommute.checkInTime) >= getAmQuarterLateBoundary(new Date(restCommute.checkInTime));
+
+          attendance =
+            isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
+              ? IntranetAttendanceEnum.CHECK_IN_LATE
+              : IntranetAttendanceEnum.CHECK_IN;
+        } else {
+          // 나머지 근태가 미승인일 때,
+          const isNormalLate =
+            new Date(restCommute.checkInTime) >= getNormalLateBoundary(new Date(restCommute.checkInTime));
+
+          attendance = isNormalLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
+        }
+        const updateInfo = { availCheckOutTime, attendance };
+        await this.leaveRepository.updateCommute(restCommute.commuteIdx, updateInfo);
       } else {
+        /* 단일 휴가일 때 -> 삭제가 아닌, 일반 근무로 변경한다. */
         let attendance = null;
         if (existingCommutes[0].checkInTime) {
           const isNormalLate: boolean =
@@ -285,15 +331,14 @@ export class LeaveService {
           leaveReduceUnit: 0,
           attendance,
           availCheckOutTime: leaveInfo.checkInTime
-            ? calculateAvailCheckOutTime(
-                leaveInfo.checkInTime,
+            ? calculateSingleCommuteAvailCheckOutTime(
+                existingCommutes[0].checkInTime,
                 IntranetLeaveTypeIdxEnum.NORMAL,
-                ConfirmEnum.NO,
                 isBirthday,
               )
             : null,
         };
-        await this.leaveRepository.updateLeaveToNormal(commuteIdx, updateInfo);
+        await this.leaveRepository.updateCommute(commuteIdx, updateInfo);
       }
     }
 

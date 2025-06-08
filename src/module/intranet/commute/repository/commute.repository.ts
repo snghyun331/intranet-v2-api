@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
-import { InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from '../dto/query.dto';
 import { UserEntity } from '@entity/user/user.entity';
 import { GradeEntity } from '@entity/user/grade.entity';
@@ -39,7 +39,7 @@ export class CommuteRepository {
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ ...commuteInfo })
+      .set({ ...commuteInfo, leaveTypeIdx: () => `COALESCE(leave_type_idx, ${IntranetLeaveTypeIdxEnum.NORMAL})` })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
@@ -58,7 +58,7 @@ export class CommuteRepository {
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
-      .getRawOne();
+      .getRawMany();
 
     return result;
   }
@@ -67,16 +67,18 @@ export class CommuteRepository {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.availCheckOutTime AS availCheckOutTime',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'commuteEntity.attendance AS attendance',
+        'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
         'commuteEntity.confirmYN AS confirmYN',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
-      .getRawOne();
+      .getRawMany();
 
     return result;
   }
@@ -193,7 +195,7 @@ export class CommuteRepository {
     return result;
   }
 
-  async deleteCommute(commuteIdx: number): Promise<UpdateResult> {
+  async deleteAndUpdateCommute(commuteIdx: number): Promise<UpdateResult> {
     const commuteNull = {
       checkInTime: null,
       checkOutTime: null,
@@ -229,6 +231,15 @@ export class CommuteRepository {
     //   .from(CommuteEntity)
     //   .where('commuteIdx = :commuteIdx', { commuteIdx })
     //   .execute();
+  }
+
+  async deleteCommute(commuteIdx: number): Promise<DeleteResult> {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .delete()
+      .from(CommuteEntity)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
   }
 
   async updateCommuteTime(commuteIdx: number, updateInfo: UpdateCommuteTimeInfo): Promise<UpdateResult> {

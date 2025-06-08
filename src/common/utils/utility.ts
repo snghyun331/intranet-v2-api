@@ -7,13 +7,13 @@ import {
   AM_QUARTER_REST_LISTS,
   AM_REST_LISTS,
   FOUR_HOURS_WORKING_MINUTES,
+  FULL_DAY_REST_LISTS,
   NORMAL_WORKING_MINUTES,
   PM_QUARTER_REST_LISTS,
   PM_REST_LISTS,
   SEVEN_HOURS_WORKING_MINUTES,
   THREE_HOURS_WORKING_MINUTES,
   TWO_HOURS_HALF_WORKIMG_MINUTES,
-  TWO_HOURS_WORKING_MINUTES,
 } from '../constant/constant';
 
 // 특정 문자 객체를 YYYY-MM-DD 형태로 만든다
@@ -332,6 +332,33 @@ export const calculateAvailCheckOutTime = (
   return availCheckOutTime;
 };
 
+export const calculateCombinedCommuteAvailCheckOutTime = (
+  checkInTime: Date,
+  firstLeaveTypeIdx: number,
+  secondLeaveTypeIdx: number,
+  isBirthday: boolean,
+) => {
+  const standardWorkingMinutes: number = calculateCombinedLeaveStandardWorkingMinutes(
+    firstLeaveTypeIdx,
+    secondLeaveTypeIdx,
+    isBirthday,
+  );
+  const availCheckOutTime = addMinutes(checkInTime, standardWorkingMinutes);
+
+  return availCheckOutTime;
+};
+
+export const calculateSingleCommuteAvailCheckOutTime = (
+  checkInTime: Date,
+  leaveTypeIdx: number,
+  isBirthday: boolean,
+) => {
+  const standardWorkingMinutes: number = calculateSingleLeaveStandardWorkingMinutes(leaveTypeIdx, isBirthday);
+  const availCheckOutTime = addMinutes(checkInTime, standardWorkingMinutes);
+
+  return availCheckOutTime;
+};
+
 export const calculateSingleLeaveStandardWorkingMinutes = (leaveTypeIdx: number, isBirthday: boolean) => {
   let standardWorkingMinutes: number;
 
@@ -367,8 +394,53 @@ export const calculateCombinedLeaveStandardWorkingMinutes = (
     throw new BadRequestException('생일인 날짜에는 휴가 1개만 등록 가능합니다.');
   }
   let standardWorkingMinutes: number;
+  // 기존 휴가와 새 휴가 타입 분류
+  const isExistAmHalf = AM_REST_LISTS.has(existLeaveTypeIdx);
+  const isExistPmHalf = PM_REST_LISTS.has(existLeaveTypeIdx);
+  const isExistAmQuarter = AM_QUARTER_REST_LISTS.has(existLeaveTypeIdx);
+  const isExistPmQuarter = PM_QUARTER_REST_LISTS.has(existLeaveTypeIdx);
+  const isExistAmLeave = isExistAmHalf || isExistAmQuarter;
+  const isExistPmLeave = isExistPmHalf || isExistPmQuarter;
 
-  // if (AM_RES)
+  const isNewAmHalf = AM_REST_LISTS.has(newLeaveTypeIdx);
+  const isNewPmHalf = PM_REST_LISTS.has(newLeaveTypeIdx);
+  const isNewAmQuarter = AM_QUARTER_REST_LISTS.has(newLeaveTypeIdx);
+  const isNewPmQuarter = PM_QUARTER_REST_LISTS.has(newLeaveTypeIdx);
+  const isNewAmLeave = isNewAmHalf || isNewAmQuarter;
+  const isNewPmLeave = isNewPmHalf || isNewPmQuarter;
+
+  // 조합 케이스별 근무시간 계산
+  if (isExistAmHalf && isNewPmHalf) {
+    // 오전반차 + 오후반차 = 0시간 (종일 휴가)
+    standardWorkingMinutes = 0;
+  } else if (isExistPmHalf && isNewAmHalf) {
+    // 오후반차 + 오전반차 = 0시간 (종일 휴가)
+    standardWorkingMinutes = 0;
+  } else if (isExistAmQuarter && isNewPmQuarter) {
+    // 오전반반차 + 오후반반차 = 4시간
+    standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+  } else if (isExistPmQuarter && isNewAmQuarter) {
+    // 오후반반차 + 오전반반차 = 4시간
+    standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+  } else if (isExistAmHalf && isNewPmQuarter) {
+    // 오전반차 + 오후반반차 = 2.5시간
+    standardWorkingMinutes = TWO_HOURS_HALF_WORKIMG_MINUTES;
+  } else if (isExistPmQuarter && isNewAmHalf) {
+    // 오후반반차 + 오전반차 = 2.5시간
+    standardWorkingMinutes = TWO_HOURS_HALF_WORKIMG_MINUTES;
+  } else if (isExistPmHalf && isNewAmQuarter) {
+    // 오후반차 + 오전반반차 = 2.5시간
+    standardWorkingMinutes = TWO_HOURS_HALF_WORKIMG_MINUTES;
+  } else if (isExistAmQuarter && isNewPmHalf) {
+    // 오전반반차 + 오후반차 = 2.5시간
+    standardWorkingMinutes = TWO_HOURS_HALF_WORKIMG_MINUTES;
+  } else if ((isExistAmLeave && isNewAmLeave) || (isExistPmLeave && isNewPmLeave)) {
+    // 같은 시간대 중복 (오전+오전 또는 오후+오후)
+    throw new BadRequestException('같은 시간대의 휴가는 중복해서 사용할 수 없습니다.');
+  } else {
+    // 그 외 허용되지 않는 조합
+    throw new BadRequestException('허용되지 않는 휴가 조합입니다.');
+  }
 
   return standardWorkingMinutes;
 };

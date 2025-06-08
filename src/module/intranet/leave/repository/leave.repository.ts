@@ -23,6 +23,7 @@ import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { AdminLeaveSortEnum } from '../enum/leave.enum';
 import { LeaveExtraEntity } from '@entity/intranet/leave/leaveExtra.entity';
 import { NewLeaveExtra } from '../interface/leaveExtra.interface';
+import { ALTERNATIVE_LEAVE_LISTS, ANNUAL_LEAVE_LISTS, SPECIAL_LEAVE_LISTS } from '../../../../common/constant/constant';
 
 @Injectable()
 export class LeaveRepository {
@@ -160,6 +161,15 @@ export class LeaveRepository {
         leaveReduceUnit,
         ...confirmReset,
       })
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
+  }
+
+  async updateCommute(commuteIdx: number, updateInfo): Promise<UpdateResult> {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(updateInfo)
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
@@ -563,15 +573,6 @@ export class LeaveRepository {
       .execute();
   }
 
-  async updateLeaveToNormal(commuteIdx: number, updateInfo): Promise<UpdateResult> {
-    return await this.commuteModel
-      .createQueryBuilder()
-      .update(CommuteEntity)
-      .set(updateInfo)
-      .where('commuteIdx = :commuteIdx', { commuteIdx })
-      .execute();
-  }
-
   async createLeaveForE2ETest(
     leaveInfo: LeaveDetailDto,
     userIdx: number,
@@ -622,6 +623,32 @@ export class LeaveRepository {
       .getRawOne();
 
     return parseFloat(result?.total ?? 0);
+  }
+
+  async getTotalUnConfirmedReduceUnit(userIdx: number, year: string) {
+    const { firstDayOfYear, lastDayOfYear } = getStartAndEndDateByYear(year);
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'SUM(CASE WHEN commuteEntity.leaveTypeIdx IN (:specialLeaveTypes) THEN commuteEntity.leaveReduceUnit ELSE 0 END) as unComfirmedSpecialReduce',
+        'SUM(CASE WHEN commuteEntity.leaveTypeIdx IN (:annualLeaveTypes) THEN commuteEntity.leaveReduceUnit ELSE 0 END) as unComfirmedAnnualReduce',
+        'SUM(CASE WHEN commuteEntity.leaveTypeIdx IN (:alternativeLeaveTypes) THEN commuteEntity.leaveReduceUnit ELSE 0 END) as unComfirmedAlternativeReduce',
+      ])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.NO })
+      .andWhere('commuteEntity.leaveTypeIdx IS NOT NULL')
+      .andWhere('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
+        sDate: firstDayOfYear,
+        eDate: lastDayOfYear,
+      })
+      .setParameters({
+        specialLeaveTypes: [...SPECIAL_LEAVE_LISTS],
+        annualLeaveTypes: [...ANNUAL_LEAVE_LISTS],
+        alternativeLeaveTypes: [...ALTERNATIVE_LEAVE_LISTS],
+      })
+      .getRawOne();
+
+    return result;
   }
 
   async createExtraLeave(newLeaveExtra: NewLeaveExtra): Promise<InsertResult> {
