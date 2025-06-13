@@ -627,11 +627,77 @@ export class CommuteService {
       throw new NotFoundException('해당 사용자는 존재하지 않습니다.');
     }
 
-    const { totalPage, total, records } = await this.commuteRepository.getUserCommuteRecords(
+    const { totalPage, total, results } = await this.commuteRepository.getUserCommuteRecords(
       userIdx,
       pageNo,
       perPage,
       filterInfo,
+    );
+
+    // 날짜별로 그룹핑
+    const groupedByDate = results.reduce((acc, result) => {
+      console.log(result);
+      const dateKey = result.commuteDate;
+
+      if (!acc[dateKey]) {
+        acc[dateKey] = {
+          ...result,
+          leave: [],
+        };
+      }
+
+      // leave 정보가 있으면 추가
+      if (result.leaveTypeIdx && result.leaveType) {
+        acc[dateKey].leave.push({
+          leaveTypeIdx: result.leaveTypeIdx,
+          leaveType: result.leaveType,
+          confirmYN: result.confirmYN,
+        });
+      }
+
+      return acc;
+    }, {});
+
+    // 객체를 배열로 변환
+    const dateKeys = Object.keys(groupedByDate);
+
+    const records = await Promise.all(
+      dateKeys.map(async (dateKey) => {
+        const record = groupedByDate[dateKey];
+
+        // 중복된 leave 항목 제거
+        const uniqueLeaves = [];
+        const seenLeaveTypeIdx = new Set();
+
+        for (const leave of record.leave) {
+          if (!seenLeaveTypeIdx.has(leave.leaveTypeIdx)) {
+            uniqueLeaves.push(leave);
+            seenLeaveTypeIdx.add(leave.leaveTypeIdx);
+          }
+        }
+
+        // 최종 결과 반환
+        return {
+          commuteIdx: record.commuteIdx,
+          userIdx: record.userIdx,
+          commuteDate: record.commuteDate,
+          checkInTime: record.checkInTime,
+          checkOutTime: record.checkOutTime,
+          workingMinutes: record.workingMinutes,
+          overtimeWorkingMinutes: record.overtimeWorkingMinutes,
+          attendance: record.attendance,
+          updateReason: record.updateReason,
+          earlyLeaveReason: record.earlyLeaveReason,
+          note: record.note,
+          checkInIpAddr: record.checkInIpAddr,
+          checkOutIpAddr: record.checkOutIpAddr,
+          checkInLogAgent: record.checkInLogAgent,
+          checkOutLogAgent: record.checkOutLogAgent,
+          adminUpdatedAt: record.adminUpdatedAt,
+          userUpdatedAt: record.userUpdatedAt,
+          leave: uniqueLeaves,
+        };
+      }),
     );
 
     return { totalPage, total, records };

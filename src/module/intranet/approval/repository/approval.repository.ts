@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
-import { Brackets, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { Brackets, DeleteResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { CommuteApproverEntity } from '@entity/intranet/commute/commuteApprover.entity';
 import { ConfirmEnum, IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
 import * as moment from 'moment';
@@ -366,5 +366,14 @@ export class ApprovalRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async deleteCommute(commuteIdx: number): Promise<DeleteResult> {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .delete()
+      .from(CommuteEntity)
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
   }
 }

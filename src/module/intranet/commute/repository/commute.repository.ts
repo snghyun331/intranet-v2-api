@@ -284,6 +284,7 @@ export class CommuteRepository {
         'commuteEntity.attendance AS attendance',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'leaveTypeEntity.leaveType AS leaveType',
+        'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.updateReason AS updateReason',
         'commuteEntity.earlyLeaveReason AS earlyLeaveReason',
         'commuteEntity.note AS note',
@@ -309,21 +310,9 @@ export class CommuteRepository {
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
-    const records = await query.getRawMany();
+    const results = await query.getRawMany();
 
-    // 승인여부와 날짜를 합친 새 필드 추가
-    const result = await Promise.all(
-      records.map(async (record) => {
-        const confirmStatus: string = addConfirmStatusField(record.confirmYN, record.confirmDate, record.rejectDate);
-
-        return {
-          ...record,
-          confirmStatus,
-        };
-      }),
-    );
-
-    return { totalPage, total, records: result };
+    return { totalPage, total, results };
   }
 
   async getUserWorkHoursByMonth(userIdx: number, startDate: string, endDate: string) {

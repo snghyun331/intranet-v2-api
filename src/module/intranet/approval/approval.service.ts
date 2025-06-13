@@ -1,9 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalRepository } from './repository/approval.repository';
-import { ConfirmEnum, IntranetAttendanceEnum } from '../../../common/constant/enum';
+import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
 import {
   addConfirmStatusField,
-  calculateAvailCheckOutTime,
   calculateCombinedCommuteAvailCheckOutTime,
   calculateSingleCommuteAvailCheckOutTime,
   getAmHalfLateBoundary,
@@ -11,7 +10,7 @@ import {
   getNormalLateBoundary,
   getPmHalfLateBoundary,
   substringYearMonth,
-} from '../../../common/utils/utility';
+} from '@common/utils/utility';
 import { UserApprovalFilter } from './dto/query.dto';
 import {
   ALTERNATIVE_LEAVE_LISTS,
@@ -21,7 +20,7 @@ import {
   PM_QUARTER_REST_LISTS,
   PM_REST_LISTS,
   SPECIAL_LEAVE_LISTS,
-} from '../../../common/constant/constant';
+} from '@common/constant/constant';
 import { Transactional } from 'typeorm-transactional';
 import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
 import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
@@ -37,9 +36,6 @@ export class ApprovalService {
 
   @Transactional()
   async confirmLeave(commuteIdx: number, confirmPersonIdx: number, confirmYN: ConfirmEnum): Promise<void> {
-    if (confirmYN === ConfirmEnum.NO) {
-      throw new BadRequestException('승인 취소 기능은 아직 제공하지 않습니다.');
-    }
     const commuteInfoWithApprover = await this.approvalRepository.getCommuteInfoWithApprover(commuteIdx);
     if (!commuteInfoWithApprover) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
@@ -61,7 +57,6 @@ export class ApprovalService {
     const userIdx: number = existing.userIdx; // 휴가를 올린 사용자 IDX
 
     const { year, month } = substringYearMonth(existing.commuteDate);
-    const leaveTypeIdx: number = existing.leaveTypeIdx;
 
     /* 승인일 경우, */
     if (confirmYN === ConfirmEnum.YES) {
@@ -88,21 +83,25 @@ export class ApprovalService {
           attendance = isAmQuarterLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
         } else {
           // 단일 휴가일 경우,
-          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(existing.checkInTime, leaveTypeIdx, isBirthday);
+          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
+            existing.checkInTime,
+            existing.leaveTypeIdx,
+            isBirthday,
+          );
           const isPmQuarterLate =
-            PM_QUARTER_REST_LISTS.has(leaveTypeIdx) &&
+            PM_QUARTER_REST_LISTS.has(existing.leaveTypeIdx) &&
             new Date(existing.checkInTime) >= getNormalLateBoundary(new Date(existing.checkInTime));
 
           const isAmHalfLate =
-            AM_REST_LISTS.has(leaveTypeIdx) &&
+            AM_REST_LISTS.has(existing.leaveTypeIdx) &&
             new Date(existing.checkInTime) >= getAmHalfLateBoundary(new Date(existing.checkInTime));
 
           const isPMHalfLate =
-            PM_REST_LISTS.has(leaveTypeIdx) &&
+            PM_REST_LISTS.has(existing.leaveTypeIdx) &&
             new Date(existing.checkInTime) >= getPmHalfLateBoundary(new Date(existing.checkInTime));
 
           const isAmQuarterLate =
-            AM_QUARTER_REST_LISTS.has(leaveTypeIdx) &&
+            AM_QUARTER_REST_LISTS.has(existing.leaveTypeIdx) &&
             new Date(existing.checkInTime) >= getAmQuarterLateBoundary(new Date(existing.checkInTime));
 
           attendance =
@@ -120,13 +119,13 @@ export class ApprovalService {
         year,
         month,
         userIdx,
-        leaveTypeIdx,
+        existing.leaveTypeIdx,
       );
       // 해당 월 사용개수 업데이트
-      await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount);
+      await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, existing.leaveTypeIdx, useCount);
 
       // 해당 연도 사용개수 업데이트
-      await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx);
+      await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, existing.leaveTypeIdx);
 
       // 해당 연도 연차 총 사용량 업데이트
       if (ANNUAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
@@ -145,62 +144,104 @@ export class ApprovalService {
       await this.mealRepository.updateMealTimeOffDays(year, month, userIdx);
       // timeoffDays업데이트에 따른 식대 사용가능금액 업데이트
       await this.mealRepository.updateMealBudget(year.toString(), month.toString());
-    }
-
-    /* 승인이었다가 반려될 경우 */
-    if (confirmYN === ConfirmEnum.REJECT && existing.confirmYN === ConfirmEnum.YES) {
-      /* 승인여부 업데이트 */
+    } else {
+      /* 반려 혹은 취소일 경우 */
+      // 승인여부 업데이트
       await this.approvalRepository.updateConfirm(commuteIdx, confirmPersonIdx, confirmYN);
 
+      // if (confirmYN === ConfirmEnum.REJECT) {
+      //   await this.approvalRepository.deleteCommute(commuteIdx)
+      // }
+
+      const validCommutes = await this.approvalRepository.getValidCommutesByDate(userIdx, existing.commuteDate);
+      console.log(validCommutes);
       // 이미 출근을 한 상태인 경우, 퇴근가능시간 업데이트
       if (existing.checkInTime) {
-        const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, existing.commuteDate); // 생일여부 확인
-        const availCheckOutTime: Date = calculateAvailCheckOutTime(
-          existing.checkInTime,
-          leaveTypeIdx,
-          ConfirmEnum.REJECT,
-          isBirthday,
-        );
+        let availCheckOutTime: Date;
+        let attendance: IntranetAttendanceEnum;
 
-        await this.approvalRepository.updateAvailCheckOutTime(commuteIdx, availCheckOutTime);
+        const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, validCommutes[0].commuteDate); // 생일여부 확인
+        // 이전에 조합휴가이어서 여전히 승인(Y)인 휴가근태 내역이 존재할 때,
+        if (validCommutes.length === 1) {
+          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
+            validCommutes[0].checkInTime,
+            validCommutes[0].leaveTypeIdx,
+            isBirthday,
+          );
+          const isPmQuarterLate =
+            PM_QUARTER_REST_LISTS.has(validCommutes[0].leaveTypeIdx) &&
+            new Date(validCommutes[0].checkInTime) >= getNormalLateBoundary(new Date(validCommutes[0].checkInTime));
+
+          const isAmHalfLate =
+            AM_REST_LISTS.has(validCommutes[0].leaveTypeIdx) &&
+            new Date(validCommutes[0].checkInTime) >= getAmHalfLateBoundary(new Date(validCommutes[0].checkInTime));
+
+          const isPMHalfLate =
+            PM_REST_LISTS.has(validCommutes[0].leaveTypeIdx) &&
+            new Date(validCommutes[0].checkInTime) >= getPmHalfLateBoundary(new Date(validCommutes[0].checkInTime));
+
+          const isAmQuarterLate =
+            AM_QUARTER_REST_LISTS.has(validCommutes[0].leaveTypeIdx) &&
+            new Date(validCommutes[0].checkInTime) >= getAmQuarterLateBoundary(new Date(validCommutes[0].checkInTime));
+
+          attendance =
+            isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
+              ? IntranetAttendanceEnum.CHECK_IN_LATE
+              : IntranetAttendanceEnum.CHECK_IN;
+
+          console.log(availCheckOutTime);
+          console.log(attendance);
+        } else {
+          const isNormalLate = new Date(existing.checkInTime) >= getNormalLateBoundary(new Date(existing.checkInTime));
+
+          attendance = isNormalLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
+          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
+            existing.checkInTime,
+            IntranetLeaveTypeIdxEnum.NORMAL,
+            isBirthday,
+          );
+        }
+
+        const updateInfo = { attendance, availCheckOutTime };
+
+        await this.approvalRepository.updateCommute(userIdx, validCommutes[0].commuteDate, updateInfo);
       }
 
-      // 휴가 차감 단위 업데이트
-      const leaveReduceUnit = 0; // 초기화
-      await this.approvalRepository.updateLeaveReduceUnit(commuteIdx, leaveReduceUnit);
-
+      // 휴가 유형에 대한 해당 월 사용개수 조회
       const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
-        // 휴가 유형에 대한 해당 월 사용개수
         year,
         month,
         userIdx,
-        leaveTypeIdx,
+        validCommutes[0].leaveTypeIdx,
       );
-      // 해당 월 사용개수 -1
-      await this.approvalRepository.updateLeaveMonthlyUseCount(year, month, userIdx, leaveTypeIdx, useCount);
+      // 해당 월 사용개수 업데이트
+      await this.approvalRepository.updateLeaveMonthlyUseCount(
+        year,
+        month,
+        userIdx,
+        validCommutes[0].leaveTypeIdx,
+        useCount,
+      );
 
-      // 해당 연도 사용개수
-      await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, leaveTypeIdx);
+      // 해당 연도 사용개수 업데이트
+      await this.approvalRepository.updateLeaveAnnualUseCount(year, userIdx, validCommutes[0].leaveTypeIdx);
 
       // 해당 연도 연차 총 사용량 업데이트
-      if (ANNUAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
+      if (ANNUAL_LEAVE_LISTS.has(validCommutes[0].leaveTypeIdx)) {
         await this.approvalRepository.updateTotalAnnualLeaveUsage(year, userIdx);
       }
       // 해당 연도 특별휴무 총 사용량 업데이트
-      if (SPECIAL_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
+      if (SPECIAL_LEAVE_LISTS.has(validCommutes[0].leaveTypeIdx)) {
         await this.approvalRepository.updateTotalSpecialLeaveUsage(year, userIdx);
       }
       // 해당 연도 대체휴무 총 사용량 업데이트
-      if (ALTERNATIVE_LEAVE_LISTS.has(existing.leaveTypeIdx)) {
+      if (ALTERNATIVE_LEAVE_LISTS.has(validCommutes[0].leaveTypeIdx)) {
         await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, userIdx);
       }
-
       // 식대 해당 월 timeoffDays 업데이트
       await this.mealRepository.updateMealTimeOffDays(year, month, userIdx);
       // timeoffDays업데이트에 따른 식대 사용가능금액 업데이트
       await this.mealRepository.updateMealBudget(year.toString(), month.toString());
-    } else if (confirmYN === ConfirmEnum.REJECT) {
-      /* 처음부터 반려된 경우 */
     }
   }
 

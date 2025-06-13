@@ -437,9 +437,6 @@ export const calculateCombinedLeaveStandardWorkingMinutes = (
   } else if ((isExistAmLeave && isNewAmLeave) || (isExistPmLeave && isNewPmLeave)) {
     // 같은 시간대 중복 (오전+오전 또는 오후+오후)
     throw new BadRequestException('같은 시간대의 휴가는 중복해서 사용할 수 없습니다.');
-  } else {
-    // 그 외 허용되지 않는 조합
-    throw new BadRequestException('허용되지 않는 휴가 조합입니다.');
   }
 
   return standardWorkingMinutes;

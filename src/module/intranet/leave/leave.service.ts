@@ -86,6 +86,7 @@ export class LeaveService {
 
       /* 같은 날에 이미 등록한 1개 휴가가 있는 경우 처리 방법 */
       const existingValidateLeaves = await this.leaveRepository.getValidateLeaveInfoByDate(userIdx, commuteDate);
+
       if (existingValidateLeaves.length >= 2) {
         throw new BadRequestException('하루에 최대 2개의 휴가만 사용할 수 있습니다.');
       }
@@ -175,6 +176,7 @@ export class LeaveService {
       }
 
       const existingCommute = await this.leaveRepository.getCommuteInfoByDate(userIdx, commuteDate);
+
       // 출근 당일에 휴가를 등록할 경우,
       if (commuteDate === today) {
         // 해당 날짜에 대한 근태가 없다면 create
@@ -182,11 +184,11 @@ export class LeaveService {
           commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
         } else {
           // 해당 날짜에 대한 근태가 존재 & 일반 근무일 경우
-          if (existingCommute.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL) {
+          if (existingCommute.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL || !existingCommute.leaveTypeIdx) {
             commuteIdx = existingCommute.commuteIdx;
             await this.leaveRepository.updateLeave(existingCommute.commuteIdx, leaveTypeIdx, leaveReduceUnit);
           } else {
-            // 해당 날짜에 대한 근태가 존재 & 휴가있는 근무일 경우
+            // 해당 날짜에 대한 근태가 존재 & 휴가있는 근무일 경우 (조합휴가 생성)
             commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
           }
         }
