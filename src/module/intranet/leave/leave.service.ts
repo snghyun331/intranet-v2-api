@@ -13,6 +13,7 @@ import {
   calculateCombinedCommuteAvailCheckOutTime,
   calculateCombinedLeaveStandardWorkingMinutes,
   calculateSingleCommuteAvailCheckOutTime,
+  calculateSingleLeaveStandardWorkingMinutes,
   getAmHalfLateBoundary,
   getAmQuarterLateBoundary,
   getNormalLateBoundary,
@@ -107,6 +108,13 @@ export class LeaveService {
           throw new BadRequestException('근무 시간이 2.5시간 미만이면 사용하실 수 없습니다.');
         }
       }
+      // } else {
+      //   // 생일일 때, 반차 사용 시
+      //   const standardWorkingMinutes = calculateSingleLeaveStandardWorkingMinutes(leave.leaveTypeIdx, isBirthday);
+      //   if (standardWorkingMinutes <= TWO_HOURS_HALF_WORKIMG_MINUTES && standardWorkingMinutes > 0) {
+      //     throw new BadRequestException('근무 시간이 2.5시간 미만이면 사용하실 수 없습니다.');
+      //   }
+      // }
 
       /* 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가 */
       if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
@@ -154,11 +162,10 @@ export class LeaveService {
       }
 
       // 과거 날짜에 대해 휴가 등록 불가
-      // const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
-      const today: string = '2025-06-13';
-      // if (commuteDate < today) {
-      //   throw new BadRequestException('오늘 이전 날짜는 휴가 등록이 불가능합니다.');
-      // }
+      const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+      if (commuteDate < today) {
+        throw new BadRequestException('오늘 이전 날짜는 휴가 등록이 불가능합니다.');
+      }
 
       /** 휴가등록 시작 **/
       let commuteIdx: number;

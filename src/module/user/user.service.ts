@@ -38,8 +38,8 @@ export class UserService {
   }
 
   async getMyInfo(userIdx: number) {
-    // const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    const today = '2025-06-13';
+    const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+
     const userInfo = await this.userRepository.getUserInfo(userIdx);
     if (!userInfo) {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
