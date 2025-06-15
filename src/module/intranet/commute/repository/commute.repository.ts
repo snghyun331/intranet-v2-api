@@ -8,7 +8,7 @@ import { GradeEntity } from '@entity/user/grade.entity';
 import { TeamEntity } from '@entity/user/team.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
-import { addConfirmStatusField, removeAllWhiteSpace } from '@common/utils/utility';
+import { removeAllWhiteSpace } from '@common/utils/utility';
 import { ConfirmEnum, IntranetLeaveTypeIdxEnum, RequestTypeEnum, YNEnum } from '@common/constant/enum';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
 import { AdminCommuteSortEnum } from '../enum/commute.enum';
@@ -23,15 +23,6 @@ export class CommuteRepository {
       .insert()
       .into(CommuteEntity)
       .values({ userIdx, ...commuteInfo })
-      .execute();
-  }
-
-  async createTodayCommute(userIdx: number, commuteDate: string): Promise<InsertResult> {
-    return await this.commuteModel
-      .createQueryBuilder()
-      .insert()
-      .into(CommuteEntity)
-      .values({ userIdx, commuteDate })
       .execute();
   }
 

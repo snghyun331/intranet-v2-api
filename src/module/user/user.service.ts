@@ -13,20 +13,20 @@ import { RedisSearchService } from '@redis/redisSearch.service';
 import { Transactional } from 'typeorm-transactional';
 import { NewAdminInfo } from '@user/interface/admin.interface';
 import { NewUserInfo } from '@user/interface/user.interface';
-import { CommuteRepository } from '@intranet/commute/repository/commute.repository';
 import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { UpdateCommentDto } from '@user/dto/updateComment.dto';
 import { NewMealStats } from '../scheduler/interface/mealStats.interface';
 import { NewWelfareMonthStats, NewWelfareStats } from '../welfare/interface';
 import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repository';
 import { NewActivityMonthStats, NewActivityStats } from '../activity/interface';
+import { GlobalCommuteRepository } from '../global/repository/globalCommute.repository';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly globalUserRepository: GlobalUserRepository,
-    private readonly commuteRepository: CommuteRepository,
+    private readonly commuteRepository: GlobalCommuteRepository,
     private readonly redisSearchService: RedisSearchService,
     private readonly holidayRepository: GlobalHolidayRepository,
   ) {}
@@ -38,13 +38,45 @@ export class UserService {
   }
 
   async getMyInfo(userIdx: number) {
-    const commuteDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    const user = await this.userRepository.getUserInfo(userIdx, commuteDate);
-    if (!user) {
+    // const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+    const today = '2025-06-13';
+    const userInfo = await this.userRepository.getUserInfo(userIdx);
+    if (!userInfo) {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
     }
 
-    return user;
+    const todayCommutes = await this.commuteRepository.getUserCommuteInfo(userIdx, today);
+    // 날짜별 그룹핑
+    const groupedByDate = todayCommutes.reduce((acc, todayCommute) => {
+      const dateKey = todayCommute.commuteDate;
+      const compositeKey = `${dateKey}`;
+
+      if (!acc[compositeKey]) {
+        // confirmYN, leaveType, leaveTypeIdx 제외
+        const { confirmYN, leaveType, leaveTypeIdx, ...cleanResult } = todayCommute;
+        acc[compositeKey] = {
+          ...cleanResult,
+          leave: [],
+        };
+      }
+
+      // leave 정보가 있으면 추가
+      if (todayCommute.leaveTypeIdx && todayCommute.leaveType) {
+        acc[compositeKey].leave.push({
+          commuteIdx: todayCommute.commuteIdx,
+          leaveTypeIdx: todayCommute.leaveTypeIdx,
+          leaveType: todayCommute.leaveType,
+          confirmYN: todayCommute.confirmYN,
+        });
+      }
+
+      return acc;
+    }, {});
+
+    const commuteInfo = Object.assign({}, Object.values(groupedByDate)[0]);
+    const result = { ...userInfo, ...commuteInfo };
+
+    return result;
   }
 
   async getAllGradeIdxInfo() {

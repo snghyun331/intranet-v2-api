@@ -28,13 +28,13 @@ export class MockUserService {
   }
 
   async getMyInfo(userIdx: number) {
-    const commuteDate: string = moment().utcOffset(9).format('YYYY-MM-DD');
-    const user = await this.userRepository.getUserInfo(userIdx, commuteDate);
-    if (!user) {
+    const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+    const userInfo = await this.userRepository.getUserInfo(userIdx);
+    if (!userInfo) {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
     }
 
-    return user;
+    return userInfo;
   }
 
   async getAllGradeIdxInfo() {

@@ -43,7 +43,7 @@ import { ActivityMonthlyStatsEntity } from '../../entity/activity/activityMonthl
     ]),
     RedisModule,
   ],
-  providers: [UserService, UserRepository, RedisSearchService, CommuteRepository],
+  providers: [UserService, UserRepository, RedisSearchService],
   controllers: [UserController, AdminUserController],
 })
 export class UserModule {}
@@ -56,7 +56,6 @@ export class UserModule {}
       HeadquarterEntity,
       TeamEntity,
       AdminEntity,
-      CommuteEntity,
       LeaveStatsEntity,
       LeaveUsageEntity,
       LeaveMonthlyUsageEntity,

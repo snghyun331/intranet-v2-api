@@ -27,6 +27,7 @@ import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthl
 import { NewActivityMonthStats, NewActivityStats } from '../../activity/interface';
 import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
 import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
+import { LeaveTypeEntity } from '../../../entity/intranet/leave/leaveType.entity';
 
 @Injectable()
 export class UserRepository {
@@ -81,8 +82,8 @@ export class UserRepository {
     return result;
   }
 
-  async getUserInfo(userIdx: number, commuteDate: string) {
-    const queryResult = await this.userModel
+  async getUserInfo(userIdx: number) {
+    const result = await this.userModel
       .createQueryBuilder('userEntity')
       .select([
         'userEntity.userIdx AS userIdx',
@@ -103,36 +104,6 @@ export class UserRepository {
       .leftJoin(GradeEntity, 'gradeEntity', 'gradeEntity.gradeIdx = userEntity.gradeIdx')
       .where('userEntity.userIdx = :userIdx', { userIdx })
       .getRawOne();
-
-    const commuteInfo = await this.commuteModel
-      .createQueryBuilder('commuteEntity')
-      .select([
-        'commuteEntity.checkInTime AS checkInTime',
-        'commuteEntity.attendance AS attendance',
-        'commuteEntity.workingMinutes AS workingMinutes',
-        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
-        'commuteEntity.confirmYN AS confirmYN',
-        'commuteEntity.availCheckOutTime AS availCheckOutTime',
-      ])
-      .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
-      .getRawOne();
-
-    const checkInTime = commuteInfo?.checkInTime ?? null;
-    const leaveTypeIdx = commuteInfo?.leaveTypeIdx ?? null;
-    const availCheckOutTime = commuteInfo?.availCheckOutTime ?? null;
-    const attendance = commuteInfo?.attendance ?? null;
-    const workingMinutes = commuteInfo?.workingMinutes ?? null;
-    const confirmYN = commuteInfo?.confirmYN ?? ConfirmEnum.NO;
-    const result = {
-      ...queryResult,
-      checkInTime,
-      availCheckOutTime,
-      attendance,
-      workingMinutes,
-      leaveTypeIdx,
-      confirmYN,
-    };
 
     return result;
   }
