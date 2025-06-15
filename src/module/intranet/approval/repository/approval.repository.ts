@@ -359,7 +359,7 @@ export class ApprovalRepository {
   async getValidCommutesByDate(userIdx: number, commuteDate: string) {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
-      .select([])
+      .select(['commuteEntity.checkInTime AS checkInTime', 'commuteEntity.leaveTypeIdx AS leaveTypeIdx'])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.YES })

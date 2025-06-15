@@ -53,6 +53,7 @@ export class CommuteRepository {
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.availCheckOutTime AS availCheckOutTime',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
         'commuteEntity.attendance AS attendance',
         'commuteEntity.confirmYN AS confirmYN',
       ])
@@ -78,6 +79,27 @@ export class CommuteRepository {
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .getRawMany();
+
+    return result;
+  }
+
+  async getValidCommuteInfoByDate(userIdx: number, commuteDate: string) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.checkInTime AS checkInTime',
+        'commuteEntity.checkOutTime AS checkOutTime',
+        'commuteEntity.availCheckOutTime AS availCheckOutTime',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.attendance AS attendance',
+        'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
+        'commuteEntity.confirmYN AS confirmYN',
+      ])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
       .getRawMany();
 
     return result;
@@ -132,7 +154,8 @@ export class CommuteRepository {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,
       })
-      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES });
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT });
 
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
@@ -150,24 +173,12 @@ export class CommuteRepository {
     }
 
     // 페이징 처리
-    const records = await query
+    const results = await query
       .limit(perPage)
       .offset((pageNo - 1) * perPage)
       .getRawMany();
 
-    // 승인여부와 날짜를 합친 새 필드 추가
-    const result = await Promise.all(
-      records.map(async (record) => {
-        const confirmStatus: string = addConfirmStatusField(record.confirmYN, record.confirmDate, record.rejectDate);
-
-        return {
-          ...record,
-          confirmStatus,
-        };
-      }),
-    );
-
-    return { totalPage, total, records: result };
+    return { totalPage, total, results };
   }
 
   async getCommuteCountByIdx(commuteIdx: number): Promise<number> {
@@ -183,6 +194,8 @@ export class CommuteRepository {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
+        'commuteEntity.userIdx AS userIdx',
+        'commuteEntity.commuteDate AS commuteDate',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
@@ -224,13 +237,6 @@ export class CommuteRepository {
       .set({ ...commuteNull })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
-
-    // return await this.commuteModel
-    //   .createQueryBuilder()
-    //   .delete()
-    //   .from(CommuteEntity)
-    //   .where('commuteIdx = :commuteIdx', { commuteIdx })
-    //   .execute();
   }
 
   async deleteCommute(commuteIdx: number): Promise<DeleteResult> {
@@ -250,6 +256,23 @@ export class CommuteRepository {
       .update(CommuteEntity)
       .set({ ...updateInfo, adminUpdatedAt })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
+  }
+
+  async updateCommuteTimeByDate(
+    userIdx: number,
+    commuteDate: string,
+    userInfo: UpdateCommuteTimeInfo,
+  ): Promise<UpdateResult> {
+    const adminUpdatedAt: Date = new Date();
+
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set({ ...userInfo, adminUpdatedAt })
+      .where('commuteDate = :commuteDate', { commuteDate })
+      .andWhere('userIdx = :userIdx', { userIdx })
+      .andWhere('confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
       .execute();
   }
 
@@ -297,6 +320,7 @@ export class CommuteRepository {
       ])
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
       .andWhere('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,

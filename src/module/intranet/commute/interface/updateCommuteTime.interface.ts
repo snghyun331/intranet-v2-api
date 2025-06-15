@@ -8,6 +8,7 @@ type RequiredFields =
   | 'updateReason'
   | 'workingMinutes'
   | 'overtimeWorkingMinutes'
+  | 'availCheckOutTime'
   | 'leaveTypeIdx';
 
 type OptionalFields = 'leaveTypeIdx';

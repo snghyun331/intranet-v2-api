@@ -33,5 +33,6 @@ import { LeaveExtraEntity } from '@entity/intranet/leave/leaveExtra.entity';
   ],
   providers: [LeaveService, LeaveRepository, ApprovalRepository, AwsService],
   controllers: [UserLeaveController, AdminLeaveController],
+  exports: [LeaveService, LeaveRepository],
 })
 export class LeaveModule {}

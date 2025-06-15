@@ -10,6 +10,7 @@ import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import {
   addConfirmStatusField,
+  calculateCombinedCommuteAvailCheckOutTime,
   calculateCombinedLeaveStandardWorkingMinutes,
   calculateSingleCommuteAvailCheckOutTime,
   getAmHalfLateBoundary,
@@ -86,7 +87,6 @@ export class LeaveService {
 
       /* 같은 날에 이미 등록한 1개 휴가가 있는 경우 처리 방법 */
       const existingValidateLeaves = await this.leaveRepository.getValidateLeaveInfoByDate(userIdx, commuteDate);
-
       if (existingValidateLeaves.length >= 2) {
         throw new BadRequestException('하루에 최대 2개의 휴가만 사용할 수 있습니다.');
       }
@@ -102,7 +102,8 @@ export class LeaveService {
           leaveTypeIdx,
           isBirthday,
         );
-        if (standardWorkingMinutes <= TWO_HOURS_HALF_WORKIMG_MINUTES) {
+
+        if (standardWorkingMinutes <= TWO_HOURS_HALF_WORKIMG_MINUTES && standardWorkingMinutes > 0) {
           throw new BadRequestException('근무 시간이 2.5시간 미만이면 사용하실 수 없습니다.');
         }
       }
@@ -153,30 +154,15 @@ export class LeaveService {
       }
 
       // 과거 날짜에 대해 휴가 등록 불가
-      const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
-      if (commuteDate < today) {
-        throw new BadRequestException('오늘 이전 날짜는 휴가 등록이 불가능합니다.');
-      }
+      // const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
+      const today: string = '2025-06-13';
+      // if (commuteDate < today) {
+      //   throw new BadRequestException('오늘 이전 날짜는 휴가 등록이 불가능합니다.');
+      // }
 
       /** 휴가등록 시작 **/
       let commuteIdx: number;
-
-      // 등록하려는 날짜에 반려기록이 있을 경우, 반려기록 모두 삭제
-      const rejectedLeaves = await this.leaveRepository.getRejectedLeaveInfoByDate(userIdx, commuteDate);
-      if (rejectedLeaves.length > 0) {
-        for (const rejectedLeave of rejectedLeaves) {
-          // await this.leaveRepository.deleteCommuteApprover(rejectedLeave.commuteIdx);
-          // await this.leaveRepository.deleteCommuteCCUser(rejectedLeave.commuteIdx);
-          const leaveImageInfo = await this.leaveRepository.getLeaveImageInfoByIdx(rejectedLeave.commuteIdx);
-          if (leaveImageInfo) {
-            await this.leaveRepository.deleteLeaveImage(leaveImageInfo.imageIdx);
-          }
-          await this.leaveRepository.deleteLeave(rejectedLeave.commuteIdx);
-        }
-      }
-
       const existingCommute = await this.leaveRepository.getCommuteInfoByDate(userIdx, commuteDate);
-
       // 출근 당일에 휴가를 등록할 경우,
       if (commuteDate === today) {
         // 해당 날짜에 대한 근태가 없다면 create
@@ -184,12 +170,20 @@ export class LeaveService {
           commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
         } else {
           // 해당 날짜에 대한 근태가 존재 & 일반 근무일 경우
-          if (existingCommute.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL || !existingCommute.leaveTypeIdx) {
+          if (existingCommute.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL) {
             commuteIdx = existingCommute.commuteIdx;
             await this.leaveRepository.updateLeave(existingCommute.commuteIdx, leaveTypeIdx, leaveReduceUnit);
           } else {
-            // 해당 날짜에 대한 근태가 존재 & 휴가있는 근무일 경우 (조합휴가 생성)
-            commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
+            // 해당 날짜에 대한 근태가 존재 & 휴가있는 근무일 경우
+            const extraUpdateInfo = existingCommute.checkInTime
+              ? {
+                  checkInTime: existingCommute.checkInTime,
+                  attendance: existingCommute.attendance,
+                  availCheckOutTime: existingCommute.availCheckOutTime,
+                }
+              : null;
+
+            commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit, extraUpdateInfo);
           }
         }
       } else {
@@ -239,6 +233,7 @@ export class LeaveService {
   async deleteLeave(commuteIdx: number): Promise<void> {
     const todayDate = moment().utcOffset(9).format('YYYY-MM-DD');
     const leaveInfo = await this.leaveRepository.getLeaveInfoByIdx(commuteIdx);
+
     if (!leaveInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
@@ -256,75 +251,88 @@ export class LeaveService {
       await this.leaveRepository.deleteCommuteApprover(commuteIdx);
       await this.leaveRepository.deleteCommuteCCUser(commuteIdx);
 
-      // 근태 업데이트
-      const existingCommutes = await this.leaveRepository.getAllCommuteInfoByDate(
+      const restCommutes = await this.leaveRepository.getRestCommutes(
         leaveInfo.userIdx,
         leaveInfo.commuteDate,
+        leaveInfo.commuteIdx,
       );
-      if (existingCommutes.length === 2) {
-        let availCheckOutTime: Date;
-        let attendance: IntranetAttendanceEnum;
-        /* 조합 휴가일 때 -> 삭제 후, 나머지 휴가에 맞춘다. */
+
+      if (restCommutes.length >= 1) {
+        // commuteIdx에 해당하는 근태 외에 다른 근태가 있을 경우
         await this.leaveRepository.deleteLeave(commuteIdx);
-        const restCommute = existingCommutes.find((info) => info.commuteIdx !== commuteIdx);
-        // availCheckOutTime 업데이트
-        if (restCommute.leaveTypeIdx !== IntranetLeaveTypeIdxEnum.NORMAL && restCommute.confirmYN === ConfirmEnum.YES) {
-          // 나머지 근태가 승인된 휴가 포함일 때,
-          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
-            restCommute.checkInTime,
-            restCommute.leaveTypeIdx,
-            isBirthday,
-          );
-        } else {
-          // 나머지 근태가 미승인일 때,
-          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
-            restCommute.checkInTime,
-            IntranetLeaveTypeIdxEnum.NORMAL,
-            isBirthday,
-          );
+
+        if (leaveInfo.checkInTime) {
+          const approvedLeaves = restCommutes.filter((info) => info.confirmYN === ConfirmEnum.YES);
+
+          let availCheckOutTime: Date;
+          let attendance: IntranetAttendanceEnum;
+
+          if (approvedLeaves.length === 2) {
+            /* 삭제했을 때, 나머지가 승인된 조합 휴가일 때 */
+            availCheckOutTime = calculateCombinedCommuteAvailCheckOutTime(
+              leaveInfo.checkInTime,
+              approvedLeaves[0].leaveTypeIdx,
+              approvedLeaves[1].leaveTypeIdx,
+              isBirthday,
+            );
+            const isAmQuarterLate =
+              new Date(leaveInfo.checkInTime) >= getAmQuarterLateBoundary(new Date(leaveInfo.checkInTime));
+            attendance = isAmQuarterLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
+          } else if (approvedLeaves.length === 1) {
+            /* 삭제했을 때, 나머지가 승인된 단일 휴가일 때 */
+            availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
+              leaveInfo.checkInTime,
+              approvedLeaves[0].leaveTypeIdx,
+              isBirthday,
+            );
+            const isPmQuarterLate =
+              PM_QUARTER_REST_LISTS.has(approvedLeaves[0].leaveTypeIdx) &&
+              new Date(leaveInfo.checkInTime) >= getNormalLateBoundary(new Date(leaveInfo.checkInTime));
+
+            const isAmHalfLate =
+              AM_REST_LISTS.has(approvedLeaves[0].leaveTypeIdx) &&
+              new Date(leaveInfo.checkInTime) >= getAmHalfLateBoundary(new Date(leaveInfo.checkInTime));
+
+            const isPMHalfLate =
+              PM_REST_LISTS.has(approvedLeaves[0].leaveTypeIdx) &&
+              new Date(leaveInfo.checkInTime) >= getPmHalfLateBoundary(new Date(leaveInfo.checkInTime));
+
+            const isAmQuarterLate =
+              AM_QUARTER_REST_LISTS.has(approvedLeaves[0].leaveTypeIdx) &&
+              new Date(leaveInfo.checkInTime) >= getAmQuarterLateBoundary(new Date(leaveInfo.checkInTime));
+
+            attendance =
+              isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
+                ? IntranetAttendanceEnum.CHECK_IN_LATE
+                : IntranetAttendanceEnum.CHECK_IN;
+          } else {
+            /* 삭제했을 때, 나머지가 모두 미승인일 때 → 일반근무 */
+            availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
+              leaveInfo.checkInTime,
+              IntranetLeaveTypeIdxEnum.NORMAL,
+              isBirthday,
+            );
+
+            const isNormalLate =
+              new Date(leaveInfo.checkInTime) >= getNormalLateBoundary(new Date(leaveInfo.checkInTime));
+
+            attendance = isNormalLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
+          }
+
+          const updateInfo = { attendance, availCheckOutTime };
+          await this.leaveRepository.updateRestCommute(leaveInfo.userIdx, leaveInfo.commuteDate, updateInfo);
         }
-        // attendance 업데이트
-        if (restCommute.leaveTypeIdx !== IntranetLeaveTypeIdxEnum.NORMAL && restCommute.confirmYN === ConfirmEnum.YES) {
-          // 나머지 근태가 승인된 휴가 포함일 때,
-          const isPmQuarterLate =
-            PM_QUARTER_REST_LISTS.has(restCommute.leaveTypeIdx) &&
-            new Date(restCommute.checkInTime) >= getNormalLateBoundary(new Date(restCommute.checkInTime));
-
-          const isAmHalfLate =
-            AM_REST_LISTS.has(restCommute.leaveTypeIdx) &&
-            new Date(restCommute.checkInTime) >= getAmHalfLateBoundary(new Date(restCommute.checkInTime));
-
-          const isPMHalfLate =
-            PM_REST_LISTS.has(restCommute.leaveTypeIdx) &&
-            new Date(restCommute.checkInTime) >= getPmHalfLateBoundary(new Date(restCommute.checkInTime));
-
-          const isAmQuarterLate =
-            AM_QUARTER_REST_LISTS.has(restCommute.leaveTypeIdx) &&
-            new Date(restCommute.checkInTime) >= getAmQuarterLateBoundary(new Date(restCommute.checkInTime));
-
-          attendance =
-            isPmQuarterLate || isAmHalfLate || isPMHalfLate || isAmQuarterLate
-              ? IntranetAttendanceEnum.CHECK_IN_LATE
-              : IntranetAttendanceEnum.CHECK_IN;
-        } else {
-          // 나머지 근태가 미승인일 때,
-          const isNormalLate =
-            new Date(restCommute.checkInTime) >= getNormalLateBoundary(new Date(restCommute.checkInTime));
-
-          attendance = isNormalLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
-        }
-        const updateInfo = { availCheckOutTime, attendance };
-        await this.leaveRepository.updateCommute(restCommute.commuteIdx, updateInfo);
       } else {
-        /* 단일 휴가일 때 -> 삭제가 아닌, 일반 근무로 변경한다. */
-        let attendance = null;
-        if (existingCommutes[0].checkInTime) {
-          const isNormalLate: boolean =
+        // commuteIdx에 해당하는 근태 외에 다른 근태가 없을 경우
+        let attendance: IntranetAttendanceEnum;
+        if (leaveInfo.checkInTime) {
+          const isNormalLate =
             new Date(leaveInfo.checkInTime) >= getNormalLateBoundary(new Date(leaveInfo.checkInTime));
 
           attendance = isNormalLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
+        } else {
+          attendance = null;
         }
-
         const updateInfo = {
           leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
           confirmYN: ConfirmEnum.NO,
@@ -334,7 +342,7 @@ export class LeaveService {
           attendance,
           availCheckOutTime: leaveInfo.checkInTime
             ? calculateSingleCommuteAvailCheckOutTime(
-                existingCommutes[0].checkInTime,
+                leaveInfo.checkInTime,
                 IntranetLeaveTypeIdxEnum.NORMAL,
                 isBirthday,
               )

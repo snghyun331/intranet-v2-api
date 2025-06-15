@@ -42,6 +42,7 @@ export class LeaveRepository {
     const result: any = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
         'commuteEntity.userIdx AS userIdx',
         'commuteEntity.commuteDate AS commuteDate',
         'commuteEntity.checkInTime AS checkInTime',
@@ -107,6 +108,9 @@ export class LeaveRepository {
         'commuteEntity.commuteIdx AS commuteIdx',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
         'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
+        'commuteEntity.checkInTime AS checkInTime',
+        'commuteEntity.attendance AS attendance',
+        'commuteEntity.availCheckOutTime AS availCheckOutTime',
         'commuteEntity.confirmYN AS confirmYN',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
@@ -132,22 +136,47 @@ export class LeaveRepository {
     return result;
   }
 
+  async getRestCommutes(userIdx: number, commuteDate: string, exceptCommuteIdx: number) {
+    const result = await this.commuteModel
+      .createQueryBuilder('commuteEntity')
+      .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
+        'commuteEntity.leaveTypeIdx AS leaveTypeIdx',
+        'commuteEntity.leaveReduceUnit AS leaveReduceUnit',
+        'commuteEntity.confirmYN AS confirmYN',
+      ])
+      .where('commuteEntity.userIdx = :userIdx', { userIdx })
+      .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
+      .andWhere('commuteEntity.commuteIdx != :exceptCommuteIdx', { exceptCommuteIdx })
+      .getRawMany();
+
+    return result;
+  }
+
   async createLeave(
     leaveInfo: LeaveDetailDto,
     userIdx: number,
     note: string | null,
     leaveReduceUnit?: number | 0,
+    extraUpdateInfo?: any,
   ): Promise<number> {
+    const insertData = {
+      leaveTypeIdx: Number(leaveInfo.leaveTypeIdx),
+      ...leaveInfo,
+      note,
+      userIdx,
+      leaveReduceUnit,
+      ...(extraUpdateInfo && Object.keys(extraUpdateInfo).length > 0 ? extraUpdateInfo : {}),
+    };
+
     const result: InsertResult = await this.commuteModel
       .createQueryBuilder()
       .insert()
       .into(CommuteEntity)
-      .values({ leaveTypeIdx: Number(leaveInfo.leaveTypeIdx), ...leaveInfo, note, userIdx, leaveReduceUnit })
+      .values(insertData)
       .execute();
 
-    const commuteIdx: number = result.identifiers[0].commuteIdx;
-
-    return commuteIdx;
+    return result.identifiers[0].commuteIdx;
   }
 
   /* 기존 근태이력이 있을 때 휴가 등록하는 함수 */
@@ -172,6 +201,16 @@ export class LeaveRepository {
       .update(CommuteEntity)
       .set(updateInfo)
       .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
+  }
+
+  async updateRestCommute(userIdx: number, commuteDate: string, updateInfo): Promise<UpdateResult> {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(updateInfo)
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
   }
 

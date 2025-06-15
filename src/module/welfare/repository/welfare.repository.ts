@@ -259,7 +259,6 @@ export class WelfareRepository {
       });
     }
     if (filterInfo.userIdxs) {
-      console.log(filterInfo.userIdxs);
       query.andWhere('welfareEntity.userIdx IN (:...userIdxs)', { userIdxs: filterInfo.userIdxs });
     }
     if (filterInfo.confirmYN) {
