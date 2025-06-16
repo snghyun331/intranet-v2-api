@@ -192,6 +192,7 @@ export class CommuteRepository {
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.checkInLogAgent AS checkInLogAgent',
         'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
+        'commuteEntity.note AS note',
       ])
       .where('commuteEntity.commuteIdx = :commuteIdx', { commuteIdx })
       .getRawOne();
@@ -267,7 +268,11 @@ export class CommuteRepository {
       .execute();
   }
 
-  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto, type: RequestTypeEnum): Promise<UpdateResult> {
+  async updateCommuteNoteByIdx(
+    commuteIdx: number,
+    noteInfo: UpdateNoteDto,
+    type: RequestTypeEnum,
+  ): Promise<UpdateResult> {
     let adminUpdatedAt: Date | null = null;
     let userUpdatedAt: Date | null = null;
     if (type === RequestTypeEnum.ADMIN) {
@@ -281,6 +286,29 @@ export class CommuteRepository {
       .update(CommuteEntity)
       .set({ ...noteInfo, adminUpdatedAt, userUpdatedAt })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
+      .execute();
+  }
+
+  async updateCommuteNoteByDate(
+    userIdx: number,
+    commuteDate: string,
+    noteInfo: UpdateNoteDto,
+    type: RequestTypeEnum,
+  ): Promise<UpdateResult> {
+    let adminUpdatedAt: Date | null = null;
+    let userUpdatedAt: Date | null = null;
+    if (type === RequestTypeEnum.ADMIN) {
+      adminUpdatedAt = new Date();
+    } else {
+      userUpdatedAt = new Date();
+    }
+
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set({ ...noteInfo, adminUpdatedAt, userUpdatedAt })
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
   }
 

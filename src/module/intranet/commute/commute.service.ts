@@ -967,12 +967,27 @@ export class CommuteService {
 
   @Transactional()
   async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto, type: RequestTypeEnum): Promise<void> {
-    const commuteCnt: number = await this.commuteRepository.getCommuteCountByIdx(commuteIdx);
-    if (commuteCnt === 0) {
+    const commuteInfo = await this.commuteRepository.getCommuteInfoByIdx(commuteIdx);
+    if (!commuteInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
-    await this.commuteRepository.updateCommuteNote(commuteIdx, noteInfo, type);
+    const commutesByDate = await this.commuteRepository.getCommuteInfoByDate(
+      commuteInfo.userIdx,
+      commuteInfo.commuteDate,
+    );
+
+    // 조합휴가일 경우, 해당 날짜 근태의 비고 수정
+    if (commutesByDate.length >= 2) {
+      await this.commuteRepository.updateCommuteNoteByDate(
+        commuteInfo.userIdx,
+        commuteInfo.commuteDate,
+        noteInfo,
+        type,
+      );
+    } else {
+      await this.commuteRepository.updateCommuteNoteByIdx(commuteIdx, noteInfo, type);
+    }
 
     return;
   }
