@@ -41,8 +41,8 @@ import {
 import { UserRoleGuard } from '@auth/guard/roleGuard/userRole.guard';
 import { AdminRole, UserRole } from '@common/decorator/role.decorator';
 import { UserAuthGuard } from '@auth/guard/authGuard/userAuth.guard';
-import { AdminGradeEnum, RequestTypeEnum, UserGradeEnum } from '@common/constant/enum';
-import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
+import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
+import { CurrentUser, CurrentUserIdx } from '@common/decorator/currentUser.decorator';
 import { CheckOutDto } from './dto/checkOut.dto';
 import { AdminAuthGuard } from '@auth/guard/authGuard/adminAuth.guard';
 import { AdminRoleGuard } from '@auth/guard/roleGuard/adminRole.guard';
@@ -50,6 +50,8 @@ import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
+import { CurrentAdmin } from '../../../common/decorator/currentAdmin.decorator';
+import { AdminPayload, UserPayload } from '../../../common/interface/payload.interface';
 
 @ApiTags('사용자')
 @Controller('users/intranet')
@@ -147,8 +149,9 @@ export class UserCommuteController {
   async updateCommuteNote(
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() noteInfo: UpdateNoteDto,
+    @CurrentUser() { userName }: UserPayload,
   ): Promise<ResponseInterface> {
-    await this.commuteService.updateCommuteNote(commuteIdx, noteInfo, RequestTypeEnum.USER);
+    await this.commuteService.updateCommuteNoteByUser(commuteIdx, userName, noteInfo);
 
     const response: ResponseInterface = { message: 'success' };
 
@@ -236,8 +239,9 @@ export class AdminCommuteController {
   async updateCommuteNote(
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() noteInfo: UpdateNoteDto,
+    @CurrentAdmin() { adminName }: AdminPayload,
   ): Promise<ResponseInterface> {
-    await this.commuteService.updateCommuteNote(commuteIdx, noteInfo, RequestTypeEnum.ADMIN);
+    await this.commuteService.updateCommuteNoteByAdmin(commuteIdx, adminName, noteInfo);
 
     const response: ResponseInterface = { message: 'success' };
 

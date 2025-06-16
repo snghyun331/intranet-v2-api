@@ -9,6 +9,7 @@ type RequiredFields =
   | 'workingMinutes'
   | 'overtimeWorkingMinutes'
   | 'availCheckOutTime'
+  | 'adminUpdatedAt'
   | 'leaveTypeIdx';
 
 type OptionalFields = 'leaveTypeIdx';

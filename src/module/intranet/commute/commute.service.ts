@@ -13,7 +13,7 @@ import {
 } from '@common/constant/constant';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
-import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum, RequestTypeEnum } from '@common/constant/enum';
+import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
 import {
   calculateCombinedCommuteAvailCheckOutTime,
   calculateCombinedLeaveStandardWorkingMinutes,
@@ -35,6 +35,7 @@ import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommute
 import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { GlobalHolidayRepository } from '@global/repository/globalHoliday.repository';
 import { LeaveService } from '../leave/leave.service';
+import { LastUpdated } from './interface/commute.interface';
 
 @Injectable()
 export class CommuteService {
@@ -625,9 +626,10 @@ export class CommuteService {
 
       if (!acc[compositeKey]) {
         // confirmYN, leaveType, leaveTypeIdx 제외
-        const { confirmYN, leaveType, leaveTypeIdx, ...cleanResult } = result;
+        const { confirmYN, leaveType, leaveTypeIdx, lastUpdatedAt, ...cleanResult } = result;
         acc[compositeKey] = {
           ...cleanResult,
+          lastUpdatedAt: JSON.parse(lastUpdatedAt),
           leave: [],
         };
       }
@@ -788,6 +790,7 @@ export class CommuteService {
             availCheckOutTime,
             attendance,
             leaveTypeIdx,
+            adminUpdatedAt: new Date(),
           };
           await this.commuteRepository.updateCommuteTime(commute.commuteIdx, updateInfo);
         }),
@@ -955,6 +958,7 @@ export class CommuteService {
           overtimeWorkingMinutes,
           availCheckOutTime,
           attendance,
+          adminUpdatedAt: new Date(),
           leaveTypeIdx: commute.leaveTypeIdx || IntranetLeaveTypeIdxEnum.NORMAL,
         };
 
@@ -966,7 +970,7 @@ export class CommuteService {
   }
 
   @Transactional()
-  async updateCommuteNote(commuteIdx: number, noteInfo: UpdateNoteDto, type: RequestTypeEnum): Promise<void> {
+  async updateCommuteNoteByUser(commuteIdx: number, userName: string, noteInfo: UpdateNoteDto): Promise<void> {
     const commuteInfo = await this.commuteRepository.getCommuteInfoByIdx(commuteIdx);
     if (!commuteInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
@@ -977,18 +981,40 @@ export class CommuteService {
       commuteInfo.commuteDate,
     );
 
-    // 조합휴가일 경우, 해당 날짜 근태의 비고 수정
-    if (commutesByDate.length >= 2) {
-      await this.commuteRepository.updateCommuteNoteByDate(
-        commuteInfo.userIdx,
-        commuteInfo.commuteDate,
-        noteInfo,
-        type,
-      );
-    } else {
-      await this.commuteRepository.updateCommuteNoteByIdx(commuteIdx, noteInfo, type);
+    const lastUpdatedAt: LastUpdated = { name: userName, time: new Date() };
+    await Promise.all(
+      commutesByDate.map(async (commute) => {
+        // 비고 수정
+        await this.commuteRepository.updateCommuteNoteByIdx(commute.commuteIdx, noteInfo);
+        // 최근 수정일 변경
+        await this.commuteRepository.updateLastUpdatedAt(commute.commuteIdx, lastUpdatedAt);
+      }),
+    );
+
+    return;
+  }
+
+  @Transactional()
+  async updateCommuteNoteByAdmin(commuteIdx: number, adminName: string, noteInfo: UpdateNoteDto): Promise<void> {
+    const commuteInfo = await this.commuteRepository.getCommuteInfoByIdx(commuteIdx);
+    if (!commuteInfo) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
     }
 
+    const commutesByDate = await this.commuteRepository.getCommuteInfoByDate(
+      commuteInfo.userIdx,
+      commuteInfo.commuteDate,
+    );
+
+    const lastUpdatedAt: LastUpdated = { name: adminName, time: new Date() };
+    await Promise.all(
+      commutesByDate.map(async (commute) => {
+        // 비고 수정
+        await this.commuteRepository.updateCommuteNoteByIdx(commute.commuteIdx, noteInfo);
+        // 최근 수정일 변경
+        await this.commuteRepository.updateLastUpdatedAt(commute.commuteIdx, lastUpdatedAt);
+      }),
+    );
     return;
   }
 

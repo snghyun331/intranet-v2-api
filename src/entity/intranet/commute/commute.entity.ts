@@ -5,6 +5,7 @@ import { ConfirmEnum, IntranetAttendanceEnum } from '@common/constant/enum';
 import { CommuteHasImageEntity } from '@entity/image/commuteHasImage.entity';
 import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from './commuteApprover.entity';
+import { LastUpdated } from '../../../module/intranet/commute/interface/commute.interface';
 
 @Entity({ name: 'commute', comment: '출퇴근 정보 tb' })
 export class CommuteEntity extends CommonEntity {
@@ -87,8 +88,8 @@ export class CommuteEntity extends CommonEntity {
   @Column({ name: 'first_updated_at', comment: '등록일', nullable: true })
   firstUpdatedAt: Date;
 
-  @Column({ name: 'last_updated_at', comment: '최근 수정일', nullable: true })
-  lastUpdatedAt: Date;
+  @Column({ name: 'last_updated_at', comment: '최근 비고 수정일', type: 'json', nullable: true })
+  lastUpdatedAt: LastUpdated;
 
   @ManyToOne(() => UserEntity, (user) => user.commuteRelation, {
     onDelete: 'CASCADE',

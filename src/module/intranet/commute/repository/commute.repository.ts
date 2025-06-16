@@ -9,9 +9,10 @@ import { TeamEntity } from '@entity/user/team.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { removeAllWhiteSpace } from '@common/utils/utility';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum, RequestTypeEnum, YNEnum } from '@common/constant/enum';
+import { ConfirmEnum, IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
 import { AdminCommuteSortEnum } from '../enum/commute.enum';
+import { LastUpdated } from '../interface/commute.interface';
 
 @Injectable()
 export class CommuteRepository {
@@ -44,6 +45,7 @@ export class CommuteRepository {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
         'commuteEntity.checkInTime AS checkInTime',
         'commuteEntity.checkOutTime AS checkOutTime',
         'commuteEntity.availCheckOutTime AS availCheckOutTime',
@@ -139,6 +141,8 @@ export class CommuteRepository {
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
+        'commuteEntity.firstUpdatedAt AS firstUpdatedAt',
+        'commuteEntity.lastUpdatedAt AS lastUpdatedAt',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
@@ -271,11 +275,7 @@ export class CommuteRepository {
       .execute();
   }
 
-  async updateCommuteNoteByIdx(
-    commuteIdx: number,
-    noteInfo: UpdateNoteDto,
-    type: RequestTypeEnum,
-  ): Promise<UpdateResult> {
+  async updateCommuteNoteByIdx(commuteIdx: number, noteInfo: UpdateNoteDto): Promise<UpdateResult> {
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
@@ -284,12 +284,7 @@ export class CommuteRepository {
       .execute();
   }
 
-  async updateCommuteNoteByDate(
-    userIdx: number,
-    commuteDate: string,
-    noteInfo: UpdateNoteDto,
-    type: RequestTypeEnum,
-  ): Promise<UpdateResult> {
+  async updateCommuteNoteByDate(userIdx: number, commuteDate: string, noteInfo: UpdateNoteDto): Promise<UpdateResult> {
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
@@ -366,6 +361,15 @@ export class CommuteRepository {
       .set(updateCheckInIndo)
       .where('commuteDate = :commuteDate', { commuteDate })
       .andWhere('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
+  async updateLastUpdatedAt(commuteIdx: number, lastUpdatedInfo: LastUpdated): Promise<UpdateResult> {
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set({ lastUpdatedAt: lastUpdatedInfo })
+      .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
 }
