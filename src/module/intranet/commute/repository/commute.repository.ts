@@ -30,7 +30,11 @@ export class CommuteRepository {
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ ...commuteInfo, leaveTypeIdx: () => `COALESCE(leave_type_idx, ${IntranetLeaveTypeIdxEnum.NORMAL})` })
+      .set({
+        ...commuteInfo,
+        leaveTypeIdx: () => `COALESCE(leave_type_idx, ${IntranetLeaveTypeIdxEnum.NORMAL})`,
+        firstUpdatedAt: () => `COALESCE(first_updated_at, NOW())`,
+      })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
@@ -135,7 +139,6 @@ export class CommuteRepository {
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
         'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
-        'commuteEntity.userUpdatedAt AS userUpdatedAt',
       ])
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
@@ -273,18 +276,10 @@ export class CommuteRepository {
     noteInfo: UpdateNoteDto,
     type: RequestTypeEnum,
   ): Promise<UpdateResult> {
-    let adminUpdatedAt: Date | null = null;
-    let userUpdatedAt: Date | null = null;
-    if (type === RequestTypeEnum.ADMIN) {
-      adminUpdatedAt = new Date();
-    } else {
-      userUpdatedAt = new Date();
-    }
-
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ ...noteInfo, adminUpdatedAt, userUpdatedAt })
+      .set({ ...noteInfo })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
@@ -295,18 +290,10 @@ export class CommuteRepository {
     noteInfo: UpdateNoteDto,
     type: RequestTypeEnum,
   ): Promise<UpdateResult> {
-    let adminUpdatedAt: Date | null = null;
-    let userUpdatedAt: Date | null = null;
-    if (type === RequestTypeEnum.ADMIN) {
-      adminUpdatedAt = new Date();
-    } else {
-      userUpdatedAt = new Date();
-    }
-
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ ...noteInfo, adminUpdatedAt, userUpdatedAt })
+      .set({ ...noteInfo })
       .where('userIdx = :userIdx', { userIdx })
       .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
@@ -335,7 +322,6 @@ export class CommuteRepository {
         'commuteEntity.checkInLogAgent AS checkInLogAgent',
         'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
         'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
-        'commuteEntity.userUpdatedAt AS userUpdatedAt',
       ])
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })

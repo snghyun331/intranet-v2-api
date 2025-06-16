@@ -227,6 +227,7 @@ export class CommuteService {
         checkInLogAgent,
         leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
         availCheckOutTime,
+        firstUpdatedAt: new Date(),
       };
 
       /* 근태 생성 */
@@ -729,7 +730,6 @@ export class CommuteService {
           checkInLogAgent: record.checkInLogAgent,
           checkOutLogAgent: record.checkOutLogAgent,
           adminUpdatedAt: record.adminUpdatedAt,
-          userUpdatedAt: record.userUpdatedAt,
           leave: uniqueLeaves,
         };
       }),

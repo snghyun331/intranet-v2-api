@@ -5,7 +5,7 @@ import { LeaveRequestDto } from './dto/createLeave.dto';
 import { ConfigService } from '@nestjs/config';
 import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum, NodeEnvEnum } from '@common/constant/enum';
 import { AwsService } from '@aws/aws.service';
-import { LeaveImageInfo, LeaveSummary, LeaveUsageStats } from './interface/leave.interface';
+import { LeaveDetail, LeaveImageInfo, LeaveSummary, LeaveUsageStats } from './interface/leave.interface';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminLeaveDetailFilterDto, AdminLeaveFilterDto, UserLeaveDetailFilterDto } from './dto/query.dto';
 import {
@@ -13,7 +13,6 @@ import {
   calculateCombinedCommuteAvailCheckOutTime,
   calculateCombinedLeaveStandardWorkingMinutes,
   calculateSingleCommuteAvailCheckOutTime,
-  calculateSingleLeaveStandardWorkingMinutes,
   getAmHalfLateBoundary,
   getAmQuarterLateBoundary,
   getNormalLateBoundary,
@@ -72,7 +71,7 @@ export class LeaveService {
     const { unComfirmedAlternativeReduce, unComfirmedAnnualReduce, unComfirmedSpecialReduce } =
       await this.leaveRepository.getTotalUnConfirmedReduceUnit(userIdx, year);
 
-    for (const leave of leaveInfo) {
+    for (const leave of leaveInfo as LeaveDetail[]) {
       const commuteDate: string = leave.commuteDate;
       const leaveTypeIdx: number = Number(leave.leaveTypeIdx);
       const dateStringFormat: RegExp = /^\d{4}-\d{2}-\d{2}$/;
@@ -174,12 +173,19 @@ export class LeaveService {
       if (commuteDate === today) {
         // 해당 날짜에 대한 근태가 없다면 create
         if (!existingCommute) {
+          leave.firstUpdatedAt = new Date();
           commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
         } else {
           // 해당 날짜에 대한 근태가 존재 & 일반 근무일 경우
           if (existingCommute.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL) {
             commuteIdx = existingCommute.commuteIdx;
-            await this.leaveRepository.updateLeave(existingCommute.commuteIdx, leaveTypeIdx, leaveReduceUnit);
+            const firstUpdatedAt = existingCommute.checkInTime ? existingCommute.firstUpdatedAt : new Date();
+            await this.leaveRepository.updateLeave(
+              existingCommute.commuteIdx,
+              leaveTypeIdx,
+              firstUpdatedAt,
+              leaveReduceUnit,
+            );
           } else {
             // 해당 날짜에 대한 근태가 존재 & 휴가있는 근무일 경우
             const extraUpdateInfo = existingCommute.checkInTime
@@ -187,6 +193,7 @@ export class LeaveService {
                   checkInTime: existingCommute.checkInTime,
                   attendance: existingCommute.attendance,
                   availCheckOutTime: existingCommute.availCheckOutTime,
+                  firstUpdatedAt: (leave.firstUpdatedAt = new Date()),
                 }
               : null;
 
@@ -195,6 +202,7 @@ export class LeaveService {
         }
       } else {
         // 미래에 대해 휴가를 등록할 경우,
+        leave.firstUpdatedAt = new Date();
         commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
       }
 

@@ -1,3 +1,5 @@
+import { LeaveDetailDto } from '../dto/createLeave.dto';
+
 export interface LeaveImageInfo {
   imageName: string;
   imageSize: number;
@@ -33,4 +35,8 @@ export interface LeaveUsageStats {
   healthLeaveUsage: number;
   totalReceivedSpecialLeave: number;
   totalReceivedAlternativeLeave: number;
+}
+
+export interface LeaveDetail extends LeaveDetailDto {
+  firstUpdatedAt?: Date;
 }

@@ -112,6 +112,7 @@ export class LeaveRepository {
         'commuteEntity.attendance AS attendance',
         'commuteEntity.availCheckOutTime AS availCheckOutTime',
         'commuteEntity.confirmYN AS confirmYN',
+        'commuteEntity.firstUpdatedAt AS firstUpdatedAt',
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
@@ -180,7 +181,12 @@ export class LeaveRepository {
   }
 
   /* 기존 근태이력이 있을 때 휴가 등록하는 함수 */
-  async updateLeave(commuteIdx: number, leaveTypeIdx: number, leaveReduceUnit?: number | 0): Promise<UpdateResult> {
+  async updateLeave(
+    commuteIdx: number,
+    leaveTypeIdx: number,
+    firstUpdatedAt: Date,
+    leaveReduceUnit?: number | 0,
+  ): Promise<UpdateResult> {
     const confirmReset = { confirmYN: ConfirmEnum.NO, confirmDate: null, rejectDate: null, confirmPersonIdx: null };
 
     return await this.commuteModel
@@ -189,6 +195,7 @@ export class LeaveRepository {
       .set({
         leaveTypeIdx,
         leaveReduceUnit,
+        firstUpdatedAt,
         ...confirmReset,
       })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
