@@ -126,6 +126,7 @@ export class PlaygroundService {
       notice: null,
       groupInfo: [],
       groups: {},
+      unAssigned: [],
     };
 
     // 가장 최신의 점심조 설정 데이터 조회
@@ -146,7 +147,12 @@ export class PlaygroundService {
       groups[groupNo].push(member.userName);
     }
 
-    return { sDate, eDate, total, perGroup, notice, groupInfo, groups };
+    // 미배정 인원 조회
+    const allUsers = await this.userRepository.getAllUserNames();
+    const assigned = lunchGroupMembers.map((member) => member.userName);
+    const unAssigned = allUsers.filter((user) => !assigned.includes(user)).map((user) => user);
+
+    return { sDate, eDate, total, perGroup, notice, groupInfo, groups, unAssigned };
   }
 
   async getLunchGroupForUser(userName: string): Promise<any> {
@@ -299,5 +305,70 @@ export class PlaygroundService {
     const result = { config: renamedConfig, details, myBaverage: myBaverage ? myBaverage.baverage : 'NONE' };
 
     return result;
+  }
+
+  async insertAssignedUser(targetUserNames: string[]): Promise<void> {
+    const lockKey: string = 'PICK_LUNCH_GROUP';
+    const lock: boolean = await this.redisLockService.waitAndSetLock(lockKey, PICK_LUNCH_LOCK_DURATION);
+
+    try {
+      if (lock) {
+        await Promise.all(
+          targetUserNames.map(async (targetUserName) => {
+            const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
+            if (!lunchGroupConfig) {
+              throw new BadRequestException('지금은 뽑기 가능 시간이 아닙니다.');
+            }
+
+            const { _id: configId, groupInfo } = lunchGroupConfig;
+
+            // 이미 배정되었는지 확인
+            const isExistingAssignment = await this.playgroupundModel.checkUserAssignedToLunchGroup(
+              configId,
+              targetUserName,
+            );
+            if (isExistingAssignment) {
+              throw new BadRequestException('이미 조에 배정되었습니다.');
+            }
+
+            // 배정 받을 그룹 넘버 초기화
+            let groupToAssign: number | null = null;
+
+            // 모든 그룹의 현재 멤버 수 조회
+            const groupCounts = await this.playgroupundModel.getUserCountByLunchGroup(configId);
+
+            // 그룹별 멤버 수를 객체로 변환
+            const groupSizeMap = new Map<number, number>();
+            groupCounts.forEach((group) => groupSizeMap.set(group._id, group.count));
+
+            // 배정 가능한 그룹들 찾기
+            const availableGroups: number[] = [];
+            groupInfo.forEach((info) => {
+              const currentSize = groupSizeMap.get(info.groupNo) || 0;
+              if (currentSize < info.availMemberCount) {
+                availableGroups.push(info.groupNo);
+              }
+            });
+            // 배정 가능한 그룹이 있으면 랜덤하게 선택
+            if (availableGroups.length > 0) {
+              const randomIndex = Math.floor(Math.random() * availableGroups.length);
+              groupToAssign = availableGroups[randomIndex];
+            } else {
+              throw new BadRequestException('배정 가능한 그룹이 없습니다.');
+            }
+
+            // 배정된 그룹에 멤버 추가
+            await this.playgroupundModel.addUserInLunchGroup(configId, groupToAssign, targetUserName);
+          }),
+        );
+      }
+      await this.redisLockService.delLock(lockKey);
+    } catch (err) {
+      await this.redisLockService.delLock(lockKey);
+      this.logger.error(err);
+      throw err;
+    }
+
+    return;
   }
 }

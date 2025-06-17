@@ -200,8 +200,8 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 statusCode: 200,
                 message: 'success',
                 data: {
-                  sDate: '2025-05-10',
-                  eDate: '2025-05-12',
+                  sDate: '2025-06-10',
+                  eDate: '2025-06-12',
                   total: 10,
                   perGroup: 3,
                   notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
@@ -220,10 +220,11 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                     },
                   ],
                   groups: {
-                    '1': ['이승현', '신효은', '안지훈', '정진우'],
-                    '2': ['김현민', '김단아', '김정현'],
-                    '3': ['김현근', '이혜빈', '김선경'],
+                    '1': [],
+                    '2': [],
+                    '3': ['이승현'],
                   },
+                  unAssigned: ['김현민', '신효은', '김현근', 'ㅇㅇㅇㅇ', '에이시쥐', '에이시쥐2', '나나'],
                 },
               },
             },
@@ -497,6 +498,21 @@ export const USERS_PLAYGROUND_MONTHLY_BAVERAGE: SwaggerMethod = {
             statusCode: 200,
             message: 'success',
           },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_PLAYGROUND_LUNCH_GROUP_UNASSIGNED: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '어드민 점심조 미배정인원 배정 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {},
         },
       },
     },

@@ -11,6 +11,7 @@ import {
 } from '@nestjs/swagger';
 import {
   ADMIN_PLAYGROUND_LUNCH_GROUP,
+  ADMIN_PLAYGROUND_LUNCH_GROUP_UNASSIGNED,
   ADMIN_PLAYGROUND_MONTHLY_BAVERAGE,
   USERS_PLAYGROUND_LUNCH_GROUP,
   USERS_PLAYGROUND_MONTHLY_BAVERAGE,
@@ -27,6 +28,7 @@ import { CurrentUser } from '@common/decorator/currentUser.decorator';
 import { UserPayload } from '@common/interface/payload.interface';
 import { CreateMonthlyBaverageDto } from './dto/createMonthlyBaverage.dto';
 import { UpdateBaverage } from './dto/updateBaverage.dto';
+import { InsertUnAssignedUserDto } from './dto/insertUnassigned.dto';
 
 @ApiTags('사용자')
 @Controller('users/playground')
@@ -137,6 +139,20 @@ export class AdminPlaygroundController {
   @Delete('lunch-group')
   async deleteLunchGroup(): Promise<ResponseInterface> {
     await this.playgroundService.deleteLunchGroupConfig();
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_PLAYGROUND_LUNCH_GROUP_UNASSIGNED.POST.API_OPERATION)
+  @ApiOkResponse(ADMIN_PLAYGROUND_LUNCH_GROUP_UNASSIGNED.POST.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Post('lunch-group/unassigned')
+  async insertUnAssignedUser(@Body() { targetUserNames }: InsertUnAssignedUserDto): Promise<ResponseInterface> {
+    await this.playgroundService.insertAssignedUser(targetUserNames);
 
     const response: ResponseInterface = { message: 'success' };
 

@@ -27,7 +27,7 @@ export class ApprovalController {
   @ApiOkResponse(USERS_INTRANET_APPROVAL.PATCH.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
-  @UserRole(UserGradeEnum.MANAGER)
+  @UserRole(UserGradeEnum.INTERN)
   @Patch(':commuteIdx')
   async confirmLeave(
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,

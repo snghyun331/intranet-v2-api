@@ -253,7 +253,7 @@ export class CommuteRepository {
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ ...updateInfo, adminUpdatedAt })
+      .set({ ...updateInfo, adminUpdatedAt, firstUpdatedAt: () => `COALESCE(first_updated_at, NOW())` })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }

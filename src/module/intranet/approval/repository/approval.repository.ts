@@ -52,13 +52,19 @@ export class ApprovalRepository {
   }
 
   async updateConfirm(commuteIdx: number, confirmPersonIdx: number, confirmYN: ConfirmEnum): Promise<UpdateResult> {
-    const confirmYNDateInfo = { confirmDate: null, rejectDate: null };
+    const updateData: any = { confirmYN, confirmDate: null, rejectDate: null };
+
     switch (confirmYN) {
       case ConfirmEnum.YES:
-        confirmYNDateInfo.confirmDate = moment().utcOffset(9).format('YYYY-MM-DD');
+        updateData.confirmDate = moment().utcOffset(9).format('YYYY-MM-DD');
+        updateData.confirmPersonIdx = confirmPersonIdx;
         break;
       case ConfirmEnum.REJECT:
-        confirmYNDateInfo.rejectDate = moment().utcOffset(9).format('YYYY-MM-DD');
+        updateData.rejectDate = moment().utcOffset(9).format('YYYY-MM-DD');
+        updateData.confirmPersonIdx = null;
+        break;
+      case ConfirmEnum.NO:
+        updateData.confirmPersonIdx = null;
         break;
       default:
         break;
@@ -67,7 +73,7 @@ export class ApprovalRepository {
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ confirmYN, confirmPersonIdx, ...confirmYNDateInfo })
+      .set(updateData)
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
