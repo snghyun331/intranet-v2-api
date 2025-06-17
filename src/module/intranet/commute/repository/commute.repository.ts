@@ -192,6 +192,7 @@ export class CommuteRepository {
     const result = await this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
+        'commuteEntity.commuteIdx AS commuteIdx',
         'commuteEntity.userIdx AS userIdx',
         'commuteEntity.commuteDate AS commuteDate',
         'commuteEntity.leaveTypeIdx AS leaveTypeIdx',

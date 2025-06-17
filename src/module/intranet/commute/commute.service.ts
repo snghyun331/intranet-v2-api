@@ -10,6 +10,9 @@ import {
   AM_REST_LISTS,
   PM_REST_LISTS,
   AM_QUARTER_REST_LISTS,
+  ANNUAL_LEAVE_LISTS,
+  SPECIAL_LEAVE_LISTS,
+  ALTERNATIVE_LEAVE_LISTS,
 } from '@common/constant/constant';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
@@ -27,6 +30,7 @@ import {
   getNormalLateBoundary,
   getPmHalfLateBoundary,
   getStartAndEndDateByMonth,
+  substringYearMonth,
 } from '@common/utils/utility';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -34,16 +38,20 @@ import { Transactional } from 'typeorm-transactional';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from './interface';
 import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { GlobalHolidayRepository } from '@global/repository/globalHoliday.repository';
-import { LeaveService } from '../leave/leave.service';
 import { LastUpdated } from './interface/commute.interface';
+import { LeaveRepository } from '../leave/repository/leave.repository';
+import { ApprovalRepository } from '../approval/repository/approval.repository';
+import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
 
 @Injectable()
 export class CommuteService {
   constructor(
     private readonly commuteRepository: CommuteRepository,
-    private readonly leaveService: LeaveService,
+    private readonly leaveRepository: LeaveRepository,
     private readonly userRepository: GlobalUserRepository,
     private readonly holidayRepository: GlobalHolidayRepository,
+    private readonly approvalRepository: ApprovalRepository,
+    private readonly mealRepository: GlobalMealRepository,
   ) {}
 
   @Transactional()
@@ -748,8 +756,83 @@ export class CommuteService {
         throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
       }
 
-      await this.leaveService.deleteLeave(commuteIdx);
+      await this.deleteCommuteByAdmin(commuteIdx);
     }
+  }
+
+  private async deleteCommuteByAdmin(commuteIdx: number): Promise<void> {
+    const todayDate = moment().utcOffset(9).format('YYYY-MM-DD');
+    const commuteInfo = await this.commuteRepository.getCommuteInfoByIdx(commuteIdx);
+
+    if (!commuteInfo) {
+      throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
+    }
+
+    if (commuteInfo.leaveTypeIdx !== IntranetLeaveTypeIdxEnum.NORMAL) {
+      const leaveImageInfo = await this.leaveRepository.getLeaveImageInfoByIdx(commuteIdx);
+      // 승인 및 참조 및 이미지 데이터 모두 삭제
+      if (leaveImageInfo.imageIdx) {
+        await this.leaveRepository.deleteLeaveImage(leaveImageInfo.imageIdx);
+      }
+      await this.leaveRepository.deleteCommuteApprover(commuteIdx);
+      await this.leaveRepository.deleteCommuteCCUser(commuteIdx);
+    }
+
+    // 오늘 날짜 이후 (미래시점)
+    if (todayDate < commuteInfo.commuteDate) {
+      await this.commuteRepository.deleteCommute(commuteIdx);
+    } else {
+      // 오늘 혹은 이전 시점
+      const restCommutes = await this.leaveRepository.getRestCommutes(
+        commuteInfo.userIdx,
+        commuteInfo.commuteDate,
+        commuteInfo.commuteIdx,
+      );
+
+      if (restCommutes.length >= 1) {
+        // 해당 날짜에 다른 근태도 있을 경우 (조합휴가)
+        await this.commuteRepository.deleteCommute(commuteIdx);
+      } else {
+        // 단일휴가 or 일반근무일 경우
+        await this.commuteRepository.deleteAndUpdateCommute(commuteIdx);
+      }
+    }
+
+    const { year, month } = substringYearMonth(commuteInfo.commuteDate);
+    const useCount: number = await this.approvalRepository.getTotalLeaveCountForMonth(
+      year,
+      month,
+      commuteInfo.userIdx,
+      commuteInfo.leaveTypeIdx,
+    );
+
+    // 월별 사용개수 업데이트
+    await this.approvalRepository.updateLeaveMonthlyUseCount(
+      year,
+      month,
+      commuteInfo.userIdx,
+      commuteInfo.leaveTypeIdx,
+      useCount,
+    );
+
+    // 연도별 사용개수 업데이트
+    await this.approvalRepository.updateLeaveAnnualUseCount(year, commuteInfo.userIdx, commuteInfo.leaveTypeIdx);
+
+    // 연도별 연차 총 사용량 업데이트
+    if (ANNUAL_LEAVE_LISTS.has(commuteInfo.leaveTypeIdx)) {
+      await this.approvalRepository.updateTotalAnnualLeaveUsage(year, commuteInfo.userIdx);
+    }
+    // 연도별 특별휴무 총 사용량 업데이트
+    if (SPECIAL_LEAVE_LISTS.has(commuteInfo.leaveTypeIdx)) {
+      await this.approvalRepository.updateTotalSpecialLeaveUsage(year, commuteInfo.userIdx);
+    }
+    // 연도별 대체휴무 총 사용량 업데이트
+    if (ALTERNATIVE_LEAVE_LISTS.has(commuteInfo.leaveTypeIdx)) {
+      await this.approvalRepository.updateTotalAlternativeLeaveUsage(year, commuteInfo.userIdx);
+    }
+
+    // 식대 월별 timeoffDays 업데이트
+    await this.mealRepository.updateMealTimeOffDays(year, month, commuteInfo.userIdx);
   }
 
   @Transactional()
