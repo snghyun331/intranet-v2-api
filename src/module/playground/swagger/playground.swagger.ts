@@ -512,7 +512,10 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP_UNASSIGNED: SwaggerMethod = {
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          example: {},
+          example: {
+            message: 'success',
+            statusCode: 200,
+          },
         },
       },
     },

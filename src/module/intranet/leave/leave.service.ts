@@ -107,13 +107,6 @@ export class LeaveService {
           throw new BadRequestException('근무 시간이 2.5시간 미만이면 사용하실 수 없습니다.');
         }
       }
-      // } else {
-      //   // 생일일 때, 반차 사용 시
-      //   const standardWorkingMinutes = calculateSingleLeaveStandardWorkingMinutes(leave.leaveTypeIdx, isBirthday);
-      //   if (standardWorkingMinutes <= TWO_HOURS_HALF_WORKIMG_MINUTES && standardWorkingMinutes > 0) {
-      //     throw new BadRequestException('근무 시간이 2.5시간 미만이면 사용하실 수 없습니다.');
-      //   }
-      // }
 
       /* 보건휴가 월 사용 개수가 1이상이면 보건휴가 사용 불가 */
       if (leaveTypeIdx === IntranetLeaveTypeIdxEnum.HEALTH_LEAVE) {
@@ -194,6 +187,8 @@ export class LeaveService {
                   attendance: existingCommute.attendance,
                   availCheckOutTime: existingCommute.availCheckOutTime,
                   firstUpdatedAt: (leave.firstUpdatedAt = new Date()),
+                  checkInIpAddr: existingCommute.checkInIpAddr,
+                  checkInLogAgent: existingCommute.checkInLogAgent,
                 }
               : null;
 

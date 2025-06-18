@@ -149,6 +149,7 @@ export class LeaveRepository {
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .andWhere('commuteEntity.commuteIdx != :exceptCommuteIdx', { exceptCommuteIdx })
+      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
       .getRawMany();
 
     return result;
