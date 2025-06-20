@@ -337,7 +337,6 @@ export const ADMIN_INTRANET_COMMUTE: SwaggerMethod = {
                   checkOutLogAgent: null,
                   confirmDate: null,
                   rejectDate: null,
-                  adminUpdatedAt: null,
                   firstUpdatedAt: '2025-06-16T01:43:25.000Z',
                   lastUpdatedAt: {
                     name: '이승현',

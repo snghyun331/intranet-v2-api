@@ -295,35 +295,18 @@ export const calculateAvailCheckOutTime = (
   checkInTime: Date,
   leaveTypeIdx: number | null,
   confirmYN: ConfirmEnum,
-  isBirthday: boolean,
 ): Date => {
   let standardWorkingMinutes: number;
 
   if (confirmYN === ConfirmEnum.NO || confirmYN === ConfirmEnum.REJECT) {
-    if (isBirthday) {
-      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES; // 정상근무일 때, 생일 반반차 적용
+    standardWorkingMinutes = NORMAL_WORKING_MINUTES;
+  } else {
+    if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
+      standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+    } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
+      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
     } else {
       standardWorkingMinutes = NORMAL_WORKING_MINUTES;
-    }
-  } else {
-    if (isBirthday) {
-      if (AM_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = TWO_HOURS_HALF_WORKIMG_MINUTES;
-      } else if (PM_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
-      } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = THREE_HOURS_WORKING_MINUTES;
-      } else {
-        standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
-      }
-    } else {
-      if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
-      } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-        standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
-      } else {
-        standardWorkingMinutes = NORMAL_WORKING_MINUTES;
-      }
     }
   }
 
@@ -336,63 +319,38 @@ export const calculateCombinedCommuteAvailCheckOutTime = (
   checkInTime: Date,
   firstLeaveTypeIdx: number,
   secondLeaveTypeIdx: number,
-  isBirthday: boolean,
 ) => {
   const standardWorkingMinutes: number = calculateCombinedLeaveStandardWorkingMinutes(
     firstLeaveTypeIdx,
     secondLeaveTypeIdx,
-    isBirthday,
   );
   const availCheckOutTime = addMinutes(checkInTime, standardWorkingMinutes);
 
   return availCheckOutTime;
 };
 
-export const calculateSingleCommuteAvailCheckOutTime = (
-  checkInTime: Date,
-  leaveTypeIdx: number,
-  isBirthday: boolean,
-) => {
-  const standardWorkingMinutes: number = calculateSingleLeaveStandardWorkingMinutes(leaveTypeIdx, isBirthday);
+export const calculateSingleCommuteAvailCheckOutTime = (checkInTime: Date, leaveTypeIdx: number) => {
+  const standardWorkingMinutes: number = calculateSingleLeaveStandardWorkingMinutes(leaveTypeIdx);
   const availCheckOutTime = addMinutes(checkInTime, standardWorkingMinutes);
 
   return availCheckOutTime;
 };
 
-export const calculateSingleLeaveStandardWorkingMinutes = (leaveTypeIdx: number, isBirthday: boolean) => {
+export const calculateSingleLeaveStandardWorkingMinutes = (leaveTypeIdx: number) => {
   let standardWorkingMinutes: number;
 
-  if (isBirthday) {
-    if (AM_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = TWO_HOURS_HALF_WORKIMG_MINUTES;
-    } else if (PM_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
-    } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = THREE_HOURS_WORKING_MINUTES;
-    } else {
-      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
-    }
+  if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
+    standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
+  } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
+    standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
   } else {
-    if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = FOUR_HOURS_WORKING_MINUTES;
-    } else if (AM_QUARTER_REST_LISTS.has(leaveTypeIdx) || PM_QUARTER_REST_LISTS.has(leaveTypeIdx)) {
-      standardWorkingMinutes = SEVEN_HOURS_WORKING_MINUTES;
-    } else {
-      standardWorkingMinutes = NORMAL_WORKING_MINUTES;
-    }
+    standardWorkingMinutes = NORMAL_WORKING_MINUTES;
   }
 
   return standardWorkingMinutes;
 };
 
-export const calculateCombinedLeaveStandardWorkingMinutes = (
-  existLeaveTypeIdx: number,
-  newLeaveTypeIdx: number,
-  isBirthday: boolean,
-) => {
-  if (isBirthday) {
-    throw new BadRequestException('생일인 날짜에는 휴가 1개만 등록 가능합니다.');
-  }
+export const calculateCombinedLeaveStandardWorkingMinutes = (existLeaveTypeIdx: number, newLeaveTypeIdx: number) => {
   let standardWorkingMinutes: number;
   // 기존 휴가와 새 휴가 타입 분류
   const isExistAmHalf = AM_REST_LISTS.has(existLeaveTypeIdx);

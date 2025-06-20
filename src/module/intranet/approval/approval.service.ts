@@ -66,8 +66,6 @@ export class ApprovalService {
       const validCommutes = await this.approvalRepository.getValidCommutesByDate(userIdx, existing.commuteDate);
       // 이미 출근을 한 상태인 경우, 퇴근가능시간 및 근태 업데이트
       if (existing.checkInTime) {
-        const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, existing.commuteDate); // 생일여부 확인
-
         let availCheckOutTime: Date;
         let attendance: IntranetAttendanceEnum;
         if (validCommutes.length === 2) {
@@ -76,18 +74,13 @@ export class ApprovalService {
             existing.checkInTime,
             validCommutes[0].leaveTypeIdx,
             validCommutes[1].leaveTypeIdx,
-            isBirthday,
           );
           const isAmQuarterLate =
             new Date(existing.checkInTime) >= getAmQuarterLateBoundary(new Date(existing.checkInTime));
           attendance = isAmQuarterLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
         } else {
           // 단일 휴가일 경우,
-          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
-            existing.checkInTime,
-            existing.leaveTypeIdx,
-            isBirthday,
-          );
+          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(existing.checkInTime, existing.leaveTypeIdx);
           const isPmQuarterLate =
             PM_QUARTER_REST_LISTS.has(existing.leaveTypeIdx) &&
             new Date(existing.checkInTime) >= getNormalLateBoundary(new Date(existing.checkInTime));
@@ -155,13 +148,11 @@ export class ApprovalService {
         let availCheckOutTime: Date;
         let attendance: IntranetAttendanceEnum;
 
-        const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, existing.commuteDate); // 생일여부 확인
         // 이전에 조합휴가이어서 여전히 승인(Y)인 휴가근태 내역이 존재할 때,
         if (validCommutes.length === 1) {
           availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
             validCommutes[0].checkInTime,
             validCommutes[0].leaveTypeIdx,
-            isBirthday,
           );
           const isPmQuarterLate =
             PM_QUARTER_REST_LISTS.has(validCommutes[0].leaveTypeIdx) &&
@@ -190,7 +181,6 @@ export class ApprovalService {
           availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
             existing.checkInTime,
             IntranetLeaveTypeIdxEnum.NORMAL,
-            isBirthday,
           );
         }
 

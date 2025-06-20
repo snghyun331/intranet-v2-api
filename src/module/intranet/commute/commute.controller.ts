@@ -218,10 +218,11 @@ export class AdminCommuteController {
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Put('commute/:commuteIdx/time')
   async updateCommuteTime(
+    @CurrentAdmin() { adminName }: AdminPayload,
     @Param('commuteIdx', ParseIntPipe) commuteIdx: number,
     @Body() updateInfo: UpdateCommuteTimeDto,
   ): Promise<ResponseInterface> {
-    await this.commuteService.updateCommuteTime(commuteIdx, updateInfo);
+    await this.commuteService.updateCommuteTime(commuteIdx, adminName, updateInfo);
 
     const response: ResponseInterface = { message: 'success' };
 

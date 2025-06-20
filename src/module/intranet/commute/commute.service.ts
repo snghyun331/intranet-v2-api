@@ -67,7 +67,6 @@ export class CommuteService {
      */
 
     const commuteDate: string = moment(checkInDto.checkInTime).utcOffset(9).format('YYYY-MM-DD');
-    const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, commuteDate); // 생일여부 확인
 
     /* 오전 6시 ~ 오전 8시는 현장 근무, 오전 6시 이전은 출근 불가 */
     const checkInHour: number = new Date(checkInDto.checkInTime).getHours();
@@ -102,7 +101,6 @@ export class CommuteService {
         checkInIpAddr,
         userIdx,
         commuteDate,
-        isBirthday,
         checkInHour,
       );
     } else if (confirmedCommuteInfoList.length === 1) {
@@ -114,7 +112,6 @@ export class CommuteService {
         checkInIpAddr,
         userIdx,
         commuteDate,
-        isBirthday,
         checkInHour,
       );
     } else {
@@ -126,7 +123,6 @@ export class CommuteService {
         checkInIpAddr,
         userIdx,
         commuteDate,
-        isBirthday,
         checkInHour,
       );
     }
@@ -139,7 +135,6 @@ export class CommuteService {
     checkInIpAddr: string,
     userIdx: number,
     commuteDate: string,
-    isBirthday: boolean,
     checkInHour: number,
   ) {
     /* 근태 상태가 휴무인지 확인 */
@@ -151,7 +146,6 @@ export class CommuteService {
     const { attendance, availCheckOutTime } = await this.calculateCombinedLeaveAttendance(
       commuteInfoList,
       checkInDto.checkInTime,
-      isBirthday,
       checkInHour,
     );
 
@@ -174,7 +168,6 @@ export class CommuteService {
     checkInIpAddr: string,
     userIdx: number,
     commuteDate: string,
-    isBirthday: boolean,
     checkInHour: number,
   ): Promise<void> {
     /* 근태 상태가 휴무인지 확인 */
@@ -187,7 +180,6 @@ export class CommuteService {
       const { attendance, availCheckOutTime } = await this.calculateSingleLeaveAttendance(
         commuteInfo.leaveTypeIdx,
         checkInDto.checkInTime,
-        isBirthday,
         checkInHour,
       );
 
@@ -214,14 +206,9 @@ export class CommuteService {
     checkInIpAddr: string,
     userIdx: number,
     commuteDate: string,
-    isBirthday: boolean,
     checkInHour: number,
   ): Promise<void> {
-    const { attendance, availCheckOutTime } = await this.calculateNormalAttendance(
-      checkInDto.checkInTime,
-      isBirthday,
-      checkInHour,
-    );
+    const { attendance, availCheckOutTime } = await this.calculateNormalAttendance(checkInDto.checkInTime, checkInHour);
 
     /* commuteInfo가 없는 경우: '일반 근무'로 간주
      * - 반려 처리되었거나
@@ -259,12 +246,7 @@ export class CommuteService {
   /**
    * 조합휴가 지각 판별 & 퇴근가능시간 계산
    */
-  private async calculateCombinedLeaveAttendance(
-    commuteInfoList: any[],
-    checkInTime: Date,
-    isBirthday: boolean,
-    checkInHour: number,
-  ) {
+  private async calculateCombinedLeaveAttendance(commuteInfoList: any[], checkInTime: Date, checkInHour: number) {
     const isAmQuarterLate = new Date(checkInTime) >= getAmQuarterLateBoundary(new Date(checkInTime));
     const attendance = isAmQuarterLate
       ? IntranetAttendanceEnum.CHECK_IN_LATE
@@ -276,7 +258,6 @@ export class CommuteService {
       checkInTime,
       commuteInfoList[0].leaveTypeIdx,
       commuteInfoList[1].leaveTypeIdx,
-      isBirthday,
     );
 
     return { attendance, availCheckOutTime };
@@ -285,12 +266,7 @@ export class CommuteService {
   /**
    * 반차/반반차 지각 판별
    */
-  private async calculateSingleLeaveAttendance(
-    leaveTypeIdx: number,
-    checkInTime: Date,
-    isBirthday: boolean,
-    checkInHour: number,
-  ) {
+  private async calculateSingleLeaveAttendance(leaveTypeIdx: number, checkInTime: Date, checkInHour: number) {
     const isPmQuarterLate =
       PM_QUARTER_REST_LISTS.has(leaveTypeIdx) && new Date(checkInTime) >= getNormalLateBoundary(new Date(checkInTime));
 
@@ -311,7 +287,7 @@ export class CommuteService {
           ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
           : IntranetAttendanceEnum.CHECK_IN;
 
-    const availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(checkInTime, leaveTypeIdx, isBirthday);
+    const availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(checkInTime, leaveTypeIdx);
 
     return { attendance, availCheckOutTime };
   }
@@ -319,7 +295,7 @@ export class CommuteService {
   /**
    * 일반 근무 지각 판별
    */
-  private async calculateNormalAttendance(checkInTime: Date, isBirthday: boolean, checkInHour: number) {
+  private async calculateNormalAttendance(checkInTime: Date, checkInHour: number) {
     const isNormalLate = new Date(checkInTime) >= getNormalLateBoundary(new Date(checkInTime));
 
     const attendance = isNormalLate
@@ -328,11 +304,7 @@ export class CommuteService {
         ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
         : IntranetAttendanceEnum.CHECK_IN;
 
-    const availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
-      checkInTime,
-      IntranetLeaveTypeIdxEnum.NORMAL,
-      isBirthday,
-    );
+    const availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(checkInTime, IntranetLeaveTypeIdxEnum.NORMAL);
 
     return { attendance, availCheckOutTime };
   }
@@ -739,7 +711,7 @@ export class CommuteService {
           checkOutIpAddr: record.checkOutIpAddr,
           checkInLogAgent: record.checkInLogAgent,
           checkOutLogAgent: record.checkOutLogAgent,
-          adminUpdatedAt: record.adminUpdatedAt,
+          lastUpdatedAt: record.lastUpdatedAt,
           leave: uniqueLeaves,
         };
       }),
@@ -836,7 +808,7 @@ export class CommuteService {
   }
 
   @Transactional()
-  async updateCommuteTime(commuteIdx: number, updateDto: UpdateCommuteTimeDto): Promise<void> {
+  async updateCommuteTime(commuteIdx: number, adminName: string, updateDto: UpdateCommuteTimeDto): Promise<void> {
     const commuteInfo = await this.commuteRepository.getCommuteInfoByIdx(commuteIdx);
     if (!commuteInfo) {
       throw new NotFoundException('해당 내역은 존재하지 않거나 삭제되었습니다.');
@@ -863,6 +835,8 @@ export class CommuteService {
       workingMinutes = null;
       overtimeWorkingMinutes = null;
 
+      const lastUpdatedAt: LastUpdated = { name: adminName, time: new Date() };
+
       await Promise.all(
         allValidCommutesByDate.map(async (commute) => {
           const leaveTypeIdx = commute.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL ? null : commute.leaveTypeIdx;
@@ -873,7 +847,7 @@ export class CommuteService {
             availCheckOutTime,
             attendance,
             leaveTypeIdx,
-            adminUpdatedAt: new Date(),
+            lastUpdatedAt,
           };
           await this.commuteRepository.updateCommuteTime(commute.commuteIdx, updateInfo);
         }),
@@ -883,7 +857,6 @@ export class CommuteService {
     }
 
     const approvedCommuteInfoList = allValidCommutesByDate.filter((info) => info.confirmYN === ConfirmEnum.YES); // 승인된 휴가 추출
-    const isBirthday: boolean = await this.userRepository.isBirthday(commuteInfo.userIdx, commuteInfo.commuteDate); // 생일여부 확인
 
     if (approvedCommuteInfoList.length === 2) {
       /* 조합휴가 케이스 (2개 휴가) */
@@ -892,7 +865,6 @@ export class CommuteService {
         updateDto.checkInTime,
         approvedCommuteInfoList[0].leaveTypeIdx,
         approvedCommuteInfoList[1].leaveTypeIdx,
-        isBirthday,
       );
 
       // 지각 판별
@@ -911,7 +883,6 @@ export class CommuteService {
         const standardWorkingMinutes = calculateCombinedLeaveStandardWorkingMinutes(
           approvedCommuteInfoList[0].leaveTypeIdx,
           approvedCommuteInfoList[1].leaveTypeIdx,
-          isBirthday,
         );
         overtimeWorkingMinutes =
           workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
@@ -937,7 +908,6 @@ export class CommuteService {
       availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
         updateDto.checkInTime,
         approvedCommuteInfoList[0].leaveTypeIdx,
-        isBirthday,
       );
       // 지각 판별
       const isPmQuarterLate =
@@ -970,7 +940,6 @@ export class CommuteService {
         workingMinutes = (updateDto.checkOutTime.getTime() - updateDto.checkInTime.getTime()) / (1000 * 60);
         const standardWorkingMinutes = calculateSingleLeaveStandardWorkingMinutes(
           approvedCommuteInfoList[0].leaveTypeIdx,
-          isBirthday,
         );
         overtimeWorkingMinutes =
           workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
@@ -997,7 +966,6 @@ export class CommuteService {
       availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
         updateDto.checkInTime,
         IntranetLeaveTypeIdxEnum.NORMAL,
-        isBirthday,
       );
       // 지각 판별
       const isNormalLate = new Date(updateDto.checkInTime) >= getNormalLateBoundary(new Date(updateDto.checkInTime));
@@ -1011,10 +979,7 @@ export class CommuteService {
       } else {
         // 근무시간 계산
         workingMinutes = (updateDto.checkOutTime.getTime() - updateDto.checkInTime.getTime()) / (1000 * 60);
-        const standardWorkingMinutes = calculateSingleLeaveStandardWorkingMinutes(
-          IntranetLeaveTypeIdxEnum.NORMAL,
-          isBirthday,
-        );
+        const standardWorkingMinutes = calculateSingleLeaveStandardWorkingMinutes(IntranetLeaveTypeIdxEnum.NORMAL);
         overtimeWorkingMinutes =
           workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
         // 근태 계산
@@ -1033,6 +998,7 @@ export class CommuteService {
       }
     }
 
+    const lastUpdatedAt: LastUpdated = { name: adminName, time: new Date() };
     await Promise.all(
       allValidCommutesByDate.map(async (commute) => {
         const updateInfo: UpdateCommuteTimeInfo = {
@@ -1041,8 +1007,8 @@ export class CommuteService {
           overtimeWorkingMinutes,
           availCheckOutTime,
           attendance,
-          adminUpdatedAt: new Date(),
           leaveTypeIdx: commute.leaveTypeIdx || IntranetLeaveTypeIdxEnum.NORMAL,
+          lastUpdatedAt,
         };
 
         await this.commuteRepository.updateCommuteTime(commute.commuteIdx, updateInfo);

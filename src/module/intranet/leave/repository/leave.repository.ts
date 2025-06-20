@@ -576,6 +576,7 @@ export class LeaveRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .where('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
       .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
@@ -652,12 +653,10 @@ export class LeaveRepository {
   }
 
   async updateLeaveNote(commuteIdx: number, { note }: UpdateNoteDto): Promise<UpdateResult> {
-    const adminUpdatedAt: Date = new Date();
-
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ note, adminUpdatedAt })
+      .set({ note })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }

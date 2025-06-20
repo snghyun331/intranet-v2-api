@@ -82,8 +82,7 @@ export class LeaveService {
         throw new BadRequestException('올바른 휴가유형 IDX을 입력해주세요.');
       }
 
-      const isBirthday: boolean = await this.userRepository.isBirthday(userIdx, commuteDate); // 생일여부 확인
-      const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx, isBirthday); // 연차 차감단위
+      const leaveReduceUnit: number = await this.calculateLeaveReduceUnit(leaveTypeIdx); // 연차 차감단위
 
       /* 같은 날에 이미 등록한 1개 휴가가 있는 경우 처리 방법 */
       const existingValidateLeaves = await this.leaveRepository.getValidateLeaveInfoByDate(userIdx, commuteDate);
@@ -100,7 +99,6 @@ export class LeaveService {
         const standardWorkingMinutes = calculateCombinedLeaveStandardWorkingMinutes(
           existingValidateLeaves[0].leaveTypeIdx,
           leaveTypeIdx,
-          isBirthday,
         );
 
         if (standardWorkingMinutes <= TWO_HOURS_HALF_WORKIMG_MINUTES && standardWorkingMinutes > 0) {
@@ -253,7 +251,6 @@ export class LeaveService {
     } else {
       // 오늘 혹은 이전 시점
       const leaveImageInfo = await this.leaveRepository.getLeaveImageInfoByIdx(commuteIdx);
-      const isBirthday: boolean = await this.userRepository.isBirthday(leaveInfo.userIdx, leaveInfo.commuteDate); // 생일여부 확인
       // 승인 및 참조 및 이미지 데이터 모두 삭제
       if (leaveImageInfo.imageIdx) {
         await this.leaveRepository.deleteLeaveImage(leaveImageInfo.imageIdx);
@@ -283,7 +280,6 @@ export class LeaveService {
               leaveInfo.checkInTime,
               approvedLeaves[0].leaveTypeIdx,
               approvedLeaves[1].leaveTypeIdx,
-              isBirthday,
             );
             const isAmQuarterLate =
               new Date(leaveInfo.checkInTime) >= getAmQuarterLateBoundary(new Date(leaveInfo.checkInTime));
@@ -293,7 +289,6 @@ export class LeaveService {
             availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
               leaveInfo.checkInTime,
               approvedLeaves[0].leaveTypeIdx,
-              isBirthday,
             );
             const isPmQuarterLate =
               PM_QUARTER_REST_LISTS.has(approvedLeaves[0].leaveTypeIdx) &&
@@ -320,7 +315,6 @@ export class LeaveService {
             availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
               leaveInfo.checkInTime,
               IntranetLeaveTypeIdxEnum.NORMAL,
-              isBirthday,
             );
 
             const isNormalLate =
@@ -351,11 +345,7 @@ export class LeaveService {
           leaveReduceUnit: 0,
           attendance,
           availCheckOutTime: leaveInfo.checkInTime
-            ? calculateSingleCommuteAvailCheckOutTime(
-                leaveInfo.checkInTime,
-                IntranetLeaveTypeIdxEnum.NORMAL,
-                isBirthday,
-              )
+            ? calculateSingleCommuteAvailCheckOutTime(leaveInfo.checkInTime, IntranetLeaveTypeIdxEnum.NORMAL)
             : null,
         };
         await this.leaveRepository.updateCommute(commuteIdx, updateInfo);
@@ -667,95 +657,48 @@ export class LeaveService {
     return;
   }
 
-  private async calculateLeaveReduceUnit(leaveTypeIdx: number, isBirthday: boolean) {
-    if (isBirthday) {
-      switch (leaveTypeIdx) {
-        case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
-          return 0.75;
-        case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.AM_HALF:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.PM_HALF:
-          return 0.25;
-        case IntranetLeaveTypeIdxEnum.AM_QUARTER:
-          return 0.25;
-        case IntranetLeaveTypeIdxEnum.PM_QUARTER:
-          return 0;
-        case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.HEALTH_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.TRAINING:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.SICK_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.AM_TRAINING:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.PM_TRAINING:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE:
-          return 0.25;
-        case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
-          return 0.25;
-        default:
-          return 0;
-      }
-    } else {
-      switch (leaveTypeIdx) {
-        case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.AM_HALF:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.PM_HALF:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.AM_QUARTER:
-          return 0.25;
-        case IntranetLeaveTypeIdxEnum.PM_QUARTER:
-          return 0.25;
-        case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.HEALTH_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.TRAINING:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.SICK_LEAVE:
-          return 1;
-        case IntranetLeaveTypeIdxEnum.AM_TRAINING:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.PM_TRAINING:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE:
-          return 0.5;
-        case IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE:
-          return 0.25;
-        case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
-          return 0.25;
-        default:
-          return 0;
-      }
+  private async calculateLeaveReduceUnit(leaveTypeIdx: number) {
+    switch (leaveTypeIdx) {
+      case IntranetLeaveTypeIdxEnum.ANNUAL_LEAVE:
+        return 1;
+      case IntranetLeaveTypeIdxEnum.AM_HALF:
+        return 0.5;
+      case IntranetLeaveTypeIdxEnum.PM_HALF:
+        return 0.5;
+      case IntranetLeaveTypeIdxEnum.AM_QUARTER:
+        return 0.25;
+      case IntranetLeaveTypeIdxEnum.PM_QUARTER:
+        return 0.25;
+      case IntranetLeaveTypeIdxEnum.FAMILY_EVENT_LEAVE:
+        return 1;
+      case IntranetLeaveTypeIdxEnum.HEALTH_LEAVE:
+        return 1;
+      case IntranetLeaveTypeIdxEnum.ALTERNATIVE_LEAVE:
+        return 1;
+      case IntranetLeaveTypeIdxEnum.TRAINING:
+        return 1;
+      case IntranetLeaveTypeIdxEnum.SPECIAL_LEAVE:
+        return 1;
+      case IntranetLeaveTypeIdxEnum.SICK_LEAVE:
+        return 1;
+      case IntranetLeaveTypeIdxEnum.AM_TRAINING:
+        return 0.5;
+      case IntranetLeaveTypeIdxEnum.PM_TRAINING:
+        return 0.5;
+      case IntranetLeaveTypeIdxEnum.AM_SPECIAL_LEAVE:
+        return 0.5;
+      case IntranetLeaveTypeIdxEnum.PM_SPECIAL_LEAVE:
+        return 0.5;
+      case IntranetLeaveTypeIdxEnum.AM_ALTERNATIVE_LEAVE:
+        return 0.5;
+      case IntranetLeaveTypeIdxEnum.PM_ALTERNATIVE_LEAVE:
+        return 0.5;
+      case IntranetLeaveTypeIdxEnum.AM_QUARTER_SPECIAL_LEAVE:
+        return 0.25;
+      case IntranetLeaveTypeIdxEnum.PM_QUARTER_SPECIAL_LEAVE:
+        return 0.25;
+      default:
+        return 0;
     }
   }
 

@@ -140,7 +140,6 @@ export class CommuteRepository {
         'commuteEntity.confirmYN AS confirmYN',
         'commuteEntity.confirmDate AS confirmDate',
         'commuteEntity.rejectDate AS rejectDate',
-        'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
         'commuteEntity.firstUpdatedAt AS firstUpdatedAt',
         'commuteEntity.lastUpdatedAt AS lastUpdatedAt',
       ])
@@ -227,7 +226,7 @@ export class CommuteRepository {
       confirmDate: null,
       rejectDate: null,
       confirmPersonIdx: null,
-      adminUpdatedAt: null,
+      lastUpdatedAt: null,
       leaveReduceUnit: 0,
     };
 
@@ -249,30 +248,11 @@ export class CommuteRepository {
   }
 
   async updateCommuteTime(commuteIdx: number, updateInfo: UpdateCommuteTimeInfo): Promise<UpdateResult> {
-    const adminUpdatedAt: Date = new Date();
-
     return await this.commuteModel
       .createQueryBuilder()
       .update(CommuteEntity)
-      .set({ ...updateInfo, adminUpdatedAt, firstUpdatedAt: () => `COALESCE(first_updated_at, NOW())` })
+      .set({ ...updateInfo, firstUpdatedAt: () => `COALESCE(first_updated_at, NOW())` })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
-      .execute();
-  }
-
-  async updateCommuteTimeByDate(
-    userIdx: number,
-    commuteDate: string,
-    userInfo: UpdateCommuteTimeInfo,
-  ): Promise<UpdateResult> {
-    const adminUpdatedAt: Date = new Date();
-
-    return await this.commuteModel
-      .createQueryBuilder()
-      .update(CommuteEntity)
-      .set({ ...userInfo, adminUpdatedAt })
-      .where('commuteDate = :commuteDate', { commuteDate })
-      .andWhere('userIdx = :userIdx', { userIdx })
-      .andWhere('confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
       .execute();
   }
 
@@ -282,16 +262,6 @@ export class CommuteRepository {
       .update(CommuteEntity)
       .set({ ...noteInfo })
       .where('commuteIdx = :commuteIdx', { commuteIdx })
-      .execute();
-  }
-
-  async updateCommuteNoteByDate(userIdx: number, commuteDate: string, noteInfo: UpdateNoteDto): Promise<UpdateResult> {
-    return await this.commuteModel
-      .createQueryBuilder()
-      .update(CommuteEntity)
-      .set({ ...noteInfo })
-      .where('userIdx = :userIdx', { userIdx })
-      .andWhere('commuteDate = :commuteDate', { commuteDate })
       .execute();
   }
 
@@ -317,7 +287,7 @@ export class CommuteRepository {
         'commuteEntity.checkOutIpAddr AS checkOutIpAddr',
         'commuteEntity.checkInLogAgent AS checkInLogAgent',
         'commuteEntity.checkOutLogAgent AS checkOutLogAgent',
-        'commuteEntity.adminUpdatedAt AS adminUpdatedAt',
+        'commuteEntity.lastUpdatedAt AS lastUpdatedAt',
       ])
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
