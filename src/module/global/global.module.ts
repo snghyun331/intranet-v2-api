@@ -12,11 +12,20 @@ import { GlobalCommuteRepository } from './repository/globalCommute.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../../schema/user/user.schema';
 import { GlobalPlayGroundModel } from './model/globalPlayground.model';
+import { GlobalLeaveRepository } from './repository/globalLeave.repository';
+import { LeaveStatsEntity } from '../../entity/intranet/leave/leaveStats.entity';
 
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity, AdminEntity, HolidayEntity, MealStatsEntity, CommuteEntity]),
+    TypeOrmModule.forFeature([
+      UserEntity,
+      AdminEntity,
+      HolidayEntity,
+      MealStatsEntity,
+      CommuteEntity,
+      LeaveStatsEntity,
+    ]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   providers: [
@@ -24,6 +33,7 @@ import { GlobalPlayGroundModel } from './model/globalPlayground.model';
     GlobalHolidayRepository,
     GlobalMealRepository,
     GlobalCommuteRepository,
+    GlobalLeaveRepository,
     GlobalPlayGroundModel,
   ],
   exports: [
@@ -31,6 +41,7 @@ import { GlobalPlayGroundModel } from './model/globalPlayground.model';
     GlobalHolidayRepository,
     GlobalMealRepository,
     GlobalCommuteRepository,
+    GlobalLeaveRepository,
     GlobalPlayGroundModel,
   ],
 })

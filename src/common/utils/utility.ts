@@ -203,7 +203,7 @@ export const getNormalEarlyBoundary = (timestamp: Date): Date => {
 
 // 근속년수 계산
 export const getYearsSinceJoin = (joinDateString: string): number => {
-  const now: moment.Moment = moment('2025-01-01').utcOffset(9);
+  const now: moment.Moment = moment().utcOffset(9);
   const joinDate = moment(joinDateString).utcOffset(9);
   const yearsSinceJoin: number = now.diff(joinDate, 'years');
 
@@ -216,6 +216,21 @@ export const getOneYearAfterJoin = (joinDateString: string): string => {
   const oneYearAfterJoin: string = joinDate.add(1, 'years').subtract(1, 'days').format('YYYY-MM-DD');
 
   return oneYearAfterJoin;
+};
+
+export const getEndOfYear = (dateString: string): string => {
+  const date = moment(dateString).utcOffset(9);
+  const endOfYear: string = date.endOf('year').format('YYYY-MM-DD');
+
+  return endOfYear;
+};
+
+// 날짜 간 월 수 차이
+export const getMonthsDifferenceFromToday = (targetDateString: string): number => {
+  const today = moment();
+  const target = moment(targetDateString);
+
+  return Math.abs(target.diff(today, 'months'));
 };
 
 export const calculateExtraAnnualLeave = (joinDateString: string): number => {

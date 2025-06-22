@@ -6,7 +6,16 @@ import { AdminUserFilterDto } from '@user/dto/query.dto';
 import { CreateUserDto } from '@user/dto/createUser.dto';
 import { UpdateMyInfoDto } from '@user/dto/updateMyInfo.dto';
 import { UpdatePasswordDto } from '@user/dto/updateMyPw.dto';
-import { decryptPassword, encryptPassword, getDaysInMonth } from '@common/utils/utility';
+import {
+  calculateExtraAnnualLeave,
+  decryptPassword,
+  encryptPassword,
+  getDaysBetwweenTwoDates,
+  getDaysInMonth,
+  getEndOfYear,
+  getMonthsDifferenceFromToday,
+  getYearsSinceJoin,
+} from '@common/utils/utility';
 import { HalfYearEnum, UserGradeIdxEnum, YNEnum } from '@common/constant/enum';
 import { UpdateUserDto } from '@user/dto/updateUser.dto';
 import { RedisSearchService } from '@redis/redisSearch.service';
@@ -21,12 +30,14 @@ import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repo
 import { NewActivityMonthStats, NewActivityStats } from '../activity/interface';
 import { GlobalCommuteRepository } from '../global/repository/globalCommute.repository';
 import { GlobalPlayGroundModel } from '../global/model/globalPlayground.model';
+import { GlobalLeaveRepository } from '../global/repository/globalLeave.repository';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly globalUserRepository: GlobalUserRepository,
+    private readonly leaveRepository: GlobalLeaveRepository,
     private readonly commuteRepository: GlobalCommuteRepository,
     private readonly redisSearchService: RedisSearchService,
     private readonly holidayRepository: GlobalHolidayRepository,
@@ -406,6 +417,31 @@ export class UserService {
     }
 
     /* 입사일이 바뀌었다면, 총 연차일 수정*/
+    if (result.joinDate !== updateInfo.joinDate) {
+      let totalReceivedAnnualLeave: number;
+      let midJoinReceivedAnnualLeave: number;
+      const yearsSinceJoin: number = getYearsSinceJoin(updateInfo.joinDate);
+      // 총 연차 수 및 중도입사연차 수 계산
+      if (yearsSinceJoin < 1) {
+        totalReceivedAnnualLeave = getMonthsDifferenceFromToday(updateInfo.joinDate);
+        midJoinReceivedAnnualLeave = 0;
+      } else {
+        const extraAnnualLeave = calculateExtraAnnualLeave(updateInfo.joinDate);
+        console.log('extraAnnualLeave', extraAnnualLeave);
+        totalReceivedAnnualLeave = 15 + extraAnnualLeave;
+        const endOfJoinYear: string = getEndOfYear(updateInfo.joinDate); // 입사년도 마지막 날
+        const lastYearWorkDays: number = getDaysBetwweenTwoDates(updateInfo.joinDate, endOfJoinYear); // 재직일수
+        midJoinReceivedAnnualLeave = Math.ceil((lastYearWorkDays / 365) * 15); // 중도입사연차 수 (전년도 재직일수/365) * 15의 올림값)
+      }
+
+      const updateLeaveStats = {
+        totalReceivedAnnualLeave,
+        midJoinReceivedAnnualLeave,
+      };
+
+      const currentYear: string = moment().utcOffset(9).year().toString();
+      await this.leaveRepository.updateLeaveStats(userIdx, currentYear, updateLeaveStats);
+    }
 
     /* 어드민 정보 수정 */
     // 어드민 Y → Y인 경우, (어드민 등급 변경)

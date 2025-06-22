@@ -10,6 +10,7 @@ import { NoticeImageInfo } from '../interface/notice.interface';
 import { AdminNoticeFilterDto, UserNoticeFilterDto } from '../dto/query.dto';
 import { NoticeReadLogEntity } from '@/entity/notice/noticeReadLog.entity';
 import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
+import { NoticeCategoryEnum } from '../constant/enum';
 
 @Injectable()
 export class NoticeRepostiory {
@@ -269,6 +270,7 @@ export class NoticeRepostiory {
     const result = await this.noticeModel
       .createQueryBuilder('noticeEntity')
       .where(`NOT EXISTS (${subQuery})`)
+      .andWhere('noticeEntity.category = :category', { category: NoticeCategoryEnum.NOTICE })
       .setParameter('userIdx', userIdx)
       .getCount();
 
