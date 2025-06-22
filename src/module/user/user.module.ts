@@ -13,7 +13,6 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { RedisSearchService } from '@redis/redisSearch.service';
 import { MockUserService } from './mock/user.service.mock';
 import { MockAdminUserController } from './mock/user.controller.mock';
-import { CommuteRepository } from '@intranet/commute/repository/commute.repository';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';

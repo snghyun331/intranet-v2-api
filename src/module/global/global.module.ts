@@ -9,11 +9,29 @@ import { MealStatsEntity } from '@entity/meal/mealStats.entity';
 import { AdminEntity } from '../../entity/admin/admin.entity';
 import { CommuteEntity } from '../../entity/intranet/commute/commute.entity';
 import { GlobalCommuteRepository } from './repository/globalCommute.repository';
+import { MongooseModule } from '@nestjs/mongoose';
+import { User, UserSchema } from '../../schema/user/user.schema';
+import { GlobalPlayGroundModel } from './model/globalPlayground.model';
 
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, AdminEntity, HolidayEntity, MealStatsEntity, CommuteEntity])],
-  providers: [GlobalUserRepository, GlobalHolidayRepository, GlobalMealRepository, GlobalCommuteRepository],
-  exports: [GlobalUserRepository, GlobalHolidayRepository, GlobalMealRepository, GlobalCommuteRepository],
+  imports: [
+    TypeOrmModule.forFeature([UserEntity, AdminEntity, HolidayEntity, MealStatsEntity, CommuteEntity]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+  ],
+  providers: [
+    GlobalUserRepository,
+    GlobalHolidayRepository,
+    GlobalMealRepository,
+    GlobalCommuteRepository,
+    GlobalPlayGroundModel,
+  ],
+  exports: [
+    GlobalUserRepository,
+    GlobalHolidayRepository,
+    GlobalMealRepository,
+    GlobalCommuteRepository,
+    GlobalPlayGroundModel,
+  ],
 })
 export class GlobalModule {}

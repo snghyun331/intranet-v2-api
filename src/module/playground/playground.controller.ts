@@ -29,11 +29,21 @@ import { UserPayload } from '@common/interface/payload.interface';
 import { CreateMonthlyBaverageDto } from './dto/createMonthlyBaverage.dto';
 import { UpdateBaverage } from './dto/updateBaverage.dto';
 import { InsertUnAssignedUserDto } from './dto/insertUnassigned.dto';
+import { CreateUser } from './dto/createUser.dto';
 
 @ApiTags('사용자')
 @Controller('users/playground')
 export class UserPlaygroundController {
   constructor(private readonly playgroundService: PlaygroundService) {}
+
+  @Post('lunch-group/user')
+  async insertUser(@Body() { userIdx, userName }: CreateUser): Promise<ResponseInterface> {
+    await this.playgroundService.insertUser({ userIdx, userName });
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
 
   @ApiOperation(USERS_PLAYGROUND_LUNCH_GROUP.POST.API_OPERATION)
   @ApiCreatedResponse(USERS_PLAYGROUND_LUNCH_GROUP.POST.API_CREATED_RESPONSE)
@@ -42,10 +52,10 @@ export class UserPlaygroundController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post('lunch-group')
-  async pickLunchGroup(@CurrentUser() { userName }: UserPayload): Promise<ResponseInterface> {
-    const group: number = await this.playgroundService.pickLunchGroup(userName);
+  async pickLunchGroup(@CurrentUser() { userIdx, userName }: UserPayload): Promise<ResponseInterface> {
+    const group: number = await this.playgroundService.pickLunchGroup(userIdx);
 
-    const response: ResponseInterface = { message: 'success', data: { userName, group } };
+    const response: ResponseInterface = { message: 'success', data: { userIdx, userName, group } };
 
     return response;
   }
@@ -56,8 +66,8 @@ export class UserPlaygroundController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Get('lunch-group')
-  async getLunchGroupForUser(@CurrentUser() { userName }: UserPayload): Promise<ResponseInterface> {
-    const data: any = await this.playgroundService.getLunchGroupForUser(userName);
+  async getLunchGroupForUser(@CurrentUser() { userIdx }: UserPayload): Promise<ResponseInterface> {
+    const data: any = await this.playgroundService.getLunchGroupForUser(userIdx);
 
     const response: ResponseInterface = { message: 'success', data };
 
@@ -151,8 +161,8 @@ export class AdminPlaygroundController {
   @UseGuards(AdminAuthGuard, AdminRoleGuard)
   @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
   @Post('lunch-group/unassigned')
-  async insertUnAssignedUser(@Body() { targetUserNames }: InsertUnAssignedUserDto): Promise<ResponseInterface> {
-    await this.playgroundService.insertAssignedUser(targetUserNames);
+  async insertUnAssignedUser(@Body() { targetUserIdxs }: InsertUnAssignedUserDto): Promise<ResponseInterface> {
+    await this.playgroundService.insertAssignedUser(targetUserIdxs);
 
     const response: ResponseInterface = { message: 'success' };
 

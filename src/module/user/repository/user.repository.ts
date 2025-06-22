@@ -14,20 +14,19 @@ import { AdminEntity } from '@entity/admin/admin.entity';
 import { CommuteEntity } from '@entity/intranet/commute/commute.entity';
 import { NewAdminInfo } from '@user/interface/admin.interface';
 import { NewUserInfo } from '@user/interface/user.interface';
-import { ConfirmEnum, HalfYearEnum, YNALLEnum, YNEnum } from '@common/constant/enum';
+import { HalfYearEnum, YNALLEnum, YNEnum } from '@common/constant/enum';
 import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { LeaveUsageEntity } from '@entity/intranet/leave/leaveUsage.entity';
 import { LeaveMonthlyUsageEntity } from '@entity/intranet/leave/leaveMonthlyUsage.entity';
 import { UpdateCommentDto } from '@user/dto/updateComment.dto';
-import { NewMealStats } from '../../scheduler/interface/mealStats.interface';
-import { MealStatsEntity } from '../../../entity/meal/mealStats.entity';
-import { NewWelfareMonthStats, NewWelfareStats } from '../../welfare/interface';
-import { WelfareStatsEntity } from '../../../entity/welfare/welfareStats.entity';
-import { WelfareMonthlyStatsEntity } from '../../../entity/welfare/welfareMonthlyStats.entity';
-import { NewActivityMonthStats, NewActivityStats } from '../../activity/interface';
-import { ActivityStatsEntity } from '../../../entity/activity/activityStats.entity';
-import { ActivityMonthlyStatsEntity } from '../../../entity/activity/activityMonthlyStats.entity';
-import { LeaveTypeEntity } from '../../../entity/intranet/leave/leaveType.entity';
+import { NewMealStats } from '@scheduler/interface/mealStats.interface';
+import { MealStatsEntity } from '@entity/meal/mealStats.entity';
+import { NewWelfareMonthStats, NewWelfareStats } from '@welfare/interface';
+import { WelfareStatsEntity } from '@entity/welfare/welfareStats.entity';
+import { WelfareMonthlyStatsEntity } from '@entity/welfare/welfareMonthlyStats.entity';
+import { NewActivityMonthStats, NewActivityStats } from '@activity/interface';
+import { ActivityStatsEntity } from '@entity/activity/activityStats.entity';
+import { ActivityMonthlyStatsEntity } from '@entity/activity/activityMonthlyStats.entity';
 
 @Injectable()
 export class UserRepository {
@@ -70,16 +69,6 @@ export class UserRepository {
       .getCount();
 
     return userCnt;
-  }
-
-  async getAllUserIdxInfo() {
-    const result = await this.userModel
-      .createQueryBuilder('userEntity')
-      .select(['userEntity.userIdx AS userIdx', 'userEntity.userName AS userName', 'userEntity.gradeIdx AS gradeIdx'])
-      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
-      .getRawMany();
-
-    return result;
   }
 
   async getUserInfo(userIdx: number) {

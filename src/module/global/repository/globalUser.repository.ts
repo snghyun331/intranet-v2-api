@@ -37,6 +37,16 @@ export class GlobalUserRepository {
     return userCnt;
   }
 
+  async getAllUserIdxInfo() {
+    const result = await this.userModel
+      .createQueryBuilder('userEntity')
+      .select(['userEntity.userIdx AS userIdx', 'userEntity.userName AS userName', 'userEntity.gradeIdx AS gradeIdx'])
+      .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
+      .getRawMany();
+
+    return result;
+  }
+
   async getAllUserNames(): Promise<string[]> {
     const result: { userName: string }[] = await this.userModel
       .createQueryBuilder('userEntity')

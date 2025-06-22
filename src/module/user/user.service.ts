@@ -12,7 +12,7 @@ import { UpdateUserDto } from '@user/dto/updateUser.dto';
 import { RedisSearchService } from '@redis/redisSearch.service';
 import { Transactional } from 'typeorm-transactional';
 import { NewAdminInfo } from '@user/interface/admin.interface';
-import { NewUserInfo } from '@user/interface/user.interface';
+import { NewUserInfo, SetUser } from '@user/interface/user.interface';
 import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { UpdateCommentDto } from '@user/dto/updateComment.dto';
 import { NewMealStats } from '../scheduler/interface/mealStats.interface';
@@ -20,6 +20,7 @@ import { NewWelfareMonthStats, NewWelfareStats } from '../welfare/interface';
 import { GlobalHolidayRepository } from '../global/repository/globalHoliday.repository';
 import { NewActivityMonthStats, NewActivityStats } from '../activity/interface';
 import { GlobalCommuteRepository } from '../global/repository/globalCommute.repository';
+import { GlobalPlayGroundModel } from '../global/model/globalPlayground.model';
 
 @Injectable()
 export class UserService {
@@ -29,10 +30,11 @@ export class UserService {
     private readonly commuteRepository: GlobalCommuteRepository,
     private readonly redisSearchService: RedisSearchService,
     private readonly holidayRepository: GlobalHolidayRepository,
+    private readonly playgroundModel: GlobalPlayGroundModel,
   ) {}
 
   async getAllUserIdxInfo() {
-    const result = await this.userRepository.getAllUserIdxInfo();
+    const result = await this.globalUserRepository.getAllUserIdxInfo();
 
     return result;
   }
@@ -164,7 +166,11 @@ export class UserService {
     /* Redis에 유저 등록(검색 자동완성) */
     await this.redisSearchService.addUserInRedis(userIdx, userInfo.userName);
 
-    return;
+    /* User 스키마에 동일한 유저 정보 저장 */
+    const insertValue: SetUser = {
+      userName: userInfo.userName,
+    };
+    await this.playgroundModel.createUser(userIdx, insertValue);
   }
 
   private async createMealStats(userInfo, userIdx) {
@@ -348,10 +354,17 @@ export class UserService {
       throw new BadRequestException('어드민인 유저는 어드민 등급을 설정해야합니다.');
     }
 
-    /* 유저네임이 바뀌었다면, Redis 유저네임 업데이트 */
+    /* 유저네임이 바뀌었다면, */
     if (updateInfo.userName !== result.userName) {
+      // Redis 유저네임 업데이트
       await this.redisSearchService.removeUserInRedis(userIdx, result.userName);
       await this.redisSearchService.addUserInRedis(userIdx, updateInfo.userName);
+
+      // user 스키마에 유저 정보 수정
+      const updateValue: SetUser = {
+        userName: updateInfo.userName,
+      };
+      await this.playgroundModel.updateUser(userIdx, updateValue);
     }
 
     /* 직급이 바뀌었다면, */
@@ -392,7 +405,7 @@ export class UserService {
       }
     }
 
-    /* 입사일이 바뀌었다면, */
+    /* 입사일이 바뀌었다면, 총 연차일 수정*/
 
     /* 어드민 정보 수정 */
     // 어드민 Y → Y인 경우, (어드민 등급 변경)

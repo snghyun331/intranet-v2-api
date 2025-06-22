@@ -10,17 +10,24 @@ import { GlobalUserRepository } from '../global/repository/globalUser.repository
 import { BaverageConfig } from '../../schema/baverage/baverageConfig.schema';
 import { UpdateBaverage } from './dto/updateBaverage.dto';
 import { BaverageEnum } from './enum/playground.enum';
+import { GlobalPlayGroundModel } from '../global/model/globalPlayground.model';
 
 @Injectable()
 export class PlaygroundService {
   constructor(
     private readonly playgroupundModel: PlayGroundModel,
+    private readonly globalPlaygroundModel: GlobalPlayGroundModel,
     private readonly redisLockService: RedisLockService,
     private readonly userRepository: GlobalUserRepository,
     @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
-  async pickLunchGroup(userName: string): Promise<number> {
+  async insertUser({ userIdx, userName }: { userIdx: number; userName: string }): Promise<void> {
+    await this.globalPlaygroundModel.createUser(userIdx, { userName });
+    return;
+  }
+
+  async pickLunchGroup(userIdx: number): Promise<number> {
     const lockKey: string = 'PICK_LUNCH_GROUP';
     const lock: boolean = await this.redisLockService.waitAndSetLock(lockKey, PICK_LUNCH_LOCK_DURATION);
 
@@ -33,7 +40,7 @@ export class PlaygroundService {
       const { _id: configId, groupInfo } = lunchGroupConfig;
 
       // 이미 배정되었는지 확인
-      const isExistingAssignment = await this.playgroupundModel.checkUserAssignedToLunchGroup(configId, userName);
+      const isExistingAssignment = await this.playgroupundModel.checkUserAssignedToLunchGroup(configId, userIdx);
       if (isExistingAssignment) {
         throw new BadRequestException('이미 조에 배정되었습니다.');
       }
@@ -65,7 +72,7 @@ export class PlaygroundService {
         }
 
         // 배정된 그룹에 멤버 추가
-        await this.playgroupundModel.addUserInLunchGroup(configId, groupToAssign, userName);
+        await this.playgroupundModel.addUserInLunchGroup(configId, groupToAssign, userIdx);
 
         await this.redisLockService.delLock(lockKey);
       }
@@ -135,7 +142,7 @@ export class PlaygroundService {
       return defaultResult;
     }
     const { sDate, eDate, notice, totalGroups, _id: configId, total, perGroup, groupInfo } = lunchGroupConfig;
-    const groups: Record<string, string[]> = {};
+    const groups = {};
     for (let i = 1; i <= totalGroups; i++) {
       groups[i.toString()] = [];
     }
@@ -144,18 +151,25 @@ export class PlaygroundService {
 
     for (const member of lunchGroupMembers) {
       const groupNo = member.groupNo.toString();
-      groups[groupNo].push(member.userName);
+      groups[groupNo].push(member.userInfo);
     }
 
     // 미배정 인원 조회
-    const allUsers = await this.userRepository.getAllUserNames();
-    const assigned = lunchGroupMembers.map((member) => member.userName);
-    const unAssigned = allUsers.filter((user) => !assigned.includes(user)).map((user) => user);
+    const allUsers = await this.userRepository.getAllUserIdxInfo();
+    const assignedIdx = lunchGroupMembers.map((member) => member.userInfo['userIdx']);
+    const unAssigned = allUsers
+      .filter(({ userIdx }) => !assignedIdx.includes(userIdx))
+      .map(({ userIdx, userName }) => {
+        return {
+          userIdx,
+          userName,
+        };
+      });
 
     return { sDate, eDate, total, perGroup, notice, groupInfo, groups, unAssigned };
   }
 
-  async getLunchGroupForUser(userName: string): Promise<any> {
+  async getLunchGroupForUser(userIdx: number): Promise<any> {
     const defaultResult = {
       sDate: null,
       eDate: null,
@@ -174,8 +188,8 @@ export class PlaygroundService {
 
     const { sDate, eDate, notice, totalGroups, _id: configId, groupInfo } = lunchGroupConfig;
 
-    let groupToAssign: string | null = null;
-    const groups: Record<string, string[]> = {};
+    let groupToAssign: string | null = null; // 본인이 배정받은 그룹 넘버
+    const groups = {};
 
     for (let i = 1; i <= totalGroups; i++) {
       groups[i.toString()] = [];
@@ -185,10 +199,10 @@ export class PlaygroundService {
 
     for (const member of lunchGroupMembers) {
       const groupNo = member.groupNo.toString();
-      groups[groupNo].push(member.userName);
+      groups[groupNo].push(member.userInfo);
 
       // 본인이 배정받은 그룹 찾기
-      if (member.userName === userName) {
+      if (member.userInfo['userIdx'] === userIdx) {
         groupToAssign = member.groupNo.toString();
       }
     }
@@ -307,14 +321,14 @@ export class PlaygroundService {
     return result;
   }
 
-  async insertAssignedUser(targetUserNames: string[]): Promise<void> {
+  async insertAssignedUser(targetUserIdxs: number[]): Promise<void> {
     const lockKey: string = 'PICK_LUNCH_GROUP';
     const lock: boolean = await this.redisLockService.waitAndSetLock(lockKey, PICK_LUNCH_LOCK_DURATION);
 
     try {
       if (lock) {
         await Promise.all(
-          targetUserNames.map(async (targetUserName) => {
+          targetUserIdxs.map(async (targetUserIdx) => {
             const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
             if (!lunchGroupConfig) {
               throw new BadRequestException('지금은 뽑기 가능 시간이 아닙니다.');
@@ -325,7 +339,7 @@ export class PlaygroundService {
             // 이미 배정되었는지 확인
             const isExistingAssignment = await this.playgroupundModel.checkUserAssignedToLunchGroup(
               configId,
-              targetUserName,
+              targetUserIdx,
             );
             if (isExistingAssignment) {
               throw new BadRequestException('이미 조에 배정되었습니다.');
@@ -358,7 +372,7 @@ export class PlaygroundService {
             }
 
             // 배정된 그룹에 멤버 추가
-            await this.playgroupundModel.addUserInLunchGroup(configId, groupToAssign, targetUserName);
+            await this.playgroupundModel.addUserInLunchGroup(configId, groupToAssign, targetUserIdx);
           }),
         );
       }

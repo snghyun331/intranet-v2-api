@@ -31,8 +31,8 @@ export class PlayGroundModel {
     return result;
   }
 
-  async checkUserAssignedToLunchGroup(configId: object, userName: string): Promise<boolean> {
-    const result = await this.lunchGroupMemberModel.findOne({ configId, userName });
+  async checkUserAssignedToLunchGroup(configId: object, userIdx: number): Promise<boolean> {
+    const result = await this.lunchGroupMemberModel.findOne({ configId, userIdx });
 
     return result ? true : false;
   }
@@ -46,8 +46,8 @@ export class PlayGroundModel {
     return result;
   }
 
-  async addUserInLunchGroup(configId: object, groupToAssign: number, userName: string) {
-    await this.lunchGroupMemberModel.create([{ configId, groupNo: groupToAssign, userName }]);
+  async addUserInLunchGroup(configId: object, groupToAssign: number, userIdx: number) {
+    await this.lunchGroupMemberModel.create([{ configId, groupNo: groupToAssign, userIdx }]);
 
     return;
   }
@@ -59,10 +59,28 @@ export class PlayGroundModel {
     return;
   }
 
-  async findLunchGroupMembers(configId: object): Promise<HydratedDocument<LunchGroupMember>[]> {
-    const result: HydratedDocument<LunchGroupMember>[] = await this.lunchGroupMemberModel.find({ configId });
+  async findLunchGroupMembers(configId: object) {
+    const result: HydratedDocument<LunchGroupMember>[] = await this.lunchGroupMemberModel
+      .find({ configId })
+      .populate({
+        path: 'userIdx',
+        select: '_id userName',
+        transform: (doc) => {
+          if (doc) {
+            return {
+              userIdx: doc._id,
+              userName: doc.userName,
+            };
+          }
+          return doc;
+        },
+      })
+      .lean();
 
-    return result;
+    return result.map(({ userIdx, ...member }) => ({
+      ...member,
+      userInfo: userIdx,
+    }));
   }
 
   async findLatestLunchGroupConfig(): Promise<HydratedDocument<LunchGroupConfig>> {

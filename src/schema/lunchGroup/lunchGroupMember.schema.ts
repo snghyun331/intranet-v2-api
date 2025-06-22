@@ -8,11 +8,11 @@ export class LunchGroupMember {
   @Prop({ type: Types.ObjectId, ref: 'LunchGroupConfig', required: true, index: true })
   configId: Types.ObjectId;
 
-  @Prop({ type: Number, index: true, required: true })
-  groupNo: number;
+  @Prop({ type: Number, ref: 'User', required: true, index: true })
+  userIdx: number;
 
-  @Prop({ type: String, unique: true, required: true })
-  userName: string;
+  @Prop({ type: Number, required: true })
+  groupNo: number;
 }
 
 export const LunchGroupMemberSchema = SchemaFactory.createForClass(LunchGroupMember);

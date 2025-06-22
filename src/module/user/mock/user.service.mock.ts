@@ -22,13 +22,12 @@ export class MockUserService {
   ) {}
 
   async getAllUserIdxInfo() {
-    const result = await this.userRepository.getAllUserIdxInfo();
+    const result = await this.globalUserRepository.getAllUserIdxInfo();
 
     return result;
   }
 
   async getMyInfo(userIdx: number) {
-    const today: string = moment().utcOffset(9).format('YYYY-MM-DD');
     const userInfo = await this.userRepository.getUserInfo(userIdx);
     if (!userInfo) {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
