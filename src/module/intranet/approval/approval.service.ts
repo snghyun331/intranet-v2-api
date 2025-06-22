@@ -187,6 +187,8 @@ export class ApprovalService {
         const updateInfo = { attendance, availCheckOutTime };
 
         await this.approvalRepository.updateCommute(userIdx, existing.commuteDate, updateInfo);
+
+        // 해당 날짜에 반려만 있으면 → 미승인 일반 근무로 처리
       }
 
       // 휴가 유형에 대한 해당 월 사용개수 조회
