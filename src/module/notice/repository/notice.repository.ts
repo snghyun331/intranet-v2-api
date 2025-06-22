@@ -20,12 +20,12 @@ export class NoticeRepostiory {
     @InjectRepository(NoticeReadLogEntity) private readonly noticeReadLogModel: Repository<NoticeReadLogEntity>,
   ) {}
 
-  async createNotice(noticeInfo: CreateNoticeDto, adminName: string): Promise<number> {
+  async createNotice(noticeInfo: CreateNoticeDto, writerName: string): Promise<number> {
     const result: InsertResult = await this.noticeModel
       .createQueryBuilder()
       .insert()
       .into(NoticeEntity)
-      .values({ creatorName: adminName, lastEditorName: adminName, ...noticeInfo })
+      .values({ creatorName: writerName, lastEditorName: writerName, ...noticeInfo })
       .execute();
 
     const noticeIdx: number = result.identifiers[0].noticeIdx;
@@ -210,6 +210,9 @@ export class NoticeRepostiory {
         'noticeEntity.noticeIdx AS noticeIdx',
         'noticeEntity.title AS title',
         'noticeEntity.content AS content',
+        'noticeEntity.category AS category',
+        'noticeEntity.startDate AS startDate',
+        'noticeEntity.endDate AS endDate',
         'noticeEntity.creatorName AS creatorName',
         'noticeEntity.lastEditorName AS lastEditorName',
         'noticeImageEntity.imageIdx AS imageIdx',

@@ -106,13 +106,16 @@ export const ADMIN_NOTICES: SwaggerMethod = {
             message: 'success',
             data: {
               totalPage: 1,
-              total: 1,
+              total: 2,
               notices: [
                 {
-                  noticeIdx: 2,
-                  title: '제목 90자 이내',
+                  noticeIdx: 41,
+                  title: '파일럿',
                   creatorName: '이승현',
-                  createdAt: '2025-01-06T06:41:40.000Z',
+                  category: 'ETC',
+                  startDate: '2025-05-29',
+                  endDate: '2025-06-03',
+                  createdAt: '2025-06-22T09:27:27.335Z',
                 },
               ],
             },
@@ -123,7 +126,7 @@ export const ADMIN_NOTICES: SwaggerMethod = {
   },
   POST: {
     API_OPERATION: {
-      summary: '공지사항 등록',
+      summary: '어드민 공지사항 등록',
     },
     API_CREATED_RESPONSE: {
       content: {
@@ -219,6 +222,21 @@ export const ADMIN_NOTICES_DETAIL: SwaggerMethod = {
 };
 
 export const USERS_NOTICES: SwaggerMethod = {
+  POST: {
+    API_OPERATION: {
+      summary: '사용자 공지사항 등록',
+    },
+    API_CREATED_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 201,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
   GET: {
     API_OPERATION: {
       summary: '사용자 공지사항 목록 조회 API',
@@ -231,13 +249,27 @@ export const USERS_NOTICES: SwaggerMethod = {
             message: 'success',
             data: {
               totalPage: 1,
-              total: 1,
-              notices: [
+              total: 4,
+              result: [
                 {
-                  noticeIdx: 2,
-                  title: '제목 90자 이내',
+                  noticeIdx: 40,
+                  title: '파일럿',
                   creatorName: '이승현',
-                  createdAt: '2025-01-06T06:41:40.000Z',
+                  category: 'EXTERNAL_MEETING',
+                  startDate: '2025-06-10',
+                  endDate: '2025-06-10',
+                  createdAt: '2025-06-22T09:21:55.649Z',
+                  isNew: false,
+                },
+                {
+                  noticeIdx: 41,
+                  title: '파일럿',
+                  creatorName: '이승현',
+                  category: 'ETC',
+                  startDate: '2025-05-29',
+                  endDate: '2025-06-03',
+                  createdAt: '2025-06-22T09:27:27.335Z',
+                  isNew: false,
                 },
               ],
             },

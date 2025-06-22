@@ -9,6 +9,7 @@ import { AwsService } from '../aws/aws.service';
 import { NodeEnvEnum } from '@common/constant/enum';
 import { Transactional } from 'typeorm-transactional';
 import { AdminNoticeFilterDto, UserNoticeFilterDto } from './dto/query.dto';
+import { NoticeCategoryEnum } from './constant/enum';
 
 @Injectable()
 export class NoticeService {
@@ -19,7 +20,40 @@ export class NoticeService {
   ) {}
 
   @Transactional()
-  async createNotice(noticeInfo: CreateNoticeDto, adminName: string, noticeImage?: Express.Multer.File): Promise<void> {
+  async createNoticeForUser(
+    noticeInfo: CreateNoticeDto,
+    userName: string,
+    noticeImage?: Express.Multer.File,
+  ): Promise<void> {
+    if (noticeInfo.category === NoticeCategoryEnum.NOTICE) {
+      throw new BadRequestException('공지사항 카테고리는 관리자만 작성할 수 있습니다.');
+    }
+    const noticeIdx: number = await this.noticeRepository.createNotice(noticeInfo, userName);
+
+    /* 첨부 이미지가 있다면 */
+    if (noticeImage) {
+      const env: string = this.configService.get<string>('NODE_ENV');
+      const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
+      // 1. S3에 저장
+      noticeImage.originalname = Buffer.from(noticeImage.originalname, 'ascii').toString('utf8');
+      const { buffer, mimetype, originalname } = noticeImage;
+      const uploadS3FilePath: string = `${rootDir}/NOTICE/${noticeIdx}/${originalname}`;
+      const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+      const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, uploadS3FilePath, buffer, mimetype);
+      const imageInfo: NoticeImageInfo = { imageName: noticeImage.originalname, imageSize: noticeImage.size, imageUrl };
+      // 2. DB에 저장
+      await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo);
+    }
+
+    return;
+  }
+
+  @Transactional()
+  async createNoticeForAdmin(
+    noticeInfo: CreateNoticeDto,
+    adminName: string,
+    noticeImage?: Express.Multer.File,
+  ): Promise<void> {
     const noticeIdx: number = await this.noticeRepository.createNotice(noticeInfo, adminName);
 
     /* 첨부 이미지가 있다면 */

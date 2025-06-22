@@ -37,7 +37,7 @@ import { AdminGradeEnum, UserGradeEnum } from '@common/constant/enum';
 import { AdminRole, UserRole } from '@common/decorator/role.decorator';
 import { CreateNoticeDto } from './dto/createNotice.dto';
 import { CurrentAdmin } from '@common/decorator/currentAdmin.decorator';
-import { AdminPayload } from '@common/interface/payload.interface';
+import { AdminPayload, UserPayload } from '@common/interface/payload.interface';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
@@ -51,6 +51,26 @@ import { CurrentUserIdx } from '@common/decorator/currentUser.decorator';
 @Controller('users/notices')
 export class UserNoticeController {
   constructor(private readonly noticeService: NoticeService) {}
+
+  @ApiOperation(USERS_NOTICES.POST.API_OPERATION)
+  @ApiConsumes('multipart/form-data')
+  @ApiCreatedResponse(USERS_NOTICES.POST.API_CREATED_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @UseInterceptors(FileInterceptor('noticeImage', noticeImageOptions))
+  @Post()
+  async createNotice(
+    @Body() noticeInfo: CreateNoticeDto,
+    @CurrentAdmin() { userName }: UserPayload,
+    @UploadedFile() noticeImage?: Express.Multer.File,
+  ): Promise<ResponseInterface> {
+    await this.noticeService.createNoticeForUser(noticeInfo, userName, noticeImage);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
 
   @ApiOperation(USERS_NOTICES.GET.API_OPERATION)
   @ApiOkResponse(USERS_NOTICES.GET.API_OK_RESPONSE)
@@ -125,7 +145,7 @@ export class AdminNoticeController {
     @CurrentAdmin() { adminName }: AdminPayload,
     @UploadedFile() noticeImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    await this.noticeService.createNotice(noticeInfo, adminName, noticeImage);
+    await this.noticeService.createNoticeForAdmin(noticeInfo, adminName, noticeImage);
 
     const response: ResponseInterface = { message: 'success' };
 
