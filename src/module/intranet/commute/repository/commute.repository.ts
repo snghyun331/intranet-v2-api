@@ -343,4 +343,28 @@ export class CommuteRepository {
       .where('commuteIdx = :commuteIdx', { commuteIdx })
       .execute();
   }
+
+  /* 해당 날짜의 출퇴근 기록을 비우는 함수 */
+  async deleteCommuteRecords(userIdx: number, commuteDate: string): Promise<UpdateResult> {
+    const commuteRecordNull = {
+      checkInTime: null,
+      checkOutTime: null,
+      attendance: null,
+      workingMinutes: null,
+      overtimeWorkingMinutes: null,
+      checkInIpAddr: null,
+      checkOutIpAddr: null,
+      checkInLogAgent: null,
+      checkOutLogAgent: null,
+      availCheckOutTime: null,
+    };
+
+    return await this.commuteModel
+      .createQueryBuilder()
+      .update(CommuteEntity)
+      .set(commuteRecordNull)
+      .where('userIdx = :userIdx', { userIdx })
+      .andWhere('commuteDate = :commuteDate', { commuteDate })
+      .execute();
+  }
 }

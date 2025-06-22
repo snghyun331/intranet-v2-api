@@ -427,7 +427,6 @@ export class UserService {
         midJoinReceivedAnnualLeave = 0;
       } else {
         const extraAnnualLeave = calculateExtraAnnualLeave(updateInfo.joinDate);
-        console.log('extraAnnualLeave', extraAnnualLeave);
         totalReceivedAnnualLeave = 15 + extraAnnualLeave;
         const endOfJoinYear: string = getEndOfYear(updateInfo.joinDate); // 입사년도 마지막 날
         const lastYearWorkDays: number = getDaysBetwweenTwoDates(updateInfo.joinDate, endOfJoinYear); // 재직일수
