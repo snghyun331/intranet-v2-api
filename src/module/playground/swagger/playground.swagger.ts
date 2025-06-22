@@ -48,29 +48,53 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 statusCode: 200,
                 message: 'success',
                 data: {
-                  sDate: '2025-05-10',
-                  eDate: '2025-05-12',
+                  sDate: '2024-12-10',
+                  eDate: '2024-12-12',
                   notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
                   groupInfo: [
                     {
                       groupNo: 1,
-                      availMemberCount: 4,
+                      availMemberCount: 11,
                     },
                     {
                       groupNo: 2,
-                      availMemberCount: 3,
+                      availMemberCount: 10,
                     },
                     {
                       groupNo: 3,
-                      availMemberCount: 3,
+                      availMemberCount: 10,
+                    },
+                    {
+                      groupNo: 4,
+                      availMemberCount: 10,
                     },
                   ],
                   groups: {
-                    '1': ['이승현', '신효은', '안지훈', '정진우'],
-                    '2': ['김현민', '김단아', '김정현'],
-                    '3': ['김현근', '이혜빈', '김선경'],
+                    '1': [
+                      {
+                        userIdx: 8,
+                        userName: '안지훈',
+                      },
+                      {
+                        userIdx: 2,
+                        userName: '이승현',
+                      },
+                    ],
+                    '2': [],
+                    '3': [
+                      {
+                        userIdx: 5,
+                        userName: '김현근',
+                      },
+                    ],
+                    '4': [
+                      {
+                        userIdx: 4,
+                        userName: '신효은',
+                      },
+                    ],
                   },
-                  groupToAssign: '3',
+                  groupToAssign: '1',
                 },
               },
             },
@@ -90,8 +114,9 @@ export const USERS_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
             statusCode: 201,
             message: 'success',
             data: {
+              userIdx: 2,
               userName: '이승현',
-              group: 4,
+              group: 1,
             },
           },
         },
@@ -200,31 +225,72 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP: SwaggerMethod = {
                 statusCode: 200,
                 message: 'success',
                 data: {
-                  sDate: '2025-06-10',
-                  eDate: '2025-06-12',
-                  total: 10,
-                  perGroup: 3,
+                  sDate: '2024-12-10',
+                  eDate: '2024-12-12',
+                  total: 41,
+                  perGroup: 10,
                   notice: '박민수 본부장님 + 컨설팅팀, 김현근 본부장님 + HR운영팀',
                   groupInfo: [
                     {
                       groupNo: 1,
-                      availMemberCount: 4,
+                      availMemberCount: 11,
                     },
                     {
                       groupNo: 2,
-                      availMemberCount: 3,
+                      availMemberCount: 10,
                     },
                     {
                       groupNo: 3,
-                      availMemberCount: 3,
+                      availMemberCount: 10,
+                    },
+                    {
+                      groupNo: 4,
+                      availMemberCount: 10,
                     },
                   ],
                   groups: {
-                    '1': [],
+                    '1': [
+                      {
+                        userIdx: 8,
+                        userName: '안지훈',
+                      },
+                    ],
                     '2': [],
-                    '3': ['이승현'],
+                    '3': [
+                      {
+                        userIdx: 5,
+                        userName: '김현근',
+                      },
+                    ],
+                    '4': [
+                      {
+                        userIdx: 4,
+                        userName: '신효은',
+                      },
+                    ],
                   },
-                  unAssigned: ['김현민', '신효은', '김현근', 'ㅇㅇㅇㅇ', '에이시쥐', '에이시쥐2', '나나'],
+                  unAssigned: [
+                    {
+                      userIdx: 1,
+                      userName: '김현민',
+                    },
+                    {
+                      userIdx: 2,
+                      userName: '이승현',
+                    },
+                    {
+                      userIdx: 6,
+                      userName: '박민수',
+                    },
+                    {
+                      userIdx: 9,
+                      userName: '김정현',
+                    },
+                    {
+                      userIdx: 10,
+                      userName: '윤이나',
+                    },
+                  ],
                 },
               },
             },
@@ -515,6 +581,24 @@ export const ADMIN_PLAYGROUND_LUNCH_GROUP_UNASSIGNED: SwaggerMethod = {
           example: {
             message: 'success',
             statusCode: 200,
+          },
+        },
+      },
+    },
+  },
+};
+
+export const ADMIN_PLAYGROUND_LUNCH_GROUP_USER: SwaggerMethod = {
+  DELETE: {
+    API_OPERATION: {
+      summary: '어드민 점심조 배정자 개별 삭제 API',
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
           },
         },
       },

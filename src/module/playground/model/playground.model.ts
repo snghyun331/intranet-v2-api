@@ -158,4 +158,10 @@ export class PlayGroundModel {
 
     return;
   }
+
+  async deleteLunchGroupUser(configId: object, userIdx: number): Promise<void> {
+    await this.lunchGroupMemberModel.deleteOne({ configId, userIdx });
+
+    return;
+  }
 }

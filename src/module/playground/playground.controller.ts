@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { PlaygroundService } from './playground.service';
 import {
   ApiBadRequestResponse,
@@ -12,6 +12,7 @@ import {
 import {
   ADMIN_PLAYGROUND_LUNCH_GROUP,
   ADMIN_PLAYGROUND_LUNCH_GROUP_UNASSIGNED,
+  ADMIN_PLAYGROUND_LUNCH_GROUP_USER,
   ADMIN_PLAYGROUND_MONTHLY_BAVERAGE,
   USERS_PLAYGROUND_LUNCH_GROUP,
   USERS_PLAYGROUND_MONTHLY_BAVERAGE,
@@ -163,6 +164,20 @@ export class AdminPlaygroundController {
   @Post('lunch-group/unassigned')
   async insertUnAssignedUser(@Body() { targetUserIdxs }: InsertUnAssignedUserDto): Promise<ResponseInterface> {
     await this.playgroundService.insertAssignedUser(targetUserIdxs);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(ADMIN_PLAYGROUND_LUNCH_GROUP_USER.DELETE.API_OPERATION)
+  @ApiOkResponse(ADMIN_PLAYGROUND_LUNCH_GROUP_USER.DELETE.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(AdminAuthGuard, AdminRoleGuard)
+  @AdminRole(AdminGradeEnum.NORMAL_ADMIN)
+  @Delete('lunch-group/users/:userIdx')
+  async deleteLunchGroupUser(@Param('userIdx', ParseIntPipe) userIdx: number): Promise<ResponseInterface> {
+    await this.playgroundService.deleteLunchGroupUser(userIdx);
 
     const response: ResponseInterface = { message: 'success' };
 

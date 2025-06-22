@@ -385,4 +385,23 @@ export class PlaygroundService {
 
     return;
   }
+
+  async deleteLunchGroupUser(userIdx: number): Promise<void> {
+    // 가장 최신의 점심조 설정 데이터 조회
+    const lunchGroupConfig = await this.playgroupundModel.findLatestLunchGroupConfig();
+    if (!lunchGroupConfig) {
+      throw new BadRequestException('설정된 점심조가 없습니다.');
+    }
+    const { _id: configId } = lunchGroupConfig;
+    // 해당 유저가 배정된 유저인지 확인
+    const isExistingAssignment = await this.playgroupundModel.checkUserAssignedToLunchGroup(configId, userIdx);
+    if (!isExistingAssignment) {
+      throw new BadRequestException('배정되어있지 않은 유저입니다.');
+    }
+
+    // 배정된 유저 삭제
+    await this.playgroupundModel.deleteLunchGroupUser(configId, userIdx);
+
+    return;
+  }
 }
