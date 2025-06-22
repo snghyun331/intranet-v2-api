@@ -9,6 +9,7 @@ import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
 import { NoticeImageInfo } from '../interface/notice.interface';
 import { AdminNoticeFilterDto, UserNoticeFilterDto } from '../dto/query.dto';
 import { NoticeReadLogEntity } from '@/entity/notice/noticeReadLog.entity';
+import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
 
 @Injectable()
 export class NoticeRepostiory {
@@ -86,6 +87,9 @@ export class NoticeRepostiory {
         'noticeEntity.noticeIdx AS noticeIdx',
         'noticeEntity.title AS title',
         'noticeEntity.creatorName AS creatorName',
+        'noticeEntity.category AS category',
+        'noticeEntity.startDate AS startDate',
+        'noticeEntity.endDate AS endDate',
         'noticeEntity.createdAt AS createdAt',
       ])
       .leftJoin(
@@ -95,6 +99,25 @@ export class NoticeRepostiory {
       )
       .addSelect('CASE WHEN noticeReadLogEntity.noticeIdx IS NULL THEN 1 ELSE 0 END AS isNew')
       .setParameter('userIdx', userIdx);
+
+    if (filterInfo?.month && filterInfo?.year) {
+      const year: string = filterInfo.year;
+      const month: string = filterInfo.month;
+      const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+      const monthStartDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+      const monthEndDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+
+      // 공지사항의 게시 기간이 해당 월에 일부라도 겹치는 경우를 찾음
+      // (공지 시작일 <= 월 마지막날) && (공지 종료일 >= 월 첫날)
+      query.andWhere('(noticeEntity.startDate <= :monthEndDate AND noticeEntity.endDate >= :monthStartDate)', {
+        monthStartDate,
+        monthEndDate,
+      });
+    }
+
+    if (filterInfo?.category) {
+      query.andWhere('noticeEntity.category IN (:...category)', { category: filterInfo.category });
+    }
 
     if (filterInfo?.searchWord) {
       const searchWord: string = filterInfo.searchWord;
@@ -112,7 +135,8 @@ export class NoticeRepostiory {
     const totalPage: number = Math.ceil(total / perPage);
 
     query
-      .orderBy('noticeEntity.createdAt', 'DESC')
+      .orderBy('noticeEntity.startDate', 'DESC')
+      .addOrderBy('noticeEntity.createdAt', 'DESC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
@@ -128,8 +152,30 @@ export class NoticeRepostiory {
         'noticeEntity.noticeIdx AS noticeIdx',
         'noticeEntity.title AS title',
         'noticeEntity.creatorName AS creatorName',
+        'noticeEntity.category AS category',
+        'noticeEntity.startDate AS startDate',
+        'noticeEntity.endDate AS endDate',
         'noticeEntity.createdAt AS createdAt',
       ]);
+
+    if (filterInfo?.month && filterInfo?.year) {
+      const year: string = filterInfo.year;
+      const month: string = filterInfo.month;
+      const { firstDayOfMonth, lastDayOfMonth } = getStartAndEndDateByMonth(year, month);
+      const monthStartDate: string = firstDayOfMonth.format('YYYY-MM-DD');
+      const monthEndDate: string = lastDayOfMonth.format('YYYY-MM-DD');
+
+      // 공지사항의 게시 기간이 해당 월에 일부라도 겹치는 경우를 찾음
+      // (공지 시작일 <= 월 마지막날) && (공지 종료일 >= 월 첫날)
+      query.andWhere('(noticeEntity.startDate <= :monthEndDate AND noticeEntity.endDate >= :monthStartDate)', {
+        monthStartDate,
+        monthEndDate,
+      });
+    }
+
+    if (filterInfo?.category) {
+      query.andWhere('noticeEntity.category IN (:...category)', { category: filterInfo.category });
+    }
 
     if (filterInfo?.searchWord) {
       const searchWord: string = filterInfo.searchWord;
@@ -147,7 +193,8 @@ export class NoticeRepostiory {
     const totalPage: number = Math.ceil(total / perPage);
 
     query
-      .orderBy('noticeEntity.createdAt', 'DESC')
+      .orderBy('noticeEntity.startDate', 'DESC')
+      .addOrderBy('noticeEntity.createdAt', 'DESC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
