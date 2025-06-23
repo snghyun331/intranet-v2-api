@@ -308,9 +308,9 @@ export class UserService {
 
   @Transactional()
   async updateMyPassword(userIdx: number, updateInfo: UpdatePasswordDto): Promise<void> {
-    const userCnt: number = await this.globalUserRepository.getUserCountByIdx(userIdx);
-    if (userCnt !== 1) {
-      throw new BadRequestException('올바른 유저가 아닙니다.');
+    const userInfo = await this.globalUserRepository.getUserInfoByIdx(userIdx);
+    if (!userInfo) {
+      throw new NotFoundException('올바른 유저가 아닙니다.');
     }
 
     /* 기존 비밀번호가 맞는지 체크 */
@@ -326,6 +326,10 @@ export class UserService {
     /* 새 비밀번호 암호화 및 저장 */
     const encryptedNewPW: string = encryptPassword(updateInfo.newPassword);
     await this.userRepository.updateUserPassword(userIdx, encryptedNewPW);
+    // 어드민이면, 어드민 비밀번호도 같이 변경
+    if (userInfo.adminRole === YNEnum.YES) {
+      await this.userRepository.updateAdminPassword(userIdx, encryptedNewPW);
+    }
 
     return;
   }

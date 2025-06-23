@@ -213,6 +213,15 @@ export class UserRepository {
       .execute();
   }
 
+  async updateAdminPassword(userIdx: number, password: string): Promise<UpdateResult> {
+    return await this.adminModel
+      .createQueryBuilder()
+      .update(AdminEntity)
+      .set({ password })
+      .where('userIdx = :userIdx', { userIdx })
+      .execute();
+  }
+
   async getAllHqIdxInfo() {
     const result = await this.hqModel
       .createQueryBuilder('hqEntity')

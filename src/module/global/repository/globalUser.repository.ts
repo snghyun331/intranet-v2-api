@@ -117,6 +117,7 @@ export class GlobalUserRepository {
         'hqEntity.hqName AS hqName',
         'teamEntity.teamName AS teamName',
         'gradeEntity.gradeName AS gradeName',
+        'userEntity.adminRole AS adminRole',
       ])
       .leftJoin(HeadquarterEntity, 'hqEntity', 'hqEntity.hqIdx = userEntity.hqIdx')
       .leftJoin(TeamEntity, 'teamEntity', 'teamEntity.teamIdx = userEntity.teamIdx')
