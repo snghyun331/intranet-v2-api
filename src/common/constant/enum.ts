@@ -150,3 +150,11 @@ export enum RequestTypeEnum {
   USER = 'USER',
   ADMIN = 'ADMIN',
 }
+
+export enum SmsStatusEnum {
+  PROCESSING = 'PROCESSING',
+  SUCCESSED = 'SUCCESSED',
+  FAILED = 'FAILED',
+  COMPLETED = 'COMPLETED',
+  PENDING = 'PENDING',
+}

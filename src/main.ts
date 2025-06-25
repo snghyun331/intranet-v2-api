@@ -12,6 +12,7 @@ import { ResponseInterceptor } from '@common/interceptor/response.interceptor';
 import { validationOptions } from '@config/validation.config';
 import { SERVE_STATIC_CONFIG } from '@config/serveStatic.config';
 import { initializeTransactionalContext } from 'typeorm-transactional';
+import { setUpBullBoard } from './config/bull.config';
 
 async function bootstrap() {
   initializeTransactionalContext();
@@ -44,6 +45,9 @@ async function bootstrap() {
   app.useStaticAssets(SERVE_STATIC_CONFIG.rootPath, { prefix: '/resource/' });
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+
+  /* Bull Board Setting, 큐 모니터링 처리 */
+  await setUpBullBoard(app);
 
   try {
     await app.listen(SERVER_PORT, '0.0.0.0');

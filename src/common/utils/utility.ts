@@ -7,12 +7,10 @@ import {
   AM_QUARTER_REST_LISTS,
   AM_REST_LISTS,
   FOUR_HOURS_WORKING_MINUTES,
-  FULL_DAY_REST_LISTS,
   NORMAL_WORKING_MINUTES,
   PM_QUARTER_REST_LISTS,
   PM_REST_LISTS,
   SEVEN_HOURS_WORKING_MINUTES,
-  THREE_HOURS_WORKING_MINUTES,
   TWO_HOURS_HALF_WORKIMG_MINUTES,
 } from '../constant/constant';
 
@@ -414,3 +412,6 @@ export const calculateCombinedLeaveStandardWorkingMinutes = (existLeaveTypeIdx: 
 
   return standardWorkingMinutes;
 };
+
+// 바이트를 계산
+export const calculateByte = (text: string): number => text.replace(/[\0-\x7f]|([0-\u07ff]|(.))/g, '$&$1$2').length;

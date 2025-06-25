@@ -22,6 +22,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { REDIS_CONFIG } from '../config/redis.config';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { GlobalModule } from './global/global.module';
+import { NotificationModule } from './notification/notification.module';
+import { BullModule } from '@nestjs/bull';
+import { BULL_CONFIG } from '../config/bull.config';
 
 @Module({
   imports: [
@@ -30,6 +33,7 @@ import { GlobalModule } from './global/global.module';
     TypeOrmModule.forRootAsync(TYPEORM_CONFIG),
     MongooseModule.forRootAsync(MONGOOSE_CONFIG),
     RedisModule.forRootAsync(REDIS_CONFIG),
+    BullModule.forRootAsync(BULL_CONFIG),
     SchedulerModule,
     AuthModule,
     MealModule,
@@ -37,6 +41,7 @@ import { GlobalModule } from './global/global.module';
     ActivityModule,
     IntranetModule,
     NoticeModule,
+    NotificationModule,
     PlaygroundModule,
     FileModule,
     UserModule,
