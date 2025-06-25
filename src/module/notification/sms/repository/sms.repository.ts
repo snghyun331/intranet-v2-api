@@ -1,9 +1,11 @@
+import * as moment from 'moment';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { SmsMessageEntity } from '@entity/sms/smsMessage.entity';
 import { SmsRequestEntity } from '../../../../entity/sms/smsRequest.entity';
 import { SmsStatusEnum } from '../../../../common/constant/enum';
+import { UserSmsFilterDto } from '../dto/query.dto';
 
 @Injectable()
 export class SmsRepository {
@@ -63,5 +65,44 @@ export class SmsRepository {
       .set({ status })
       .where('smsRequestIdx = :smsRequestIdx', { smsRequestIdx })
       .execute();
+  }
+
+  async getSmsSendHistory(filterInfo?: UserSmsFilterDto) {
+    const query: SelectQueryBuilder<SmsMessageEntity> = this.smsMessageModel
+      .createQueryBuilder('smsMessageEntity')
+      .select([
+        'smsMessageEntity.smsMessageIdx AS smsMessageIdx',
+        'smsMessageEntity.toPhoneNumber AS toPhoneNumber',
+        'smsMessageEntity.status AS status',
+        'smsMessageEntity.sendAt AS sendAt',
+        'smsMessageEntity.failureReason AS failureReason',
+        'smsRequestEntity.fromPhoneNumber AS fromPhoneNumber',
+        'smsRequestEntity.message AS message',
+        'smsRequestEntity.fromPhoneNumber AS fromPhoneNumber',
+        'smsMessageEntity.createdAt AS createdAt',
+      ])
+      .innerJoin(
+        SmsRequestEntity,
+        'smsRequestEntity',
+        'smsRequestEntity.smsRequestIdx = smsMessageEntity.smsRequestIdx',
+      );
+
+    if (filterInfo && filterInfo.sDate && filterInfo.eDate) {
+      const startDate = moment(`${filterInfo.sDate} 00:00:00`).utcOffset(9).utc().toDate();
+      const endDate = moment(`${filterInfo.eDate} 23:59:59`).utcOffset(9).utc().toDate();
+      query.andWhere('smsMessageEntity.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+    }
+    if (filterInfo && filterInfo.status) {
+      query.andWhere('smsMessageEntity.status = :status', { status: filterInfo.status });
+    }
+    if (filterInfo && filterInfo.toPhoneNumber) {
+      query.andWhere('smsMessageEntity.toPhoneNumber = :toPhoneNumber', { toPhoneNumber: filterInfo.toPhoneNumber });
+    }
+
+    query.orderBy('smsMessageEntity.createdAt', 'DESC').addOrderBy('smsMessageEntity.sendAt', 'DESC');
+
+    const result = await query.getRawMany();
+
+    return result;
   }
 }

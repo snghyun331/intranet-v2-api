@@ -304,6 +304,12 @@ export const getDaysInMonth = (year: string, month: string): number => {
   return moment(`${year}-${month}`, 'YYYY-MM').daysInMonth();
 };
 
+export const getTimeStampToDateString = (timestamp: Date): string => {
+  const dateString: string = moment(timestamp).utcOffset(9).format('YYYY-MM-DD');
+
+  return dateString;
+};
+
 export const calculateAvailCheckOutTime = (
   checkInTime: Date,
   leaveTypeIdx: number | null,

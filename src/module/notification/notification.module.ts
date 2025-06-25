@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { QueueModule } from './queue/queue.module';
-import { UserSmsController } from './notification.controller';
+import { UserNotificationController } from './notification.controller';
 import { NotificationService } from './notification.sevice';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SmsRequestEntity } from '@entity/sms/smsRequest.entity';
@@ -11,6 +11,6 @@ import { SmsModule } from './sms/sms.module';
 @Module({
   imports: [TypeOrmModule.forFeature([SmsRequestEntity, SmsMessageEntity]), QueueModule, SmsModule],
   providers: [NotificationService],
-  controllers: [UserSmsController],
+  controllers: [UserNotificationController],
 })
 export class NotificationModule {}

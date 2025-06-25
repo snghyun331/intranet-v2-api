@@ -6,6 +6,7 @@ import { smsTemplate } from './sms/template/sms.template';
 import { SendSmsDto } from './sms/dto/sendSms.dto';
 import { SmsRepository } from './sms/repository/sms.repository';
 import { SmsStatusEnum } from '../../common/constant/enum';
+import { UserSmsFilterDto } from './sms/dto/query.dto';
 
 @Injectable()
 export class NotificationService {
@@ -39,5 +40,11 @@ export class NotificationService {
       /* SMS 요청 "중단"으로 업데이트 */
       await this.smsRepository.updateSmsRequest(smsRequestIdx, SmsStatusEnum.PENDING);
     }
+  }
+
+  async getSmsSendHistory(filterInfo?: UserSmsFilterDto) {
+    const result = await this.smsRepository.getSmsSendHistory(filterInfo);
+
+    return result;
   }
 }

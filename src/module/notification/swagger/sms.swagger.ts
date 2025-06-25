@@ -1,6 +1,6 @@
 import { SwaggerMethod } from '../../../common/interface/swagger.interface';
 
-export const USERS_SMS: SwaggerMethod = {
+export const USERS_NOTIFICATION_SMS: SwaggerMethod = {
   POST: {
     API_OPERATION: {
       summary: '사용자 SMS 발송 API',
