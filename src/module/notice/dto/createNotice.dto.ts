@@ -21,10 +21,10 @@ export class CreateNoticeDto {
   @IsString()
   place: string;
 
-  @ApiProperty({ type: 'enum', enum: YNEnum, description: '차량사용', required: false })
+  @ApiProperty({ type: String, description: '차량', required: false })
   @IsOptional()
-  @IsEnum(YNEnum)
-  useCarYN: YNEnum | null;
+  @IsString()
+  useCar: string | null;
 
   @ApiProperty({ type: Array, description: '참조 유저IDX (없으면 null)', example: [2], required: false })
   @IsOptional()
