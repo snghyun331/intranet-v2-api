@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '@common/entity/common.entity';
 import { SmsMessageEntity } from './smsMessage.entity';
-import { SmsStatusEnum } from '../../common/constant/enum';
+import { SmsRequestStatusEnum } from '../../common/constant/enum';
 
 @Entity({ name: 'sms_request', comment: 'SMS 발송 정보 tb' })
 export class SmsRequestEntity extends CommonEntity {
@@ -21,7 +21,7 @@ export class SmsRequestEntity extends CommonEntity {
     name: 'status',
     comment: '발송 상태',
     type: String,
-    default: SmsStatusEnum.PROCESSING,
+    default: SmsRequestStatusEnum.PROCESSING,
     nullable: false,
   })
   status: string;

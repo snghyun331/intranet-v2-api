@@ -5,7 +5,7 @@ import { SmsProducer } from './queue/producer/sms.producer';
 import { smsTemplate } from './sms/template/sms.template';
 import { SendSmsDto } from './sms/dto/sendSms.dto';
 import { SmsRepository } from './sms/repository/sms.repository';
-import { SmsStatusEnum } from '../../common/constant/enum';
+import { SmsRequestStatusEnum } from '../../common/constant/enum';
 import { UserSmsFilterDto } from './sms/dto/query.dto';
 
 @Injectable()
@@ -33,12 +33,12 @@ export class NotificationService {
       );
 
       /* SMS 요청 "완료"로 업데이트 */
-      await this.smsRepository.updateSmsRequest(smsRequestIdx, SmsStatusEnum.COMPLETED);
+      await this.smsRepository.updateSmsRequest(smsRequestIdx, SmsRequestStatusEnum.COMPLETED);
 
       return;
     } catch (err) {
       /* SMS 요청 "중단"으로 업데이트 */
-      await this.smsRepository.updateSmsRequest(smsRequestIdx, SmsStatusEnum.PENDING);
+      await this.smsRepository.updateSmsRequest(smsRequestIdx, SmsRequestStatusEnum.PENDING);
     }
   }
 
