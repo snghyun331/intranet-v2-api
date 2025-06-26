@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -34,11 +34,11 @@ export class UserNotificationController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @Post('sms')
+  @Get('sms')
   async getSmsRecord(@Query() filterInfo: UserSmsFilterDto): Promise<ResponseInterface> {
-    await this.notificationService.getSmsSendHistory(filterInfo);
+    const data = await this.notificationService.getSmsSendHistory(filterInfo);
 
-    const response: ResponseInterface = { message: 'success' };
+    const response: ResponseInterface = { message: 'success', data };
 
     return response;
   }
