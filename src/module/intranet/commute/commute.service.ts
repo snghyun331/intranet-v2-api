@@ -10,9 +10,6 @@ import {
   AM_REST_LISTS,
   PM_REST_LISTS,
   AM_QUARTER_REST_LISTS,
-  ANNUAL_LEAVE_LISTS,
-  SPECIAL_LEAVE_LISTS,
-  ALTERNATIVE_LEAVE_LISTS,
 } from '@common/constant/constant';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
@@ -30,7 +27,6 @@ import {
   getNormalLateBoundary,
   getPmHalfLateBoundary,
   getStartAndEndDateByMonth,
-  substringYearMonth,
 } from '@common/utils/utility';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -39,19 +35,13 @@ import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommute
 import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { GlobalHolidayRepository } from '@global/repository/globalHoliday.repository';
 import { LastUpdated } from './interface/commute.interface';
-import { LeaveRepository } from '../leave/repository/leave.repository';
-import { ApprovalRepository } from '../approval/repository/approval.repository';
-import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
 
 @Injectable()
 export class CommuteService {
   constructor(
     private readonly commuteRepository: CommuteRepository,
-    private readonly leaveRepository: LeaveRepository,
     private readonly userRepository: GlobalUserRepository,
     private readonly holidayRepository: GlobalHolidayRepository,
-    private readonly approvalRepository: ApprovalRepository,
-    private readonly mealRepository: GlobalMealRepository,
   ) {}
 
   @Transactional()

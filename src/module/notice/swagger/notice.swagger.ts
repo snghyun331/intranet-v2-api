@@ -106,16 +106,30 @@ export const ADMIN_NOTICES: SwaggerMethod = {
             message: 'success',
             data: {
               totalPage: 1,
-              total: 2,
-              notices: [
+              total: 1,
+              result: [
                 {
-                  noticeIdx: 41,
-                  title: '파일럿',
+                  noticeIdx: 58,
+                  title: 'DDD',
+                  place: 'string',
+                  useCarYN: 'N',
                   creatorName: '이승현',
-                  category: 'ETC',
-                  startDate: '2025-05-29',
-                  endDate: '2025-06-03',
-                  createdAt: '2025-06-22T09:27:27.335Z',
+                  category: 'INTERNAL_MEETING',
+                  startDate: '2024-01-01',
+                  endDate: '2024-12-31',
+                  createdAt: '2025-06-26T05:12:47.053Z',
+                  attendeeInfo: [
+                    {
+                      attendeeUserIdx: 2,
+                      attendeeUserName: '이승현',
+                    },
+                  ],
+                  ccUserInfo: [
+                    {
+                      ccUserIdx: 1,
+                      ccUserName: '김현민',
+                    },
+                  ],
                 },
               ],
             },
@@ -155,46 +169,37 @@ export const ADMIN_NOTICES_DETAIL: SwaggerMethod = {
     API_OK_RESPONSE: {
       content: {
         'application/json': {
-          examples: {
-            a: {
-              summary: '이미지 O',
-              value: {
-                statusCode: 200,
-                message: 'success',
-                data: {
-                  noticeIdx: 14,
-                  title: '[공지테스트]',
-                  content: '야야',
-                  creatorName: '이승',
-                  lastEditorName: '이승',
-                  imageIdx: 1,
-                  imageName: 'server_rack.jpg',
-                  imageSize: 52255,
-                  imageUrl: 'https://acg-benefit.s3.ap-northeast-2.amazonaws.com/TEST/NOTICE/14/server_rack.jpg',
-                  createdAt: '2025-01-14T07:21:56.039Z',
-                  updatedAt: '2025-01-14T07:21:56.039Z',
+          example: {
+            statusCode: 200,
+            message: 'success',
+            data: {
+              noticeIdx: 58,
+              title: 'DDD',
+              content: 'string',
+              place: 'string',
+              useCarYN: 'N',
+              creatorName: '이승현',
+              lastEditorName: '이승현',
+              category: 'INTERNAL_MEETING',
+              startDate: '2024-01-01',
+              endDate: '2024-12-31',
+              createdAt: '2025-06-26T05:12:47.053Z',
+              imageIdx: null,
+              imageName: null,
+              imageSize: null,
+              imageUrl: null,
+              attendeeInfo: [
+                {
+                  attendeeUserIdx: 2,
+                  attendeeUserName: '이승현',
                 },
-              },
-            },
-            b: {
-              summary: '이미지 X',
-              value: {
-                statusCode: 200,
-                message: 'success',
-                data: {
-                  noticeIdx: 15,
-                  title: '[공지테스트]',
-                  content: '야야',
-                  creatorName: '이승',
-                  lastEditorName: '이승',
-                  imageIdx: null,
-                  imageName: null,
-                  imageSize: null,
-                  imageUrl: null,
-                  createdAt: '2025-01-14T07:28:12.934Z',
-                  updatedAt: '2025-01-14T07:28:12.934Z',
+              ],
+              ccUserInfo: [
+                {
+                  ccUserIdx: 1,
+                  ccUserName: '김현민',
                 },
-              },
+              ],
             },
           },
         },
@@ -249,26 +254,30 @@ export const USERS_NOTICES: SwaggerMethod = {
             message: 'success',
             data: {
               totalPage: 1,
-              total: 4,
+              total: 1,
               result: [
                 {
-                  noticeIdx: 40,
-                  title: '파일럿',
+                  noticeIdx: 58,
+                  title: 'DDD',
+                  place: 'string',
+                  useCarYN: 'N',
                   creatorName: '이승현',
-                  category: 'EXTERNAL_MEETING',
-                  startDate: '2025-06-10',
-                  endDate: '2025-06-10',
-                  createdAt: '2025-06-22T09:21:55.649Z',
-                  isNew: false,
-                },
-                {
-                  noticeIdx: 41,
-                  title: '파일럿',
-                  creatorName: '이승현',
-                  category: 'ETC',
-                  startDate: '2025-05-29',
-                  endDate: '2025-06-03',
-                  createdAt: '2025-06-22T09:27:27.335Z',
+                  category: 'INTERNAL_MEETING',
+                  startDate: '2024-01-01',
+                  endDate: '2024-12-31',
+                  createdAt: '2025-06-26T05:12:47.053Z',
+                  attendeeInfo: [
+                    {
+                      attendeeUserIdx: 2,
+                      attendeeUserName: '이승현',
+                    },
+                  ],
+                  ccUserInfo: [
+                    {
+                      ccUserIdx: 1,
+                      ccUserName: '김현민',
+                    },
+                  ],
                   isNew: false,
                 },
               ],
@@ -298,14 +307,33 @@ export const USERS_NOTICES_DETAIL: SwaggerMethod = {
             statusCode: 200,
             message: 'success',
             data: {
-              noticeIdx: 2,
-              title: '제목 90자 이내',
-              content: '내용 글자 수 제한 없음',
+              noticeIdx: 58,
+              title: 'DDD',
+              content: 'string',
+              place: 'string',
+              useCarYN: 'N',
               creatorName: '이승현',
               lastEditorName: '이승현',
-              imageUrl: 'https://acg-benefit.....',
-              createdAt: '2025-01-06T06:41:40.000Z',
-              updatedAt: '2025-01-06T06:41:40.000Z',
+              category: 'INTERNAL_MEETING',
+              startDate: '2024-01-01',
+              endDate: '2024-12-31',
+              createdAt: '2025-06-26T05:12:47.053Z',
+              imageIdx: null,
+              imageName: null,
+              imageSize: null,
+              imageUrl: null,
+              attendeeInfo: [
+                {
+                  attendeeUserIdx: 2,
+                  attendeeUserName: '이승현',
+                },
+              ],
+              ccUserInfo: [
+                {
+                  ccUserIdx: 1,
+                  ccUserName: '김현민',
+                },
+              ],
             },
           },
         },

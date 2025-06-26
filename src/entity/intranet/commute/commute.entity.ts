@@ -6,6 +6,7 @@ import { CommuteHasImageEntity } from '@entity/image/commuteHasImage.entity';
 import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { CommuteApproverEntity } from './commuteApprover.entity';
 import { LastUpdated } from '../../../module/intranet/commute/interface/commute.interface';
+import { CommuteCCUserEntity } from './commuteCCUser.entity';
 
 @Entity({ name: 'commute', comment: '출퇴근 정보 tb' })
 export class CommuteEntity extends CommonEntity {
@@ -107,4 +108,7 @@ export class CommuteEntity extends CommonEntity {
 
   @OneToMany(() => CommuteApproverEntity, (commuteApprover) => commuteApprover.commuteIdxRelation)
   commuteApproverRelation: CommuteApproverEntity[];
+
+  @OneToMany(() => CommuteCCUserEntity, (commuteCCUser) => commuteCCUser.commuteIdxRelation)
+  commuteCCUserRelation: CommuteCCUserEntity[];
 }

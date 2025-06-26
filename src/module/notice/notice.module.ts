@@ -9,10 +9,19 @@ import { AwsService } from '../aws/aws.service';
 import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
 import { ImageEntity } from '@entity/image/image.entity';
 import { NoticeReadLogEntity } from '@/entity/notice/noticeReadLog.entity';
+import { NoticeAttendeeEntity } from '../../entity/notice/noticeAttendee.entity';
+import { NoticeCCUserEntity } from '../../entity/notice/noticeCCUser.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([NoticeEntity, NoticeHasImageEntity, ImageEntity, NoticeReadLogEntity]),
+    TypeOrmModule.forFeature([
+      NoticeEntity,
+      NoticeHasImageEntity,
+      ImageEntity,
+      NoticeReadLogEntity,
+      NoticeAttendeeEntity,
+      NoticeCCUserEntity,
+    ]),
     AwsModule,
   ],
   providers: [NoticeService, NoticeRepostiory, AwsService],

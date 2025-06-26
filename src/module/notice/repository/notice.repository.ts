@@ -9,8 +9,11 @@ import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
 import { NoticeImageInfo } from '../interface/notice.interface';
 import { AdminNoticeFilterDto, UserNoticeFilterDto } from '../dto/query.dto';
 import { NoticeReadLogEntity } from '@/entity/notice/noticeReadLog.entity';
-import { getStartAndEndDateByMonth } from '../../../common/utils/utility';
+import { getStartAndEndDateByMonth } from '@common/utils/utility';
 import { NoticeCategoryEnum } from '../constant/enum';
+import { NoticeAttendeeEntity } from '@entity/notice/noticeAttendee.entity';
+import { NoticeCCUserEntity } from '@entity/notice/noticeCCUser.entity';
+import { UserEntity } from '../../../entity/user/user.entity';
 
 @Injectable()
 export class NoticeRepostiory {
@@ -19,6 +22,8 @@ export class NoticeRepostiory {
     @InjectRepository(ImageEntity) private readonly imageModel: Repository<ImageEntity>,
     @InjectRepository(NoticeHasImageEntity) private readonly noticeImageModel: Repository<NoticeHasImageEntity>,
     @InjectRepository(NoticeReadLogEntity) private readonly noticeReadLogModel: Repository<NoticeReadLogEntity>,
+    @InjectRepository(NoticeAttendeeEntity) private readonly noticeAttendeeModel: Repository<NoticeAttendeeEntity>,
+    @InjectRepository(NoticeCCUserEntity) private readonly noticeCCUserModel: Repository<NoticeCCUserEntity>,
   ) {}
 
   async createNotice(noticeInfo: CreateNoticeDto, writerName: string): Promise<number> {
@@ -87,12 +92,26 @@ export class NoticeRepostiory {
       .select([
         'noticeEntity.noticeIdx AS noticeIdx',
         'noticeEntity.title AS title',
+        'noticeEntity.place AS place',
+        'noticeEntity.useCarYN AS useCarYN',
         'noticeEntity.creatorName AS creatorName',
         'noticeEntity.category AS category',
         'noticeEntity.startDate AS startDate',
         'noticeEntity.endDate AS endDate',
         'noticeEntity.createdAt AS createdAt',
+
+        // 추가: 참석자 정보 가져오기
+        'noticeAttendeeEntity.attendeeUserIdx AS attendeeUserIdx',
+        'attendeeUserEntity.userName AS attendeeUserName',
+
+        // 추가: 참조자 정보 가져오기
+        'noticeCCUserEntity.ccUserIdx AS ccUserIdx',
+        'ccUserEntity.userName AS ccUserName',
       ])
+      .leftJoin(NoticeCCUserEntity, 'noticeCCUserEntity', 'noticeCCUserEntity.noticeIdx = noticeEntity.noticeIdx')
+      .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = noticeCCUserEntity.ccUserIdx')
+      .leftJoin(NoticeAttendeeEntity, 'noticeAttendeeEntity', 'noticeAttendeeEntity.noticeIdx = noticeEntity.noticeIdx')
+      .leftJoin(UserEntity, 'attendeeUserEntity', 'attendeeUserEntity.userIdx = noticeAttendeeEntity.attendeeUserIdx')
       .leftJoin(
         NoticeReadLogEntity,
         'noticeReadLogEntity',
@@ -152,12 +171,26 @@ export class NoticeRepostiory {
       .select([
         'noticeEntity.noticeIdx AS noticeIdx',
         'noticeEntity.title AS title',
+        'noticeEntity.place AS place',
+        'noticeEntity.useCarYN AS useCarYN',
         'noticeEntity.creatorName AS creatorName',
         'noticeEntity.category AS category',
         'noticeEntity.startDate AS startDate',
         'noticeEntity.endDate AS endDate',
         'noticeEntity.createdAt AS createdAt',
-      ]);
+
+        // 추가: 참석자 정보 가져오기
+        'noticeAttendeeEntity.attendeeUserIdx AS attendeeUserIdx',
+        'attendeeUserEntity.userName AS attendeeUserName',
+
+        // 추가: 참조자 정보 가져오기
+        'noticeCCUserEntity.ccUserIdx AS ccUserIdx',
+        'ccUserEntity.userName AS ccUserName',
+      ])
+      .leftJoin(NoticeCCUserEntity, 'noticeCCUserEntity', 'noticeCCUserEntity.noticeIdx = noticeEntity.noticeIdx')
+      .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = noticeCCUserEntity.ccUserIdx')
+      .leftJoin(NoticeAttendeeEntity, 'noticeAttendeeEntity', 'noticeAttendeeEntity.noticeIdx = noticeEntity.noticeIdx')
+      .leftJoin(UserEntity, 'attendeeUserEntity', 'attendeeUserEntity.userIdx = noticeAttendeeEntity.attendeeUserIdx');
 
     if (filterInfo?.month && filterInfo?.year) {
       const year: string = filterInfo.year;
@@ -212,6 +245,8 @@ export class NoticeRepostiory {
         'noticeEntity.title AS title',
         'noticeEntity.content AS content',
         'noticeEntity.category AS category',
+        'noticeEntity.place AS place',
+        'noticeEntity.useCarYN AS useCarYN',
         'noticeEntity.startDate AS startDate',
         'noticeEntity.endDate AS endDate',
         'noticeEntity.creatorName AS creatorName',
@@ -222,7 +257,19 @@ export class NoticeRepostiory {
         'imageEntity.imageUrl AS imageUrl',
         'noticeEntity.createdAt AS createdAt',
         'noticeEntity.updatedAt AS updatedAt',
+
+        // 추가: 참석자 정보 가져오기
+        'noticeAttendeeEntity.attendeeUserIdx AS attendeeUserIdx',
+        'attendeeUserEntity.userName AS attendeeUserName',
+
+        // 추가: 참조자 정보 가져오기
+        'noticeCCUserEntity.ccUserIdx AS ccUserIdx',
+        'ccUserEntity.userName AS ccUserName',
       ])
+      .leftJoin(NoticeCCUserEntity, 'noticeCCUserEntity', 'noticeCCUserEntity.noticeIdx = noticeEntity.noticeIdx')
+      .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = noticeCCUserEntity.ccUserIdx')
+      .leftJoin(NoticeAttendeeEntity, 'noticeAttendeeEntity', 'noticeAttendeeEntity.noticeIdx = noticeEntity.noticeIdx')
+      .leftJoin(UserEntity, 'attendeeUserEntity', 'attendeeUserEntity.userIdx = noticeAttendeeEntity.attendeeUserIdx')
       .leftJoin(NoticeHasImageEntity, 'noticeImageEntity', 'noticeImageEntity.noticeIdx = noticeEntity.noticeIdx')
       .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = noticeImageEntity.imageIdx')
       .where('noticeEntity.noticeIdx = :noticeIdx', { noticeIdx })
@@ -275,5 +322,31 @@ export class NoticeRepostiory {
       .getCount();
 
     return result;
+  }
+
+  async createNoticeAttendeeList(noticeIdx: number, attendeeUserIdxs: number[]): Promise<void> {
+    for (const attendeeUserIdx of attendeeUserIdxs) {
+      await this.noticeAttendeeModel
+        .createQueryBuilder()
+        .insert()
+        .into(NoticeAttendeeEntity)
+        .values({ noticeIdx, attendeeUserIdx: Number(attendeeUserIdx) })
+        .execute();
+    }
+
+    return;
+  }
+
+  async createNoticeCCUserList(noticeIdx: number, ccUserIdxList: number[]): Promise<void> {
+    for (const ccUserIdx of ccUserIdxList) {
+      await this.noticeCCUserModel
+        .createQueryBuilder()
+        .insert()
+        .into(NoticeCCUserEntity)
+        .values({ noticeIdx, ccUserIdx: Number(ccUserIdx) })
+        .execute();
+    }
+
+    return;
   }
 }

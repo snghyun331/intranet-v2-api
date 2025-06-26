@@ -3,6 +3,9 @@ import { CommonEntity } from '@common/entity/common.entity';
 import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
 import { NoticeReadLogEntity } from './noticeReadLog.entity';
 import { NoticeCategoryEnum } from '../../module/notice/constant/enum';
+import { YNEnum } from '../../common/constant/enum';
+import { NoticeCCUserEntity } from './noticeCCUser.entity';
+import { NoticeAttendeeEntity } from './noticeAttendee.entity';
 
 @Entity({ name: 'notice', comment: '공지사항 tb' })
 export class NoticeEntity extends CommonEntity {
@@ -15,8 +18,14 @@ export class NoticeEntity extends CommonEntity {
   @Column({ name: 'category', comment: '카테고리', default: NoticeCategoryEnum.ETC, nullable: false })
   category: string;
 
+  @Column({ name: 'place', comment: '장소', type: 'text', nullable: true })
+  place: string;
+
   @Column({ name: 'content', comment: '내용', type: 'text', nullable: true })
   content: string;
+
+  @Column({ name: 'use_car_yn', comment: '차량 사용 여부', type: 'enum', enum: YNEnum, default: YNEnum.NO })
+  useCarYN: YNEnum;
 
   @Column({ name: 'creator_name', comment: '초기 작성자 이름', nullable: false })
   creatorName: string;
@@ -35,4 +44,10 @@ export class NoticeEntity extends CommonEntity {
 
   @OneToMany(() => NoticeReadLogEntity, (noticeReadLog) => noticeReadLog.noticeIdxRelation)
   noticeReadLogRelation: NoticeReadLogEntity[];
+
+  @OneToMany(() => NoticeCCUserEntity, (noticeCCUser) => noticeCCUser.noticeIdxRelation)
+  noticeCCUserRelation: NoticeCCUserEntity[];
+
+  @OneToMany(() => NoticeAttendeeEntity, (noticeAttendee) => noticeAttendee.noticeIdxRelation)
+  noticeAttendeeRelation: NoticeAttendeeEntity[];
 }

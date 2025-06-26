@@ -10,6 +10,7 @@ import { NodeEnvEnum } from '@common/constant/enum';
 import { Transactional } from 'typeorm-transactional';
 import { AdminNoticeFilterDto, UserNoticeFilterDto } from './dto/query.dto';
 import { NoticeCategoryEnum } from './constant/enum';
+import { removeDuplicateIdxs } from '../../common/utils/utility';
 
 @Injectable()
 export class NoticeService {
@@ -28,7 +29,8 @@ export class NoticeService {
     if (noticeInfo.category === NoticeCategoryEnum.NOTICE) {
       throw new BadRequestException('공지사항 카테고리는 관리자만 작성할 수 있습니다.');
     }
-    const noticeIdx: number = await this.noticeRepository.createNotice(noticeInfo, userName);
+    const { ccUserIdxs, attendeeUserIdxs, ...newNoticeInfo } = noticeInfo;
+    const noticeIdx: number = await this.noticeRepository.createNotice(newNoticeInfo, userName);
 
     /* 첨부 이미지가 있다면 */
     if (noticeImage) {
@@ -45,6 +47,17 @@ export class NoticeService {
       await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo);
     }
 
+    /* 참석자 모두 저장 */
+    if (attendeeUserIdxs !== null && attendeeUserIdxs !== undefined) {
+      await this.noticeRepository.createNoticeAttendeeList(noticeIdx, attendeeUserIdxs);
+    }
+    /* 참조자 모두 저장 */
+    if (ccUserIdxs !== null && ccUserIdxs !== undefined) {
+      // 참석자는 참조자로 등록 X
+      const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(attendeeUserIdxs, ccUserIdxs);
+      await this.noticeRepository.createNoticeCCUserList(noticeIdx, removeDuplicateCCUserIdxs);
+    }
+
     return;
   }
 
@@ -54,7 +67,8 @@ export class NoticeService {
     adminName: string,
     noticeImage?: Express.Multer.File,
   ): Promise<void> {
-    const noticeIdx: number = await this.noticeRepository.createNotice(noticeInfo, adminName);
+    const { ccUserIdxs, attendeeUserIdxs, ...newNoticeInfo } = noticeInfo;
+    const noticeIdx: number = await this.noticeRepository.createNotice(newNoticeInfo, adminName);
 
     /* 첨부 이미지가 있다면 */
     if (noticeImage) {
@@ -69,6 +83,17 @@ export class NoticeService {
       const imageInfo: NoticeImageInfo = { imageName: noticeImage.originalname, imageSize: noticeImage.size, imageUrl };
       // 2. DB에 저장
       await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo);
+    }
+
+    /* 참석자 모두 저장 */
+    if (attendeeUserIdxs !== null && attendeeUserIdxs !== undefined) {
+      await this.noticeRepository.createNoticeAttendeeList(noticeIdx, attendeeUserIdxs);
+    }
+    /* 참조자 모두 저장 */
+    if (ccUserIdxs !== null && ccUserIdxs !== undefined) {
+      // 참석자는 참조자로 등록 X
+      const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(attendeeUserIdxs, ccUserIdxs);
+      await this.noticeRepository.createNoticeCCUserList(noticeIdx, removeDuplicateCCUserIdxs);
     }
 
     return;
@@ -81,7 +106,11 @@ export class NoticeService {
       filterInfo,
       userIdx,
     );
-    const result = notices.map((notice) => ({
+
+    /* noticeIdx 기준 그룹화 + 참조자 및 참석자 정보 합치기 */
+    const groupedNotices = await this.groupByNoticeIdxForList(notices);
+
+    const result = groupedNotices.map((notice) => ({
       ...notice,
       isNew: notice.isNew === 1 ? true : false,
     }));
@@ -90,30 +119,129 @@ export class NoticeService {
   }
 
   async getNoticeListForAdmin({ pageNo, perPage }: PageNoDto, filterInfo?: AdminNoticeFilterDto) {
-    const result = await this.noticeRepository.getNoticeListForAdmin(pageNo, perPage, filterInfo);
+    const { totalPage, total, notices } = await this.noticeRepository.getNoticeListForAdmin(
+      pageNo,
+      perPage,
+      filterInfo,
+    );
 
-    return result;
+    /* noticeIdx 기준 그룹화 + 참조자 및 참석자 정보 합치기 */
+    const groupedNotices = await this.groupByNoticeIdxForList(notices);
+
+    return { totalPage, total, result: groupedNotices };
+  }
+
+  private async groupByNoticeIdxForList(rows: any[]) {
+    return rows.reduce((acc, row) => {
+      // 기존 noticeIdx가 있는지 확인
+      const existing = acc.find((item: any) => item.noticeIdx === row.noticeIdx);
+
+      const attendeeInfo = {
+        attendeeUserIdx: row.attendeeUserIdx,
+        attendeeUserName: row.attendeeUserName,
+      };
+      const ccUserInfo = {
+        ccUserIdx: row.ccUserIdx,
+        ccUserName: row.ccUserName,
+      };
+
+      if (existing) {
+        // 같은 noticeIdx attendeeInfo 리스트에 추가
+        if (row.approverIdx) {
+          const isIdxAlreadyExists = existing.attendeeInfo.some(
+            (user: any) => user.attendeeUserIdx === row.attendeeUserIdx,
+          );
+          if (!isIdxAlreadyExists) {
+            existing.attendeeInfo.push(attendeeInfo);
+          }
+        }
+        // 같은 noticeIdx ccUserInfo 리스트에 추가
+        if (row.ccUserIdx) {
+          const isIdxAlreadyExists = existing.ccUserInfo.some((user: any) => user.ccUserIdx === row.ccUserIdx);
+          if (!isIdxAlreadyExists) {
+            existing.ccUserInfo.push(ccUserInfo);
+          }
+        }
+      } else {
+        // 새로운 noticeIdx 새로운 객체 생성
+        acc.push({
+          noticeIdx: row.noticeIdx,
+          title: row.title,
+          place: row.place,
+          useCarYN: row.useCarYN,
+          creatorName: row.creatorName,
+          category: row.category,
+          startDate: row.startDate,
+          endDate: row.endDate,
+          createdAt: row.createdAt,
+          attendeeInfo: row.attendeeUserIdx ? [attendeeInfo] : [],
+          ccUserInfo: row.ccUserIdx ? [ccUserInfo] : [],
+        });
+      }
+      return acc;
+    }, []);
   }
 
   async getNoticeDetailForUser(noticeIdx: number, userIdx: number) {
-    const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
-    if (!noticeInfo) {
+    const notices = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    if (!notices) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
+    console.log(notices);
+
+    /* noticeIdx 기준 그룹화 + 참조자 및 참석자 정보 합치기 */
+    const groupedNotices = await this.groupByNoticeIdxForDetail(notices);
 
     // 마지막 확인시간 업데이트
     await this.noticeRepository.updateLastNoticeCheckedAt(noticeIdx, userIdx);
 
-    return noticeInfo;
+    return groupedNotices;
   }
 
   async getNoticeDetailForAdmin(noticeIdx: number) {
-    const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
-    if (!noticeInfo) {
+    const notices = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    if (!notices) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
 
-    return noticeInfo;
+    /* noticeIdx 기준 그룹화 + 참조자 및 참석자 정보 합치기 */
+    const groupedNotices = await this.groupByNoticeIdxForDetail(notices);
+
+    return groupedNotices;
+  }
+
+  private async groupByNoticeIdxForDetail(row: any) {
+    const attendeeInfo = {
+      attendeeUserIdx: row.attendeeUserIdx,
+      attendeeUserName: row.attendeeUserName,
+    };
+    const ccUserInfo = {
+      ccUserIdx: row.ccUserIdx,
+      ccUserName: row.ccUserName,
+    };
+
+    const result = {
+      noticeIdx: row.noticeIdx,
+      title: row.title,
+      content: row.content,
+      place: row.place,
+      useCarYN: row.useCarYN,
+      creatorName: row.creatorName,
+      lastEditorName: row.lastEditorName,
+      category: row.category,
+      startDate: row.startDate,
+      endDate: row.endDate,
+      createdAt: row.createdAt,
+      udpatedAt: row.udpatedAt,
+      imageIdx: row.imageIdx,
+      imageName: row.imageName,
+      imageSize: row.imageSize,
+      imageUrl: row.imageUrl,
+      attendeeInfo: row.attendeeUserIdx ? [attendeeInfo] : [],
+      ccUserInfo: row.ccUserIdx ? [ccUserInfo] : [],
+    };
+
+    return result;
   }
 
   @Transactional()

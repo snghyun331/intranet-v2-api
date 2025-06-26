@@ -14,7 +14,7 @@ export class CommuteCCUserEntity extends CommonEntity {
   @Column({ name: 'last_checked_at', comment: '마지막 확인 시간', nullable: true })
   lastCheckedAt: Date;
 
-  @ManyToOne(() => CommuteEntity, (commute) => commute.commuteApproverRelation, {
+  @ManyToOne(() => CommuteEntity, (commute) => commute.commuteCCUserRelation, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
