@@ -170,14 +170,12 @@ export class UserRepository {
     return { totalPage, total, users: result };
   }
 
-  async createUser(newUserInfo: CreateUserDto): Promise<number> {
-    const password: string = encryptPassword(newUserInfo.id + '2467');
-
+  async createUser(newUserInfo: CreateUserDto, newPassword: string): Promise<number> {
     const result: InsertResult = await this.userModel
       .createQueryBuilder()
       .insert()
       .into(UserEntity)
-      .values({ password, ...newUserInfo })
+      .values({ password: newPassword, ...newUserInfo })
       .execute();
 
     return result.identifiers[0].userIdx;
@@ -252,12 +250,10 @@ export class UserRepository {
   }
 
   async updateAdmin(userIdx: number, adminInfo: NewAdminInfo): Promise<UpdateResult> {
-    const password: string = encryptPassword(adminInfo.id + '2467');
-
     return await this.adminModel
       .createQueryBuilder()
       .update(AdminEntity)
-      .set({ password, ...adminInfo })
+      .set(adminInfo)
       .where('userIdx = :userIdx', { userIdx })
       .execute();
   }
@@ -294,6 +290,7 @@ export class UserRepository {
     const result = await this.userModel
       .createQueryBuilder('userEntity')
       .select([
+        'userEntity.password AS password',
         'userEntity.userName AS userName',
         'userEntity.adminRole AS adminRole',
         'userEntity.gradeIdx AS gradeIdx',

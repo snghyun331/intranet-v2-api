@@ -20,7 +20,7 @@ export class GlobalMealRepository {
         WHERE c.user_idx = ${userIdx}
         AND c.confirm_yn = '${ConfirmEnum.YES}'
         AND c.commute_date BETWEEN '${startDate}' AND '${endDate}'
-        AND c.leave_type_idx NOT IN (1,4,5,10,11)
+        AND c.leave_type_idx NOT IN (4,5,10,11)
       )`;
 
     return await this.mealStatsModel

@@ -9,7 +9,7 @@ import { TeamEntity } from '@entity/user/team.entity';
 import { UpdateNoteDto } from '../dto/updateNote.dto';
 import { LeaveTypeEntity } from '@entity/intranet/leave/leaveType.entity';
 import { removeAllWhiteSpace } from '@common/utils/utility';
-import { ConfirmEnum, IntranetLeaveTypeIdxEnum, YNEnum } from '@common/constant/enum';
+import { ConfirmEnum, YNEnum } from '@common/constant/enum';
 import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommuteTimeInfo } from '../interface';
 import { AdminCommuteSortEnum } from '../enum/commute.enum';
 import { LastUpdated } from '../interface/commute.interface';
@@ -33,7 +33,6 @@ export class CommuteRepository {
       .update(CommuteEntity)
       .set({
         ...commuteInfo,
-        leaveTypeIdx: () => `COALESCE(leave_type_idx, ${IntranetLeaveTypeIdxEnum.NORMAL})`,
         firstUpdatedAt: () => `COALESCE(first_updated_at, NOW())`,
       })
       .where('userIdx = :userIdx', { userIdx })
@@ -222,7 +221,7 @@ export class CommuteRepository {
       checkOutIpAddr: null,
       checkInLogAgent: null,
       checkOutLogAgent: null,
-      confirmYN: ConfirmEnum.NO,
+      confirmYN: null,
       confirmDate: null,
       rejectDate: null,
       confirmPersonIdx: null,
@@ -315,7 +314,7 @@ export class CommuteRepository {
       .createQueryBuilder('commuteEntity')
       .select(['commuteEntity.commuteDate AS commuteDate', `commuteEntity.working_minutes AS workingMinutes`])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      // .andWhere('commuteEntity.leaveTypeIdx = :leaveTypeIdx', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
       .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,

@@ -116,9 +116,10 @@ export class UserService {
 
     const { adminGradeIdx, ...rest } = userInfo;
     const newUserInfo: NewUserInfo = rest;
+    const newPassword: string = encryptPassword(newUserInfo.id + '2467');
 
     /* 유저 등록 */
-    const userIdx: number = await this.userRepository.createUser(newUserInfo);
+    const userIdx: number = await this.userRepository.createUser(newUserInfo, newPassword);
 
     /* 어드민 여부 = Y일 경우, 어드민 등록 */
     if (userInfo.adminRole === YNEnum.YES) {
@@ -127,6 +128,7 @@ export class UserService {
       }
       const newAdminInfo: NewAdminInfo = {
         id: userInfo.id,
+        password: newPassword,
         adminName: userInfo.userName,
         adminEmail: userInfo.userEmail,
         adminGradeIdx,
@@ -463,6 +465,7 @@ export class UserService {
     if (result.adminRole === YNEnum.NO && updateInfo.adminRole === YNEnum.YES) {
       const newAdminInfo: NewAdminInfo = {
         id: updateInfo.id,
+        password: result.password,
         adminName: updateInfo.userName,
         adminEmail: updateInfo.userEmail,
         adminGradeIdx: updateInfo.adminGradeIdx,

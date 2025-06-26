@@ -66,8 +66,7 @@ export class CommuteEntity extends CommonEntity {
     comment: '승인 여부',
     type: 'enum',
     enum: ConfirmEnum,
-    default: ConfirmEnum.NO,
-    nullable: false,
+    nullable: true,
   })
   confirmYN: ConfirmEnum;
 

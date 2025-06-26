@@ -168,7 +168,7 @@ export class LeaveService {
           commuteIdx = await this.leaveRepository.createLeave(leave, userIdx, note, leaveReduceUnit);
         } else {
           // 해당 날짜에 대한 근태가 존재 & 일반 근무일 경우
-          if (existingCommute.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL) {
+          if (existingCommute.leaveTypeIdx === null) {
             commuteIdx = existingCommute.commuteIdx;
             const firstUpdatedAt = existingCommute.checkInTime ? existingCommute.firstUpdatedAt : new Date();
             await this.leaveRepository.updateLeave(
@@ -312,10 +312,7 @@ export class LeaveService {
                 : IntranetAttendanceEnum.CHECK_IN;
           } else {
             /* 삭제했을 때, 나머지가 모두 미승인일 때 → 일반근무 */
-            availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
-              leaveInfo.checkInTime,
-              IntranetLeaveTypeIdxEnum.NORMAL,
-            );
+            availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(leaveInfo.checkInTime);
 
             const isNormalLate =
               new Date(leaveInfo.checkInTime) >= getNormalLateBoundary(new Date(leaveInfo.checkInTime));
@@ -338,14 +335,14 @@ export class LeaveService {
           attendance = null;
         }
         const updateInfo = {
-          leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
-          confirmYN: ConfirmEnum.NO,
+          leaveTypeIdx: null,
+          confirmYN: null,
           confirmPersonIdx: null,
           confirmDate: null,
           leaveReduceUnit: 0,
           attendance,
           availCheckOutTime: leaveInfo.checkInTime
-            ? calculateSingleCommuteAvailCheckOutTime(leaveInfo.checkInTime, IntranetLeaveTypeIdxEnum.NORMAL)
+            ? calculateSingleCommuteAvailCheckOutTime(leaveInfo.checkInTime)
             : null,
         };
         await this.leaveRepository.updateCommute(commuteIdx, updateInfo);

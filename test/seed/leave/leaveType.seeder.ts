@@ -7,11 +7,6 @@ export const seedLeaveType = async (dataSource: DataSource): Promise<void> => {
 
   const leaveTypes = [
     {
-      leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
-      leaveType: '근무',
-      leaveReduceUnit: 0,
-    },
-    {
       leaveTypeIdx: IntranetLeaveTypeIdxEnum.AM_HALF,
       leaveType: '오전 반차',
       leaveReduceUnit: 0.5,

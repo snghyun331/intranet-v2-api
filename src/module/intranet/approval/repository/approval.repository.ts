@@ -273,7 +273,7 @@ export class ApprovalRepository {
       .leftJoin(CommuteHasImageEntity, 'commuteImageEntity', 'commuteImageEntity.commuteIdx = commuteEntity.commuteIdx')
       .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = commuteImageEntity.imageIdx')
       .where('YEAR(commuteEntity.commuteDate) = :year', { year: filterInfo.year })
-      .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .andWhere('commuteEntity.leaveTypeIdx IS NOT NULL')
       .andWhere(
         new Brackets((qb) => {
           qb.where(`
