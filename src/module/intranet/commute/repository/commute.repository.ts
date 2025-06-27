@@ -114,7 +114,6 @@ export class CommuteRepository {
   }
 
   async getCommuteRecords(pageNo: number, perPage: number, filterInfo: AdminCommuteFilterDto) {
-    console.log(filterInfo);
     const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([

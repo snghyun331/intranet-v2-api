@@ -590,7 +590,6 @@ export class CommuteService {
 
   async getCommuteRecords({ pageNo, perPage }: PageNoDto, filterInfo: AdminCommuteFilterDto) {
     const { totalPage, total, results } = await this.commuteRepository.getCommuteRecords(pageNo, perPage, filterInfo);
-    console.log(results);
 
     // 날짜별 + 사용자별로 그룹핑
     const groupedByDateAndUser = results.reduce((acc, result) => {

@@ -173,6 +173,7 @@ export class NoticeService {
           category: row.category,
           startDate: row.startDate,
           endDate: row.endDate,
+          isNew: Number(row.isNew),
           createdAt: row.createdAt,
           attendeeInfo: row.attendeeUserIdx ? [attendeeInfo] : [],
           ccUserInfo: row.ccUserIdx ? [ccUserInfo] : [],
@@ -187,7 +188,6 @@ export class NoticeService {
     if (!notices) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
-    console.log(notices);
 
     /* noticeIdx 기준 그룹화 + 참조자 및 참석자 정보 합치기 */
     const groupedNotices = await this.groupByNoticeIdxForDetail(notices);

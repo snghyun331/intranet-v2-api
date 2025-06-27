@@ -99,6 +99,7 @@ export class NoticeRepostiory {
         'noticeEntity.startDate AS startDate',
         'noticeEntity.endDate AS endDate',
         'noticeEntity.createdAt AS createdAt',
+        'CASE WHEN noticeReadLogEntity.noticeIdx IS NULL THEN 1 ELSE 0 END AS isNew',
 
         // 추가: 참석자 정보 가져오기
         'noticeAttendeeEntity.attendeeUserIdx AS attendeeUserIdx',
@@ -117,7 +118,6 @@ export class NoticeRepostiory {
         'noticeReadLogEntity',
         'noticeEntity.noticeIdx = noticeReadLogEntity.noticeIdx AND noticeReadLogEntity.userIdx = :userIdx',
       )
-      .addSelect('CASE WHEN noticeReadLogEntity.noticeIdx IS NULL THEN 1 ELSE 0 END AS isNew')
       .setParameter('userIdx', userIdx);
 
     if (filterInfo?.month && filterInfo?.year) {
@@ -306,6 +306,7 @@ export class NoticeRepostiory {
     return;
   }
 
+  /* 카테고리가 공지사항/기타 이거나 본인이 참조된 미팅일 경우, 카운팅 */
   async getNewNoticeCount(userIdx: number): Promise<number> {
     const subQuery: string = this.noticeReadLogModel
       .createQueryBuilder('noticeReadLogEntity')
@@ -314,12 +315,25 @@ export class NoticeRepostiory {
       .andWhere('noticeReadLogEntity.userIdx = :userIdx')
       .getQuery();
 
-    const result = await this.noticeModel
+    const mainQuery: SelectQueryBuilder<NoticeEntity> = this.noticeModel
       .createQueryBuilder('noticeEntity')
       .where(`NOT EXISTS (${subQuery})`)
-      .andWhere('noticeEntity.category = :category', { category: NoticeCategoryEnum.NOTICE })
-      .setParameter('userIdx', userIdx)
-      .getCount();
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('noticeEntity.category IN (:...categories)', {
+            categories: [NoticeCategoryEnum.NOTICE, NoticeCategoryEnum.ETC],
+          })
+            .orWhere(
+              'EXISTS (SELECT 1 FROM notice_cc_user ccEntity WHERE ccEntity.notice_idx = noticeEntity.notice_idx AND ccEntity.cc_user_idx = :userIdx)',
+            )
+            .orWhere(
+              'EXISTS (SELECT 1 FROM notice_attendee attendeeEntity WHERE attendeeEntity.notice_idx = noticeEntity.notice_idx AND attendeeEntity.attendee_user_idx = :userIdx)',
+            );
+        }),
+      )
+      .setParameter('userIdx', userIdx);
+
+    const result = await mainQuery.getCount();
 
     return result;
   }

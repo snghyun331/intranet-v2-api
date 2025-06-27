@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalRepository } from './repository/approval.repository';
-import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
+import { ConfirmEnum, IntranetAttendanceEnum } from '@common/constant/enum';
 import {
   addConfirmStatusField,
   calculateCombinedCommuteAvailCheckOutTime,
