@@ -95,7 +95,9 @@ export class CommuteRepository {
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      })
       .getRawMany();
 
     return result;
@@ -112,6 +114,7 @@ export class CommuteRepository {
   }
 
   async getCommuteRecords(pageNo: number, perPage: number, filterInfo: AdminCommuteFilterDto) {
+    console.log(filterInfo);
     const query: SelectQueryBuilder<CommuteEntity> = this.commuteModel
       .createQueryBuilder('commuteEntity')
       .select([
@@ -151,7 +154,9 @@ export class CommuteRepository {
         eDate: filterInfo.eDate,
       })
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT });
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      });
 
     if (filterInfo.userName) {
       const userName: string = removeAllWhiteSpace(filterInfo.userName);
@@ -290,7 +295,9 @@ export class CommuteRepository {
       ])
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      })
       .andWhere('commuteEntity.commuteDate BETWEEN :sDate AND :eDate', {
         sDate: filterInfo.sDate,
         eDate: filterInfo.eDate,

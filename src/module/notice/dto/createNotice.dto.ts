@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { NoticeCategoryEnum } from '../constant/enum';
-import { YNEnum } from '../../../common/constant/enum';
 import { Transform } from 'class-transformer';
 
 export class CreateNoticeDto {

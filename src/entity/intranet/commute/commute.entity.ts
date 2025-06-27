@@ -64,8 +64,7 @@ export class CommuteEntity extends CommonEntity {
   @Column({
     name: 'confirm_yn',
     comment: '승인 여부',
-    type: 'enum',
-    enum: ConfirmEnum,
+    type: String,
     nullable: true,
   })
   confirmYN: ConfirmEnum;

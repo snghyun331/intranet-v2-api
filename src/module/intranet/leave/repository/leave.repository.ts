@@ -94,7 +94,9 @@ export class LeaveRepository {
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      })
       .andWhere('commuteEntity.leaveTypeIdx IS NOT NULL')
       .getRawMany();
 
@@ -149,7 +151,9 @@ export class LeaveRepository {
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .andWhere('commuteEntity.commuteIdx != :exceptCommuteIdx', { exceptCommuteIdx })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      })
       .getRawMany();
 
     return result;
@@ -168,6 +172,7 @@ export class LeaveRepository {
       note,
       userIdx,
       leaveReduceUnit,
+      confirmYN: ConfirmEnum.NO,
       ...(extraUpdateInfo && Object.keys(extraUpdateInfo).length > 0 ? extraUpdateInfo : {}),
     };
 
@@ -572,7 +577,9 @@ export class LeaveRepository {
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
       .where('commuteEntity.leaveTypeIdx IS NOT NULL')
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      })
       .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
