@@ -32,6 +32,9 @@ export class NoticeEntity extends CommonEntity {
   @Column({ name: 'last_editor_name', comment: '마지막 수정자 이름', nullable: false })
   lastEditorName: string;
 
+  @Column({ name: 'last_update_at', comment: '마지막 수정 시간', nullable: true })
+  lastUpdateAt: Date;
+
   @Column({ type: String, comment: '게시 시작일', nullable: true })
   startDate: string;
 

@@ -228,6 +228,7 @@ export class NoticeService {
       useCar: row.useCar,
       creatorName: row.creatorName,
       lastEditorName: row.lastEditorName,
+      lastUpdateAt: row.lastUpdateAt,
       category: row.category,
       startDate: row.startDate,
       endDate: row.endDate,

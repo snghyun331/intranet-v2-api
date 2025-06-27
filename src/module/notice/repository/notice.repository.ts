@@ -31,7 +31,7 @@ export class NoticeRepostiory {
       .createQueryBuilder()
       .insert()
       .into(NoticeEntity)
-      .values({ creatorName: writerName, lastEditorName: writerName, ...noticeInfo })
+      .values({ creatorName: writerName, lastEditorName: writerName, lastUpdateAt: new Date(), ...noticeInfo })
       .execute();
 
     const noticeIdx: number = result.identifiers[0].noticeIdx;
@@ -72,7 +72,7 @@ export class NoticeRepostiory {
     return await this.noticeModel
       .createQueryBuilder()
       .update(NoticeEntity)
-      .set({ lastEditorName: adminName, title, content })
+      .set({ lastEditorName: adminName, lastUpdateAt: new Date(), title, content })
       .where('noticeIdx = :noticeIdx', { noticeIdx })
       .execute();
   }
@@ -251,6 +251,7 @@ export class NoticeRepostiory {
         'noticeEntity.endDate AS endDate',
         'noticeEntity.creatorName AS creatorName',
         'noticeEntity.lastEditorName AS lastEditorName',
+        'noticeEntity.lastUpdateAt AS lastUpdateAt',
         'noticeImageEntity.imageIdx AS imageIdx',
         'imageEntity.imageName AS imageName',
         'imageEntity.imageSize AS imageSize',
