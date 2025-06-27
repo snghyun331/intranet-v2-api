@@ -535,6 +535,8 @@ export class LeaveRepository {
 
     const result = await query.getRawMany();
 
+    console.log(result);
+
     return result;
   }
 

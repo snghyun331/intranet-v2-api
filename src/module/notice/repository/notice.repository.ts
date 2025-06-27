@@ -267,14 +267,14 @@ export class NoticeRepostiory {
         'noticeCCUserEntity.ccUserIdx AS ccUserIdx',
         'ccUserEntity.userName AS ccUserName',
       ])
+      .leftJoin(NoticeHasImageEntity, 'noticeImageEntity', 'noticeImageEntity.noticeIdx = noticeEntity.noticeIdx')
+      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = noticeImageEntity.imageIdx')
       .leftJoin(NoticeCCUserEntity, 'noticeCCUserEntity', 'noticeCCUserEntity.noticeIdx = noticeEntity.noticeIdx')
       .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = noticeCCUserEntity.ccUserIdx')
       .leftJoin(NoticeAttendeeEntity, 'noticeAttendeeEntity', 'noticeAttendeeEntity.noticeIdx = noticeEntity.noticeIdx')
       .leftJoin(UserEntity, 'attendeeUserEntity', 'attendeeUserEntity.userIdx = noticeAttendeeEntity.attendeeUserIdx')
-      .leftJoin(NoticeHasImageEntity, 'noticeImageEntity', 'noticeImageEntity.noticeIdx = noticeEntity.noticeIdx')
-      .leftJoin(ImageEntity, 'imageEntity', 'imageEntity.imageIdx = noticeImageEntity.imageIdx')
       .where('noticeEntity.noticeIdx = :noticeIdx', { noticeIdx })
-      .getRawOne();
+      .getRawMany();
 
     return result;
   }
@@ -340,28 +340,80 @@ export class NoticeRepostiory {
   }
 
   async createNoticeAttendeeList(noticeIdx: number, attendeeUserIdxs: number[]): Promise<void> {
-    for (const attendeeUserIdx of attendeeUserIdxs) {
-      await this.noticeAttendeeModel
-        .createQueryBuilder()
-        .insert()
-        .into(NoticeAttendeeEntity)
-        .values({ noticeIdx, attendeeUserIdx: Number(attendeeUserIdx) })
-        .execute();
-    }
+    await Promise.all(
+      attendeeUserIdxs.map(async (attendeeUserIdx) => {
+        await this.noticeAttendeeModel
+          .createQueryBuilder()
+          .insert()
+          .into(NoticeAttendeeEntity)
+          .values({ noticeIdx, attendeeUserIdx: Number(attendeeUserIdx) })
+          .execute();
+      }),
+    );
+  }
 
-    return;
+  async deleteNoticeAttendeeList(noticeIdx: number, attendeeIdxList: number[]): Promise<void> {
+    await Promise.all(
+      attendeeIdxList.map(async (attendeeUserIdx) => {
+        await this.noticeAttendeeModel
+          .createQueryBuilder()
+          .delete()
+          .from(NoticeAttendeeEntity)
+          .where('noticeIdx = :noticeIdx', { noticeIdx })
+          .andWhere('attendeeUserIdx = :attendeeUserIdx', { attendeeUserIdx })
+          .execute();
+      }),
+    );
   }
 
   async createNoticeCCUserList(noticeIdx: number, ccUserIdxList: number[]): Promise<void> {
-    for (const ccUserIdx of ccUserIdxList) {
-      await this.noticeCCUserModel
-        .createQueryBuilder()
-        .insert()
-        .into(NoticeCCUserEntity)
-        .values({ noticeIdx, ccUserIdx: Number(ccUserIdx) })
-        .execute();
-    }
+    await Promise.all(
+      ccUserIdxList.map(async (ccUserIdx) => {
+        await this.noticeCCUserModel
+          .createQueryBuilder()
+          .insert()
+          .into(NoticeCCUserEntity)
+          .values({ noticeIdx, ccUserIdx: Number(ccUserIdx) })
+          .execute();
+      }),
+    );
+  }
 
-    return;
+  async deleteNoticeCCUserList(noticeIdx: number, ccUserIdxList: number[]): Promise<void> {
+    await Promise.all(
+      ccUserIdxList.map(async (ccUserIdx) => {
+        await this.noticeCCUserModel
+          .createQueryBuilder()
+          .delete()
+          .from(NoticeCCUserEntity)
+          .where('noticeIdx = :noticeIdx', { noticeIdx })
+          .andWhere('ccUserIdx = :ccUserIdx', { ccUserIdx })
+          .execute();
+      }),
+    );
+  }
+
+  async getNoticeCCUserIdxs(noticeIdx: number): Promise<number[]> {
+    const result = await this.noticeCCUserModel
+      .createQueryBuilder('noticeCCUserEntity')
+      .select(['noticeCCUserEntity.ccUserIdx AS ccUserIdx '])
+      .where('noticeCCUserEntity.noticeIdx = :noticeIdx', { noticeIdx })
+      .getRawMany();
+
+    const ccUserIdxList: number[] = result.map((r) => r.ccUserIdx);
+
+    return ccUserIdxList;
+  }
+
+  async getNoticeAttendeeIdxs(noticeIdx: number): Promise<number[]> {
+    const result = await this.noticeAttendeeModel
+      .createQueryBuilder('noticeAttendeeEntity')
+      .select(['noticeAttendeeEntity.attendeeUserIdx AS attendeeUserIdx '])
+      .where('noticeAttendeeEntity.noticeIdx = :noticeIdx', { noticeIdx })
+      .getRawMany();
+
+    const attendeeIdxList: number[] = result.map((r) => r.attendeeUserIdx);
+
+    return attendeeIdxList;
   }
 }

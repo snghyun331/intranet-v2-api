@@ -210,43 +210,173 @@ export class NoticeService {
     return groupedNotices;
   }
 
-  private async groupByNoticeIdxForDetail(row: any) {
-    const attendeeInfo = {
-      attendeeUserIdx: row.attendeeUserIdx,
-      attendeeUserName: row.attendeeUserName,
-    };
-    const ccUserInfo = {
-      ccUserIdx: row.ccUserIdx,
-      ccUserName: row.ccUserName,
-    };
+  private async groupByNoticeIdxForDetail(rows: any[]) {
+    return rows.reduce((acc, row) => {
+      // 기존 noticeIdx가 있는지 확인
+      const existing = acc.find((item: any) => item.noticeIdx === row.noticeIdx);
 
-    const result = {
-      noticeIdx: row.noticeIdx,
-      title: row.title,
-      content: row.content,
-      place: row.place,
-      useCar: row.useCar,
-      creatorName: row.creatorName,
-      lastEditorName: row.lastEditorName,
-      lastUpdateAt: row.lastUpdateAt,
-      category: row.category,
-      startDate: row.startDate,
-      endDate: row.endDate,
-      createdAt: row.createdAt,
-      udpatedAt: row.udpatedAt,
-      imageIdx: row.imageIdx,
-      imageName: row.imageName,
-      imageSize: row.imageSize,
-      imageUrl: row.imageUrl,
-      attendeeInfo: row.attendeeUserIdx ? [attendeeInfo] : [],
-      ccUserInfo: row.ccUserIdx ? [ccUserInfo] : [],
-    };
+      const attendeeInfo = {
+        attendeeUserIdx: row.attendeeUserIdx,
+        attendeeUserName: row.attendeeUserName,
+      };
+      const ccUserInfo = {
+        ccUserIdx: row.ccUserIdx,
+        ccUserName: row.ccUserName,
+      };
 
-    return result;
+      if (existing) {
+        // 같은 noticeIdx이면 attendeeInfo 리스트에 추가
+        if (row.attendeeUserIdx) {
+          const isIdxAlreadyExists = existing.attendeeInfo.some(
+            (user: any) => user.attendeeUserIdx === row.attendeeUserIdx,
+          );
+          if (!isIdxAlreadyExists) {
+            existing.attendeeInfo.push(attendeeInfo);
+          }
+        }
+        // 같은 noticeIdx이면 ccUserInfo 리스트에 추가
+        if (row.ccUserIdx) {
+          const isIdxAlreadyExists = existing.ccUserInfo.some((user: any) => user.ccUserIdx === row.ccUserIdx);
+          if (!isIdxAlreadyExists) {
+            existing.ccUserInfo.push(ccUserInfo);
+          }
+        }
+      } else {
+        // 새로운 noticeIdx이면 새로운 객체 생성
+        acc.push({
+          noticeIdx: row.noticeIdx,
+          title: row.title,
+          content: row.content,
+          place: row.place,
+          useCar: row.useCar,
+          creatorName: row.creatorName,
+          lastEditorName: row.lastEditorName,
+          lastUpdateAt: row.lastUpdateAt,
+          category: row.category,
+          startDate: row.startDate,
+          endDate: row.endDate,
+          createdAt: row.createdAt,
+          udpatedAt: row.udpatedAt,
+          imageIdx: row.imageIdx,
+          imageName: row.imageName,
+          imageSize: row.imageSize,
+          imageUrl: row.imageUrl,
+          attendeeInfo: row.attendeeUserIdx ? [attendeeInfo] : [],
+          ccUserInfo: row.ccUserIdx ? [ccUserInfo] : [],
+        });
+      }
+      return acc;
+    }, []);
   }
 
   @Transactional()
-  async updateNotice(
+  async updateNoticeByUser(
+    userName: string,
+    noticeIdx: number,
+    noticeDto: UpdateNoticeDto,
+    noticeImage?: Express.Multer.File,
+  ): Promise<void> {
+    delete noticeDto.noticeImage;
+    /*
+     * 기존 이미지 삭제 및 새로운 이미지 추가 → imageUrl: X, noticeImage: O
+     * 기존 이미지 삭제(최종 이미지: 없음) → imageUrl: X
+     * 기존 이미지 없음 및 새로운 이미지 추가 → imageUrl: X, noticeImage: O
+     * 기존 이미지 없음(최종 이미지: 없음) → imageUrl: X
+     * 기존 이미지 유지 → imageUrl: string
+     */
+
+    const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
+    if (!noticeInfo || noticeInfo.length === 0) {
+      throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
+    }
+
+    const env: string = this.configService.get<string>('NODE_ENV');
+    const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
+    const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
+    const s3FilePath: string = `${rootDir}/NOTICE/${noticeIdx}`;
+
+    /* 기존 이미지 삭제 로직 */
+    if (noticeInfo[0].imageIdx && !noticeDto.imageUrl) {
+      // S3 이미지 삭제
+      const existingFileName: string = noticeInfo[0].imageUrl.split('/').pop();
+      const existingFilePath: string = `${s3FilePath}/${existingFileName}`;
+      await this.awsService.deleteS3Image(bucketName, existingFilePath);
+      // DB 처리
+      if (noticeImage) {
+        // 기존 이미지 삭제 및 새로운 이미지 추가
+        await this.noticeRepository.updateImageDataToNull(noticeInfo[0].imageIdx);
+      } else {
+        // 기존 이미지 삭제만
+        await this.noticeRepository.deleteNoticeImage(noticeInfo[0].imageIdx);
+      }
+    }
+
+    await this.noticeRepository.updateNotice(userName, noticeIdx, noticeDto);
+
+    /* 새로운 사진으로 변경할 경우 */
+    if (noticeImage) {
+      // 1. 새 이미지 S3에 업로드
+      noticeImage.originalname = Buffer.from(noticeImage.originalname, 'ascii').toString('utf8');
+      const { buffer, mimetype, originalname } = noticeImage;
+      const newFilePath: string = `${s3FilePath}/${originalname}`;
+      const imageUrl: string = await this.awsService.uploadImageToS3(bucketName, newFilePath, buffer, mimetype);
+      // 2. 이미지 정보 생성
+      const imageInfo: NoticeImageInfo = { imageName: noticeImage.originalname, imageSize: noticeImage.size, imageUrl };
+      // 3. DB 업데이트
+      if (noticeInfo[0].imageIdx) {
+        // 기존 이미지가 있으면 업데이트
+        await this.noticeRepository.updateNoticeImage(noticeInfo[0].imageIdx, imageInfo);
+      } else {
+        // 기존 이미지가 없으면 생성
+        await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo);
+      }
+    }
+
+    /* ccUserIdxs 처리 */
+    // 기존 ccUserIdx 목록 가져오기
+    const existCCUserIdxList: number[] = await this.noticeRepository.getNoticeCCUserIdxs(noticeIdx);
+    // 제거할 ccUserIdx 목록 계산
+    const ccUserIdxToRemove: number[] = existCCUserIdxList.filter(
+      (ccUserIdx) => !noticeDto.ccUserIdxs.includes(ccUserIdx),
+    );
+    // 새로 추가할 ccUserIdx 목록 계산
+    const ccUserIdxToAdd: number[] = noticeDto.ccUserIdxs.filter(
+      (ccUserIdx) => !existCCUserIdxList.includes(ccUserIdx),
+    );
+    // 삭제할 ccUser 처리
+    if (ccUserIdxToRemove.length > 0) {
+      await this.noticeRepository.deleteNoticeCCUserList(noticeIdx, ccUserIdxToRemove);
+    }
+    // 추가할 ccUser 처리
+    if (ccUserIdxToAdd.length > 0) {
+      await this.noticeRepository.createNoticeCCUserList(noticeIdx, ccUserIdxToAdd);
+    }
+
+    /* attendeeUserIdxs 처리 */
+    // 기존 attendeeIdx 목록 가져오기
+    const existAttendeeIdxList: number[] = await this.noticeRepository.getNoticeAttendeeIdxs(noticeIdx);
+    // 제거할 attendeeIdx 목록 계산
+    const attendeeIdxToRemove: number[] = existAttendeeIdxList.filter(
+      (attendeeIdx) => !noticeDto.attendeeUserIdxs.includes(attendeeIdx),
+    );
+    // 새로 추가할 attendeeIdx 목록 계산
+    const attendeeIdxToAdd: number[] = noticeDto.attendeeUserIdxs.filter(
+      (attendeeIdx) => !existAttendeeIdxList.includes(attendeeIdx),
+    );
+    // 삭제할 attendee 처리
+    if (attendeeIdxToRemove.length > 0) {
+      await this.noticeRepository.deleteNoticeAttendeeList(noticeIdx, attendeeIdxToRemove);
+    }
+    // 추가할 attendee 처리
+    if (attendeeIdxToAdd.length > 0) {
+      await this.noticeRepository.createNoticeAttendeeList(noticeIdx, attendeeIdxToAdd);
+    }
+
+    return;
+  }
+
+  @Transactional()
+  async updateNoticeByAdmin(
     adminName: string,
     noticeIdx: number,
     noticeDto: UpdateNoticeDto,
@@ -262,7 +392,7 @@ export class NoticeService {
      */
 
     const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
-    if (!noticeInfo) {
+    if (!noticeInfo || noticeInfo.length === 0) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
 
@@ -272,18 +402,18 @@ export class NoticeService {
     const s3FilePath: string = `${rootDir}/NOTICE/${noticeIdx}`;
 
     /* 기존 이미지 삭제 로직 */
-    if (noticeInfo.imageIdx && !noticeDto.imageUrl) {
+    if (noticeInfo[0].imageIdx && !noticeDto.imageUrl) {
       // S3 이미지 삭제
-      const existingFileName: string = noticeInfo.imageUrl.split('/').pop();
+      const existingFileName: string = noticeInfo[0].imageUrl.split('/').pop();
       const existingFilePath: string = `${s3FilePath}/${existingFileName}`;
       await this.awsService.deleteS3Image(bucketName, existingFilePath);
       // DB 처리
       if (noticeImage) {
         // 기존 이미지 삭제 및 새로운 이미지 추가
-        await this.noticeRepository.updateImageDataToNull(noticeInfo.imageIdx);
+        await this.noticeRepository.updateImageDataToNull(noticeInfo[0].imageIdx);
       } else {
         // 기존 이미지 삭제만
-        await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx);
+        await this.noticeRepository.deleteNoticeImage(noticeInfo[0].imageIdx);
       }
     }
 
@@ -299,13 +429,59 @@ export class NoticeService {
       // 2. 이미지 정보 생성
       const imageInfo: NoticeImageInfo = { imageName: noticeImage.originalname, imageSize: noticeImage.size, imageUrl };
       // 3. DB 업데이트
-      if (noticeInfo.imageIdx) {
+      if (noticeInfo[0].imageIdx) {
         // 기존 이미지가 있으면 업데이트
-        await this.noticeRepository.updateNoticeImage(noticeInfo.imageIdx, imageInfo);
+        await this.noticeRepository.updateNoticeImage(noticeInfo[0].imageIdx, imageInfo);
       } else {
         // 기존 이미지가 없으면 생성
         await this.noticeRepository.createNoticeImage(noticeIdx, imageInfo);
       }
+    }
+
+    /* ccUserIdxs 처리 */
+    // 기존 ccUserIdx 목록 가져오기
+    const existCCUserIdxList: number[] = await this.noticeRepository.getNoticeCCUserIdxs(noticeIdx);
+
+    // 제거할 ccUserIdx 목록 계산
+    const ccUserIdxToRemove: number[] = existCCUserIdxList.filter(
+      (ccUserIdx) => !noticeDto.ccUserIdxs.includes(ccUserIdx),
+    );
+
+    // 새로 추가할 ccUserIdx 목록 계산
+    const ccUserIdxToAdd: number[] = noticeDto.ccUserIdxs.filter(
+      (ccUserIdx) => !existCCUserIdxList.includes(ccUserIdx),
+    );
+
+    // 삭제할 ccUser 처리
+    if (ccUserIdxToRemove.length > 0) {
+      await this.noticeRepository.deleteNoticeCCUserList(noticeIdx, ccUserIdxToRemove);
+    }
+    // 추가할 ccUser 처리
+    if (ccUserIdxToAdd.length > 0) {
+      await this.noticeRepository.createNoticeCCUserList(noticeIdx, ccUserIdxToAdd);
+    }
+
+    /* attendeeUserIdxs 처리 */
+    // 기존 attendeeIdx 목록 가져오기
+    const existAttendeeIdxList: number[] = await this.noticeRepository.getNoticeAttendeeIdxs(noticeIdx);
+
+    // 제거할 attendeeIdx 목록 계산
+    const attendeeIdxToRemove: number[] = existAttendeeIdxList.filter(
+      (attendeeIdx) => !noticeDto.attendeeUserIdxs.includes(attendeeIdx),
+    );
+
+    // 새로 추가할 attendeeIdx 목록 계산
+    const attendeeIdxToAdd: number[] = noticeDto.attendeeUserIdxs.filter(
+      (attendeeIdx) => !existAttendeeIdxList.includes(attendeeIdx),
+    );
+
+    // 삭제할 attendee 처리
+    if (attendeeIdxToRemove.length > 0) {
+      await this.noticeRepository.deleteNoticeAttendeeList(noticeIdx, attendeeIdxToRemove);
+    }
+    // 추가할 attendee 처리
+    if (attendeeIdxToAdd.length > 0) {
+      await this.noticeRepository.createNoticeAttendeeList(noticeIdx, attendeeIdxToAdd);
     }
 
     return;
@@ -314,23 +490,23 @@ export class NoticeService {
   @Transactional()
   async deleteNotice(noticeIdx: number): Promise<void> {
     const noticeInfo = await this.noticeRepository.getNoticeByIdx(noticeIdx);
-    if (!noticeInfo) {
+    if (!noticeInfo || noticeInfo.length === 0) {
       throw new BadRequestException('존재하지 않거나 삭제된 공지사항 입니다.');
     }
     // DB 삭제
     await this.noticeRepository.deleteNotice(noticeIdx);
 
     /* 이미지가 있다면 */
-    if (noticeInfo.imageIdx) {
+    if (noticeInfo[0].imageIdx) {
       // DB 삭제
-      await this.noticeRepository.deleteNoticeImage(noticeInfo.imageIdx);
+      await this.noticeRepository.deleteNoticeImage(noticeInfo[0].imageIdx);
       // S3 삭제
       const env: string = this.configService.get<string>('NODE_ENV');
       const rootDir: string = env === NodeEnvEnum.TEST ? 'TEST' : 'PROD';
       const bucketName: string = this.configService.get<string>('S3_BUCKET_NAME');
       const s3FilePath: string = `${rootDir}/NOTICE/${noticeIdx}`;
 
-      const existingFileName: string = noticeInfo.imageUrl.split('/').pop();
+      const existingFileName: string = noticeInfo[0].imageUrl.split('/').pop();
       const existingFilePath: string = `${s3FilePath}/${existingFileName}`;
       await this.awsService.deleteS3Image(bucketName, existingFilePath);
     }
