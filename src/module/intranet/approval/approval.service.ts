@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalRepository } from './repository/approval.repository';
-import { ConfirmEnum, IntranetAttendanceEnum, IntranetLeaveTypeIdxEnum } from '@common/constant/enum';
+import { ConfirmEnum, IntranetAttendanceEnum } from '@common/constant/enum';
 import {
   addConfirmStatusField,
   calculateCombinedCommuteAvailCheckOutTime,
@@ -23,7 +23,6 @@ import {
 } from '@common/constant/constant';
 import { Transactional } from 'typeorm-transactional';
 import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
-import { GlobalUserRepository } from '../../global/repository/globalUser.repository';
 import { UpdateLastCheckTimeDto } from './dto/updateLastCheck.dto';
 
 @Injectable()
@@ -31,7 +30,6 @@ export class ApprovalService {
   constructor(
     private readonly approvalRepository: ApprovalRepository,
     private readonly mealRepository: GlobalMealRepository,
-    private readonly userRepository: GlobalUserRepository,
   ) {}
 
   @Transactional()
@@ -178,10 +176,7 @@ export class ApprovalService {
           const isNormalLate = new Date(existing.checkInTime) >= getNormalLateBoundary(new Date(existing.checkInTime));
 
           attendance = isNormalLate ? IntranetAttendanceEnum.CHECK_IN_LATE : IntranetAttendanceEnum.CHECK_IN;
-          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
-            existing.checkInTime,
-            IntranetLeaveTypeIdxEnum.NORMAL,
-          );
+          availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(existing.checkInTime);
         }
 
         const updateInfo = { attendance, availCheckOutTime };

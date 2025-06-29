@@ -94,8 +94,10 @@ export class LeaveRepository {
       ])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
-      .andWhere('commuteEntity.leaveTypeIdx != :leaveTypeIdx', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      })
+      .andWhere('commuteEntity.leaveTypeIdx IS NOT NULL')
       .getRawMany();
 
     return result;
@@ -149,7 +151,9 @@ export class LeaveRepository {
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
       .andWhere('commuteEntity.commuteIdx != :exceptCommuteIdx', { exceptCommuteIdx })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      })
       .getRawMany();
 
     return result;
@@ -168,6 +172,7 @@ export class LeaveRepository {
       note,
       userIdx,
       leaveReduceUnit,
+      confirmYN: ConfirmEnum.NO,
       ...(extraUpdateInfo && Object.keys(extraUpdateInfo).length > 0 ? extraUpdateInfo : {}),
     };
 
@@ -457,9 +462,7 @@ export class LeaveRepository {
       .select(['commuteEntity.commuteIdx AS commuteIdx'])
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.confirmYN = :confirmYN', { confirmYN: ConfirmEnum.NO })
-      .andWhere('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
-        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
-      })
+      .andWhere('commuteEntity.leaveTypeIdx IS NOT NULL')
       .andWhere('commuteEntity.commuteDate BETWEEN :firstDayOfYear AND :lastDayOfYear', {
         firstDayOfYear,
         lastDayOfYear,
@@ -526,13 +529,13 @@ export class LeaveRepository {
       .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = commuteCCUserEntity.ccUserIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('YEAR(commuteEntity.commuteDate) = :year', { year })
-      .andWhere('leaveTypeEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', {
-        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
-      });
+      .andWhere('leaveTypeEntity.leaveTypeIdx IS NOT NULL');
 
     query.orderBy('commuteEntity.commuteDate', 'ASC'); // 누적 잔여 연차 수 계산을 위한 commuteDate 기준 오름차순 정렬
 
     const result = await query.getRawMany();
+
+    console.log(result);
 
     return result;
   }
@@ -574,9 +577,11 @@ export class LeaveRepository {
       ])
       .innerJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .innerJoin(UserEntity, 'userEntity', 'userEntity.userIdx = commuteEntity.userIdx')
-      .where('commuteEntity.leaveTypeIdx NOT IN (:leaveTypeIdx)', { leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL })
+      .where('commuteEntity.leaveTypeIdx IS NOT NULL')
       .andWhere('userEntity.userAvail = :userAvail', { userAvail: YNEnum.YES })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      })
       .andWhere('commuteEntity.commuteDate BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,

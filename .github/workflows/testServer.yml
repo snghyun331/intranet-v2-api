@@ -48,5 +48,7 @@ jobs:
             echo "S3_REGION=${{ secrets.S3_REGION }}" >> .env            
             echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .env            
             echo "MONGODB_URL=${{ secrets.MONGODB_URL }}" >> .env            
+            echo "SMS_ID=${{ secrets.SMS_ID }}" >> .env            
+            echo "SMS_API_KEY=${{ secrets.SMS_API_KEY }}" >> .env            
             echo "############# RUN SCRIPT #############"
             sh script.sh

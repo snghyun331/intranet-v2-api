@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { SmsMessageStatusEnum } from '../../../../common/constant/enum';
 
 export class UserSmsFilterDto {
   @ApiProperty({
-    name: 'sDate',
     required: false,
     type: String,
     description: '발송 날짜 검색 시작일자',
@@ -14,7 +14,6 @@ export class UserSmsFilterDto {
   sDate?: string;
 
   @ApiProperty({
-    name: 'eDate',
     required: false,
     type: String,
     description: '발송 날짜 검색 종료일자',
@@ -24,13 +23,13 @@ export class UserSmsFilterDto {
   @IsDateString()
   eDate?: string;
 
-  @ApiProperty({ name: 'toPhoneNumber', description: '수신 전화번호', type: String, required: false })
+  @ApiProperty({ description: '수신 전화번호', type: String, required: false })
   @IsOptional()
   @IsString()
   toPhoneNumber?: string;
 
-  @ApiProperty({ name: 'status', description: '메시지 상태', type: String, required: false })
+  @ApiProperty({ description: '메시지 상태', type: 'enum', enum: SmsMessageStatusEnum, required: false })
   @IsOptional()
-  @IsString()
+  @IsEnum(SmsMessageStatusEnum)
   status?: string;
 }

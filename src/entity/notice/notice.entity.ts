@@ -3,6 +3,8 @@ import { CommonEntity } from '@common/entity/common.entity';
 import { NoticeHasImageEntity } from '@entity/image/noticeHasImage.entity';
 import { NoticeReadLogEntity } from './noticeReadLog.entity';
 import { NoticeCategoryEnum } from '../../module/notice/constant/enum';
+import { NoticeCCUserEntity } from './noticeCCUser.entity';
+import { NoticeAttendeeEntity } from './noticeAttendee.entity';
 
 @Entity({ name: 'notice', comment: '공지사항 tb' })
 export class NoticeEntity extends CommonEntity {
@@ -15,14 +17,23 @@ export class NoticeEntity extends CommonEntity {
   @Column({ name: 'category', comment: '카테고리', default: NoticeCategoryEnum.ETC, nullable: false })
   category: string;
 
+  @Column({ name: 'place', comment: '장소', type: 'text', nullable: true })
+  place: string;
+
   @Column({ name: 'content', comment: '내용', type: 'text', nullable: true })
   content: string;
+
+  @Column({ name: 'use_car', comment: '차량', type: String, nullable: true })
+  useCar: string;
 
   @Column({ name: 'creator_name', comment: '초기 작성자 이름', nullable: false })
   creatorName: string;
 
   @Column({ name: 'last_editor_name', comment: '마지막 수정자 이름', nullable: false })
   lastEditorName: string;
+
+  @Column({ name: 'last_update_at', comment: '마지막 수정 시간', nullable: true })
+  lastUpdateAt: Date;
 
   @Column({ type: String, comment: '게시 시작일', nullable: true })
   startDate: string;
@@ -35,4 +46,10 @@ export class NoticeEntity extends CommonEntity {
 
   @OneToMany(() => NoticeReadLogEntity, (noticeReadLog) => noticeReadLog.noticeIdxRelation)
   noticeReadLogRelation: NoticeReadLogEntity[];
+
+  @OneToMany(() => NoticeCCUserEntity, (noticeCCUser) => noticeCCUser.noticeIdxRelation)
+  noticeCCUserRelation: NoticeCCUserEntity[];
+
+  @OneToMany(() => NoticeAttendeeEntity, (noticeAttendee) => noticeAttendee.noticeIdxRelation)
+  noticeAttendeeRelation: NoticeAttendeeEntity[];
 }

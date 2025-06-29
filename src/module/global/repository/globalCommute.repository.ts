@@ -34,7 +34,9 @@ export class GlobalCommuteRepository {
       .leftJoin(LeaveTypeEntity, 'leaveTypeEntity', 'leaveTypeEntity.leaveTypeIdx = commuteEntity.leaveTypeIdx')
       .where('commuteEntity.userIdx = :userIdx', { userIdx })
       .andWhere('commuteEntity.commuteDate = :commuteDate', { commuteDate })
-      .andWhere('commuteEntity.confirmYN != :confirmYN', { confirmYN: ConfirmEnum.REJECT })
+      .andWhere('(commuteEntity.confirmYN != :confirmYN OR commuteEntity.confirmYN IS NULL)', {
+        confirmYN: ConfirmEnum.REJECT,
+      })
       .getRawMany();
 
     return result;

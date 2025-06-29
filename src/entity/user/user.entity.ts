@@ -22,6 +22,8 @@ import { CommuteCCUserEntity } from '@entity/intranet/commute/commuteCCUser.enti
 import { LeaveExtraEntity } from '@entity/intranet/leave/leaveExtra.entity';
 import { NoticeReadLogEntity } from '../notice/noticeReadLog.entity';
 import { MeetingParticipantEntity } from '../meeting/mettingParticipant.entity';
+import { NoticeCCUserEntity } from '../notice/noticeCCUser.entity';
+import { NoticeAttendeeEntity } from '../notice/noticeAttendee.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -188,4 +190,10 @@ export class UserEntity extends CommonEntity {
 
   @OneToMany(() => MeetingParticipantEntity, (meetingParticipant) => meetingParticipant.userIdxRelation)
   meetingParticipantRelation: MeetingParticipantEntity[];
+
+  @OneToMany(() => NoticeCCUserEntity, (noticeCCUser) => noticeCCUser.userIdxRelation)
+  noticeCCUserRelation: NoticeCCUserEntity[];
+
+  @OneToMany(() => NoticeAttendeeEntity, (noticeAttendee) => noticeAttendee.userIdxRelation)
+  noticeAttendeeRelation: NoticeAttendeeEntity[];
 }

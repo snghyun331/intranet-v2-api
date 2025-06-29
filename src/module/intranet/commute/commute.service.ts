@@ -10,9 +10,6 @@ import {
   AM_REST_LISTS,
   PM_REST_LISTS,
   AM_QUARTER_REST_LISTS,
-  ANNUAL_LEAVE_LISTS,
-  SPECIAL_LEAVE_LISTS,
-  ALTERNATIVE_LEAVE_LISTS,
 } from '@common/constant/constant';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminCommuteFilterDto, UserCommuteFilterDto } from './dto/query.dto';
@@ -30,7 +27,6 @@ import {
   getNormalLateBoundary,
   getPmHalfLateBoundary,
   getStartAndEndDateByMonth,
-  substringYearMonth,
 } from '@common/utils/utility';
 import { UpdateCommuteTimeDto } from './dto/updateCommuteTime.dto';
 import { UpdateNoteDto } from './dto/updateNote.dto';
@@ -39,19 +35,13 @@ import { InsertCheckInInfo, UpdateCheckInInfo, UpdateCheckOutInfo, UpdateCommute
 import { GlobalUserRepository } from '@global/repository/globalUser.repository';
 import { GlobalHolidayRepository } from '@global/repository/globalHoliday.repository';
 import { LastUpdated } from './interface/commute.interface';
-import { LeaveRepository } from '../leave/repository/leave.repository';
-import { ApprovalRepository } from '../approval/repository/approval.repository';
-import { GlobalMealRepository } from '../../global/repository/globalMeal.repository';
 
 @Injectable()
 export class CommuteService {
   constructor(
     private readonly commuteRepository: CommuteRepository,
-    private readonly leaveRepository: LeaveRepository,
     private readonly userRepository: GlobalUserRepository,
     private readonly holidayRepository: GlobalHolidayRepository,
-    private readonly approvalRepository: ApprovalRepository,
-    private readonly mealRepository: GlobalMealRepository,
   ) {}
 
   @Transactional()
@@ -90,7 +80,9 @@ export class CommuteService {
       }),
     );
     const confirmedCommuteInfoList = commuteInfoList.filter((info) => info.confirmYN === ConfirmEnum.YES); // 승인된 휴가 추출
-    const normalCommuteInfoList = commuteInfoList.filter((info) => info.confirmYN === ConfirmEnum.NO);
+    const normalCommuteInfoList = commuteInfoList.filter(
+      (info) => info.confirmYN === ConfirmEnum.NO || info.confirmYN === null,
+    );
 
     if (confirmedCommuteInfoList.length === 2) {
       /* 조합휴가 케이스 (2개 휴가) */
@@ -221,7 +213,7 @@ export class CommuteService {
         commuteDate,
         checkInIpAddr,
         checkInLogAgent,
-        leaveTypeIdx: IntranetLeaveTypeIdxEnum.NORMAL,
+        leaveTypeIdx: null,
         availCheckOutTime,
         firstUpdatedAt: new Date(),
       };
@@ -304,7 +296,7 @@ export class CommuteService {
         ? IntranetAttendanceEnum.CHECK_IN_ON_SITE
         : IntranetAttendanceEnum.CHECK_IN;
 
-    const availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(checkInTime, IntranetLeaveTypeIdxEnum.NORMAL);
+    const availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(checkInTime);
 
     return { attendance, availCheckOutTime };
   }
@@ -338,7 +330,9 @@ export class CommuteService {
       throw new BadRequestException('이미 퇴근을 찍었습니다.');
     }
     const confirmedCommuteInfoList = commuteInfoList.filter((info) => info.confirmYN === ConfirmEnum.YES); // 승인된 휴가 추출
-    const normalCommuteInfoList = commuteInfoList.filter((info) => info.confirmYN === ConfirmEnum.NO);
+    const normalCommuteInfoList = commuteInfoList.filter(
+      (info) => info.confirmYN === ConfirmEnum.NO || info.confirmYN === null,
+    );
     if (confirmedCommuteInfoList.length === 2) {
       /* 조합휴가 케이스 (2개 휴가) */
       await this.handleCombinedLeaveCheckOut(
@@ -471,7 +465,6 @@ export class CommuteService {
     ) {
       finalCheckInTime = getAmQuarterEarlyBoundary(new Date(checkInTime));
     } else if (
-      // leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL ||
       (leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_HALF || leaveTypeIdx === IntranetLeaveTypeIdxEnum.PM_QUARTER) &&
       checkInTime < getNormalEarlyBoundary(new Date(checkInTime))
     ) {
@@ -777,14 +770,13 @@ export class CommuteService {
 
       await Promise.all(
         allValidCommutesByDate.map(async (commute) => {
-          const leaveTypeIdx = commute.leaveTypeIdx === IntranetLeaveTypeIdxEnum.NORMAL ? null : commute.leaveTypeIdx;
           const updateInfo: UpdateCommuteTimeInfo = {
             ...updateDto,
             workingMinutes,
             overtimeWorkingMinutes,
             availCheckOutTime,
             attendance,
-            leaveTypeIdx,
+            leaveTypeIdx: commute.leaveTypeIdx,
             lastUpdatedAt,
           };
           await this.commuteRepository.updateCommuteTime(commute.commuteIdx, updateInfo);
@@ -901,10 +893,7 @@ export class CommuteService {
     } else {
       /* 미승인 케이스 (일반근무 포함) */
       // 퇴근가능시간 계산
-      availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(
-        updateDto.checkInTime,
-        IntranetLeaveTypeIdxEnum.NORMAL,
-      );
+      availCheckOutTime = calculateSingleCommuteAvailCheckOutTime(updateDto.checkInTime);
       // 지각 판별
       const isNormalLate = new Date(updateDto.checkInTime) >= getNormalLateBoundary(new Date(updateDto.checkInTime));
 
@@ -917,7 +906,7 @@ export class CommuteService {
       } else {
         // 근무시간 계산
         workingMinutes = (updateDto.checkOutTime.getTime() - updateDto.checkInTime.getTime()) / (1000 * 60);
-        const standardWorkingMinutes = calculateSingleLeaveStandardWorkingMinutes(IntranetLeaveTypeIdxEnum.NORMAL);
+        const standardWorkingMinutes = calculateSingleLeaveStandardWorkingMinutes();
         overtimeWorkingMinutes =
           workingMinutes > standardWorkingMinutes ? Math.floor(workingMinutes - standardWorkingMinutes) : 0;
         // 근태 계산
@@ -945,7 +934,7 @@ export class CommuteService {
           overtimeWorkingMinutes,
           availCheckOutTime,
           attendance,
-          leaveTypeIdx: commute.leaveTypeIdx || IntranetLeaveTypeIdxEnum.NORMAL,
+          leaveTypeIdx: commute.leaveTypeIdx || null,
           lastUpdatedAt,
         };
 

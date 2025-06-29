@@ -57,9 +57,10 @@ export class MockUserService {
 
     const { adminGradeIdx, ...rest } = userInfo;
     const newUserInfo: NewUserInfo = rest;
+    const newPassword: string = encryptPassword(newUserInfo.id + '2467');
 
     /* 유저 등록 */
-    const userIdx: number = await this.userRepository.createUser(newUserInfo);
+    const userIdx: number = await this.userRepository.createUser(newUserInfo, newPassword);
 
     /* 어드민 여부 = Y일 경우, 어드민 등록 */
     if (userInfo.adminRole === YNEnum.YES) {

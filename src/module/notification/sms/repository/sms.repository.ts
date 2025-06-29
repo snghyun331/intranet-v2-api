@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { SmsMessageEntity } from '@entity/sms/smsMessage.entity';
-import { SmsRequestEntity } from '../../../../entity/sms/smsRequest.entity';
-import { SmsStatusEnum } from '../../../../common/constant/enum';
+import { SmsRequestEntity } from '@entity/sms/smsRequest.entity';
+import { SmsMessageStatusEnum, SmsRequestStatusEnum } from '@common/constant/enum';
 import { UserSmsFilterDto } from '../dto/query.dto';
 
 @Injectable()
@@ -44,7 +44,7 @@ export class SmsRepository {
     return await this.smsMessageModel
       .createQueryBuilder()
       .update(SmsMessageEntity)
-      .set({ status: SmsStatusEnum.FAILED, failureReason: errMessage })
+      .set({ status: SmsMessageStatusEnum.FAILED, failureReason: errMessage })
       .where('smsMessageIdx = :smsMessageIdx', { smsMessageIdx })
       .execute();
   }
@@ -53,12 +53,12 @@ export class SmsRepository {
     return await this.smsMessageModel
       .createQueryBuilder()
       .update(SmsMessageEntity)
-      .set({ status: SmsStatusEnum.SUCCESSED, sendAt: new Date() })
+      .set({ status: SmsMessageStatusEnum.SUCCESSED, sendAt: new Date() })
       .where('smsMessageIdx = :smsMessageIdx', { smsMessageIdx })
       .execute();
   }
 
-  async updateSmsRequest(smsRequestIdx: number, status: SmsStatusEnum): Promise<UpdateResult> {
+  async updateSmsRequest(smsRequestIdx: number, status: SmsRequestStatusEnum): Promise<UpdateResult> {
     return await this.smsRequestModel
       .createQueryBuilder()
       .update(SmsRequestEntity)

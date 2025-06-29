@@ -348,14 +348,14 @@ export const calculateCombinedCommuteAvailCheckOutTime = (
   return availCheckOutTime;
 };
 
-export const calculateSingleCommuteAvailCheckOutTime = (checkInTime: Date, leaveTypeIdx: number) => {
+export const calculateSingleCommuteAvailCheckOutTime = (checkInTime: Date, leaveTypeIdx?: number) => {
   const standardWorkingMinutes: number = calculateSingleLeaveStandardWorkingMinutes(leaveTypeIdx);
   const availCheckOutTime = addMinutes(checkInTime, standardWorkingMinutes);
 
   return availCheckOutTime;
 };
 
-export const calculateSingleLeaveStandardWorkingMinutes = (leaveTypeIdx: number) => {
+export const calculateSingleLeaveStandardWorkingMinutes = (leaveTypeIdx?: number) => {
   let standardWorkingMinutes: number;
 
   if (AM_REST_LISTS.has(leaveTypeIdx) || PM_REST_LISTS.has(leaveTypeIdx)) {

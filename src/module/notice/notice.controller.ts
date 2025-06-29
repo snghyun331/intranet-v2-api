@@ -90,6 +90,28 @@ export class UserNoticeController {
     return response;
   }
 
+  @ApiOperation(USERS_NOTICES.PUT.API_OPERATION)
+  @ApiConsumes('multipart/form-data')
+  @ApiParam(USERS_NOTICES.PUT.API_PARAM1)
+  @ApiOkResponse(USERS_NOTICES.PUT.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @UseInterceptors(FileInterceptor('noticeImage', noticeImageOptions))
+  @Put(':noticeIdx')
+  async updateNotice(
+    @Param('noticeIdx', ParseIntPipe) noticeIdx: number,
+    @Body() noticeInfo: UpdateNoticeDto,
+    @CurrentAdmin() { userName }: UserPayload,
+    @UploadedFile() noticeImage?: Express.Multer.File,
+  ): Promise<ResponseInterface> {
+    const imageInfo = await this.noticeService.updateNoticeByUser(userName, noticeIdx, noticeInfo, noticeImage);
+
+    const response: ResponseInterface = { message: 'success', data: imageInfo };
+
+    return response;
+  }
+
   @ApiOperation(USERS_NOTICES_HAS_NEW.GET.API_OPERATION)
   @ApiOkResponse(USERS_NOTICES_HAS_NEW.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')
@@ -201,7 +223,7 @@ export class AdminNoticeController {
     @CurrentAdmin() { adminName }: AdminPayload,
     @UploadedFile() noticeImage?: Express.Multer.File,
   ): Promise<ResponseInterface> {
-    const imageInfo = await this.noticeService.updateNotice(adminName, noticeIdx, noticeInfo, noticeImage);
+    const imageInfo = await this.noticeService.updateNoticeByAdmin(adminName, noticeIdx, noticeInfo, noticeImage);
 
     const response: ResponseInterface = { message: 'success', data: imageInfo };
 

@@ -151,10 +151,8 @@ export enum RequestTypeEnum {
   ADMIN = 'ADMIN',
 }
 
-export enum SmsStatusEnum {
+export enum SmsRequestStatusEnum {
   PROCESSING = 'PROCESSING',
-  SUCCESSED = 'SUCCESSED',
-  FAILED = 'FAILED',
   COMPLETED = 'COMPLETED',
   PENDING = 'PENDING',
 }
@@ -170,4 +168,10 @@ export enum MeetingType {
 export enum ParticipantType {
   ATTENDEE = 'ATTENDEE', // 참석자
   CC = 'CC', // 참조
+}
+
+export enum SmsMessageStatusEnum {
+  PROCESSING = 'PROCESSING',
+  SUCCESSED = 'SUCCESSED',
+  FAILED = 'FAILED',
 }
