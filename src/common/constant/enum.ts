@@ -158,3 +158,16 @@ export enum SmsStatusEnum {
   COMPLETED = 'COMPLETED',
   PENDING = 'PENDING',
 }
+
+export enum MeetingType {
+  INSPECTION = '검사',
+  INTERVIEW = '면접',
+  MEETING = '회의',
+  CLIENT_MEETING = '고객사미팅',
+  PARTNER_MEETING = '협력사미팅',
+}
+
+export enum ParticipantType {
+  ATTENDEE = 'ATTENDEE', // 참석자
+  CC = 'CC', // 참조
+}
