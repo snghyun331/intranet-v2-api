@@ -6,6 +6,7 @@ import { MeetingParticipantEntity } from '../../../entity/meeting/meetingPartici
 import { CreateMeetingReservationDto } from '../dto/createMeeting.dto';
 import { ParticipantTypeEnum, YNEnum } from '../../../common/constant/enum';
 import { MeetingRoomEntity } from '../../../entity/meeting/meetingRoom.entity';
+import { UserEntity } from '../../../entity/user/user.entity';
 
 @Injectable()
 export class MeetingRepository {
@@ -81,7 +82,7 @@ export class MeetingRepository {
       .execute();
   }
 
-  async getAvailableRoom() {
+  async getAvailableRooms() {
     const result = await this.meetingRoomModel
       .createQueryBuilder('meetingRoomEntity')
       .select([
@@ -91,6 +92,40 @@ export class MeetingRepository {
         'meetingRoomEntity.activeYN AS activeYN',
       ])
       .where('meetingRoomEntity.activeYN = :activeYN', { activeYN: YNEnum.YES })
+      .getRawMany();
+
+    return result;
+  }
+
+  async getMeetingSchedule(meetingDate: string) {
+    const result = await this.meetingReservationModel
+      .createQueryBuilder('meetingReservationEntity')
+      .select([
+        'meetingReservationEntity.reservationIdx AS reservationIdx',
+        'meetingReservationEntity.userIdx AS writerIdx',
+        'writerEntity.userName AS writerName',
+        'meetingReservationEntity.title AS title',
+        'meetingReservationEntity.content AS content',
+        'meetingReservationEntity.meetingDate AS meetingDate',
+        'meetingReservationEntity.startTime AS startTime',
+        'meetingReservationEntity.endTime AS endTime',
+        'meetingReservationEntity.meetingType AS meetingType',
+        'meetingReservationEntity.roomIdx AS roomIdx',
+        'meetingReservationEntity.description AS description',
+        'meetingParticipantEntity.userIdx AS participantIdx',
+        'meetingParticipantEntity.participantType AS participantType',
+        'participantEntity.userName AS participantName',
+      ])
+      .innerJoin(UserEntity, 'writerEntity', 'writerEntity.userIdx = meetingReservationEntity.userIdx')
+      .leftJoin(
+        MeetingParticipantEntity,
+        'meetingParticipantEntity',
+        'meetingParticipantEntity.reservationIdx = meetingReservationEntity.reservationIdx',
+      )
+      .leftJoin(UserEntity, 'participantEntity', 'participantEntity.userIdx = meetingParticipantEntity.userIdx')
+      .where('meetingReservationEntity.meetingDate = :meetingDate', { meetingDate })
+      // .orderBy('meetingReservationEntity.startTime', 'ASC')
+      // .addOrderBy('meetingParticipantEntity.participantType', 'ASC')
       .getRawMany();
 
     return result;

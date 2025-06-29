@@ -38,6 +38,11 @@ export class CreateMeetingReservationDto {
   @IsNumber()
   roomIdx: number;
 
+  @ApiProperty({ type: String, description: '참석자 기타용', required: false })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
   @ApiProperty({ type: Array, description: '참조 유저IDX (없으면 null)', example: [2], required: false })
   @IsOptional()
   @Transform(({ value }) => {

@@ -5,6 +5,7 @@ import { RedisLockService } from '../redis/redisLock.service';
 import { MEETING_RESERVE_LOCK_DURATION } from '@common/constant/constant';
 import { ParticipantTypeEnum } from '@common/constant/enum';
 import { Transactional } from 'typeorm-transactional';
+import { AttendeeInfo, CcUserInfo, RoomSchedule, TimeSlotInfo } from './interface/meeting.interface';
 
 @Injectable()
 export class MeetingService {
@@ -76,8 +77,151 @@ export class MeetingService {
   }
 
   async getAvailableRoom() {
-    const result = await this.meetingRepository.getAvailableRoom();
+    const result = await this.meetingRepository.getAvailableRooms();
 
     return result;
+  }
+
+  async getMeetingSchedule(meetingDate: string) {
+    /* 1. 해당 날짜의 모든 예약 정보 조회 */
+    const reservations = await this.meetingRepository.getMeetingSchedule(meetingDate);
+    /* 2. 모든 활성 회의실 정보 조회 */
+    const rooms = await this.meetingRepository.getAvailableRooms();
+    /* 3. 시간대별 스케줄 생성 (8시~19시) */
+    const timeSlots = await this.generateTimeSlots();
+    /* 4. 회의실별로 스케줄 구성 */
+    const roomSchedules: RoomSchedule[] = rooms.map((room) => {
+      // 해당 회의실의 예약들만 필터링
+      const roomReservations = reservations.filter((reservation) => reservation.roomIdx === room.roomIdx);
+      // 각 시간대별로 예약 상태 확인
+      const slots: TimeSlotInfo[] = timeSlots.map((time) => {
+        const conflictingMeeting = roomReservations.find((reservation) =>
+          this.isTimeInMeetingRange(time, reservation.startTime, reservation.endTime),
+        );
+        return {
+          time,
+          isAvailable: !conflictingMeeting,
+          meeting: conflictingMeeting
+            ? {
+                reservationIdx: conflictingMeeting.reservationIdx,
+                title: conflictingMeeting.title,
+                content: conflictingMeeting.content,
+                startTime: conflictingMeeting.startTime,
+                endTime: conflictingMeeting.endTime,
+                meetingDate: conflictingMeeting.meetingDate,
+                meetingType: conflictingMeeting.meetingType,
+                description: conflictingMeeting.description,
+                writerName: conflictingMeeting.writerName,
+                ccUserInfo: this.extractCcUsers(reservations, conflictingMeeting.reservationIdx),
+                attendeeInfo: this.extractAttendees(reservations, conflictingMeeting.reservationIdx),
+              }
+            : null,
+        };
+      });
+
+      return {
+        roomIdx: room.roomIdx,
+        roomName: room.roomName,
+        capacity: room.capacity,
+        timeSlots: slots,
+      };
+    });
+
+    return {
+      meetingDate,
+      rooms: roomSchedules,
+    };
+  }
+
+  /**
+   * 8시부터 19시까지 30분 간격으로 시간대 생성
+   */
+  private generateTimeSlots(): string[] {
+    const slots: string[] = [];
+
+    for (let hour = 8; hour <= 19; hour++) {
+      // 정시 (00분)
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+
+      // 30분 (19시는 30분 제외)
+      if (hour < 19) {
+        slots.push(`${hour.toString().padStart(2, '0')}:30`);
+      }
+    }
+
+    return slots;
+  }
+
+  /**
+   * 특정 시간이 회의 시간 범위에 포함되는지 확인
+   */
+  private isTimeInMeetingRange(time: string, startTime: string, endTime: string): boolean {
+    // 시간을 분 단위로 변환하여 비교
+    const timeMinutes = this.timeToMinutes(time);
+    const startMinutes = this.timeToMinutes(startTime);
+    const endMinutes = this.timeToMinutes(endTime);
+
+    // 해당 시간이 회의 시간 범위 내에 있는지 확인
+    return timeMinutes >= startMinutes && timeMinutes < endMinutes;
+  }
+
+  /**
+   * 시간 문자열을 분 단위로 변환
+   */
+  private timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + (minutes || 0);
+  }
+
+  /**
+   * CC 타입 참석자 추출
+   */
+  private extractCcUsers(reservations: any[], reservationIdx: number): CcUserInfo[] {
+    const participants = reservations.filter(
+      (reservation) =>
+        reservation.reservationIdx === reservationIdx &&
+        reservation.participantType === ParticipantTypeEnum.CC &&
+        reservation.participantIdx,
+    );
+
+    // 중복 제거
+    const uniqueParticipants = participants.reduce((acc, current) => {
+      const existingParticipant = acc.find((p) => p.participantIdx === current.participantIdx);
+      if (!existingParticipant) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+
+    return uniqueParticipants.map((participant) => ({
+      ccUserIdx: participant.participantIdx,
+      ccUserName: participant.participantName,
+    }));
+  }
+
+  /**
+   * ATTENDEE 타입 참석자 추출
+   */
+  private extractAttendees(reservations: any[], reservationIdx: number): AttendeeInfo[] {
+    const participants = reservations.filter(
+      (reservation) =>
+        reservation.reservationIdx === reservationIdx &&
+        reservation.participantType === ParticipantTypeEnum.ATTENDEE &&
+        reservation.participantIdx,
+    );
+
+    // 중복 제거
+    const uniqueParticipants = participants.reduce((acc, current) => {
+      const existingParticipant = acc.find((p) => p.participantIdx === current.participantIdx);
+      if (!existingParticipant) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+
+    return uniqueParticipants.map((participant) => ({
+      attendeeIdx: participant.participantIdx,
+      attendeeName: participant.participantName,
+    }));
   }
 }

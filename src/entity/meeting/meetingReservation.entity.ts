@@ -33,6 +33,9 @@ export class MeetingReservationEntity extends CommonEntity {
   @Column({ name: 'room_idx', comment: '회의실 IDX', type: Number, nullable: false })
   roomIdx: number;
 
+  @Column({ name: 'description', comment: '비고', type: String, nullable: true })
+  description: string;
+
   @OneToMany(() => MeetingParticipantEntity, (meetingParticipant) => meetingParticipant.reservationIdxRelation)
   meetingParticipantRelation: MeetingParticipantEntity[];
 

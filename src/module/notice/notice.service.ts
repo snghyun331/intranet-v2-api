@@ -48,11 +48,11 @@ export class NoticeService {
     }
 
     /* 참석자 모두 저장 */
-    if (attendeeUserIdxs !== null && attendeeUserIdxs !== undefined) {
+    if (attendeeUserIdxs?.length > 0) {
       await this.noticeRepository.createNoticeAttendeeList(noticeIdx, attendeeUserIdxs);
     }
     /* 참조자 모두 저장 */
-    if (ccUserIdxs !== null && ccUserIdxs !== undefined) {
+    if (ccUserIdxs?.length > 0) {
       // 참석자는 참조자로 등록 X
       const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(attendeeUserIdxs, ccUserIdxs);
       await this.noticeRepository.createNoticeCCUserList(noticeIdx, removeDuplicateCCUserIdxs);
@@ -86,11 +86,11 @@ export class NoticeService {
     }
 
     /* 참석자 모두 저장 */
-    if (attendeeUserIdxs !== null && attendeeUserIdxs !== undefined) {
+    if (attendeeUserIdxs?.length > 0) {
       await this.noticeRepository.createNoticeAttendeeList(noticeIdx, attendeeUserIdxs);
     }
     /* 참조자 모두 저장 */
-    if (ccUserIdxs !== null && ccUserIdxs !== undefined) {
+    if (ccUserIdxs?.length > 0) {
       // 참석자는 참조자로 등록 X
       const removeDuplicateCCUserIdxs: number[] = removeDuplicateIdxs(attendeeUserIdxs, ccUserIdxs);
       await this.noticeRepository.createNoticeCCUserList(noticeIdx, removeDuplicateCCUserIdxs);

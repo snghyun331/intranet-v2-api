@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
@@ -54,9 +54,23 @@ export class MeetingController {
   @ApiBearerAuth('accessToken')
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
-  @Get()
+  @Get('available-rooms')
   async getAvailableMeetingRoom(): Promise<ResponseInterface> {
     const data = await this.meetingService.getAvailableRoom();
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_MEETING.GET.API_OPERATION)
+  @ApiOkResponse(USERS_MEETING.GET.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Get()
+  async getMeetingSchedule(@Query('meetingDate') meetingDate: string): Promise<ResponseInterface> {
+    const data = await this.meetingService.getMeetingSchedule(meetingDate);
 
     const response: ResponseInterface = { message: 'success', data };
 
