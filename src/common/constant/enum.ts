@@ -157,7 +157,7 @@ export enum SmsRequestStatusEnum {
   PENDING = 'PENDING',
 }
 
-export enum MeetingType {
+export enum MeetingTypeEnum {
   INSPECTION = '검사',
   INTERVIEW = '면접',
   MEETING = '회의',
@@ -165,7 +165,7 @@ export enum MeetingType {
   PARTNER_MEETING = '협력사미팅',
 }
 
-export enum ParticipantType {
+export enum ParticipantTypeEnum {
   ATTENDEE = 'ATTENDEE', // 참석자
   CC = 'CC', // 참조
 }

@@ -14,6 +14,8 @@ export const DEFAULT_TOTAL_WELFARE: number = 200000;
 
 export const PICK_LUNCH_LOCK_DURATION: number = 20;
 
+export const MEETING_RESERVE_LOCK_DURATION: number = 30;
+
 export const NORMAL_WORKING_MINUTES: number = 9 * 60;
 
 export const SEVEN_HOURS_WORKING_MINUTES: number = 7 * 60;

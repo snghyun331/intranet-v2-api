@@ -25,6 +25,7 @@ import { GlobalModule } from './global/global.module';
 import { NotificationModule } from './notification/notification.module';
 import { BullModule } from '@nestjs/bull';
 import { BULL_CONFIG } from '../config/bull.config';
+import { MeetingModule } from './meeting/meeting.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { BULL_CONFIG } from '../config/bull.config';
     ActivityModule,
     IntranetModule,
     NoticeModule,
+    MeetingModule,
     NotificationModule,
     PlaygroundModule,
     FileModule,

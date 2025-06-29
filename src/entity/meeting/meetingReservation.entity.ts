@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { CommonEntity } from '../../common/entity/common.entity';
+import { CommonEntity } from '@common/entity/common.entity';
 import { MeetingRoomEntity } from './meettingRoom.entity';
 import { MeetingParticipantEntity } from './mettingParticipant.entity';
 
