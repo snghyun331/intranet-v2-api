@@ -24,6 +24,7 @@ import { NoticeReadLogEntity } from '../notice/noticeReadLog.entity';
 import { MeetingParticipantEntity } from '../meeting/mettingParticipant.entity';
 import { NoticeCCUserEntity } from '../notice/noticeCCUser.entity';
 import { NoticeAttendeeEntity } from '../notice/noticeAttendee.entity';
+import { MeetingReservationEntity } from '../meeting/meetingReservation.entity';
 
 @Entity({ name: 'user', comment: '사용자 tb' })
 export class UserEntity extends CommonEntity {
@@ -188,8 +189,11 @@ export class UserEntity extends CommonEntity {
   @OneToMany(() => NoticeReadLogEntity, (noticeReadLog) => noticeReadLog.userIdxRelation)
   noticeReadLogRelation: NoticeReadLogEntity[];
 
-  @OneToMany(() => MeetingParticipantEntity, (meetingParticipant) => meetingParticipant.userIdxRelation)
+  @OneToMany(() => MeetingParticipantEntity, (participant) => participant.userIdxRelation)
   meetingParticipantRelation: MeetingParticipantEntity[];
+
+  @OneToMany(() => MeetingReservationEntity, (reservation) => reservation.userIdxRelation)
+  meetingReservationRelation: MeetingReservationEntity[];
 
   @OneToMany(() => NoticeCCUserEntity, (noticeCCUser) => noticeCCUser.userIdxRelation)
   noticeCCUserRelation: NoticeCCUserEntity[];

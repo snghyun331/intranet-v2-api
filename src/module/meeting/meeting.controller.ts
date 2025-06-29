@@ -1,5 +1,5 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
@@ -8,6 +8,7 @@ import { UserRole } from '../../common/decorator/role.decorator';
 import { USERS_MEETING } from './swagger/meeting.swagger';
 import { MeetingService } from './meeting.service';
 import { CreateMeetingReservationDto } from './dto/createMeeting.dto';
+import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
 
 @ApiTags('사용자')
 @Controller('users/meetings')
@@ -20,8 +21,28 @@ export class MeetingController {
   @UseGuards(UserAuthGuard, UserRoleGuard)
   @UserRole(UserGradeEnum.INTERN)
   @Post()
-  async createMeetingReservation(@Body() dto: CreateMeetingReservationDto): Promise<ResponseInterface> {
-    await this.meetingService.createReservation(dto);
+  async createMeetingReservation(
+    @Body() dto: CreateMeetingReservationDto,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    await this.meetingService.createReservation(dto, userIdx);
+
+    const response: ResponseInterface = { message: 'success' };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_MEETING.DELETE.API_OPERATION)
+  @ApiOkResponse(USERS_MEETING.DELETE.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Delete(':reservationIdx')
+  async deleteMeetingReservation(
+    @Param('reservationIdx', ParseIntPipe) reservationIdx: number,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    await this.meetingService.deleteReservation(reservationIdx, userIdx);
 
     const response: ResponseInterface = { message: 'success' };
 

@@ -2,11 +2,15 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 import { CommonEntity } from '@common/entity/common.entity';
 import { MeetingRoomEntity } from './meettingRoom.entity';
 import { MeetingParticipantEntity } from './mettingParticipant.entity';
+import { UserEntity } from '../user/user.entity';
 
 @Entity({ name: 'meeting_reservation', comment: '회의실 예약 정보 tb' })
 export class MeetingReservationEntity extends CommonEntity {
   @PrimaryGeneratedColumn({ name: 'reservation_idx', comment: '회의실 예약IDX' })
   reservationIdx: number;
+
+  @Column({ name: 'user_idx', comment: '작성자 IDX', nullable: false })
+  userIdx: number;
 
   @Column({ name: 'title', comment: '제목', length: 100, nullable: false })
   title: string;
@@ -38,4 +42,11 @@ export class MeetingReservationEntity extends CommonEntity {
   })
   @JoinColumn({ name: 'room_idx', referencedColumnName: 'roomIdx' })
   roomIdxRelation: MeetingRoomEntity;
+
+  @ManyToOne(() => UserEntity, (user) => user.meetingReservationRelation, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn({ name: 'user_idx', referencedColumnName: 'userIdx' })
+  userIdxRelation: UserEntity;
 }

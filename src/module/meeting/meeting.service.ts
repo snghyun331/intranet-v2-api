@@ -16,7 +16,7 @@ export class MeetingService {
   ) {}
 
   @Transactional()
-  async createReservation(dto: CreateMeetingReservationDto): Promise<void> {
+  async createReservation(dto: CreateMeetingReservationDto, userIdx: number): Promise<void> {
     const lockKey = `meeting:room:${dto.roomIdx}:date:${dto.meetingDate}:time:${dto.startTime}-${dto.endTime}`;
     const lock: boolean = await this.redisLockService.waitAndSetLock(lockKey, MEETING_RESERVE_LOCK_DURATION);
 
@@ -36,7 +36,7 @@ export class MeetingService {
 
         const { ccUserIdxs, attendeeUserIdxs, ...newReservation } = dto;
         // 회의 예약 생성
-        const reservationIdx: number = await this.meetingRepository.createReservation(newReservation);
+        const reservationIdx: number = await this.meetingRepository.createReservation(newReservation, userIdx);
         // 회의 참조자 저장
         if (ccUserIdxs?.length > 0) {
           await this.meetingRepository.createParticipants(reservationIdx, ccUserIdxs, ParticipantTypeEnum.CC);
@@ -56,6 +56,21 @@ export class MeetingService {
       this.logger.error(err);
       throw err;
     }
+
+    return;
+  }
+
+  @Transactional()
+  async deleteReservation(reservationIdx: number, userIdx: number): Promise<void> {
+    const reservationInfo = await this.meetingRepository.getReservation(reservationIdx);
+    if (!reservationInfo) {
+      throw new BadRequestException('해당 예약 내역은 삭제되었거나 존재하지 않습니다.');
+    }
+    if (reservationInfo.userIdx !== userIdx) {
+      throw new BadRequestException('본인이 예약한 내역만 삭제 가능합니다.');
+    }
+
+    await this.meetingRepository.deleteReservation(reservationIdx);
 
     return;
   }
