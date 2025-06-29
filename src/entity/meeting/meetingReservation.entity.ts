@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '@common/entity/common.entity';
-import { MeetingRoomEntity } from './meettingRoom.entity';
-import { MeetingParticipantEntity } from './mettingParticipant.entity';
+import { MeetingRoomEntity } from './meetingRoom.entity';
+import { MeetingParticipantEntity } from './meetingParticipant.entity';
 import { UserEntity } from '../user/user.entity';
 
 @Entity({ name: 'meeting_reservation', comment: '회의실 예약 정보 tb' })

@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MeetingReservationEntity } from '../../../entity/meeting/meetingReservation.entity';
 import { DeleteResult, Repository } from 'typeorm';
-import { MeetingParticipantEntity } from '../../../entity/meeting/mettingParticipant.entity';
+import { MeetingParticipantEntity } from '../../../entity/meeting/meetingParticipant.entity';
 import { CreateMeetingReservationDto } from '../dto/createMeeting.dto';
-import { ParticipantTypeEnum } from '../../../common/constant/enum';
+import { ParticipantTypeEnum, YNEnum } from '../../../common/constant/enum';
+import { MeetingRoomEntity } from '../../../entity/meeting/meetingRoom.entity';
 
 @Injectable()
 export class MeetingRepository {
@@ -13,6 +14,8 @@ export class MeetingRepository {
     private readonly meetingReservationModel: Repository<MeetingReservationEntity>,
     @InjectRepository(MeetingParticipantEntity)
     private readonly meetingParticipantModel: Repository<MeetingParticipantEntity>,
+    @InjectRepository(MeetingRoomEntity)
+    private readonly meetingRoomModel: Repository<MeetingRoomEntity>,
   ) {}
 
   async createReservation(newReservation: CreateMeetingReservationDto, userIdx: number): Promise<number> {
@@ -76,5 +79,20 @@ export class MeetingRepository {
       .from(MeetingReservationEntity)
       .where('reservationIdx = :reservationIdx', { reservationIdx })
       .execute();
+  }
+
+  async getAvailableRoom() {
+    const result = await this.meetingRoomModel
+      .createQueryBuilder('meetingRoomEntity')
+      .select([
+        'meetingRoomEntity.roomIdx AS roomIdx',
+        'meetingRoomEntity.roomName AS roomName',
+        'meetingRoomEntity.capacity AS capacity',
+        'meetingRoomEntity.activeYN AS activeYN',
+      ])
+      .where('meetingRoomEntity.activeYN = :activeYN', { activeYN: YNEnum.YES })
+      .getRawMany();
+
+    return result;
   }
 }

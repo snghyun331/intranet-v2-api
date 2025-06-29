@@ -1,8 +1,8 @@
 import { Logger, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MeetingParticipantEntity } from '@entity/meeting/mettingParticipant.entity';
+import { MeetingParticipantEntity } from '@/entity/meeting/meetingParticipant.entity';
 import { MeetingReservationEntity } from '@entity/meeting/meetingReservation.entity';
-import { MeetingRoomEntity } from '@entity/meeting/meettingRoom.entity';
+import { MeetingRoomEntity } from '@/entity/meeting/meetingRoom.entity';
 import { MeetingController } from './meeting.controller';
 import { MeetingService } from './meeting.service';
 import { MeetingRepository } from './repository/meeting.repository';

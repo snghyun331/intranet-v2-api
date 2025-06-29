@@ -21,7 +21,7 @@ import { LeaveStatsEntity } from '@entity/intranet/leave/leaveStats.entity';
 import { CommuteCCUserEntity } from '@entity/intranet/commute/commuteCCUser.entity';
 import { LeaveExtraEntity } from '@entity/intranet/leave/leaveExtra.entity';
 import { NoticeReadLogEntity } from '../notice/noticeReadLog.entity';
-import { MeetingParticipantEntity } from '../meeting/mettingParticipant.entity';
+import { MeetingParticipantEntity } from '../meeting/meetingParticipant.entity';
 import { NoticeCCUserEntity } from '../notice/noticeCCUser.entity';
 import { NoticeAttendeeEntity } from '../notice/noticeAttendee.entity';
 import { MeetingReservationEntity } from '../meeting/meetingReservation.entity';

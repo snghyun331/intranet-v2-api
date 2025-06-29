@@ -74,4 +74,10 @@ export class MeetingService {
 
     return;
   }
+
+  async getAvailableRoom() {
+    const result = await this.meetingRepository.getAvailableRoom();
+
+    return result;
+  }
 }
