@@ -1,5 +1,13 @@
 import * as moment from 'moment';
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  LoggerService,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserRepository } from '@user/repository/user.repository';
 import { PageNoDto } from '@common/dto/pageNo.dto';
 import { AdminUserFilterDto } from '@user/dto/query.dto';
@@ -35,6 +43,8 @@ import { GlobalLeaveRepository } from '../global/repository/globalLeave.reposito
 @Injectable()
 export class UserService {
   constructor(
+    @Inject(Logger)
+    private readonly logger: LoggerService,
     private readonly userRepository: UserRepository,
     private readonly globalUserRepository: GlobalUserRepository,
     private readonly leaveRepository: GlobalLeaveRepository,
@@ -145,7 +155,6 @@ export class UserService {
 
     /* leaveMonthlyUsage 엔티티에 데이터(default: 0) 추가 */
     await this.userRepository.createLeaveMonthlyUsageInfo(userIdx, currentYear);
-
     /* mealStats 엔티티에 데이터(당월) 추가 (이미 존재하면, pass)*/
     await this.createMealStats(userInfo, userIdx);
 
@@ -247,7 +256,12 @@ export class UserService {
         };
 
         await this.userRepository.createMealStats(newMealStats);
-        await this.userRepository.updateMealBudget(userIdx, year.toString(), month.toString());
+
+        // 해당 월의 baseAmount가 없다면, 그냥 pass
+        const mealBaseAmount: number = await this.userRepository.getMealBaseInfo(year.toString(), month.toString());
+        if (mealBaseAmount) {
+          await this.userRepository.updateMealBudget(userIdx, year.toString(), month.toString());
+        }
 
         current.add(1, 'month');
       }

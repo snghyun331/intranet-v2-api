@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { AdminUserController, UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '@entity/user/user.entity';
@@ -21,6 +21,7 @@ import { WelfareStatsEntity } from '../../entity/welfare/welfareStats.entity';
 import { WelfareMonthlyStatsEntity } from '../../entity/welfare/welfareMonthlyStats.entity';
 import { ActivityStatsEntity } from '../../entity/activity/activityStats.entity';
 import { ActivityMonthlyStatsEntity } from '../../entity/activity/activityMonthlyStats.entity';
+import { MealBaseEntity } from '../../entity/meal/mealBase.entity';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ActivityMonthlyStatsEntity } from '../../entity/activity/activityMonthl
       LeaveStatsEntity,
       LeaveUsageEntity,
       LeaveMonthlyUsageEntity,
+      MealBaseEntity,
       MealStatsEntity,
       WelfareStatsEntity,
       WelfareMonthlyStatsEntity,
@@ -42,7 +44,7 @@ import { ActivityMonthlyStatsEntity } from '../../entity/activity/activityMonthl
     ]),
     RedisModule,
   ],
-  providers: [UserService, UserRepository, RedisSearchService],
+  providers: [UserService, UserRepository, RedisSearchService, Logger],
   controllers: [UserController, AdminUserController],
 })
 export class UserModule {}

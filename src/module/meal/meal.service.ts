@@ -252,7 +252,6 @@ export class MealService {
       // 기본 식대 정보가 있고, 기존 정보랑 상이하다면 update
       await this.mealRepository.updateMealBase(year, month, baseAmount);
     }
-
     /** mealStats 저장 및 업데이트 **/
     const mealStatsCnt: number = await this.mealRepository.getMealStatsCount(year, month);
     /* 기록이 없다면 create  */

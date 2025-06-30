@@ -27,6 +27,7 @@ import { WelfareMonthlyStatsEntity } from '@entity/welfare/welfareMonthlyStats.e
 import { NewActivityMonthStats, NewActivityStats } from '@activity/interface';
 import { ActivityStatsEntity } from '@entity/activity/activityStats.entity';
 import { ActivityMonthlyStatsEntity } from '@entity/activity/activityMonthlyStats.entity';
+import { MealBaseEntity } from '../../../entity/meal/mealBase.entity';
 
 @Injectable()
 export class UserRepository {
@@ -41,6 +42,7 @@ export class UserRepository {
     @InjectRepository(LeaveUsageEntity) private readonly leaveUsageModel: Repository<LeaveUsageEntity>,
     @InjectRepository(LeaveMonthlyUsageEntity)
     private readonly leaveMonthlyUsageModel: Repository<LeaveMonthlyUsageEntity>,
+    @InjectRepository(MealBaseEntity) private readonly mealBaseModel: Repository<MealBaseEntity>,
     @InjectRepository(MealStatsEntity) private readonly mealStatsModel: Repository<MealStatsEntity>,
     @InjectRepository(WelfareStatsEntity) private readonly welfareStatsModel: Repository<WelfareStatsEntity>,
     @InjectRepository(WelfareMonthlyStatsEntity)
@@ -459,6 +461,17 @@ export class UserRepository {
       .andWhere('activityStatsEntity.halfYear = :halfYear', { halfYear })
       .andWhere('activityStatsEntity.userIdx = :userIdx', { userIdx })
       .getCount();
+
+    return result;
+  }
+
+  async getMealBaseInfo(year: string, month: string) {
+    const result = await this.mealBaseModel
+      .createQueryBuilder('mealBaseEntity')
+      .select(['mealBaseEntity.baseAmount AS baseAmount'])
+      .where('mealBaseEntity.year = :year', { year })
+      .andWhere('mealBaseEntity.month = :month', { month })
+      .getRawOne();
 
     return result;
   }
