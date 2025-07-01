@@ -11,8 +11,11 @@ export class SmsMessageEntity extends CommonEntity {
   @Column({ name: 'sms_request_idx', comment: 'SMS 발송 정보 IDX', type: Number, nullable: false })
   smsRequestIdx: number;
 
-  @Column({ name: 'to_phone_number', length: 15, comment: '수신 전화번호', type: String, nullable: false })
+  @Column({ name: 'to_phone_number', comment: '수신 전화번호', length: 15, type: String, nullable: false })
   toPhoneNumber: string;
+
+  @Column({ name: 'sms_tag', comment: 'SMS 태그', type: String, nullable: false })
+  smsTag: string;
 
   @Column({
     name: 'status',

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { SMSTagEnum } from '../../../../common/constant/enum';
 
 export class SendSmsDto {
   @ApiProperty({ type: String, description: '발신 번호', required: true })
@@ -20,4 +21,9 @@ export class SendSmsDto {
   @IsNotEmpty()
   @IsNumber()
   totalCount: number;
+
+  @ApiProperty({ type: 'enum', enum: SMSTagEnum, description: 'SMS 태그', required: true })
+  @IsNotEmpty()
+  @IsEnum(SMSTagEnum)
+  tag: SMSTagEnum;
 }

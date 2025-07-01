@@ -175,3 +175,9 @@ export enum SmsMessageStatusEnum {
   SUCCESSED = 'SUCCESSED',
   FAILED = 'FAILED',
 }
+
+export enum SMSTagEnum {
+  LMS = 'LMS',
+  SMS = 'SMS',
+  MMS = 'MMS',
+}
