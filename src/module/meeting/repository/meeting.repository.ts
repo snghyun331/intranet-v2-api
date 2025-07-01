@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MeetingReservationEntity } from '../../../entity/meeting/meetingReservation.entity';
+import { MeetingReservationEntity } from '@entity/meeting/meetingReservation.entity';
 import { DeleteResult, Repository } from 'typeorm';
-import { MeetingParticipantEntity } from '../../../entity/meeting/meetingParticipant.entity';
+import { MeetingParticipantEntity } from '@entity/meeting/meetingParticipant.entity';
 import { CreateMeetingReservationDto } from '../dto/createMeeting.dto';
-import { ParticipantTypeEnum, YNEnum } from '../../../common/constant/enum';
-import { MeetingRoomEntity } from '../../../entity/meeting/meetingRoom.entity';
-import { UserEntity } from '../../../entity/user/user.entity';
+import { ParticipantTypeEnum } from '@common/constant/enum';
+import { UserEntity } from '@entity/user/user.entity';
 
 @Injectable()
 export class MeetingRepository {
@@ -15,8 +14,6 @@ export class MeetingRepository {
     private readonly meetingReservationModel: Repository<MeetingReservationEntity>,
     @InjectRepository(MeetingParticipantEntity)
     private readonly meetingParticipantModel: Repository<MeetingParticipantEntity>,
-    @InjectRepository(MeetingRoomEntity)
-    private readonly meetingRoomModel: Repository<MeetingRoomEntity>,
   ) {}
 
   async createReservation(newReservation: CreateMeetingReservationDto, userIdx: number): Promise<number> {
@@ -32,10 +29,10 @@ export class MeetingRepository {
     return reservationIdx;
   }
 
-  async checkTimeConflict(roomIdx: number, meetingDate: string, startTime: string, endTime: string): Promise<boolean> {
+  async checkTimeConflict(roomId: string, meetingDate: string, startTime: string, endTime: string): Promise<boolean> {
     const conflictCount: number = await this.meetingReservationModel
       .createQueryBuilder('meetinReservationEntity')
-      .where('meetinReservationEntity.roomIdx = :roomIdx', { roomIdx })
+      .where('meetinReservationEntity.roomId = :roomId', { roomId })
       .andWhere('meetinReservationEntity.meetingDate = :meetingDate', { meetingDate })
       .andWhere('(meetinReservationEntity.startTime < :endTime AND meetinReservationEntity.endTime > :startTime)', {
         startTime,
@@ -82,21 +79,6 @@ export class MeetingRepository {
       .execute();
   }
 
-  async getAvailableRooms() {
-    const result = await this.meetingRoomModel
-      .createQueryBuilder('meetingRoomEntity')
-      .select([
-        'meetingRoomEntity.roomIdx AS roomIdx',
-        'meetingRoomEntity.roomName AS roomName',
-        'meetingRoomEntity.capacity AS capacity',
-        'meetingRoomEntity.activeYN AS activeYN',
-      ])
-      .where('meetingRoomEntity.activeYN = :activeYN', { activeYN: YNEnum.YES })
-      .getRawMany();
-
-    return result;
-  }
-
   async getMeetingSchedule(meetingDate: string) {
     const result = await this.meetingReservationModel
       .createQueryBuilder('meetingReservationEntity')
@@ -110,7 +92,7 @@ export class MeetingRepository {
         'meetingReservationEntity.startTime AS startTime',
         'meetingReservationEntity.endTime AS endTime',
         'meetingReservationEntity.meetingType AS meetingType',
-        'meetingReservationEntity.roomIdx AS roomIdx',
+        'meetingReservationEntity.roomId AS roomId',
         'meetingReservationEntity.description AS description',
         'meetingParticipantEntity.userIdx AS participantIdx',
         'meetingParticipantEntity.participantType AS participantType',

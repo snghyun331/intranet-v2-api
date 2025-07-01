@@ -1,6 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CommonEntity } from '@common/entity/common.entity';
-import { MeetingRoomEntity } from './meetingRoom.entity';
 import { MeetingParticipantEntity } from './meetingParticipant.entity';
 import { UserEntity } from '../user/user.entity';
 
@@ -11,6 +10,9 @@ export class MeetingReservationEntity extends CommonEntity {
 
   @Column({ name: 'user_idx', comment: '작성자 IDX', nullable: false })
   userIdx: number;
+
+  @Column({ name: 'room_id', comment: '회의실 유형', type: String, nullable: false })
+  roomId: string;
 
   @Column({ name: 'title', comment: '제목', length: 100, nullable: false })
   title: string;
@@ -30,21 +32,11 @@ export class MeetingReservationEntity extends CommonEntity {
   @Column({ name: 'meeting_type', comment: '회의 유형', type: String, nullable: false })
   meetingType: string;
 
-  @Column({ name: 'room_idx', comment: '회의실 IDX', type: Number, nullable: false })
-  roomIdx: number;
-
   @Column({ name: 'description', comment: '비고', type: String, nullable: true })
   description: string;
 
   @OneToMany(() => MeetingParticipantEntity, (meetingParticipant) => meetingParticipant.reservationIdxRelation)
   meetingParticipantRelation: MeetingParticipantEntity[];
-
-  @ManyToOne(() => MeetingRoomEntity, (room) => room.reservationRelation, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  @JoinColumn({ name: 'room_idx', referencedColumnName: 'roomIdx' })
-  roomIdxRelation: MeetingRoomEntity;
 
   @ManyToOne(() => UserEntity, (user) => user.meetingReservationRelation, {
     onDelete: 'CASCADE',

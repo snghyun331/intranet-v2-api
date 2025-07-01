@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { MeetingTypeEnum } from '@common/constant/enum';
 import { Transform } from 'class-transformer';
 
@@ -34,9 +34,9 @@ export class CreateMeetingReservationDto {
   @IsEnum(MeetingTypeEnum)
   meetingType: MeetingTypeEnum;
 
-  @ApiProperty({ type: Number, description: '회의실Idx', required: true })
-  @IsNumber()
-  roomIdx: number;
+  @ApiProperty({ type: String, description: '회의실 종류', example: 'C', required: true })
+  @IsString()
+  roomId: string;
 
   @ApiProperty({ type: String, description: '참석자 기타용', required: false })
   @IsOptional()

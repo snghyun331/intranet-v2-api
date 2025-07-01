@@ -5,7 +5,7 @@ import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
 import { UserRoleGuard } from '../auth/guard/roleGuard/userRole.guard';
 import { UserGradeEnum } from '../../common/constant/enum';
 import { UserRole } from '../../common/decorator/role.decorator';
-import { USERS_MEETING, USERS_MEETING_ROOM } from './swagger/meeting.swagger';
+import { USERS_MEETING } from './swagger/meeting.swagger';
 import { MeetingService } from './meeting.service';
 import { CreateMeetingReservationDto } from './dto/createMeeting.dto';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
@@ -45,20 +45,6 @@ export class MeetingController {
     await this.meetingService.deleteReservation(reservationIdx, userIdx);
 
     const response: ResponseInterface = { message: 'success' };
-
-    return response;
-  }
-
-  @ApiOperation(USERS_MEETING_ROOM.GET.API_OPERATION)
-  @ApiOkResponse(USERS_MEETING_ROOM.GET.API_OK_RESPONSE)
-  @ApiBearerAuth('accessToken')
-  @UseGuards(UserAuthGuard, UserRoleGuard)
-  @UserRole(UserGradeEnum.INTERN)
-  @Get('available-rooms')
-  async getAvailableMeetingRoom(): Promise<ResponseInterface> {
-    const data = await this.meetingService.getAvailableRoom();
-
-    const response: ResponseInterface = { message: 'success', data };
 
     return response;
   }

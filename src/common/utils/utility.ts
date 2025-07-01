@@ -421,3 +421,6 @@ export const calculateCombinedLeaveStandardWorkingMinutes = (existLeaveTypeIdx: 
 
 // 바이트를 계산
 export const calculateByte = (text: string): number => text.replace(/[\0-\x7f]|([0-\u07ff]|(.))/g, '$&$1$2').length;
+
+// 날짜와 시간을 합쳐 KST 타임스탬프를 만드는 함수
+export const createKSTTimestamp = (dateString: string, timeString: string): string => `${dateString}T${timeString}:00`;
