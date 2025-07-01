@@ -6,6 +6,7 @@ import { MEETING_RESERVE_LOCK_DURATION } from '@common/constant/constant';
 import { ParticipantTypeEnum } from '@common/constant/enum';
 import { Transactional } from 'typeorm-transactional';
 import { createKSTTimestamp } from '../../common/utils/utility';
+import { UpdateMeetingReservationDto } from './dto/updateMeeting.dto';
 
 @Injectable()
 export class MeetingService {
@@ -23,19 +24,25 @@ export class MeetingService {
 
     try {
       if (lock) {
-        // 시간 충돌 검사
+        const { ccUserIdxs, attendeeUserIdxs, ...newReservation } = dto;
+        /* 유효성 검증 */
+        // 시간 충돌 여부
         const isConflict: boolean = await this.meetingRepository.checkTimeConflict(
           dto.roomId,
           dto.meetingDate,
           dto.startTime,
           dto.endTime,
         );
-
         if (isConflict) {
           throw new BadRequestException('해당 시간대에 이미 예약된 회의가 있습니다.');
         }
-
-        const { ccUserIdxs, attendeeUserIdxs, ...newReservation } = dto;
+        // 참석자와 참조자에 동일한 사람 포함 X
+        const ccUserSet = new Set(ccUserIdxs);
+        for (const attendeeIdx of attendeeUserIdxs) {
+          if (ccUserSet.has(attendeeIdx)) {
+            throw new BadRequestException('참석자와 참조자에 동일한 사용자가 포함될 수 없습니다.');
+          }
+        }
         // 회의 예약 생성
         const reservationIdx: number = await this.meetingRepository.createReservation(newReservation, userIdx);
         // 회의 참조자 저장
@@ -63,7 +70,7 @@ export class MeetingService {
 
   @Transactional()
   async deleteReservation(reservationIdx: number, userIdx: number): Promise<void> {
-    const reservationInfo = await this.meetingRepository.getReservation(reservationIdx);
+    const reservationInfo = await this.meetingRepository.getReservationByIdx(reservationIdx);
     if (!reservationInfo) {
       throw new BadRequestException('해당 예약 내역은 삭제되었거나 존재하지 않습니다.');
     }
@@ -74,6 +81,91 @@ export class MeetingService {
     await this.meetingRepository.deleteReservation(reservationIdx);
 
     return;
+  }
+
+  @Transactional()
+  async updateReservation(dto: UpdateMeetingReservationDto, userIdx: number, reservationIdx: number): Promise<void> {
+    const lockKey = `meeting:room:${dto.roomId}:date:${dto.meetingDate}:time:${dto.startTime}-${dto.endTime}`;
+    const lock: boolean = await this.redisLockService.waitAndSetLock(lockKey, MEETING_RESERVE_LOCK_DURATION);
+
+    try {
+      if (lock) {
+        const { ccUserIdxs, attendeeUserIdxs, ...newReservation } = dto;
+        /* 유효성 검증 */
+        // 에약 내역 존재 여부
+        const reservationInfo = await this.meetingRepository.getReservationByIdx(reservationIdx);
+        if (!reservationInfo) {
+          throw new BadRequestException('존재하지 않거나 삭제된 내역입니다.');
+        }
+        // 시간 충돌 여부
+        const isConflict: boolean = await this.meetingRepository.checkTimeConflict(
+          dto.roomId,
+          dto.meetingDate,
+          dto.startTime,
+          dto.endTime,
+          reservationIdx,
+        );
+        if (isConflict) {
+          throw new BadRequestException('해당 시간대에 이미 예약된 회의가 있습니다.');
+        }
+        // 참석자와 참조자에 동일한 사람 포함 X
+        const ccUserSet = new Set(ccUserIdxs);
+        for (const attendeeIdx of attendeeUserIdxs) {
+          if (ccUserSet.has(attendeeIdx)) {
+            throw new BadRequestException('참석자와 참조자에 동일한 사용자가 포함될 수 없습니다.');
+          }
+        }
+
+        /* 회의 예약 업데이트 */
+        await this.meetingRepository.updateReservation(reservationIdx, newReservation);
+
+        /* attendeeIdxs 처리 */
+        // 기존 attendeeIdx 목록 가져오기
+        const existAttendeeIdxList: number[] = await this.meetingRepository.getMeetingAttendeeIdxs(reservationIdx);
+        console.log('existAttendeeIdxList', existAttendeeIdxList);
+        // 제거할 attendeeIdx 목록 계산
+        const attendeeIdxToRemove: number[] = existAttendeeIdxList.filter(
+          (attendeeIdx) => !attendeeUserIdxs.includes(attendeeIdx),
+        );
+        console.log('attendeeIdxToRemove', attendeeIdxToRemove);
+        // 새로 추가할 attendeeIdx 목록 계산
+        const attendeeIdxToAdd: number[] = attendeeUserIdxs.filter(
+          (attendeeIdx) => !existAttendeeIdxList.includes(attendeeIdx),
+        );
+        console.log('attendeeIdxToAdd', attendeeIdxToAdd);
+        // 삭제할 attendee 처리
+        if (attendeeIdxToRemove.length > 0) {
+          await this.meetingRepository.deleteMeetingAttendeeList(reservationIdx, attendeeIdxToRemove);
+        }
+        // 추가할 attendee 처리
+        if (attendeeIdxToAdd.length > 0) {
+          await this.meetingRepository.createMeetingAttendeeList(reservationIdx, attendeeIdxToAdd);
+        }
+
+        /* ccUserIdxs 처리 */
+        // 기존 ccUserIdx 목록 가져오기
+        const existCCUserIdxList: number[] = await this.meetingRepository.getMeetingCCUserIdxs(reservationIdx);
+        console.log('existCCUserIdxList', existCCUserIdxList);
+        // 제거할 ccUserIdx 목록 계산
+        const ccUserIdxToRemove: number[] = existCCUserIdxList.filter((ccUserIdx) => !ccUserIdxs.includes(ccUserIdx));
+        console.log('ccUserIdxToRemove', ccUserIdxToRemove);
+        // 새로 추가할 ccUserIdx 목록 계산
+        const ccUserIdxToAdd: number[] = ccUserIdxs.filter((ccUserIdx) => !existCCUserIdxList.includes(ccUserIdx));
+        console.log('ccUserIdxToAdd', ccUserIdxToAdd);
+        // 삭제할 ccUser 처리
+        if (ccUserIdxToRemove.length > 0) {
+          await this.meetingRepository.deleteMeetingCCUserList(reservationIdx, ccUserIdxToRemove);
+        }
+        // 추가할 ccUser 처리
+        if (ccUserIdxToAdd.length > 0) {
+          await this.meetingRepository.createMeetingCCUserList(reservationIdx, ccUserIdxToAdd);
+        }
+      }
+    } catch (err) {
+      await this.redisLockService.delLock(lockKey);
+      this.logger.error(err);
+      throw err;
+    }
   }
 
   async getMeetingSchedule(meetingDate: string) {
@@ -98,12 +190,12 @@ export class MeetingService {
     }
 
     /* reservationIdx 기준 그룹화 + 참조자 및 참석자 정보 합치기 */
-    const result = this.groupByReservationIdx(reservations);
+    const result = await this.groupByReservationIdx(reservations);
 
     return result;
   }
 
-  private groupByReservationIdx(rows: any[]) {
+  private async groupByReservationIdx(rows: any[]) {
     return rows.reduce((acc, row) => {
       // 기존 reservationIdx가 있는지 확인
       const existing = acc.find((item: any) => item.reservationIdx === row.reservationIdx);

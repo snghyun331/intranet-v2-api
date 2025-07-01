@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MeetingReservationEntity } from '@entity/meeting/meetingReservation.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { DeleteResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { MeetingParticipantEntity } from '@entity/meeting/meetingParticipant.entity';
 import { CreateMeetingReservationDto } from '../dto/createMeeting.dto';
 import { ParticipantTypeEnum } from '@common/constant/enum';
 import { UserEntity } from '@entity/user/user.entity';
+import { UpdateMeetingReservationDto } from '../dto/updateMeeting.dto';
 
 @Injectable()
 export class MeetingRepository {
@@ -29,16 +30,38 @@ export class MeetingRepository {
     return reservationIdx;
   }
 
-  async checkTimeConflict(roomId: string, meetingDate: string, startTime: string, endTime: string): Promise<boolean> {
-    const conflictCount: number = await this.meetingReservationModel
-      .createQueryBuilder('meetinReservationEntity')
-      .where('meetinReservationEntity.roomId = :roomId', { roomId })
-      .andWhere('meetinReservationEntity.meetingDate = :meetingDate', { meetingDate })
-      .andWhere('(meetinReservationEntity.startTime < :endTime AND meetinReservationEntity.endTime > :startTime)', {
+  async updateReservation(reservationIdx: number, newReservation: UpdateMeetingReservationDto): Promise<UpdateResult> {
+    return await this.meetingReservationModel
+      .createQueryBuilder()
+      .update(MeetingReservationEntity)
+      .set(newReservation)
+      .where('reservationIdx = :reservationIdx', { reservationIdx })
+      .execute();
+  }
+
+  async checkTimeConflict(
+    roomId: string,
+    meetingDate: string,
+    startTime: string,
+    endTime: string,
+    exceptReservationIdx?: number,
+  ): Promise<boolean> {
+    const query: SelectQueryBuilder<MeetingReservationEntity> = this.meetingReservationModel
+      .createQueryBuilder('meetingReservationEntity')
+      .where('meetingReservationEntity.roomId = :roomId', { roomId })
+      .andWhere('meetingReservationEntity.meetingDate = :meetingDate', { meetingDate })
+      .andWhere('(meetingReservationEntity.startTime < :endTime AND meetingReservationEntity.endTime > :startTime)', {
         startTime,
         endTime,
-      })
-      .getCount();
+      });
+
+    if (exceptReservationIdx) {
+      query.andWhere('meetingReservationEntity.reservationIdx != :reservationIdx', {
+        reservationIdx: exceptReservationIdx,
+      });
+    }
+
+    const conflictCount: number = await query.getCount();
 
     return conflictCount > 0;
   }
@@ -60,7 +83,7 @@ export class MeetingRepository {
     );
   }
 
-  async getReservation(reservationIdx: number) {
+  async getReservationByIdx(reservationIdx: number) {
     const result = await this.meetingReservationModel
       .createQueryBuilder('meetingReservationEntity')
       .select(['meetingReservationEntity.userIdx AS userIdx'])
@@ -111,5 +134,95 @@ export class MeetingRepository {
       .getRawMany();
 
     return result;
+  }
+
+  async getMeetingCCUserIdxs(reservationIdx: number): Promise<number[]> {
+    const result = await this.meetingParticipantModel
+      .createQueryBuilder('meetingParticipantEntity')
+      .select(['meetingParticipantEntity.userIdx AS ccUserIdx '])
+      .where('meetingParticipantEntity.reservationIdx = :reservationIdx', { reservationIdx })
+      .andWhere('meetingParticipantEntity.participantType = :participantType', {
+        participantType: ParticipantTypeEnum.CC,
+      })
+      .getRawMany();
+
+    const ccUserIdxList: number[] = result.map((r) => r.ccUserIdx);
+
+    return ccUserIdxList;
+  }
+
+  async getMeetingAttendeeIdxs(reservationIdx: number): Promise<number[]> {
+    const result = await this.meetingParticipantModel
+      .createQueryBuilder('meetingParticipantEntity')
+      .select(['meetingParticipantEntity.userIdx AS attendeeIdx '])
+      .where('meetingParticipantEntity.reservationIdx = :reservationIdx', { reservationIdx })
+      .andWhere('meetingParticipantEntity.participantType = :participantType', {
+        participantType: ParticipantTypeEnum.ATTENDEE,
+      })
+      .getRawMany();
+
+    const attendeeIdxList: number[] = result.map((r) => r.attendeeIdx);
+
+    return attendeeIdxList;
+  }
+
+  async createMeetingAttendeeList(reservationIdx: number, attendeeUserIdxs: number[]): Promise<void> {
+    await Promise.all(
+      attendeeUserIdxs.map(async (attendeeUserIdx) => {
+        await this.meetingParticipantModel
+          .createQueryBuilder()
+          .insert()
+          .into(MeetingParticipantEntity)
+          .values({ reservationIdx, userIdx: Number(attendeeUserIdx), participantType: ParticipantTypeEnum.ATTENDEE })
+          .execute();
+      }),
+    );
+  }
+
+  async deleteMeetingAttendeeList(reservationIdx: number, attendeeIdxList: number[]): Promise<void> {
+    await Promise.all(
+      attendeeIdxList.map(async (attendeeIdx) => {
+        await this.meetingParticipantModel
+          .createQueryBuilder()
+          .delete()
+          .from(MeetingParticipantEntity)
+          .where('reservationIdx = :reservationIdx', { reservationIdx })
+          .andWhere('userIdx = :userIdx', { userIdx: attendeeIdx })
+          .andWhere('participantType = :participantType', {
+            participantType: ParticipantTypeEnum.ATTENDEE,
+          })
+          .execute();
+      }),
+    );
+  }
+
+  async createMeetingCCUserList(reservationIdx: number, ccUserIdxList: number[]): Promise<void> {
+    await Promise.all(
+      ccUserIdxList.map(async (ccUserIdx) => {
+        await this.meetingParticipantModel
+          .createQueryBuilder()
+          .insert()
+          .into(MeetingParticipantEntity)
+          .values({ reservationIdx, userIdx: Number(ccUserIdx), participantType: ParticipantTypeEnum.CC })
+          .execute();
+      }),
+    );
+  }
+
+  async deleteMeetingCCUserList(reservationIdx: number, ccUserIdxList: number[]): Promise<void> {
+    await Promise.all(
+      ccUserIdxList.map(async (ccUserIdx) => {
+        await this.meetingParticipantModel
+          .createQueryBuilder()
+          .delete()
+          .from(MeetingParticipantEntity)
+          .where('reservationIdx = :reservationIdx', { reservationIdx })
+          .andWhere('userIdx = :userIdx', { userIdx: ccUserIdx })
+          .andWhere('participantType = :participantType', {
+            participantType: ParticipantTypeEnum.CC,
+          })
+          .execute();
+      }),
+    );
   }
 }

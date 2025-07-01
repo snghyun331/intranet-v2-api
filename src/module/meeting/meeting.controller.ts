@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ResponseInterface } from '../../common/interface/response.interface';
 import { UserAuthGuard } from '../auth/guard/authGuard/userAuth.guard';
@@ -9,6 +9,7 @@ import { USERS_MEETING } from './swagger/meeting.swagger';
 import { MeetingService } from './meeting.service';
 import { CreateMeetingReservationDto } from './dto/createMeeting.dto';
 import { CurrentUserIdx } from '../../common/decorator/currentUser.decorator';
+import { UpdateMeetingReservationDto } from './dto/updateMeeting.dto';
 
 @ApiTags('사용자')
 @Controller('users/meetings')
@@ -59,6 +60,24 @@ export class MeetingController {
     const data = await this.meetingService.getMeetingSchedule(meetingDate);
 
     const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
+  @ApiOperation(USERS_MEETING.PUT.API_OPERATION)
+  @ApiOkResponse(USERS_MEETING.PUT.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Put(':reservationIdx')
+  async updateMeetingReservation(
+    @Param('reservationIdx', ParseIntPipe) reservationIdx: number,
+    @Body() dto: UpdateMeetingReservationDto,
+    @CurrentUserIdx() userIdx: number,
+  ): Promise<ResponseInterface> {
+    await this.meetingService.updateReservation(dto, userIdx, reservationIdx);
+
+    const response: ResponseInterface = { message: 'success' };
 
     return response;
   }
