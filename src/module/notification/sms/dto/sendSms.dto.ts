@@ -25,5 +25,5 @@ export class SendSmsDto {
   @ApiProperty({ type: 'enum', enum: SMSTagEnum, description: 'SMS 태그', required: true })
   @IsNotEmpty()
   @IsEnum(SMSTagEnum)
-  tag: SMSTagEnum;
+  smsTag: SMSTagEnum;
 }

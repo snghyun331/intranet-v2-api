@@ -17,7 +17,7 @@ export class NotificationService {
   ) {}
 
   async sendSms(dto: SendSmsDto): Promise<void> {
-    const { fromPhoneNumber, message, toPhoneNumbers, totalCount } = dto;
+    const { fromPhoneNumber, message, toPhoneNumbers, totalCount, smsTag } = dto;
     /* SMS 요청 정보 저장 */
     const smsRequestIdx: number = await this.smsRepository.createSmsRequest(fromPhoneNumber, message, totalCount);
     try {
@@ -25,7 +25,7 @@ export class NotificationService {
       await Promise.all(
         toPhoneNumbers.map(async (toPhoneNumber: string) => {
           // 개별 발신 정보 저장
-          const smsMessageIdx: number = await this.smsRepository.createSmsMessage(smsRequestIdx, toPhoneNumber);
+          const smsMessageIdx: number = await this.smsRepository.createSmsMessage(smsRequestIdx, toPhoneNumber, smsTag);
           // 메시지 발송
           const cleanedMessage = smsTemplate(message);
           await this.smsProducer.enqueueSmsJob(fromPhoneNumber, toPhoneNumber, cleanedMessage, smsMessageIdx);

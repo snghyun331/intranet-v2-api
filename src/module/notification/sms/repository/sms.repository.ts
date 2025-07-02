@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { SmsMessageEntity } from '@entity/sms/smsMessage.entity';
 import { SmsRequestEntity } from '@entity/sms/smsRequest.entity';
-import { SmsMessageStatusEnum, SmsRequestStatusEnum } from '@common/constant/enum';
+import { SmsMessageStatusEnum, SmsRequestStatusEnum, SMSTagEnum } from '@common/constant/enum';
 import { UserSmsFilterDto } from '../dto/query.dto';
 
 @Injectable()
@@ -27,12 +27,12 @@ export class SmsRepository {
     return smsRequestIdx;
   }
 
-  async createSmsMessage(smsRequestIdx: number, toPhoneNumber: string): Promise<number> {
+  async createSmsMessage(smsRequestIdx: number, toPhoneNumber: string, smsTag: SMSTagEnum): Promise<number> {
     const result = await this.smsMessageModel
       .createQueryBuilder()
       .insert()
       .into(SmsMessageEntity)
-      .values({ smsRequestIdx, toPhoneNumber })
+      .values({ smsRequestIdx, toPhoneNumber, smsTag })
       .execute();
 
     const smsMessageIdx: number = result.identifiers[0].smsMessageIdx;
@@ -80,6 +80,7 @@ export class SmsRepository {
         'smsRequestEntity.message AS message',
         'smsRequestEntity.fromPhoneNumber AS fromPhoneNumber',
         'smsMessageEntity.createdAt AS createdAt',
+        'smsMessageEntity.smsTag AS smsTag',
       ])
       .innerJoin(
         SmsRequestEntity,
