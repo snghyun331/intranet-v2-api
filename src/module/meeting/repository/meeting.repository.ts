@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MeetingReservationEntity } from '@entity/meeting/meetingReservation.entity';
-import { DeleteResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { MeetingParticipantEntity } from '@entity/meeting/meetingParticipant.entity';
 import { CreateMeetingReservationDto } from '../dto/createMeeting.dto';
 import { ParticipantTypeEnum } from '@common/constant/enum';
@@ -224,5 +224,25 @@ export class MeetingRepository {
           .execute();
       }),
     );
+  }
+
+  async createParticipant(newParticipants: any[]): Promise<void> {
+    if (newParticipants.length === 0) return;
+
+    await this.meetingParticipantModel
+      .createQueryBuilder()
+      .insert()
+      .into(MeetingParticipantEntity)
+      .values(newParticipants)
+      .execute();
+  }
+
+  async deleteParticipants(reservationIdx: number): Promise<DeleteResult> {
+    return await this.meetingParticipantModel
+      .createQueryBuilder()
+      .delete()
+      .from(MeetingParticipantEntity)
+      .where('reservationIdx = :reservationIdx', { reservationIdx })
+      .execute();
   }
 }

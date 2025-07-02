@@ -97,6 +97,10 @@ export class MeetingService {
         if (!reservationInfo) {
           throw new BadRequestException('존재하지 않거나 삭제된 내역입니다.');
         }
+        // 본인이 작성한 내역만 수정 가능
+        if (reservationInfo.userIdx !== userIdx) {
+          throw new BadRequestException('본인이 작성한 내역만 수정할 수 있습니다.');
+        }
         // 시간 충돌 여부
         const isConflict: boolean = await this.meetingRepository.checkTimeConflict(
           dto.roomId,
@@ -119,47 +123,67 @@ export class MeetingService {
         /* 회의 예약 업데이트 */
         await this.meetingRepository.updateReservation(reservationIdx, newReservation);
 
-        /* attendeeIdxs 처리 */
-        // 기존 attendeeIdx 목록 가져오기
+        /* 참석자 및 참조자 업데이트 */
         const existAttendeeIdxList: number[] = await this.meetingRepository.getMeetingAttendeeIdxs(reservationIdx);
-        console.log('existAttendeeIdxList', existAttendeeIdxList);
-        // 제거할 attendeeIdx 목록 계산
-        const attendeeIdxToRemove: number[] = existAttendeeIdxList.filter(
-          (attendeeIdx) => !attendeeUserIdxs.includes(attendeeIdx),
-        );
-        console.log('attendeeIdxToRemove', attendeeIdxToRemove);
-        // 새로 추가할 attendeeIdx 목록 계산
-        const attendeeIdxToAdd: number[] = attendeeUserIdxs.filter(
-          (attendeeIdx) => !existAttendeeIdxList.includes(attendeeIdx),
-        );
-        console.log('attendeeIdxToAdd', attendeeIdxToAdd);
-        // 삭제할 attendee 처리
-        if (attendeeIdxToRemove.length > 0) {
-          await this.meetingRepository.deleteMeetingAttendeeList(reservationIdx, attendeeIdxToRemove);
-        }
-        // 추가할 attendee 처리
-        if (attendeeIdxToAdd.length > 0) {
-          await this.meetingRepository.createMeetingAttendeeList(reservationIdx, attendeeIdxToAdd);
+        const existCCUserIdxList: number[] = await this.meetingRepository.getMeetingCCUserIdxs(reservationIdx);
+        if (ccUserIdxs !== existCCUserIdxList || existAttendeeIdxList !== attendeeUserIdxs) {
+          const newParticipants = [
+            ...attendeeUserIdxs.map((userIdx) => ({
+              reservationIdx,
+              userIdx,
+              participantType: ParticipantTypeEnum.ATTENDEE,
+            })),
+            ...ccUserIdxs.map((userIdx) => ({ reservationIdx, userIdx, participantType: ParticipantTypeEnum.CC })),
+          ];
+          console.log(newParticipants);
+          await this.meetingRepository.deleteParticipants(reservationIdx);
+
+          await this.meetingRepository.createParticipant(newParticipants);
         }
 
-        /* ccUserIdxs 처리 */
-        // 기존 ccUserIdx 목록 가져오기
-        const existCCUserIdxList: number[] = await this.meetingRepository.getMeetingCCUserIdxs(reservationIdx);
-        console.log('existCCUserIdxList', existCCUserIdxList);
-        // 제거할 ccUserIdx 목록 계산
-        const ccUserIdxToRemove: number[] = existCCUserIdxList.filter((ccUserIdx) => !ccUserIdxs.includes(ccUserIdx));
-        console.log('ccUserIdxToRemove', ccUserIdxToRemove);
-        // 새로 추가할 ccUserIdx 목록 계산
-        const ccUserIdxToAdd: number[] = ccUserIdxs.filter((ccUserIdx) => !existCCUserIdxList.includes(ccUserIdx));
-        console.log('ccUserIdxToAdd', ccUserIdxToAdd);
-        // 삭제할 ccUser 처리
-        if (ccUserIdxToRemove.length > 0) {
-          await this.meetingRepository.deleteMeetingCCUserList(reservationIdx, ccUserIdxToRemove);
-        }
-        // 추가할 ccUser 처리
-        if (ccUserIdxToAdd.length > 0) {
-          await this.meetingRepository.createMeetingCCUserList(reservationIdx, ccUserIdxToAdd);
-        }
+        await this.redisLockService.delLock(lockKey);
+
+        // /* attendeeIdxs 처리 */
+        // // 기존 attendeeIdx 목록 가져오기
+        // const existAttendeeIdxList: number[] = await this.meetingRepository.getMeetingAttendeeIdxs(reservationIdx);
+        // console.log('existAttendeeIdxList', existAttendeeIdxList);
+        // // 제거할 attendeeIdx 목록 계산
+        // const attendeeIdxToRemove: number[] = existAttendeeIdxList.filter(
+        //   (attendeeIdx) => !attendeeUserIdxs.includes(attendeeIdx),
+        // );
+        // console.log('attendeeIdxToRemove', attendeeIdxToRemove);
+        // // 새로 추가할 attendeeIdx 목록 계산
+        // const attendeeIdxToAdd: number[] = attendeeUserIdxs.filter(
+        //   (attendeeIdx) => !existAttendeeIdxList.includes(attendeeIdx),
+        // );
+        // console.log('attendeeIdxToAdd', attendeeIdxToAdd);
+        // // 삭제할 attendee 처리
+        // if (attendeeIdxToRemove.length > 0) {
+        //   await this.meetingRepository.deleteMeetingAttendeeList(reservationIdx, attendeeIdxToRemove);
+        // }
+        // // 추가할 attendee 처리
+        // if (attendeeIdxToAdd.length > 0) {
+        //   await this.meetingRepository.createMeetingAttendeeList(reservationIdx, attendeeIdxToAdd);
+        // }
+
+        // /* ccUserIdxs 처리 */
+        // // 기존 ccUserIdx 목록 가져오기
+        // const existCCUserIdxList: number[] = await this.meetingRepository.getMeetingCCUserIdxs(reservationIdx);
+        // console.log('existCCUserIdxList', existCCUserIdxList);
+        // // 제거할 ccUserIdx 목록 계산
+        // const ccUserIdxToRemove: number[] = existCCUserIdxList.filter((ccUserIdx) => !ccUserIdxs.includes(ccUserIdx));
+        // console.log('ccUserIdxToRemove', ccUserIdxToRemove);
+        // // 새로 추가할 ccUserIdx 목록 계산
+        // const ccUserIdxToAdd: number[] = ccUserIdxs.filter((ccUserIdx) => !existCCUserIdxList.includes(ccUserIdx));
+        // console.log('ccUserIdxToAdd', ccUserIdxToAdd);
+        // // 삭제할 ccUser 처리
+        // if (ccUserIdxToRemove.length > 0) {
+        //   await this.meetingRepository.deleteMeetingCCUserList(reservationIdx, ccUserIdxToRemove);
+        // }
+        // // 추가할 ccUser 처리
+        // if (ccUserIdxToAdd.length > 0) {
+        //   await this.meetingRepository.createMeetingCCUserList(reservationIdx, ccUserIdxToAdd);
+        // }
       }
     } catch (err) {
       await this.redisLockService.delLock(lockKey);
