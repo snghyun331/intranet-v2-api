@@ -163,7 +163,7 @@ export class UserRepository {
     const totalPage: number = Math.ceil(total / perPage);
 
     query
-      .orderBy('userEntity.createdAt', 'DESC')
+      .orderBy('userEntity.joinDate', 'DESC')
       .limit(perPage)
       .offset((pageNo - 1) * perPage);
 
