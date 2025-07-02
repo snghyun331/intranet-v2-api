@@ -7,11 +7,11 @@ export class UpdateNoticeDto extends PickType(CreateNoticeDto, [
   'category',
   'place',
   'useCar',
+  'startDate',
+  'endDate',
   'noticeImage',
   'ccUserIdxs',
   'attendeeUserIdxs',
-  'startDate',
-  'endDate',
 ] as const) {
   @ApiProperty({ type: String, description: '기존 이미지 URL', required: false })
   imageUrl: string | null;

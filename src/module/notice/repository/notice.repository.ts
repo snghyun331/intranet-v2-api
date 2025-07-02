@@ -68,11 +68,25 @@ export class NoticeRepostiory {
       .execute();
   }
 
-  async updateNotice(adminName: string, noticeIdx: number, { title, content }: UpdateNoticeDto): Promise<UpdateResult> {
+  async updateNotice(
+    adminName: string,
+    noticeIdx: number,
+    { title, content, category, place, useCar, startDate, endDate }: UpdateNoticeDto,
+  ): Promise<UpdateResult> {
     return await this.noticeModel
       .createQueryBuilder()
       .update(NoticeEntity)
-      .set({ lastEditorName: adminName, lastUpdateAt: new Date(), title, content })
+      .set({
+        lastEditorName: adminName,
+        lastUpdateAt: new Date(),
+        title,
+        content,
+        category,
+        place,
+        useCar,
+        startDate,
+        endDate,
+      })
       .where('noticeIdx = :noticeIdx', { noticeIdx })
       .execute();
   }
