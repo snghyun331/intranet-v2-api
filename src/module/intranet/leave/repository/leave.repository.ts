@@ -585,6 +585,8 @@ export class LeaveRepository {
         endDate,
       })
       .orderBy('commuteEntity.commuteDate', 'ASC')
+      .addOrderBy('commuteEntity.userName', 'ASC')
+      .addOrderBy('commuteEntity.confirmYN', 'DESC')
       .getRawMany();
 
     return result;
