@@ -228,6 +228,27 @@ export const ADMIN_NOTICES_DETAIL: SwaggerMethod = {
 };
 
 export const USERS_NOTICES: SwaggerMethod = {
+  DELETE: {
+    API_OPERATION: {
+      summary: '사용자 공지사항 삭제 API',
+    },
+    API_PARAM1: {
+      type: Number,
+      name: 'noticeIdx',
+      description: '공지사항IDX',
+      required: true,
+    },
+    API_OK_RESPONSE: {
+      content: {
+        'application/json': {
+          example: {
+            statusCode: 200,
+            message: 'success',
+          },
+        },
+      },
+    },
+  },
   PUT: {
     API_OPERATION: {
       summary: '사용자 공지사항 수정 API',

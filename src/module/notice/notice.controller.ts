@@ -112,6 +112,21 @@ export class UserNoticeController {
     return response;
   }
 
+  @ApiOperation(USERS_NOTICES.DELETE.API_OPERATION)
+  @ApiParam(USERS_NOTICES.DELETE.API_PARAM1)
+  @ApiOkResponse(USERS_NOTICES.DELETE.API_OK_RESPONSE)
+  @ApiBearerAuth('accessToken')
+  @UseGuards(UserAuthGuard, UserRoleGuard)
+  @UserRole(UserGradeEnum.INTERN)
+  @Delete(':noticeIdx')
+  async deleteUserNotice(@Param('noticeIdx', ParseIntPipe) noticeIdx: number): Promise<ResponseInterface> {
+    const data = await this.noticeService.deleteNotice(noticeIdx);
+
+    const response: ResponseInterface = { message: 'success', data };
+
+    return response;
+  }
+
   @ApiOperation(USERS_NOTICES_HAS_NEW.GET.API_OPERATION)
   @ApiOkResponse(USERS_NOTICES_HAS_NEW.GET.API_OK_RESPONSE)
   @ApiBearerAuth('accessToken')

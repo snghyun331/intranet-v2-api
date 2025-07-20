@@ -113,7 +113,11 @@ export class NoticeRepostiory {
         'noticeEntity.startDate AS startDate',
         'noticeEntity.endDate AS endDate',
         'noticeEntity.createdAt AS createdAt',
-        'CASE WHEN noticeReadLogEntity.noticeIdx IS NULL THEN 1 ELSE 0 END AS isNew',
+        `CASE WHEN EXISTS (
+          SELECT 1 FROM notice_read_log readLog
+          WHERE readLog.notice_idx = noticeEntity.notice_idx
+          AND readLog.user_idx = ${userIdx}
+        ) THEN 0 ELSE 1 END AS isNew`,
 
         // 추가: 참석자 정보 가져오기
         'noticeAttendeeEntity.attendeeUserIdx AS attendeeUserIdx',
@@ -126,13 +130,7 @@ export class NoticeRepostiory {
       .leftJoin(NoticeCCUserEntity, 'noticeCCUserEntity', 'noticeCCUserEntity.noticeIdx = noticeEntity.noticeIdx')
       .leftJoin(UserEntity, 'ccUserEntity', 'ccUserEntity.userIdx = noticeCCUserEntity.ccUserIdx')
       .leftJoin(NoticeAttendeeEntity, 'noticeAttendeeEntity', 'noticeAttendeeEntity.noticeIdx = noticeEntity.noticeIdx')
-      .leftJoin(UserEntity, 'attendeeUserEntity', 'attendeeUserEntity.userIdx = noticeAttendeeEntity.attendeeUserIdx')
-      .leftJoin(
-        NoticeReadLogEntity,
-        'noticeReadLogEntity',
-        'noticeEntity.noticeIdx = noticeReadLogEntity.noticeIdx AND noticeReadLogEntity.userIdx = :userIdx',
-      )
-      .setParameter('userIdx', userIdx);
+      .leftJoin(UserEntity, 'attendeeUserEntity', 'attendeeUserEntity.userIdx = noticeAttendeeEntity.attendeeUserIdx');
 
     if (filterInfo?.month && filterInfo?.year) {
       const year: string = filterInfo.year;
