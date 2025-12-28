@@ -67,3 +67,8 @@ script.sh
 # MongoDB
 /mongo-data
 /mongo-data/*
+
+
+# Mariadb
+/db
+/db/*

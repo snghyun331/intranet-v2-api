@@ -51,6 +51,30 @@ services:
     networks:
       - acg-benefit-net_default
 
+  mariadb-benefit:
+    image: mariadb:latest
+    container_name: mariadb-benefit
+    restart: on-failure
+    volumes:
+      - ./db/conf.d:/etc/mysql/conf.d
+      - ./db/data:/var/lib/mysql
+      - ./db/initdb.d:/docker-entrypoint-initdb.d
+    env_file: .env
+    environment:
+      TZ: Asia/Seoul
+      MARIADB_ROOT_PASSWORD: $DB_PW
+      MARIADB_DATABASE: $DB_NAME
+    ports:
+      - '3307:3306'
+    deploy:
+      resources:
+        limits:
+          memory: '512M'
+        reservations:
+          cpus: '0.5'
+    networks:
+      - acg-benefit-net_default
+
 networks:
   acg-benefit-net_default:
     driver: bridge
