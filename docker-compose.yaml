@@ -40,17 +40,6 @@ services:
     networks:
       - acg-benefit-net_default
 
-  mongo-benefit:
-    image: mongo:latest
-    container_name: mongo-benefit
-    restart: on-failure
-    volumes:
-      - ./mongo-data:/data/db
-    ports:
-      - '27017:27017'
-    networks:
-      - acg-benefit-net_default
-
   mariadb-benefit:
     image: mariadb:latest
     container_name: mariadb-benefit
